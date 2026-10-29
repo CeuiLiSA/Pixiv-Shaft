@@ -16,12 +16,19 @@ import java.util.LinkedList
 import java.util.Random
 import kotlin.math.ln
 import kotlin.math.pow
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
- * 发现页候选池。进程级一份，由 [ceui.lisa.activities.Shaft] 构造、经
+ * 发现页候选池。进程级一份，由 Hilt 以 @Singleton 构造、经
  * [ceui.pixiv.services.ServicesProvider.discoveryPool] 取用；构造只订阅画像变化，不做 IO。
  */
-class DiscoveryPool(app: Context, private val profileManager: ProfileManager) {
+@Singleton
+class DiscoveryPool @Inject constructor(
+    @ApplicationContext app: Context,
+    private val profileManager: ProfileManager,
+) {
 
     private val app: Context = app.applicationContext
 

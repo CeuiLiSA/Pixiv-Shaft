@@ -12,6 +12,7 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.text.HtmlCompat
+import ceui.lisa.helper.replaceWithCustomTabSpans
 import androidx.core.view.OneShotPreDrawListener
 import androidx.core.view.doOnPreDraw
 import androidx.core.view.isInvisible
@@ -346,7 +347,7 @@ internal fun ArtworkV3Fragment.descRenderer() =
             // 同款修法:HtmlCompat 渲染 + LinkMovementMethod 让链接可点。
             descFullCaption = HtmlCompat.fromHtml(
                 cell.item.caption, HtmlCompat.FROM_HTML_MODE_COMPACT
-            )
+            ).replaceWithCustomTabSpans()
             b.description.movementMethod = LinkMovementMethod.getInstance()
         }
         applyDescCollapseState(b)

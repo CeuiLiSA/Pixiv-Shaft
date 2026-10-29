@@ -27,8 +27,6 @@ import ceui.pixiv.api.Client
 import ceui.loxia.Novel
 import ceui.pixiv.actions.PixivActions
 import ceui.pixiv.chat.base.viewModels
-import ceui.pixiv.download.toast.DownloadToastKind
-import ceui.pixiv.download.toast.DownloadToasts
 import ceui.pixiv.feeds.FeedCell
 import ceui.pixiv.feeds.FeedFragment
 import ceui.pixiv.feeds.FeedItem
@@ -43,7 +41,6 @@ import ceui.pixiv.ui.novel.reader.export.NovelExportManager
 import ceui.pixiv.ui.novel.reader.ui.ExportFormatCallback
 import ceui.pixiv.ui.novel.reader.ui.ExportSheet
 import ceui.pixiv.ui.recommend.bindTrendingScore
-import ceui.pixiv.ui.task.BatchDownloadNovelsTask
 import ceui.pixiv.utils.playLikePressHaptic
 import ceui.pixiv.utils.playUnlikeHaptic
 import ceui.pixiv.utils.pinHostGlide
@@ -139,23 +136,7 @@ abstract class NovelFeedFragment(
     }
 
     private fun startNovelDownload(novel: Novel, format: ExportFormat) {
-        BatchDownloadNovelsTask(
-            activity = requireActivity(),
-            novels = listOf(novel),
-            format = format,
-            onFinished = { failures ->
-                if (isAdded) {
-                    DownloadToasts.show(
-                        DownloadToastKind.NOVEL_BATCH_RESULT,
-                        if (failures.isEmpty()) {
-                            getString(R.string.batch_download_all_ok)
-                        } else {
-                            getString(R.string.batch_download_some_failed, failures.size)
-                        },
-                    )
-                }
-            },
-        )
+        PixivActions.downloadNovels(listOf(novel), format)
     }
 
     /**
@@ -545,9 +526,9 @@ abstract class NovelFeedFragment(
         button.imageTintList = ColorStateList.valueOf(ContextCompat.getColor(button.context, color))
     }
 
-    /** VM 里当前整表的小说条目。对齐 [IllustFeedFragment.currentIllustItems]。 */
+    /** 屏上可见的小说条目：不含页面临时隐藏的（[ceui.pixiv.feeds.FeedItem.hidden]）。对齐 [IllustFeedFragment.currentIllustItems]。 */
     internal fun currentNovelItems(): List<NovelFeedItem> {
-        return feedViewModel.uiState.value.items.filterIsInstance<NovelFeedItem>()
+        return feedViewModel.uiState.value.visibleItems.filterIsInstance<NovelFeedItem>()
     }
 
     /** VM 里当前这条小说的最新条目（真源）；已被刷新挤掉则 null。对齐 [IllustFeedFragment.currentIllustItem]。 */

@@ -478,6 +478,33 @@ public class FragmentSettingsAppearance extends SettingsPageFragment<FragmentSet
         });
         baseBind.bottomBarOrderRela.setOnClickListener(v -> baseBind.orderSelect.performClick());
 
+        // 底栏跟随列表滚动收起：关掉后底栏固定常显。回首页 onResume 即生效，不用重启
+        baseBind.bottomBarScrollHide.setChecked(Shaft.sSettings.isBottomBarHideOnScroll());
+        baseBind.bottomBarScrollHide.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            Shaft.sSettings.setBottomBarHideOnScroll(isChecked);
+            Local.setSettings(Shaft.sSettings);
+        });
+        baseBind.bottomBarScrollHideRela.setOnClickListener(
+                v -> baseBind.bottomBarScrollHide.performClick());
+
+        // 顶栏跟随列表滚动收起：只作用于「推荐」tab 的紫色 Toolbar，同样回首页即生效
+        baseBind.topBarScrollHide.setChecked(Shaft.sSettings.isTopBarHideOnScroll());
+        baseBind.topBarScrollHide.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            Shaft.sSettings.setTopBarHideOnScroll(isChecked);
+            Local.setSettings(Shaft.sSettings);
+        });
+        baseBind.topBarScrollHideRela.setOnClickListener(
+                v -> baseBind.topBarScrollHide.performClick());
+
+        // 侧边栏图标显示为账号头像
+        baseBind.useAccountAvatarAsDrawerIcon.setChecked(Shaft.sSettings.isUseAccountAvatarAsDrawerIcon());
+        baseBind.useAccountAvatarAsDrawerIcon.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            Shaft.sSettings.setUseAccountAvatarAsDrawerIcon(isChecked);
+            Local.setSettings(Shaft.sSettings);
+        });
+        baseBind.useAccountAvatarAsDrawerIconRela.setOnClickListener(
+                v -> baseBind.useAccountAvatarAsDrawerIcon.performClick());
+
         // Muzei 动态壁纸来源设置（issue #548）；同一个 Activity 也是 Muzei 侧「来源设置」的落点
         baseBind.muzeiSettingsRela.setOnClickListener(v ->
                 startActivity(new Intent(mContext, ceui.pixiv.muzei.MuzeiSettingsActivity.class)));

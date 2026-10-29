@@ -217,11 +217,15 @@ internal fun IllustFeedFragment.staggerIllustRenderer():
         val bean = cell.item.illust
         cell.binding.illustImage.setHeightRatio(displayRatioOf(bean))
 
+        // 「这条算不算 AI」一次 bind 只问一次：标签规则要逐条规范化比较，是这条链路上最贵的一步。
+        // 打码判定与 AI 角标都从这一份结果上取，别让同一张卡把标签匹配跑两遍。
+        val aiWork = IllustNovelFilter.isAiWork(bean)
+        val excludeAi = Shaft.sSettings.isDeleteAIIllust
         // 打码与否的真源是本地屏蔽名单 + AI 屏蔽强度，bind 时现读：别的页面改了屏蔽/设置，
         // 本页滑动复用一次就跟上（条目本身不带这个状态，见 PAYLOAD_ILLUST_SPOILER_CHANGED 的注释；
         // 没被回收的卡由 IllustFeedFragment.observeMuteRevision 补绑）
         val spoilered = IllustMuteStore.isMuted(cell.item.illust.id) ||
-                IllustNovelFilter.shouldBlurAi(bean)
+                IllustNovelFilter.shouldBlurAi(bean, excludeAi, aiWork)
         // 粒子层只跟屏蔽态走：没被屏蔽的卡一律不画。之前首页推荐是「全员开」，
         // 整屏卡片都在跑逐帧粒子——既看不出是装饰还是屏蔽提示，也白烧一屏的帧。
         // View 本身不 clickable，不会截走卡片点击/长按。
@@ -235,7 +239,7 @@ internal fun IllustFeedFragment.staggerIllustRenderer():
 
         // 角标行整行交给自绘 View（原本是 7 个 TextView，每张卡无条件建一遍）。
         // 顺序与原布局一致：站长推荐 -> R-18 -> 页数 -> W -> GIF -> AI -> NEW。
-        cell.binding.badgeRow.setBadges(buildBadges(bean, cell.binding.root.resources))
+        cell.binding.badgeRow.setBadges(buildBadges(bean, cell.binding.root.resources, aiWork))
         // 全量绑定可能是复用的卡换了条目：上一条残留的爆发动画/缩放必须清干净
         resetLikeAnim(cell.binding)
         renderLikeState(cell.binding.likeButton, cell.item.illust.is_bookmarked == true)
@@ -399,8 +403,15 @@ internal fun renderLikeState(button: ImageView, liked: Boolean) {
 /**
  * 角标行的内容与顺序，逐项对应原布局那 7 个 TextView（见 [IllustBadgeRowView]）。
  * 只放「这一条作品确实要显示」的角标 —— 空位不再各建一个 View。
+ *
+ * [aiWork] 由调用方算好传入：同一次 bind 里打码判定已经问过「算不算 AI」，
+ * 这里不再重复跑标签规则。
  */
-private fun buildBadges(bean: Illust, res: Resources): List<IllustBadgeRowView.Badge> {
+private fun buildBadges(
+    bean: Illust,
+    res: Resources,
+    aiWork: Boolean,
+): List<IllustBadgeRowView.Badge> {
     val out = ArrayList<IllustBadgeRowView.Badge>(4)
     // 只有 trending repo 注入 trendingScore，其他页 null 走「不显示」（对齐 IAdapter 复用语义）
     formatTrendingScore(bean.trendingScore)?.let {
@@ -417,8 +428,9 @@ private fun buildBadges(bean: Illust, res: Resources): List<IllustBadgeRowView.B
         out += IllustBadgeRowView.Badge(res.getString(R.string.illust_badge_panorama))
     }
     if (bean.isGif()) out += IllustBadgeRowView.Badge(res.getString(R.string.illust_badge_gif))
-    // AI 角标：官方 ai_type==2 或标签命中（issue #1252，与屏蔽/详情页同口径）
-    if (IllustNovelFilter.isAiWork(bean.isCreatedByAI(), bean.tagNames)) {
+    // AI 角标：官方 ai_type==2 或标签命中（issue #1252，与屏蔽/详情页同口径）。
+    // 判定结果由 bind 传进来，角标这里不再跑一遍标签规则。
+    if (aiWork) {
         out += IllustBadgeRowView.Badge(res.getString(R.string.illust_badge_ai))
     }
     if (bean.isRelated) out += IllustBadgeRowView.Badge(res.getString(R.string.illust_badge_related))

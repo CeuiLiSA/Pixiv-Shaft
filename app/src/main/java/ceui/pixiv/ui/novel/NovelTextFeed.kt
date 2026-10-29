@@ -687,9 +687,7 @@ fun novelCaptionRenderer(
                             val uri = runCatching { link.toUri() }.getOrNull()
                             val scheme = uri?.scheme?.lowercase()
                             if (uri != null && (scheme == "http" || scheme == "https")) {
-                                runCatching {
-                                    b.caption.context.startActivity(Intent(Intent.ACTION_VIEW, uri))
-                                }
+                                ceui.lisa.helper.WebLinkHelper.openUrl(b.caption.context, uri)
                             }
                         }
                     }

@@ -116,6 +116,9 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
      */
     private boolean drawerMenuReady = false;
 
+    /** {@link #leaveDrawerThen} 已排上、还没执行的那次出场;非 null 时再点抽屉条目一律忽略。 */
+    private Runnable pendingDrawerLeave;
+
     /**
      * 首帧之后逐帧跑的活（放行停在 CREATED 的 tab 页、建抽屉菜单），每帧只跑一个。
      *
@@ -275,7 +278,12 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
         // 侧边栏账号区完全由会话驱动：observe 在 onStart 先回放当前账号完成首绑,
         // 之后登录/切号/编辑资料/前台静默同步的每次写回都会自动重绑,不再需要
         // 手动 initDrawerHeader() 首绑 + Dev.refreshUser 在 onResume 补刷那一套。
-        SessionManager.INSTANCE.getLoggedInAccount().observe(this, account -> initDrawerHeader());
+        SessionManager.INSTANCE.getLoggedInAccount().observe(this, account -> {
+            initDrawerHeader();
+            if (baseBind.navigationRail != null) {
+                baseBind.navigationRail.updateMenuAvatar();
+            }
+        });
         // 订阅档位是冷启动异步拉回来的,落地时机比账号晚,所以单独观察一次;不然徽章要等
         // 下一次冷启动才出现,首装的人则永远看不到。
         RemoteAppConfig remoteAppConfig =
@@ -298,6 +306,9 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                     public boolean onLongClick(View v) {
                         boolean filterEnable = Shaft.sSettings.isR18FilterTempEnable();
                         Shaft.sSettings.setR18FilterTempEnable(!filterEnable);
+                        // 抽屉此刻是开着的，底下的列表不会经过 onResume：显式通知它们按新设置重算显隐
+                        LocalBroadcastManager.getInstance(MainActivity.this)
+                                .sendBroadcast(new Intent(Params.R18_FILTER_CHANGED));
                         Common.showToast(filterEnable ? "ԅ(♡﹃♡ԅ)" : "X﹏X");
                         return true;
                     }
@@ -318,6 +329,9 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                 });
         baseBind.navigationRail.setShortcutListener(this::handleDrawerAction);
         applyNavigationMode(getResources().getConfiguration());
+        if (baseBind.navigationRail != null) {
+            baseBind.navigationRail.updateMenuAvatar();
+        }
         baseBind.viewPager.addOnPageChangeListener(
                 new ViewPager.OnPageChangeListener() {
                     @Override
@@ -542,6 +556,9 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
 
         bottomBarAutoHide = new BottomBarAutoHide(baseBind.navigationView);
         bottomBarAutoHide.install(this);
+        // 「底栏跟随滚动收起」关掉时直接把 behavior 摘掉（固定常显）。设置页改完回首页
+        // onResume 会再同步一次，所以不用重启。
+        bottomBarAutoHide.setEnabled(Shaft.sSettings.isBottomBarHideOnScroll());
     }
 
     @SuppressLint("RestrictedApi")
@@ -986,8 +1003,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                         // [实验] 武装点放在这里而不是 handleDrawerAction 里:那个方法还与
                         // MeFragment / FragmentCenter 共用,只有这里是真正的"从侧边栏进入"。
                         PredictiveBackSuppressor.armDrawerLaunch();
-                        handleDrawerAction(entry.id);
-                        baseBind.drawerLayout.closeDrawer(GravityCompat.START);
+                        leaveDrawerThen(() -> handleDrawerAction(entry.id));
                     });
             parent.addView(row);
         }
@@ -1189,15 +1205,39 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
     private void openMyUserPage() {
         Intent userIntent = new Intent(mContext, UActivity.class);
         userIntent.putExtra(Params.USER_ID, (long) SessionManager.INSTANCE.getLoggedInUid());
-        startActivity(userIntent);
-        baseBind.drawerLayout.closeDrawer(GravityCompat.START);
+        leaveDrawerThen(() -> startActivity(userIntent));
     }
 
     private void openAccountSwitch() {
         Intent intent = new Intent(mContext, TemplateActivity.class);
         intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.ACCOUNT_SWITCH.key);
-        startActivity(intent);
-        baseBind.drawerLayout.closeDrawer(GravityCompat.START);
+        leaveDrawerThen(() -> startActivity(intent));
+    }
+
+    /**
+     * 侧边栏条目点击后的统一出场节奏:先让 ripple 播完,再收抽屉,最后才跳转。
+     *
+     * <p>抽屉关闭 250ms、ripple 的扩散动画 225ms,两者同时起跑时,波纹最明显的那一刻
+     * 正好是抽屉滑出屏幕的那一刻 —— 看起来就是"抽屉都快收完了才出现波纹"。先等 120ms
+     * (此时 ripple 已扩散到六成、肉眼明确可见)再收抽屉,波纹才有了自己的时间。
+     *
+     * <p>跳转排在 closeDrawer 之后:startActivity 是同步调用,实测会占住主线程约 90ms,
+     * 排在前面时抽屉的 translationX 已经推进了一段却没有一帧被画出来,ripple 的起始帧
+     * 也一起被吞掉。
+     */
+    private void leaveDrawerThen(Runnable action) {
+        // 这 120ms 里抽屉还静止张开、每一行都照常可点(原来点完抽屉立刻进入 settling,
+        // 再点会被 ViewDragHelper 当成抓抽屉拦掉);不挡的话连点两下就会叠开两个页面。
+        if (pendingDrawerLeave != null) {
+            return;
+        }
+        pendingDrawerLeave =
+                () -> {
+                    pendingDrawerLeave = null;
+                    baseBind.drawerLayout.closeDrawer(GravityCompat.START);
+                    action.run();
+                };
+        baseBind.drawerLayout.postDelayed(pendingDrawerLeave, 120);
     }
 
     private void initDrawerHeader() {
@@ -1304,6 +1344,13 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
         buildDrawerMenu();
         // 「平板适配排版」可能刚在设置里切过，按当前开关重选底栏 / 侧栏(没变时是 no-op)
         applyNavigationMode(getResources().getConfiguration());
+        if (baseBind.navigationRail != null) {
+            baseBind.navigationRail.updateMenuAvatar();
+        }
+        // 「底栏跟随滚动收起」同理：开关一改就重新挂 / 摘 behavior(没变时是 no-op)
+        if (bottomBarAutoHide != null) {
+            bottomBarAutoHide.setEnabled(Shaft.sSettings.isBottomBarHideOnScroll());
+        }
         if (SessionManager.INSTANCE.isLoggedIn()) {
             String referralCode = ceui.pixiv.ui.referral.ReferralPendingInvite.consume();
             if (referralCode != null) {
@@ -1330,6 +1377,12 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
     protected void onDestroy() {
         super.onDestroy();
         LocalBroadcastManager.getInstance(this).unregisterReceiver(profileReadyReceiver);
+        // View.postDelayed 不随 Activity 销毁撤回;handleDrawerAction 里有弹框的分支
+        // (以图搜图、敏感内容警示),在已销毁的 Activity 上弹会 BadTokenException。
+        if (pendingDrawerLeave != null) {
+            baseBind.drawerLayout.removeCallbacks(pendingDrawerLeave);
+            pendingDrawerLeave = null;
+        }
     }
 
     @Override

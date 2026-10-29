@@ -27,10 +27,14 @@ import com.tencent.mmkv.MMKV
 /**
  * 进程级服务的唯一出口。原则：
  *
- * - 这里登记的都是「一个进程只该有一份」的服务，由 [ceui.lisa.activities.Shaft] 在
- *   onCreate 里 **构造** 并持有；类本身是普通 class，可以在单测里 new 出第二份。
- * - 构造函数必须廉价（不做 IO、不起协程），真正的工作延迟到第一次调用。
- * - 想拿服务：有 Context 用 [Context.appServices]，Fragment/Activity 用 requireXxx()。
+ * - 这里登记的都是「一个进程只该有一份」的服务。大多是 `@Singleton` + `@Inject constructor`，
+ *   由 Hilt 构造，在 [ceui.lisa.activities.Shaft] 的 super.onCreate() 时注入进 Shaft，再由
+ *   Shaft 在 onCreate 里按顺序 start；类本身是普通 class，可以在单测里 new 出第二份。
+ * - 构造函数必须廉价（不做 IO、不起协程），也不能依赖 Shaft.onCreate 里才就绪的全局状态
+ *   （sSettings、Timber、登录态……）——注入发生在它们之前。真正的工作延迟到第一次调用。
+ * - 想拿服务：能注入的地方（Hilt 入口、`@HiltViewModel`、别的 `@Inject` 类）直接注入；
+ *   拿不到注入的地方有 Context 用 [Context.appServices]。
+ * - 新增服务：`@Singleton class X @Inject constructor(...)`，Shaft 里加 `@Inject` 字段与 getter。
  *   不要再新增 Kotlin `object` 单例来承载有状态的服务。
  */
 interface ServicesProvider {
@@ -94,6 +98,9 @@ interface ServicesProvider {
 
     /** 小说阅读器可下载字体：关掉面板后下载继续，所以是进程级。 */
     val readerFontRepository: ReaderFontRepository
+
+    /** 应用更新包下载：关掉更新 sheet 后下载继续，跑完回前台发 banner，所以是进程级。 */
+    val apkDownloadManager: ceui.lisa.update.ApkDownloadManager
 }
 
 fun Context.appServices(): ServicesProvider = applicationContext as ServicesProvider

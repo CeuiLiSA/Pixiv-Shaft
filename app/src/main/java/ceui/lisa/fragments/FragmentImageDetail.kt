@@ -667,7 +667,10 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
         }
         val animatedIllust = mIllust?.takeIf { it.isGif() }
         if (animatedIllust != null) {
-            ugoiraPlayer?.bind(viewLifecycleOwner, animatedIllust, maxHeight = 0, fitToViewport = true)
+            ugoiraPlayer?.bind(
+                viewLifecycleOwner, animatedIllust, maxHeight = 0, fitToViewport = true,
+                offline = (activity as? ImageDetailActivity)?.snapshotUgoira,
+            )
             return
         }
         val isUrlMode = mIllust == null && !TextUtils.isEmpty(url)

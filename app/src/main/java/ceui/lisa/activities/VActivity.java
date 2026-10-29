@@ -30,6 +30,7 @@ import ceui.lisa.http.LegacyApiCalls;
 import ceui.lisa.model.ListIllust;
 import ceui.pixiv.api.model.Illust;
 import java.util.Collections;
+import timber.log.Timber;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
@@ -48,14 +49,25 @@ public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
 
     @Override
     protected void initBundle(Bundle bundle) {
-        pageUUID = bundle.getString(Params.PAGE_UUID);
-        originPageUUID = bundle.getString(Params.ORIGIN_PAGE_UUID);
-        if (TextUtils.isEmpty(originPageUUID)) {
-            originPageUUID = pageUUID;
+        // 读不出来时字段保持空值，initView 找不到页数据会直接 finish()；若异常抛给 BaseActivity，
+        // 它会跳过 setContentView 留下白屏。会读不出来的两种情况：
+        // ① Android 13 以下 Bundle 整包反序列化，升级前的旧 widget 还带着老的 Serializable extra；
+        // ② widget 的 Illust JSON 损坏。
+        try {
+            pageUUID = bundle.getString(Params.PAGE_UUID);
+            originPageUUID = bundle.getString(Params.ORIGIN_PAGE_UUID);
+            if (TextUtils.isEmpty(originPageUUID)) {
+                originPageUUID = pageUUID;
+            }
+            index = bundle.getInt(Params.POSITION);
+            // widget 点击携带的单张作品：进程被杀后 Container 已空时的兜底数据源
+            String widgetIllustJson = bundle.getString(Params.WIDGET_ILLUST_JSON);
+            if (!TextUtils.isEmpty(widgetIllustJson)) {
+                widgetIllust = Shaft.sGson.fromJson(widgetIllustJson, Illust.class);
+            }
+        } catch (RuntimeException e) {
+            Timber.w(e, "VActivity extras unreadable");
         }
-        index = bundle.getInt(Params.POSITION);
-        // widget 点击携带的单张作品：进程被杀后 Container 已空时的兜底数据源
-        widgetIllust = (Illust) bundle.getSerializable(Params.WIDGET_ILLUST);
     }
 
     @Override

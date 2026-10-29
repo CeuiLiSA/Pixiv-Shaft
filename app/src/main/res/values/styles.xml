@@ -419,28 +419,42 @@
         <item name="android:stateListAnimator">@animator/button_press_alpha</item>
     </style>
 
+    <!--
+        字族同时写 app 命名空间的 fontFamily 和框架命名空间的 android:fontFamily：
+        前者只有 AppCompatTextView 会解析（AppCompatTextHelper 读 TextAppearance_fontFamily），
+        后者任何 TextView 都认。布局 inflate 出来的 TextView 会被 AppCompat 换成
+        AppCompatTextView，两者等价；但代码里 new 的框架 TextView 再 setTextAppearance
+        （如 NovelHeaderSettings / DownloadPathSettings 的分节标题）只认后者，只写前者会
+        静默退回系统字。RequestDetail* 与 web_discovery_styles 也是同一个原因写了 android:fontFamily。
+    -->
     <style name="textMontserratRegular">
         <item name="fontFamily">@font/montserrat_regular</item>
+        <item name="android:fontFamily">@font/montserrat_regular</item>
     </style>
 
     <style name="textMontserratBold">
         <item name="fontFamily">@font/montserrat_bold</item>
+        <item name="android:fontFamily">@font/montserrat_bold</item>
     </style>
 
     <style name="textBlack">
         <item name="fontFamily">@font/montserrat_extra_bold</item>
+        <item name="android:fontFamily">@font/montserrat_extra_bold</item>
     </style>
 
     <style name="textMontserratMedium">
         <item name="fontFamily">@font/montserrat_medium</item>
+        <item name="android:fontFamily">@font/montserrat_medium</item>
     </style>
 
     <style name="textMontserratSemiBold">
         <item name="fontFamily">@font/montserrat_semi_bold</item>
+        <item name="android:fontFamily">@font/montserrat_semi_bold</item>
     </style>
 
     <style name="textMontserratExtraBold">
         <item name="fontFamily">@font/montserrat_extra_bold</item>
+        <item name="android:fontFamily">@font/montserrat_extra_bold</item>
     </style>
 
     <!-- ── 约稿方案详情页 (MD3-E) 分节样式;动态色(卡底/描边/强调)由 Fragment 用 V3Palette 注入 ── -->
@@ -552,6 +566,14 @@
         <item name="android:windowEnterAnimation">@anim/dialog_enter_anim</item>
         <item name="android:windowExitAnimation">@anim/dialog_exit_anim</item>
     </style>
+
+    <!-- 所有用到下面这些 ShapeAppearance 的 ShapeableImageView 都不画描边：布局里一律显式
+         app:strokeColor="@android:color/transparent"，新增 ShapeableImageView 也照此写。
+         material 的 Widget.MaterialComponents.ShapeableImageView 默认把 strokeColor 指向
+         @color/material_on_surface_stroke，而它里面是 ?attr/colorOnSurface；本 App 主题是
+         AppCompat 系、没有这个 Material 属性，于是每次 inflate 都会在 ResourcesCompat 里抛
+         UnsupportedOperationException 并打一条 "Failed to inflate ColorStateList" WARN。
+         显式透明色不改观感（strokeWidth 恒为 0，drawStroke 本来就不画），只是不再解析那个属性。 -->
 
     <!-- "下载管理" 三 tab 缩略图圆角 —— ShapeableImageView 的 shapeAppearanceOverlay：
          空 parent 让所有四角都用同一个 cornerSize；不影响外层 CardView 的圆角。 -->

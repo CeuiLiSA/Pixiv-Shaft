@@ -1,6 +1,5 @@
 package ceui.pixiv.events
 
-import android.content.Context
 import androidx.lifecycle.asFlow
 import ceui.lisa.BuildConfig
 import ceui.lisa.activities.Shaft
@@ -32,6 +31,8 @@ import timber.log.Timber
 import java.security.MessageDigest
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicBoolean
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * Sends bookmark / follow / download events to shaft-api-v2 for community
@@ -49,12 +50,11 @@ import java.util.concurrent.atomic.AtomicBoolean
  * "EventReporter" tag so a single `adb logcat -s EventReporter` shows the
  * full report → enqueue → flush → POST → response chain.
  *
- * Process-scoped service: constructed by [ceui.lisa.activities.Shaft] and exposed via
+ * Process-scoped service: constructed by Hilt as a @Singleton and exposed via
  * [ceui.pixiv.services.ServicesProvider]. The constructor does no IO; [start] does.
  */
-// Context 参数只为和其他进程级服务保持同一构造契约（见 ServicesProvider）；
-// 本类只碰 MMKV，暂时用不上它。
-class EventReporter(@Suppress("UNUSED_PARAMETER") app: Context) {
+@Singleton
+class EventReporter @Inject constructor() {
 
     private companion object {
         const val TAG = "EventReporter"

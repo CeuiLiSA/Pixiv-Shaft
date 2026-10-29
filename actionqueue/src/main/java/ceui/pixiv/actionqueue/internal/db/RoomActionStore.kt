@@ -83,6 +83,8 @@ internal class RoomActionStore(
 
     override suspend fun clearFailed(owner: String): Int = dao.clearFailed(owner)
 
+    override suspend fun clearPending(owner: String): Int = dao.clearPending(owner)
+
     override suspend fun pruneFailed(owner: String, keepLatest: Int): Int =
         dao.pruneFailed(owner, keepLatest.coerceAtLeast(0))
 

@@ -10,6 +10,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.RecyclerView;
 
+import ceui.pixiv.ui.common.TabletLayout;
+
 public class DynamicHeightImageView extends androidx.appcompat.widget.AppCompatImageView {
 
     private static final float WIDE_PANE_DP = 600f;
@@ -236,7 +238,16 @@ public class DynamicHeightImageView extends androidx.appcompat.widget.AppCompatI
         }
     }
 
+    /**
+     * 「宽栏」= 平板双栏里那一条图片栏,夹高度只在这种栏里成立,所以除了 dp 宽度,还必须
+     * 「平板适配排版」真的开着。
+     * <p>只看 dp 宽度分不出设备形态:1080×1920 @240dpi 的低密度手机,栏宽 720dp,一样过 600dp,
+     * 但它是手机形态 —— 图必须按宽铺满。此时夹高度会让 FIT_CENTER 把宽度缩成「视口高 / 高宽比」,
+     * 左右露出 loading_placeholder 底色,即用户反馈的「白边」。设置里关掉平板排版 = 与手机排版一致,
+     * 因此这里一律不夹。
+     */
     private boolean isWidePane(int widthPx) {
-        return widthPx / getResources().getDisplayMetrics().density >= WIDE_PANE_DP;
+        return TabletLayout.isEnabled(getResources().getConfiguration())
+                && widthPx / getResources().getDisplayMetrics().density >= WIDE_PANE_DP;
     }
 }

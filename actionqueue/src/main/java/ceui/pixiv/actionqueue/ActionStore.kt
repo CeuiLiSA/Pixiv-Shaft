@@ -101,6 +101,9 @@ public interface ActionStore {
     /** 清空 [owner] 名下的 FAILED。@return 删了几条。 */
     public suspend fun clearFailed(owner: String): Int
 
+    /** 清空 [owner] 名下的 PENDING；正在执行的那条（RUNNING）不动。@return 删了几条。 */
+    public suspend fun clearPending(owner: String): Int
+
     /** 只保留 [owner] 名下最新的 [keepLatest] 条 FAILED。@return 删除了几条旧记录。 */
     public suspend fun pruneFailed(owner: String, keepLatest: Int): Int
 

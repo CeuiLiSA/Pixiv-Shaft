@@ -16,11 +16,14 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.io.File
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * 「翻译整部」(issue #925)的进程级任务中心 + 译图仓库。
  *
- * 普通 class,由 [ceui.lisa.activities.Shaft] 构造一份,经
+ * 普通 class,由 Hilt 以 @Singleton 构造一份,经
  * [ceui.pixiv.services.ServicesProvider.mangaBatchTranslateCenter] 取用。
  *
  * 为什么不放在看图页的 ViewModel:整部翻译动辄几分钟,用户点了之后就该能退出看图页
@@ -35,7 +38,11 @@ import java.io.File
  * 与单页流水线互斥:两边共用同一套 OCR 模型([models]),不能并发。单页那边跑之前先
  * [beginSinglePage] 占位、跑完 [endSinglePage];这边跑的时候 [isRunning] 为 true,入口各自先看对方。
  */
-class MangaBatchTranslateCenter(app: Context, private val models: MangaTranslateModels) {
+@Singleton
+class MangaBatchTranslateCenter @Inject constructor(
+    @ApplicationContext app: Context,
+    private val models: MangaTranslateModels,
+) {
 
     private val app: Context = app.applicationContext
 

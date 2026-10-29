@@ -133,6 +133,12 @@
     <string name="v3_widget_hide_refresh_button">隱藏小工具刷新按鈕</string>
     <string name="v3_widget_hide_refresh_button_desc">隱藏後只按換圖間隔自動換圖</string>
     <string name="tablet_layout">平板適配版面</string>
+    <string name="bottom_bar_scroll_hide">底欄跟隨捲動收合</string>
+    <string name="bottom_bar_scroll_hide_desc">向下滑動時收合底欄、上滑恢復顯示；關閉後底欄固定在底部，始終可見</string>
+    <string name="top_bar_scroll_hide">頂欄跟隨捲動收合</string>
+    <string name="top_bar_scroll_hide_desc">推薦頁頂部的標題列向下滑動時收合、上滑恢復顯示；關閉後固定在頂部，始終可見</string>
+    <string name="use_account_avatar_as_drawer_icon">側邊欄圖示顯示為帳號頭像</string>
+    <string name="use_account_avatar_as_drawer_icon_desc">在首頁左上角顯示目前登入帳號的圓形頭像；未登入時顯示訪客頭像</string>
     <string name="tablet_layout_desc">在平板等大螢幕裝置上使用側邊導覽列、依螢幕寬度自動增加欄數的瀑布流與左右排列的作品詳情；關閉後與手機版面一致，僅平板生效</string>
     <!-- 平板首页侧边导航栏（#1087）：快捷入口与菜单按钮 -->
     <string name="rail_bookmarks">收藏</string>
@@ -166,6 +172,7 @@
     <string name="filter_bookmarked_rank">對排行榜過濾</string>
     <string name="filter_bookmarked_following">對動態頁過濾</string>
     <string name="filter_bookmarked_search">對搜尋頁過濾</string>
+    <string name="filter_bookmarked_recmd">對首頁推薦過濾</string>
     <string name="filter_bookmarked_none">不過濾</string>
     <string name="filter_bookmarked_summary">已啟用 %1$d 項</string>
     <string name="filter_bookmarked_dialog_hint">選擇在哪些頁面隱藏已收藏的作品</string>
@@ -1135,6 +1142,15 @@
     <string name="update_later">稍後</string>
     <string name="update_skip_version">跳過此版本</string>
     <string name="update_retry">重試</string>
+    <string name="update_continue">繼續下載</string>
+    <string name="update_paused">已暫停</string>
+    <string name="update_merging">正在合併安裝包…</string>
+    <string name="update_threads">%1$d 執行緒</string>
+    <string name="update_interrupted">下載中斷</string>
+    <string name="update_resume_unavailable">無法繼續下載，請重試</string>
+    <string name="update_banner_done_title">更新已下載完成</string>
+    <string name="update_banner_done_message">點此繼續安裝 %1$s</string>
+    <string name="update_banner_action">去安裝</string>
     <string name="update_download_failed">下載失敗</string>
     <string name="update_check_failed">檢查更新失敗</string>
     <string name="update_rate_limited">被速率限制，請稍後再試</string>
@@ -3007,9 +3023,10 @@
     <string name="snapshot_progress_comments">取得評論</string>
     <string name="snapshot_progress_comment_assets">下載評論頭像／貼圖</string>
     <string name="snapshot_progress_writing">寫入快照</string>
-    <string name="snapshot_unsupported_ugoira">動圖 / ugoira 暫不支援離線快照</string>
+    <string name="snapshot_progress_ugoira">取得動圖幀</string>
     <string name="snapshot_error_page_url_missing">作品第 %1$d 張圖缺少可用 URL</string>
     <string name="snapshot_error_image_download">圖片下載失敗：%1$s</string>
+    <string name="snapshot_error_ugoira_frames">動圖幀取得失敗</string>
 
     <!-- 自動快照（實驗性） -->
     <string name="setting_auto_snapshot_on_bookmark">收藏時產生離線快照</string>
@@ -3457,4 +3474,59 @@
     <string name="image_filter_adjust_fade">褪色</string>
     <string name="image_filter_adjust_vignette">暗角</string>
     <string name="image_filter_adjust_grain">顆粒</string>
+    <!-- 补齐收藏快照（#1275） -->
+    <string name="snapshot_backfill_title">補齊收藏快照</string>
+    <string name="snapshot_backfill_intro">為收藏裡還沒有正式快照的插畫與漫畫逐件產生離線快照。任務在背景排隊進行，離開本頁不影響。</string>
+    <string name="snapshot_backfill_section_settings">佇列設定</string>
+    <string name="snapshot_backfill_scope">收藏範圍</string>
+    <string name="snapshot_backfill_scope_all">全部</string>
+    <string name="snapshot_backfill_scope_public">公開</string>
+    <string name="snapshot_backfill_scope_private">私密</string>
+    <string name="snapshot_backfill_comments">包含評論</string>
+    <string name="snapshot_backfill_comments_hint">同時保存評論與回覆，每件會多發幾次請求</string>
+    <string name="snapshot_backfill_original">使用原圖</string>
+    <string name="snapshot_backfill_original_hint">畫質最高，佔用空間更大</string>
+    <string name="snapshot_backfill_wifi">僅在 Wi-Fi 下執行</string>
+    <string name="snapshot_backfill_wifi_hint">使用行動數據時等待，連上 Wi-Fi 後自動繼續</string>
+    <string name="snapshot_backfill_free_space">可用空間 %1$s，低於 1 GB 時自動暫停</string>
+    <string name="snapshot_backfill_locked_hint">設定對整個佇列生效，停止目前佇列後才能修改。</string>
+    <string name="snapshot_backfill_notice">已有正式快照的作品會略過；已有自動快照且設定相符的，直接轉為正式快照。快照保存在 App 內部儲存空間；App 被系統關閉後，下次開啟時自動繼續。</string>
+    <string name="snapshot_backfill_start">開始補齊</string>
+    <string name="snapshot_backfill_status_running">進行中</string>
+    <string name="snapshot_backfill_status_paused">已暫停</string>
+    <string name="snapshot_backfill_status_waiting">等待中</string>
+    <string name="snapshot_backfill_status_finished">已完成</string>
+    <string name="snapshot_backfill_total">/ %1$d 件已處理</string>
+    <string name="snapshot_backfill_stats">新產生 %1$d · 已有快照 %2$d · 無法取得 %3$d · 失敗 %4$d</string>
+    <string name="snapshot_backfill_detail_generating">正在產生：%1$s</string>
+    <string name="snapshot_backfill_detail_scanning">正在讀取收藏清單，總數會繼續增加</string>
+    <string name="snapshot_backfill_detail_working">正在處理下一件</string>
+    <string name="snapshot_backfill_detail_paused">已暫停，未開始的作品保留在佇列中</string>
+    <string name="snapshot_backfill_detail_low_storage">可用空間不足 1 GB，已自動暫停。清理空間後點「繼續」。</string>
+    <string name="snapshot_backfill_detail_wifi">等待連接 Wi-Fi</string>
+    <string name="snapshot_backfill_detail_network">等待網路連線</string>
+    <string name="snapshot_backfill_detail_login">登入後繼續</string>
+    <string name="snapshot_backfill_detail_cooling">請求過於頻繁，稍後自動繼續</string>
+    <string name="snapshot_backfill_detail_scan_failed">收藏清單沒有讀完，可以重試</string>
+    <string name="snapshot_backfill_detail_finished">全部處理完成</string>
+    <string name="snapshot_backfill_retry_failed">重試失敗的 %1$d 項</string>
+    <string name="snapshot_backfill_done_action">完成</string>
+    <string name="snapshot_backfill_pause">暫停</string>
+    <string name="snapshot_backfill_resume">繼續</string>
+    <string name="snapshot_backfill_stop">停止</string>
+    <string name="snapshot_backfill_stop_title">停止補齊？</string>
+    <string name="snapshot_backfill_stop_message">已產生的快照會保留，還沒處理的 %1$d 件會移出佇列。</string>
+    <string name="snapshot_backfill_summary_all">全部收藏</string>
+    <string name="snapshot_backfill_summary_public">公開收藏</string>
+    <string name="snapshot_backfill_summary_private">私密收藏</string>
+    <string name="snapshot_backfill_summary_original">原圖</string>
+    <string name="snapshot_backfill_summary_regular">一般畫質</string>
+    <string name="snapshot_backfill_summary_comments">含評論</string>
+    <string name="snapshot_backfill_summary_wifi">僅 Wi-Fi</string>
+    <string name="snapshot_backfill_strip_value">%1$d / %2$d · %3$s</string>
+    <!-- Chrome Custom Tabs -->
+    <string name="chrome_custom_tabs_title">Chrome Custom Tabs</string>
+    <string name="chrome_custom_tabs_desc">有 Chrome 時使用 Chrome Custom Tabs 開啟網頁連結</string>
+    <string name="chrome_custom_tabs_not_found">未發現Chrome，已自動停用</string>
+    <string name="open_with_chrome">使用Chrome開啟</string>
 </resources>

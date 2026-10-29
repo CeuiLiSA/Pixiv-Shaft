@@ -290,8 +290,9 @@ abstract class IllustFeedFragment(
 
     // ── 列表状态的读口（renderer / 菜单 / 子类共用）──────────────────────────────
 
+    /** 屏上可见的插画条目：不含页面临时隐藏的（[ceui.pixiv.feeds.FeedItem.hidden]），交给详情页的快照也只该是这些。 */
     internal fun currentIllustItems(): List<IllustFeedItem> {
-        return feedViewModel.uiState.value.items.filterIsInstance<IllustFeedItem>()
+        return feedViewModel.uiState.value.visibleItems.filterIsInstance<IllustFeedItem>()
     }
 
     /** VM 里当前这条作品的最新条目（真源）；已被刷新挤掉则 null。 */
@@ -478,7 +479,8 @@ abstract class IllustFeedFragment(
             // 所以这个守卫成立即蕴含 feedBinding 可用
             val adapter = feedAdapter ?: return@postDelayed
             if (view == null) return@postDelayed
-            val items = feedViewModel.uiState.value.items
+            // 下标要当 adapter 位置用，只能在实际渲染的那份上找：隐藏项不进 adapter
+            val items = feedViewModel.uiState.value.visibleItems
             // pager 的 index 是交接快照里纯插画列表的下标，列表带 header（推荐页排行榜头）
             // 或收藏后相关作品插到中段时不能直接当 adapter 位置用，按作品 id 锚定
             var position = if (illustId > 0) {

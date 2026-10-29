@@ -1,7 +1,6 @@
 package ceui.pixiv.ui.download
 
 import android.app.Activity
-import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -30,7 +29,6 @@ import ceui.lisa.core.DownloadItem
 import ceui.lisa.core.Manager
 import ceui.lisa.core.ManagerReactive
 import ceui.lisa.utils.Common
-import ceui.pixiv.services.appServices
 import ceui.pixiv.ui.bulk.QueueDownloadManager
 import ceui.pixiv.ui.common.tintMenuIconsWhite
 import com.blankj.utilcode.util.BarUtils
@@ -44,6 +42,8 @@ import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 /**
  * V3 设计哲学的下载管理页：单页面 3 tab 容器。
@@ -57,19 +57,15 @@ import kotlinx.coroutines.launch
  *
  * 数字直接追加到 tab 文字后面，避免单独占一行。
  */
+@AndroidEntryPoint
 class DownloadManagerV3Fragment : Fragment() {
 
     /**
-     * 在 [onAttach] 取一次而不是每次 `requireContext()`:清空/重试这类操作跑在
-     * IO 协程里,阻塞的 DB 调用返回时 Fragment 可能已 detach,再 requireContext 就崩。
-     * 实例是应用级的,提前拿住没有泄漏问题。
+     * 注入一次而不是每次 `requireContext()` 去取:清空/重试这类操作跑在 IO 协程里,
+     * 阻塞的 DB 调用返回时 Fragment 可能已 detach,再 requireContext 就崩。
+     * 实例是应用级的,拿住没有泄漏问题。
      */
-    private lateinit var queueDownloadManager: QueueDownloadManager
-
-    override fun onAttach(context: Context) {
-        super.onAttach(context)
-        queueDownloadManager = context.appServices().queueDownloadManager
-    }
+    @Inject lateinit var queueDownloadManager: QueueDownloadManager
 
     private val sharedVm: DownloadManagerSharedViewModel by activityViewModels()
 

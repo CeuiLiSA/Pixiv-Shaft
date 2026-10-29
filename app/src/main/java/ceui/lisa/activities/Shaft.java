@@ -41,6 +41,9 @@ import ceui.pixiv.progress.ProgressTracker;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import dagger.hilt.android.HiltAndroidApp;
+import javax.inject.Inject;
+
 import okhttp3.OkHttpClient;
 import timber.log.Timber;
 
@@ -50,14 +53,20 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Where the app code starts.
+ *
+ * <p>{@link HiltAndroidApp}：进程级服务由 Hilt 构造并注入本类，再经 {@link ServicesProvider}
+ * 暴露给还没迁到注入的调用方。onCreate 只负责按顺序 <em>启动</em> 它们（start / install / bootstrap）。
+ * EntityWrapper 仍在 onCreate 的固定位置手工构造（initialize 时机有讲究），不归 Hilt，
+ * 经 {@link ceui.pixiv.services.ServicesModule} 桥接进图里。
  * */
+@HiltAndroidApp
 public class Shaft extends Application implements ServicesProvider {
 
     public static Settings sSettings;
     public static Gson sGson;
     public static SharedPreferences sPreferences;
     protected NetWorkStateReceiver netWorkStateReceiver;
-    private NetworkStateManager networkStateManager;
+    @Inject NetworkStateManager networkStateManager;
     private OkHttpClient mOkHttpClient;
     /**
      * 图片 / 下载进度的订阅表，挂在 {@link #getOkHttpClient()} 的 network interceptor 上。
@@ -72,24 +81,27 @@ public class Shaft extends Application implements ServicesProvider {
                 return kotlin.Unit.INSTANCE;
             });
     private static MMKV mmkv;
-    private AppLevelState appLevelState;
-    private ceui.pixiv.ui.translate.MangaTranslateModels mangaTranslateModels;
-    private ceui.pixiv.ui.translate.MangaBatchTranslateCenter mangaBatchTranslateCenter;
-    private ceui.pixiv.ui.fanbox.FanboxWebBridge fanboxWebBridge;
-    private ceui.pixiv.ui.bulk.QueueDownloadManager queueDownloadManager;
-    private ceui.pixiv.actions.PixivActionQueue pixivActionQueue;
+    // 进程级服务由 Hilt 以 @Singleton 构造，在 super.onCreate() 那一刻注入（Hilt 不能注入 private 字段）。
+    // 构造契约见 ServicesProvider：廉价、不做 IO、不依赖本类 onCreate 里后续才就绪的状态。
+    @Inject AppLevelState appLevelState;
+    @Inject ceui.pixiv.ui.translate.MangaTranslateModels mangaTranslateModels;
+    @Inject ceui.pixiv.ui.translate.MangaBatchTranslateCenter mangaBatchTranslateCenter;
+    @Inject ceui.pixiv.ui.fanbox.FanboxWebBridge fanboxWebBridge;
+    @Inject ceui.pixiv.ui.bulk.QueueDownloadManager queueDownloadManager;
+    @Inject ceui.pixiv.actions.PixivActionQueue pixivActionQueue;
     private final ceui.pixiv.communication.CommunicationScope communicationScope =
             new ceui.pixiv.communication.CommunicationScope();
-    private ceui.pixiv.db.discovery.ProfileManager profileManager;
-    private ceui.pixiv.db.discovery.DiscoveryPool discoveryPool;
-    private ceui.pixiv.actions.AccountOnlineReportOutbox accountOnlineReportOutbox;
-    private ceui.pixiv.actions.Nana7miSearchTelemetry nana7miSearchTelemetry;
-    private ceui.pixiv.config.RemoteAppConfig remoteAppConfig;
-    private ceui.pixiv.events.EventReporter eventReporter;
-    private ceui.pixiv.chat.api.ShaftChatGateway chatGateway;
-    private ceui.pixiv.sticker.StickerRepository stickerRepository;
-    private ceui.pixiv.db.mirror.BookmarkMirrorService bookmarkMirror;
-    private ceui.pixiv.ui.novel.reader.settings.ReaderFontRepository readerFontRepository;
+    @Inject ceui.pixiv.db.discovery.ProfileManager profileManager;
+    @Inject ceui.pixiv.db.discovery.DiscoveryPool discoveryPool;
+    @Inject ceui.pixiv.actions.AccountOnlineReportOutbox accountOnlineReportOutbox;
+    @Inject ceui.pixiv.actions.Nana7miSearchTelemetry nana7miSearchTelemetry;
+    @Inject ceui.pixiv.config.RemoteAppConfig remoteAppConfig;
+    @Inject ceui.pixiv.events.EventReporter eventReporter;
+    @Inject ceui.pixiv.chat.api.ShaftChatGateway chatGateway;
+    @Inject ceui.pixiv.sticker.StickerRepository stickerRepository;
+    @Inject ceui.pixiv.db.mirror.BookmarkMirrorService bookmarkMirror;
+    @Inject ceui.pixiv.ui.novel.reader.settings.ReaderFontRepository readerFontRepository;
+    @Inject ceui.lisa.update.ApkDownloadManager apkDownloadManager;
 
     private EntityWrapper entityWrapper;
 
@@ -432,7 +444,6 @@ public class Shaft extends Application implements ServicesProvider {
         }
 
         initMMKV(this);
-        networkStateManager = new NetworkStateManager(this);
         sSettings = Local.getSettings();
 
         if (sSettings.isLogFileEnabled()) {
@@ -459,24 +470,6 @@ public class Shaft extends Application implements ServicesProvider {
         entityWrapper = new EntityWrapper(this);
         entityWrapper.initialize();
 
-        // 进程级服务：构造都必须廉价（见 ServicesProvider 注释）。
-        appLevelState = new AppLevelState();
-        mangaTranslateModels = new ceui.pixiv.ui.translate.MangaTranslateModels(this);
-        mangaBatchTranslateCenter = new ceui.pixiv.ui.translate.MangaBatchTranslateCenter(this, mangaTranslateModels);
-        fanboxWebBridge = new ceui.pixiv.ui.fanbox.FanboxWebBridge(this);
-        queueDownloadManager = new ceui.pixiv.ui.bulk.QueueDownloadManager(this);
-        pixivActionQueue = new ceui.pixiv.actions.PixivActionQueue(this);
-        profileManager = new ceui.pixiv.db.discovery.ProfileManager(this);
-        discoveryPool = new ceui.pixiv.db.discovery.DiscoveryPool(this, profileManager);
-        accountOnlineReportOutbox = new ceui.pixiv.actions.AccountOnlineReportOutbox(this);
-        nana7miSearchTelemetry = new ceui.pixiv.actions.Nana7miSearchTelemetry(this);
-        remoteAppConfig = new ceui.pixiv.config.RemoteAppConfig(this);
-        eventReporter = new ceui.pixiv.events.EventReporter(this);
-        chatGateway = new ceui.pixiv.chat.api.ShaftChatGateway(this);
-        stickerRepository = new ceui.pixiv.sticker.StickerRepository(this);
-        bookmarkMirror = new ceui.pixiv.db.mirror.BookmarkMirrorService(this);
-        readerFontRepository = new ceui.pixiv.ui.novel.reader.settings.ReaderFontRepository(this);
-
         SessionManager.INSTANCE.initialize();
 
         // 批量下载持久化队列（v33）：冷启动恢复 + 单并发消费循环。
@@ -487,6 +480,14 @@ public class Shaft extends Application implements ServicesProvider {
         // Activity 的 onResume，恢复弹窗不会出现在首屏，而是等用户下次跳页/切回前台时
         // 突然冒出来。init 自身只有 ~3ms（同步部分只是赋 context + launch）。
         queueDownloadManager.start();
+
+        // 自托管的应用更新下载器（进程级）。必须在这里恢复：
+        // 1) 冷启动要把「上次被系统杀掉时还在跑」的记录落成 PAUSED，而不是等用户
+        //    打开 sheet 才发现状态还写着 RUNNING；
+        // 2) 「下载完成但当时没有 sheet」的 banner 要等前台，它注册的
+        //    ActivityLifecycleCallbacks 得早于第一个 Activity 的 onResume。
+        // 本身只读一条 MMKV + stat 几个文件，不进延迟批。
+        apkDownloadManager.install();
 
         // v38 illustId 索引列的一次性存量回填：把老下载记录的 illustId 补上，让
         // “这幅画下过没” 从 illustGson blob 全表 LIKE 扫描（2GB+ 卡）转成走索引。
@@ -557,9 +558,15 @@ public class Shaft extends Application implements ServicesProvider {
                 sb.append("CREATE ").append(activity.getClass().getSimpleName());
                 if (activity.getIntent() != null && activity.getIntent().getExtras() != null) {
                     Bundle extras = activity.getIntent().getExtras();
-                    for (String key : extras.keySet()) {
-                        Object val = extras.get(key);
-                        sb.append("\n    ").append(key).append(" = ").append(val);
+                    // 外部持有的 PendingIntent（widget、通知）会带着旧版本写入的 Serializable 跨升级回来，
+                    // R8 混淆名一变就反序列化失败；这里只是日志，读不出来就记下原因，别让它把页面带崩。
+                    try {
+                        for (String key : extras.keySet()) {
+                            Object val = extras.get(key);
+                            sb.append("\n    ").append(key).append(" = ").append(val);
+                        }
+                    } catch (RuntimeException e) {
+                        sb.append("\n    <extras unreadable: ").append(e).append('>');
                     }
                 }
                 Timber.tag("ActivityTracker").d(sb.toString());
@@ -730,7 +737,12 @@ public class Shaft extends Application implements ServicesProvider {
         // ChatBannerBridge 订阅 gateway.incoming。
         // 传 currentActivity：它注册的两个 lifecycle callback 现在才挂上，首个 Activity
         // 的 created/resumed 早过去了，不补这一下首屏整场都没有 banner 宿主。
-        step("InAppBanners", () -> ceui.pixiv.banner.host.InAppBanners.INSTANCE.bootstrap(this, currentActivity));
+        step("InAppBanners", () -> {
+            ceui.pixiv.banner.host.InAppBanners.INSTANCE.bootstrap(this, currentActivity);
+            // 冷启动时首个 onResume 早于 banner 系统就绪，那条「更新包已下好」的
+            // 提示会在 onResume 里被跳过；这里补一次，免得它一直欠到用户下次切页。
+            apkDownloadManager.onBannerReady();
+        });
 
         // 网络变化时停掉下载队列。CONNECTIVITY_ACTION 只与下载有关，首帧不需要。
         step("NetWorkStateReceiver", () -> {
@@ -1061,5 +1073,10 @@ public class Shaft extends Application implements ServicesProvider {
     @Override
     public @NotNull ceui.pixiv.ui.novel.reader.settings.ReaderFontRepository getReaderFontRepository() {
         return readerFontRepository;
+    }
+
+    @Override
+    public @NotNull ceui.lisa.update.ApkDownloadManager getApkDownloadManager() {
+        return apkDownloadManager;
     }
 }

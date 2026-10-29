@@ -19,6 +19,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import okhttp3.Request
+import javax.inject.Inject
+import javax.inject.Singleton
 
 sealed interface StickerState {
     data object Idle : StickerState
@@ -30,12 +32,13 @@ sealed interface StickerState {
 /**
  * One installation per process, shared by chat and plaza; independent of login.
  *
- * 进程级服务，由 [ceui.lisa.activities.Shaft] 构造并经
+ * 进程级服务，由 Hilt 以 @Singleton 构造并经
  * [ceui.pixiv.services.ServicesProvider.stickerRepository] 取用（不是 Kotlin `object`，
  * 见 ServicesProvider 的注释）。构造函数只存 [app]：磁盘目录、两个 OkHttpClient 全部
  * `by lazy`，冷启动一分钱不花，第一次真的要贴纸时才建。
  */
-class StickerRepository(private val app: Application) {
+@Singleton
+class StickerRepository @Inject constructor(private val app: Application) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val mutableState = MutableStateFlow<StickerState>(StickerState.Idle)
     val state = mutableState.asStateFlow()

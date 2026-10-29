@@ -5,20 +5,25 @@ import java.util.concurrent.ConcurrentMap;
 
 import androidx.lifecycle.MutableLiveData;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
+
 /**
- * 关注 / 收藏态的进程级内存表。一个进程一份，由 {@link ceui.lisa.activities.Shaft} 构造、
+ * 关注 / 收藏态的进程级内存表。一个进程一份，由 Hilt 以 {@code @Singleton} 构造、
  * 经 {@link ceui.pixiv.services.ServicesProvider#getAppLevelState()} 取用。
  *
  * <p>它以前叫 AppLevelViewModel 且继承 AndroidViewModel、挂在 Shaft 的 static 字段上——
  * 但它从没跟任何 ViewModelStore 绑定过生命周期，本质就是一张跨页面共享的表，
  * 所以改成普通 class：单测可以 new 第二份，也不再伪装成 lifecycle 组件。
  */
+@Singleton
 public class AppLevelState {
 
     private final ConcurrentMap<Long, MutableLiveData<Integer>> followUserStatus;
     private final ConcurrentMap<Integer, MutableLiveData<Integer>> starIllustStatus;
     private final ConcurrentMap<Integer, MutableLiveData<Integer>> starNovelStatus;
 
+    @Inject
     public AppLevelState() {
         followUserStatus = new ConcurrentHashMap<>();
         starIllustStatus = new ConcurrentHashMap<>();

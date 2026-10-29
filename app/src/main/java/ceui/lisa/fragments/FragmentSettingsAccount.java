@@ -38,11 +38,17 @@ public class FragmentSettingsAccount extends SettingsPageFragment<FragmentSettin
             startActivity(intent);
         });
 
-        baseBind.editAccount.setOnClickListener(v -> {
-            Intent intent = new Intent(mContext, TemplateActivity.class);
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.EDIT_ACCOUNT.key);
-            startActivity(intent);
-        });
+        // Google Play 渠道合规：编辑账号页预填当前邮箱、保存时经 app 提交给 pixiv，同样算
+        // 「电子邮件地址」外传（43400 被 Play 政策标记）。lite 渠道隐藏该入口。
+        if (ceui.lisa.BuildConfig.IS_LITE) {
+            baseBind.editAccount.setVisibility(View.GONE);
+        } else {
+            baseBind.editAccount.setOnClickListener(v -> {
+                Intent intent = new Intent(mContext, TemplateActivity.class);
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.EDIT_ACCOUNT.key);
+                startActivity(intent);
+            });
+        }
 
         // Google Play 渠道合规：邮箱备份会把用户邮箱传到 pixshaft-api，而数据安全表单
         // 未声明「电子邮件地址」收集（40760 被 Play 政策标记）。lite 渠道隐藏该入口。

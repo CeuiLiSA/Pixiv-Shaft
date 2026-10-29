@@ -11,6 +11,9 @@ const val SNAPSHOT_MANIFEST = "manifest.json"
 const val SNAPSHOT_ILLUST_JSON = "illust.json"
 const val SNAPSHOT_COMMENTS_JSON = "comments.json"
 const val SNAPSHOT_ASSETS_JSON = "assets.json"
+
+/** 动图帧序列目录:与 UgoiraEngine 的帧目录同一格式(JPEG 帧 + delays.txt + 可选 video.mp4)。 */
+const val SNAPSHOT_UGOIRA_DIR = "ugoira"
 const val AUTO_SNAPSHOT_MANIFEST = "auto_manifest.json"
 const val AUTO_SNAPSHOT_SCHEMA_VERSION = 1
 

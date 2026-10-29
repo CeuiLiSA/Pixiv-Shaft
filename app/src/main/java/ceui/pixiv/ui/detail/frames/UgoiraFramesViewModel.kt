@@ -18,6 +18,7 @@ import ceui.pixiv.ui.bulk.UgoiraFrames
 import ceui.pixiv.ui.bulk.UgoiraProgress
 import ceui.pixiv.ui.bulk.UgoiraVideoEncoder
 import ceui.pixiv.ui.bulk.encodeFramesToGif
+import ceui.pixiv.ui.bulk.readFramesDir
 import ceui.lisa.activities.Shaft
 import java.io.BufferedOutputStream
 import java.io.FileOutputStream
@@ -58,7 +59,7 @@ internal data class FrameImage(val index: Int, val bitmap: Bitmap)
 /**
  * 逐帧页的数据面：拿原帧、解码显示帧与时间轴缩略图、记当前帧 / 标记 / 播放速度、保存与分享。
  *
- * 帧就是 pixiv 解压出来的 JPEG（[UgoiraEngine.loadOriginalFrames]），保存时原样拷出，
+ * 帧就是 pixiv 解压出来的 JPEG（[UgoiraEngine.loadOriginalFrames]，离线快照则是快照里存的那份），保存时原样拷出，
  * 不经过 mp4 或 GIF 的有损再编码 —— 这是本页相对「截屏视频」最大的价值。
  *
  * 当前帧、标记与速度放在 [SavedStateHandle]：旋转、分屏、进程回收回来还停在原处。
@@ -112,19 +113,27 @@ internal class UgoiraFramesViewModel(
     }
 
     private var illust: Illust? = null
+    private var offlineDir: File? = null
 
     val speed: Float get() = SPEEDS[speedIndex.value.coerceIn(0, SPEEDS.lastIndex)]
 
-    fun start(target: Illust) {
+    fun start(target: Illust, offline: File? = null) {
         illust = target
+        offlineDir = offline
         if (_load.value is FramesLoad.Ready || loadJob?.isActive == true) return
         _load.value = FramesLoad.Loading(null)
         loadJob = viewModelScope.launch {
             val progressJob = launch {
-                UgoiraEngine.progressOf(target.id).collect { _load.value = FramesLoad.Loading(it) }
+                if (offline == null) {
+                    UgoiraEngine.progressOf(target.id).collect { _load.value = FramesLoad.Loading(it) }
+                }
             }
             try {
-                val frames = UgoiraEngine.loadOriginalFrames(target)
+                val frames = if (offline != null) {
+                    withContext(Dispatchers.IO) { readFramesDir(offline, false) } ?: error("offline frames unreadable")
+                } else {
+                    UgoiraEngine.loadOriginalFrames(target)
+                }
                 progressJob.cancel()
                 if (frames.files.isEmpty()) error("no frames")
                 state[KEY_INDEX] = index.value.coerceIn(0, frames.files.size - 1)
@@ -145,8 +154,9 @@ internal class UgoiraFramesViewModel(
 
     fun retry() {
         val target = illust ?: return
-        UgoiraEngine.invalidate(target.id)
-        start(target)
+        // 离线帧没有引擎缓存可清，重读一遍快照目录即可。
+        if (offlineDir == null) UgoiraEngine.invalidate(target.id)
+        start(target, offlineDir)
     }
 
     private val ready: UgoiraFrames? get() = (_load.value as? FramesLoad.Ready)?.frames

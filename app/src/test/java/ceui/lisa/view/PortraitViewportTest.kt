@@ -9,6 +9,8 @@ import androidx.fragment.app.FragmentActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import ceui.lisa.R
+import ceui.lisa.activities.Shaft
+import ceui.lisa.utils.Settings
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -19,8 +21,14 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 
+/**
+ * 宽栏夹高度（[DynamicHeightImageView] 的 fitPortraitInViewport）只在「平板适配排版」开启时成立，
+ * 所以宿主窗口必须真的是平板尺寸：qualifiers 带 sw600dp，并在每个用例里显式给出设置开关。
+ * 手机（含 1080×1920 @240dpi 这种栏宽 720dp 的低密度机）关掉平板排版后一律按宽铺满，见
+ * [tablet layout off keeps natural height on a wide pane]。
+ */
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [35], qualifiers = "mdpi", application = Application::class)
+@Config(sdk = [35], qualifiers = "sw600dp-mdpi", application = Application::class)
 class PortraitViewportTest {
     @Test
     fun `portrait fits actual viewport and follows fold and height changes`() = withImages { list, base, hd ->
@@ -98,6 +106,28 @@ class PortraitViewportTest {
         assertEquals(base.measuredHeight, hd.measuredHeight)
     }
 
+    /**
+     * 回归：1080×1920 @240dpi 的低密度手机，栏宽 720dp 同样过 600dp 的「宽栏」线，但平板排版没开时
+     * 它是手机形态 —— 图必须按宽铺满。此前这里会把高度夹到视口高，FIT_CENTER 再把宽度缩成
+     * 「视口高 / 高宽比」，左右露出占位底色（用户反馈的白边）。实测图 843×1866，高宽比 2.2135。
+     */
+    @Test
+    fun `tablet layout off keeps natural height on a wide pane`() =
+        withImages(ratio = 1866f / 843f, tabletLayout = false) { list, base, hd ->
+            val naturalHeight = (1080 * (1866f / 843f)).toInt()
+            layout(list, 1080, 1920)
+            assertEquals(naturalHeight, base.measuredHeight)
+            assertEquals(base.measuredHeight, hd.measuredHeight)
+
+            // 同一块栏、同一张图：打开平板排版才按视口夹高度，这是真平板双栏的完整显示。
+            // 尺寸没变，RecyclerView 会直接复用上一轮的测量结果，必须先让子 View 标脏才会重测。
+            Shaft.sSettings.isTabletLayout = true
+            for (image in listOf(base, hd)) image.requestLayout()
+            layout(list, 1080, 1920)
+            assertEquals(1920, base.measuredHeight)
+            assertEquals(base.measuredHeight, hd.measuredHeight)
+        }
+
     private fun layout(list: RecyclerView, width: Int, height: Int) {
         // Keep the host's subsequent traversal from restoring its default 320dp window.
         list.layoutParams = list.layoutParams.apply {
@@ -113,7 +143,14 @@ class PortraitViewportTest {
         }
     }
 
-    private fun withImages(pageCount: Int = 1, check: (RecyclerView, DynamicHeightImageView, DynamicHeightImageView) -> Unit) {
+    private fun withImages(
+        pageCount: Int = 1,
+        ratio: Float = 1.5f,
+        tabletLayout: Boolean = true,
+        check: (RecyclerView, DynamicHeightImageView, DynamicHeightImageView) -> Unit,
+    ) {
+        val oldSettings = Shaft.sSettings
+        Shaft.sSettings = Settings().apply { setTabletLayout(tabletLayout) }
         val host = Robolectric.buildActivity(FragmentActivity::class.java)
         host.get().setTheme(R.style.AppTheme)
         host.setup()
@@ -123,7 +160,7 @@ class PortraitViewportTest {
             val base = frame.findViewById<DynamicHeightImageView>(R.id.illust)
             val hd = frame.findViewById<DynamicHeightImageView>(R.id.illust_hd)
             for (image in listOf(base, hd)) {
-                image.setHeightRatio(1.5f)
+                image.setHeightRatio(ratio)
                 image.setFitPortraitInViewport(true)
                 image.visibility = View.VISIBLE
             }
@@ -140,7 +177,7 @@ class PortraitViewportTest {
                             LayoutInflater.from(activity).inflate(R.layout.recy_illust_detail, parent, false).apply {
                                 for (id in listOf(R.id.illust, R.id.illust_hd)) {
                                     findViewById<DynamicHeightImageView>(id).apply {
-                                        setHeightRatio(1.5f)
+                                        setHeightRatio(ratio)
                                         setFitPortraitInViewport(true)
                                         visibility = View.VISIBLE
                                     }
@@ -158,6 +195,7 @@ class PortraitViewportTest {
             check(list, base, hd)
         } finally {
             host.pause().stop().destroy()
+            Shaft.sSettings = oldSettings
         }
     }
 }

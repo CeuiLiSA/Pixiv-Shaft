@@ -125,9 +125,16 @@
                                     android:text="@string/check_for_updates" />
                             </LinearLayout>
 
+                            <!-- 状态文案会长到「被速率限制，请于 18:38 后再试」这种程度，
+                                 M3SetValue 的 150dp + singleLine 会把它截成「请于 18:5…」。
+                                 这一行单独放宽并允许折成两行；行高是 wrap_content，会自动长高。 -->
                             <TextView
                                 android:id="@+id/update_status"
-                                style="@style/M3SetValue" />
+                                style="@style/M3SetValue"
+                                android:ellipsize="end"
+                                android:maxLines="2"
+                                android:maxWidth="220dp"
+                                android:singleLine="false" />
 
                         </RelativeLayout>
 

@@ -133,6 +133,12 @@
     <string name="v3_widget_hide_refresh_button">위젯 새로고침 버튼 숨기기</string>
     <string name="v3_widget_hide_refresh_button_desc">숨기면 새로고침 간격에 따라 자동으로만 바뀝니다</string>
     <string name="tablet_layout">태블릿 레이아웃</string>
+    <string name="bottom_bar_scroll_hide">스크롤 시 하단 바 숨기기</string>
+    <string name="bottom_bar_scroll_hide_desc">아래로 스크롤하면 하단 바를 숨기고 위로 스크롤하면 다시 표시합니다. 끄면 항상 고정되어 표시됩니다</string>
+    <string name="top_bar_scroll_hide">스크롤 시 상단 바 숨기기</string>
+    <string name="top_bar_scroll_hide_desc">추천 페이지 상단의 제목 표시줄을 아래로 스크롤하면 숨기고 위로 스크롤하면 다시 표시합니다. 끄면 항상 고정되어 표시됩니다</string>
+    <string name="use_account_avatar_as_drawer_icon">사이드바 아이콘을 계정 프로필로 표시</string>
+    <string name="use_account_avatar_as_drawer_icon_desc">홈 좌측 상단 사이드바 아이콘을 현재 로그인된 계정의 원형 프로필로 표시합니다. 로그아웃 상태에서는 게스트 프로필을 표시합니다</string>
     <string name="tablet_layout_desc">태블릿 등 큰 화면에서 사이드 내비게이션, 화면 너비에 맞춰 열이 늘어나는 피드, 좌우로 배치된 작품 상세를 사용합니다. 끄면 휴대폰과 같은 레이아웃이 됩니다. 태블릿에서만 적용</string>
     <!-- 平板首页侧边导航栏（#1087）：快捷入口与菜单按钮 -->
     <string name="rail_bookmarks">북마크</string>
@@ -166,6 +172,7 @@
     <string name="filter_bookmarked_rank">랭킹에서 제외</string>
     <string name="filter_bookmarked_following">팔로우 피드에서 제외</string>
     <string name="filter_bookmarked_search">검색 결과에서 제외</string>
+    <string name="filter_bookmarked_recmd">홈 추천에서 제외</string>
     <string name="filter_bookmarked_none">필터 안 함</string>
     <string name="filter_bookmarked_summary">%1$d개 사용 중</string>
     <string name="filter_bookmarked_dialog_hint">북마크한 작품을 숨길 화면 선택</string>
@@ -1133,6 +1140,15 @@
     <string name="update_later">나중에</string>
     <string name="update_skip_version">이 버전 건너뛰기</string>
     <string name="update_retry">다시 시도</string>
+    <string name="update_continue">다운로드 계속</string>
+    <string name="update_paused">일시 중지됨</string>
+    <string name="update_merging">설치 파일 병합 중…</string>
+    <string name="update_threads">%1$d 스레드</string>
+    <string name="update_interrupted">다운로드 중단됨</string>
+    <string name="update_resume_unavailable">이어서 받을 수 없습니다. 다시 시도해 주세요</string>
+    <string name="update_banner_done_title">업데이트 다운로드 완료</string>
+    <string name="update_banner_done_message">탭하여 %1$s 설치 계속</string>
+    <string name="update_banner_action">설치하기</string>
     <string name="update_download_failed">다운로드 실패</string>
     <string name="update_check_failed">업데이트 확인 실패</string>
     <string name="update_rate_limited">요청 한도에 도달했습니다. 잠시 후 다시 시도해 주세요</string>
@@ -2991,9 +3007,10 @@
     <string name="snapshot_progress_comments">댓글 가져오는 중</string>
     <string name="snapshot_progress_comment_assets">댓글 프로필 사진/스탬프 다운로드 중</string>
     <string name="snapshot_progress_writing">스냅샷 저장 중</string>
-    <string name="snapshot_unsupported_ugoira">우고이라(ugoira)는 아직 오프라인 스냅샷을 지원하지 않습니다</string>
+    <string name="snapshot_progress_ugoira">우고이라 프레임 가져오는 중</string>
     <string name="snapshot_error_page_url_missing">%1$d번째 이미지의 사용 가능한 URL이 없습니다</string>
     <string name="snapshot_error_image_download">이미지 다운로드 실패: %1$s</string>
+    <string name="snapshot_error_ugoira_frames">우고이라 프레임을 가져오지 못했습니다</string>
 
     <!-- 자동 스냅샷 (실험 기능) -->
     <string name="setting_auto_snapshot_on_bookmark">북마크 시 오프라인 스냅샷 생성</string>
@@ -3456,4 +3473,59 @@
     <string name="image_filter_adjust_fade">페이드</string>
     <string name="image_filter_adjust_vignette">비네팅</string>
     <string name="image_filter_adjust_grain">그레인</string>
+    <!-- 补齐收藏快照（#1275） -->
+    <string name="snapshot_backfill_title">북마크 스냅샷 채우기</string>
+    <string name="snapshot_backfill_intro">북마크한 일러스트와 만화 중 정식 스냅샷이 없는 작품의 오프라인 스냅샷을 하나씩 만듭니다. 대기열은 백그라운드에서 실행되므로 이 페이지를 나가도 계속됩니다.</string>
+    <string name="snapshot_backfill_section_settings">대기열 설정</string>
+    <string name="snapshot_backfill_scope">북마크 범위</string>
+    <string name="snapshot_backfill_scope_all">전체</string>
+    <string name="snapshot_backfill_scope_public">공개</string>
+    <string name="snapshot_backfill_scope_private">비공개</string>
+    <string name="snapshot_backfill_comments">댓글 포함</string>
+    <string name="snapshot_backfill_comments_hint">댓글과 답글도 저장합니다. 작품마다 요청이 몇 번 더 늘어납니다</string>
+    <string name="snapshot_backfill_original">원본 화질 사용</string>
+    <string name="snapshot_backfill_original_hint">화질이 가장 좋지만 용량을 더 차지합니다</string>
+    <string name="snapshot_backfill_wifi">Wi-Fi에서만 실행</string>
+    <string name="snapshot_backfill_wifi_hint">모바일 데이터 사용 중에는 기다리고 Wi-Fi에 연결되면 이어서 진행합니다</string>
+    <string name="snapshot_backfill_free_space">사용 가능 %1$s · 1 GB 미만이면 자동으로 일시정지</string>
+    <string name="snapshot_backfill_locked_hint">설정은 대기열 전체에 적용됩니다. 바꾸려면 현재 대기열을 중지하세요.</string>
+    <string name="snapshot_backfill_notice">정식 스냅샷이 있는 작품은 건너뜁니다. 설정이 맞는 자동 스냅샷은 정식 스냅샷으로 바로 전환합니다. 스냅샷은 앱 내부 저장소에 보관됩니다. 시스템이 앱을 종료하면 다음에 앱을 열 때 이어서 진행합니다.</string>
+    <string name="snapshot_backfill_start">채우기 시작</string>
+    <string name="snapshot_backfill_status_running">진행 중</string>
+    <string name="snapshot_backfill_status_paused">일시정지됨</string>
+    <string name="snapshot_backfill_status_waiting">대기 중</string>
+    <string name="snapshot_backfill_status_finished">완료</string>
+    <string name="snapshot_backfill_total">/ %1$d개 처리됨</string>
+    <string name="snapshot_backfill_stats">새로 만듦 %1$d · 이미 있음 %2$d · 볼 수 없음 %3$d · 실패 %4$d</string>
+    <string name="snapshot_backfill_detail_generating">만드는 중: %1$s</string>
+    <string name="snapshot_backfill_detail_scanning">북마크 목록을 읽는 중입니다. 전체 수가 계속 늘어납니다</string>
+    <string name="snapshot_backfill_detail_working">다음 작품 처리 중</string>
+    <string name="snapshot_backfill_detail_paused">일시정지되었습니다. 시작하지 않은 작품은 대기열에 남아 있습니다</string>
+    <string name="snapshot_backfill_detail_low_storage">사용 가능한 공간이 1 GB 미만이라 자동으로 일시정지했습니다. 공간을 확보한 뒤 [계속]을 누르세요.</string>
+    <string name="snapshot_backfill_detail_wifi">Wi-Fi 연결 대기 중</string>
+    <string name="snapshot_backfill_detail_network">네트워크 연결 대기 중</string>
+    <string name="snapshot_backfill_detail_login">로그인하면 계속됩니다</string>
+    <string name="snapshot_backfill_detail_cooling">요청이 너무 많습니다. 잠시 후 자동으로 계속됩니다</string>
+    <string name="snapshot_backfill_detail_scan_failed">북마크 목록을 끝까지 읽지 못했습니다. 다시 시도할 수 있습니다</string>
+    <string name="snapshot_backfill_detail_finished">모두 처리했습니다</string>
+    <string name="snapshot_backfill_retry_failed">실패한 %1$d개 다시 시도</string>
+    <string name="snapshot_backfill_done_action">완료</string>
+    <string name="snapshot_backfill_pause">일시정지</string>
+    <string name="snapshot_backfill_resume">계속</string>
+    <string name="snapshot_backfill_stop">중지</string>
+    <string name="snapshot_backfill_stop_title">채우기를 중지할까요?</string>
+    <string name="snapshot_backfill_stop_message">이미 만든 스냅샷은 유지됩니다. 아직 처리하지 않은 %1$d개는 대기열에서 빠집니다.</string>
+    <string name="snapshot_backfill_summary_all">전체 북마크</string>
+    <string name="snapshot_backfill_summary_public">공개 북마크</string>
+    <string name="snapshot_backfill_summary_private">비공개 북마크</string>
+    <string name="snapshot_backfill_summary_original">원본</string>
+    <string name="snapshot_backfill_summary_regular">일반 화질</string>
+    <string name="snapshot_backfill_summary_comments">댓글 포함</string>
+    <string name="snapshot_backfill_summary_wifi">Wi-Fi만</string>
+    <string name="snapshot_backfill_strip_value">%1$d / %2$d · %3$s</string>
+    <!-- Chrome Custom Tabs -->
+    <string name="chrome_custom_tabs_title">Chrome Custom Tabs</string>
+    <string name="chrome_custom_tabs_desc">Chrome이 설치되어 있는 경우 Chrome Custom Tabs로 웹 링크를 엽니다</string>
+    <string name="chrome_custom_tabs_not_found">Chrome을 찾을 수 없어 자동으로 비활성화되었습니다</string>
+    <string name="open_with_chrome">Chrome으로 열기</string>
 </resources>

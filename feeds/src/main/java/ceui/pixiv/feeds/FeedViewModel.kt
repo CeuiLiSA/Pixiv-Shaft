@@ -175,13 +175,16 @@ class FeedViewModel<Cursor : Any>(
                 var freshCursor = page.nextCursor
                 var items = page.items.dedupByIdentity()
                 var emptyHops = 0
-                while (items.isEmpty() && freshCursor != null && emptyHops < MAX_EMPTY_PAGE_HOPS) {
+                // 「空」按可展示算：整页条目都被页面按设置隐藏时，数据是满的而屏幕是空的，
+                // 按 items 判空会停在空白首屏上，且没有 onBind 去点火后续翻页。
+                // 跳过的页要累加而不是覆盖：被隐藏的条目在设置改回去时要原地回来（同 loadMore）
+                while (!items.hasVisibleItem() && freshCursor != null && emptyHops < MAX_EMPTY_PAGE_HOPS) {
                     page = source.load(freshCursor)
                     freshCursor = page.nextCursor
-                    items = page.items.dedupByIdentity()
+                    items = (items + page.items).dedupByIdentity()
                     emptyHops++
                 }
-                val hopCapExhausted = items.isEmpty() && emptyHops >= MAX_EMPTY_PAGE_HOPS
+                val hopCapExhausted = !items.hasVisibleItem() && emptyHops >= MAX_EMPTY_PAGE_HOPS
                 nextCursor = freshCursor
                 // 新一代：预算从头来，刷新后的第一次翻页也不必等
                 lastPageLoadedAt = null
@@ -220,10 +223,11 @@ class FeedViewModel<Cursor : Any>(
     /**
      * 加载下一页。滚动接近底部时可高频调用，内部自带防重入。
      *
-     * 预取由 onBind 驱动：如果某一页去重后零新条目（空页 / 整页被过滤或与已有内容重叠），
-     * 列表不变、DiffUtil 零派发、onBind 不再发生，预取信号就断了。所以这里主动追载：
-     * 只要拿到的页没有贡献新条目且还有游标，就继续取下一页（上限 [MAX_EMPTY_PAGE_HOPS]，
-     * 触顶视为到底），保证一次 loadMore 结束后要么有新内容、要么确定到底。
+     * 预取由 onBind 驱动：如果某一页去重后零可展示新条目（空页 / 整页被过滤 / 新条目全被页面
+     * 按设置隐藏 / 与已有内容重叠），列表不变、DiffUtil 零派发、onBind 不再发生，预取信号就断了。
+     * 所以这里主动追载：只要拿到的页没有贡献可展示的新条目且还有游标，就继续取下一页
+     *（上限 [MAX_EMPTY_PAGE_HOPS]，触顶视为到底），保证一次 loadMore 结束后要么有新内容、
+     * 要么确定到底。
      *
      * 两条闸门（[FeedPagingPolicy]）都在这里：每一次网络翻页（含追载的每一跳）之前先等够
      * 与上一页的最小间隔——等待期间 append 已是 Loading，footer 转圈、预取信号不丢；连着
@@ -280,7 +284,9 @@ class FeedViewModel<Cursor : Any>(
                         _uiState.update { it.copy(appendPaused = true) }
                         break
                     }
-                    if (fresh.isNotEmpty() || next == null) break
+                    // 这一跳有没有收获看的是可展示条目：整页新条目都被页面按设置隐藏时屏幕没变化，
+                    // 继续往后翻才有机会拿到能看的内容
+                    if (fresh.hasVisibleItem() || next == null) break
                     if (++emptyHops >= MAX_EMPTY_PAGE_HOPS) {
                         Timber.w("feeds: 连续 %d 页零新条目，视为到底", emptyHops)
                         _uiState.update { it.copy(reachedEnd = true) }

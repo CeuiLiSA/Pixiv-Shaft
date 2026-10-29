@@ -45,8 +45,20 @@ public class Mapper<T extends ListShow<?>> implements ResponseMapper<T> {
     /** 搜索链路在模糊粒子化强度下需要保留 AI 条目交给 feeds 卡打码；老列表没有模糊层，默认仍剔除。 */
     private boolean keepAiForBlur = false;
 
+    /** 跳过全局「R-18 过滤」（R-18 专属榜单等「本页语义就是看 R-18」的列表用）。 */
     public Mapper<T> enableSkipR18Filter() {
-        this.skipR18Filter = true;
+        return setSkipR18Filter(true);
+    }
+
+    /**
+     * 设置是否跳过全局「R-18 过滤」——与 {@link #enableSkipR18Filter()} 同一个开关，区别是可关回去。
+     *
+     * <p>搜索页「其他条件 → 仅 R-18」是用户在这一页显式要 R-18，全局过滤必须让路（同 R-18 榜、收藏库
+     * 年龄筛选的让步思路）。全局过滤现在也认 {@code x_restrict}，两条一起生效会把整页清空；而 repo
+     * 跨多次搜索复用，档位切换必须能双向写。
+     */
+    public Mapper<T> setSkipR18Filter(boolean skipR18Filter) {
+        this.skipR18Filter = skipR18Filter;
         return this;
     }
 

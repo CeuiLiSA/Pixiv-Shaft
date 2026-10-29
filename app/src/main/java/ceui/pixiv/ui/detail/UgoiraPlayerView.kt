@@ -42,6 +42,7 @@ import ceui.pixiv.ui.bulk.UgoiraPhase
 import ceui.pixiv.ui.bulk.UgoiraProgress
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.ui.bulk.UgoiraFrames
+import ceui.pixiv.snapshot.SnapshotManagerFragment
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.GlideException
@@ -59,6 +60,12 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+
+/**
+ * 离线快照里的一条动图：帧序列就在快照目录里，播放不经 [UgoiraEngine]、不联网；
+ * 点开大图也要回到「快照大图」，而不是在线大图。
+ */
+data class OfflineUgoira(val snapshotId: String, val isAuto: Boolean, val frames: UgoiraFrames)
 
 /**
  * 作品页 / 大图页共用的 ugoira 播放 View：预览图打底，MP4 硬解或逐帧播放，
@@ -308,6 +315,8 @@ class UgoiraPlayerView @JvmOverloads constructor(
     private var autoHealedDir: String? = null
     private var boundOwner: LifecycleOwner? = null
     private var boundIllust: Illust? = null
+    /** 非 null = 播快照里的帧序列,整条链路不碰引擎。 */
+    private var offline: OfflineUgoira? = null
     /** 当前已加载/在加载的预览图对应的作品 id，用于重进去重。 */
     private var previewIllustId: Long? = null
     private val lifecycleObserver = object : DefaultLifecycleObserver {
@@ -361,8 +370,17 @@ class UgoiraPlayerView @JvmOverloads constructor(
         )
     }
 
-    /** 绑定一条 ugoira。进入即自动拉数据 → 下载 → 解压 → 编码 → 播放。 */
-    fun bind(owner: LifecycleOwner, illust: Illust, maxHeight: Int, fitToViewport: Boolean = false) {
+    /**
+     * 绑定一条 ugoira。进入即自动拉数据 → 下载 → 解压 → 编码 → 播放；
+     * 传了 [offline] 就直接播快照里的帧序列。
+     */
+    fun bind(
+        owner: LifecycleOwner,
+        illust: Illust,
+        maxHeight: Int,
+        fitToViewport: Boolean = false,
+        offline: OfflineUgoira? = null,
+    ) {
         if (boundIllust?.id != illust.id) {
             pausePlayback()
             // 换了一条作品：旧的预览/帧画面不能残留，等新预览就位。
@@ -383,6 +401,7 @@ class UgoiraPlayerView @JvmOverloads constructor(
             }
         }
         boundIllust = illust
+        this.offline = offline
         maxContentHeight = maxHeight
         this.fitToViewport = fitToViewport
         requestLayout()
@@ -424,6 +443,7 @@ class UgoiraPlayerView @JvmOverloads constructor(
         boundOwner?.lifecycle?.removeObserver(lifecycleObserver)
         boundOwner = null
         boundIllust = null
+        offline = null
         setOnClickListener(null)
         autoHealedDir = null
         videoBrokenDir = null
@@ -493,6 +513,11 @@ class UgoiraPlayerView @JvmOverloads constructor(
         job?.cancel()
         hidePlayButton()
         retryButton.isVisible = false
+        offline?.let {
+            hideOverlay()
+            playFrames(illust, it.frames)
+            return
+        }
         // 秒开:内存已有帧序列就立刻播,不等协程、不显示浮层(主线程零 IO,不碰文件系统)。
         val ready = UgoiraEngine.peekReadyInMemory(illust.id)
         if (ready != null) {
@@ -696,6 +721,14 @@ class UgoiraPlayerView @JvmOverloads constructor(
      */
     private fun onPlaybackBroken(illust: Illust, frames: UgoiraFrames) {
         if (playingDir != frames.dir.path) return // 过期回调(已换版/已停),不动现场
+        if (offline != null) {
+            // 快照里的帧没有「重下一份」可言,更不能交给引擎 purge —— 那会删掉快照目录。只亮重试。
+            Timber.tag(UGOIRA_LOG_TAG).w("[player] illust=%d 快照帧解码失败", illust.id)
+            pausePlayback()
+            hidePlayButton()
+            retryButton.isVisible = true
+            return
+        }
         UgoiraEngine.invalidate(illust.id)
         val healedBefore = autoHealedDir == frames.dir.path
         pausePlayback()
@@ -746,6 +779,7 @@ class UgoiraPlayerAdapter(
     private val illust: Illust,
     private val owner: LifecycleOwner,
     private val maxHeight: Int,
+    private val offline: OfflineUgoira? = null,
 ) : RecyclerView.Adapter<UgoiraPlayerAdapter.VH>() {
 
     class VH(val player: UgoiraPlayerView) : RecyclerView.ViewHolder(player)
@@ -761,8 +795,8 @@ class UgoiraPlayerAdapter(
     }
 
     override fun onBindViewHolder(holder: VH, position: Int) {
-        holder.player.bind(owner, illust, maxHeight)
-        holder.player.setOnClickListener { openUgoiraViewer(it, illust) }
+        holder.player.bind(owner, illust, maxHeight, offline = offline)
+        holder.player.setOnClickListener { openUgoiraViewer(it, illust, offline) }
     }
 
     override fun onViewAttachedToWindow(holder: VH) {
@@ -788,13 +822,17 @@ class UgoiraPlayerAdapter(
     override fun getItemCount(): Int = 1
 }
 
-/** V2 / V3 共用静图的大图宿主和进出场矩形。 */
-internal fun openUgoiraViewer(view: View, illust: Illust) {
+/** V2 / V3 共用静图的大图宿主和进出场矩形；快照动图与静图同走「快照大图」路由(见 AbstractIllustAdapter)。 */
+internal fun openUgoiraViewer(view: View, illust: Illust, offline: OfflineUgoira? = null) {
     val location = IntArray(2)
     view.getLocationOnScreen(location)
     view.context.startActivity(Intent(view.context, ImageDetailActivity::class.java).apply {
         putExtra("illust", illust)
-        putExtra("dataType", "二级详情")
+        putExtra("dataType", if (offline != null) "快照大图" else "二级详情")
+        if (offline != null) {
+            putExtra(SnapshotManagerFragment.ARG_SNAPSHOT_ID, offline.snapshotId)
+            putExtra(SnapshotManagerFragment.ARG_SNAPSHOT_IS_AUTO, offline.isAuto)
+        }
         putExtra("index", 0)
         putExtra(ImageDetailActivity.EXTRA_ENTER_BOUNDS, intArrayOf(
             location[0], location[1], location[0] + view.width, location[1] + view.height,

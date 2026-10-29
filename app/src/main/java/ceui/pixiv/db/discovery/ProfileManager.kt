@@ -13,15 +13,19 @@ import ceui.pixiv.session.SessionManager
 import timber.log.Timber
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.math.exp
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
- * 发现页用户画像。进程级一份，由 [ceui.lisa.activities.Shaft] 构造、经
+ * 发现页用户画像。进程级一份，由 Hilt 以 @Singleton 构造、经
  * [ceui.pixiv.services.ServicesProvider.profileManager] 取用；构造不做任何 IO。
  *
  * 不认识 [DiscoveryPool]：画像变化只通过 [addOnProfileChanged] 往外报，
  * 候选池自己订阅去重打分，避免两者互相引用。
  */
-class ProfileManager(app: Context) {
+@Singleton
+class ProfileManager @Inject constructor(@ApplicationContext app: Context) {
 
     private val app: Context = app.applicationContext
 

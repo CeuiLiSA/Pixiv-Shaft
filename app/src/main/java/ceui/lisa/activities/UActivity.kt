@@ -29,8 +29,9 @@ import ceui.lisa.utils.Params
 import ceui.lisa.utils.PixivOperate
 import ceui.lisa.utils.SystemBarMetrics
 import ceui.lisa.viewmodel.AppLevelState
-import ceui.pixiv.services.requireEntityWrapper
-import ceui.pixiv.services.appServices
+import ceui.pixiv.db.EntityWrapper
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 import ceui.lisa.viewmodel.UserViewModel
 import ceui.pixiv.utils.Event
 import ceui.pixiv.cache.ObjectPool
@@ -52,9 +53,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import ceui.pixiv.ui.navigation.TemplateRoute
 
+@AndroidEntryPoint
 class UActivity : BaseActivity<ActivityNewUserBinding>(), Display<UserDetailResponse> {
     private var userId = 0L
     private lateinit var mUserViewModel: UserViewModel
+
+    @Inject lateinit var appLevelState: AppLevelState
+    @Inject lateinit var entityWrapper: EntityWrapper
     override fun initLayout(): Int {
         return R.layout.activity_new_user
     }
@@ -165,9 +170,9 @@ class UActivity : BaseActivity<ActivityNewUserBinding>(), Display<UserDetailResp
                 mUserViewModel.user.value = userResponse
                 writeBackSelfProfile(userResponse)
                 runCatching {
-                    (application as? ceui.pixiv.services.ServicesProvider)?.entityWrapper?.visitUser(this@UActivity, userResponse.user)
+                    entityWrapper.visitUser(this@UActivity, userResponse.user)
                 }
-                appServices().appLevelState.updateFollowUserStatus(
+                appLevelState.updateFollowUserStatus(
                     userId,
                     if (userResponse.user.is_followed == true)
                         AppLevelState.FollowUserStatus.FOLLOWED
@@ -185,7 +190,7 @@ class UActivity : BaseActivity<ActivityNewUserBinding>(), Display<UserDetailResp
         lifecycleScope.launch {
             try {
                 val userFollowDetail = withContext(Dispatchers.IO) { Client.appApi.getFollowDetail(userId) }
-                appServices().appLevelState.updateFollowUserStatus(userId, followStatusOf(userFollowDetail))
+                appLevelState.updateFollowUserStatus(userId, followStatusOf(userFollowDetail))
                 // 本地动过的话 writeRemote 自己会丢弃；真写进去了它会发通知，重绘不用这里操心。
                 FollowVisibility.writeRemote(userId, followRestrictOf(userFollowDetail))
             } catch (e: CancellationException) {
@@ -248,7 +253,6 @@ class UActivity : BaseActivity<ActivityNewUserBinding>(), Display<UserDetailResp
                 actions.add { UserShortcutHelper.pin(this, data.user) }
             }
             // 置顶作者:把常看的画师钉在搜索首页,和「置顶标签」各占一段,互不挤占。
-            val entityWrapper = requireEntityWrapper()
             val userPinned = entityWrapper.isUserPinned(data.user.id)
             labels.add(getString(if (userPinned) R.string.unpin_user else R.string.pin_user))
             actions.add {

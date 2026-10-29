@@ -1,18 +1,10 @@
 package ceui.lisa.update
 
-import android.app.DownloadManager
 import android.content.ActivityNotFoundException
-import android.content.BroadcastReceiver
-import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
-import android.database.Cursor
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.os.Environment
-import android.os.Handler
-import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -21,31 +13,42 @@ import androidx.core.content.FileProvider
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
+import androidx.lifecycle.lifecycleScope
 import ceui.lisa.BuildConfig
+import ceui.lisa.helper.WebLinkHelper
+import ceui.pixiv.ui.settings.ChromeTabsPrefs
 import ceui.lisa.R
-import ceui.lisa.http.GithubProxy
 import ceui.lisa.utils.Common
+import ceui.pixiv.services.appServices
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import com.google.gson.Gson
+import kotlinx.coroutines.launch
 import java.io.File
 import java.util.Locale
 
 /**
- * 「发现新版本」弹窗：长相全在 [UpdateSheetView]（V3 弹窗配方），这里只管
- * DownloadManager 的入队 / 续接 / 进度轮询 / 完整性校验 / 安装授权。
+ * 「发现新版本」弹窗。**纯订阅者**：自己不下载、不轮询、不持有任何进度，
+ * 只把 [ApkDownloadManager.state] 翻译成界面。
+ *
+ * <p>这样拆开之后「关掉弹窗」不再等于「取消下载」——下载活在进程里，弹窗随时可以再开，
+ * 再开时看到的就是当下真实的状态（下载中 / 已暂停 / 已完成）。进程被杀后状态落成
+ * 「已暂停」，要用户点一下「继续下载」才接着跑，不会在后台偷偷续。
  */
 class UpdateBottomSheet : BottomSheetDialogFragment() {
 
     private var release: GitHubRelease? = null
-    private var downloadId: Long = -1L
-    private val handler = Handler(Looper.getMainLooper())
-    private var progressRunnable: Runnable? = null
-    private var downloadReceiver: BroadcastReceiver? = null
+
+    private val downloads by lazy { requireContext().appServices().apkDownloadManager }
+
+    /** 随视图创建 / 销毁；渲染回调一律先取它，拿不到就说明视图已经没了。 */
+    private var sheet: UpdateSheetView? = null
+
     private var pendingInstallFile: File? = null
 
-    /** 随视图创建 / 销毁；轮询回调一律先取它，拿不到就说明视图已经没了。 */
-    private var sheet: UpdateSheetView? = null
+    /** 主操作当前对应的动作，见 [setPrimary]。 */
+    private var lastPrimaryKey: String? = null
 
     private val installPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -59,11 +62,17 @@ class UpdateBottomSheet : BottomSheetDialogFragment() {
     }
 
     companion object {
-        private const val APK_FILE_NAME = "shaft-update.apk"
+        private const val ARG_RELEASE = "arg_release"
 
+        /**
+         * release 走 arguments 而不是字段：转屏 / 进程回收重建时字段是空的，
+         * 弹窗会直接 dismiss —— 正在下载的用户会莫名其妙看到它消失。
+         */
         fun newInstance(release: GitHubRelease): UpdateBottomSheet {
             return UpdateBottomSheet().apply {
-                this.release = release
+                arguments = Bundle().apply {
+                    putString(ARG_RELEASE, Gson().toJson(release))
+                }
             }
         }
     }
@@ -79,11 +88,12 @@ class UpdateBottomSheet : BottomSheetDialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val rel = release ?: run { dismiss(); return }
+        val rel = readRelease() ?: run { dismiss(); return }
+        release = rel
+        lastPrimaryKey = null
         val sheet = sheet ?: return
 
         sheet.bind(BuildConfig.VERSION_NAME, rel, markwonFor(requireContext()))
-        sheet.setPrimary(R.string.update_download, enabled = true) { beginDownload(rel) }
         sheet.later.setOnClickListener { dismiss() }
         sheet.skip.setOnClickListener {
             AppUpdateChecker.skipVersion(rel.versionName)
@@ -91,7 +101,12 @@ class UpdateBottomSheet : BottomSheetDialogFragment() {
             dismiss()
         }
 
-        restoreOngoingDownload(rel.tagName)
+        // 有 sheet 在看的时候下载完成，就不发 banner 了。
+        downloads.attachSheet()
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            downloads.state.collect { render(it, rel) }
+        }
 
         (dialog as? BottomSheetDialog)?.apply {
             behavior.state = BottomSheetBehavior.STATE_EXPANDED
@@ -107,249 +122,170 @@ class UpdateBottomSheet : BottomSheetDialogFragment() {
         }
     }
 
-    /** 主操作按下：没有 apk 资产就退回浏览器打开 release 页。 */
+    private fun readRelease(): GitHubRelease? {
+        val raw = arguments?.getString(ARG_RELEASE) ?: return null
+        return runCatching { Gson().fromJson(raw, GitHubRelease::class.java) }.getOrNull()
+    }
+
+    // ------------------------------------------------------------ 状态 → 界面
+
+    private fun render(state: ApkDownloadManager.State, rel: GitHubRelease) {
+        val sheet = sheet ?: return
+        val apk = AppUpdateChecker.findApkAsset(rel)
+
+        // 记录属于别的版本（或者根本没有记录）：这一版就是「还没下」。
+        if (state.tag != rel.tagName) {
+            sheet.hideProgress()
+            if (apk == null) {
+                renderOpenInBrowserPrimary(rel)
+            } else {
+                setPrimary("download") { beginDownload(rel) }
+            }
+            return
+        }
+
+        when (state.phase) {
+            ApkDownloadManager.Phase.IDLE -> {
+                sheet.hideProgress()
+                if (apk == null) {
+                    renderOpenInBrowserPrimary(rel)
+                } else {
+                    setPrimary("download") { beginDownload(rel) }
+                }
+            }
+
+            ApkDownloadManager.Phase.RUNNING -> {
+                sheet.showProgress()
+                sheet.setProgress(state.percent, progressLabel(state))
+                setPrimary("running", R.string.update_downloading, enabled = false)
+            }
+
+            ApkDownloadManager.Phase.MERGING -> {
+                sheet.showProgress()
+                sheet.setProgress(100, progressLabel(state))
+                setPrimary("merging", R.string.update_merging, enabled = false)
+            }
+
+            ApkDownloadManager.Phase.PAUSED -> {
+                sheet.showProgress()
+                sheet.setProgress(state.percent, progressLabel(state))
+                setPrimary("continue", R.string.update_continue) { continueDownload(rel) }
+            }
+
+            ApkDownloadManager.Phase.FAILED -> {
+                sheet.showProgress()
+                sheet.setProgress(state.percent, progressLabel(state))
+                if (state.resumable) {
+                    setPrimary("continue", R.string.update_continue) { continueDownload(rel) }
+                } else {
+                    setPrimary("retry", R.string.update_retry) { retryDownload(rel) }
+                }
+            }
+
+            ApkDownloadManager.Phase.COMPLETED -> {
+                sheet.showProgress()
+                sheet.setProgress(100, "100%")
+                setPrimary(
+                    key = "install",
+                    text = R.string.update_install,
+                    icon = R.drawable.ic_file_download_done_24dp,
+                ) { installApk() }
+            }
+        }
+    }
+
+    private fun renderOpenInBrowserPrimary(rel: GitHubRelease) {
+        val useCct = ChromeTabsPrefs.shouldUseChromeCustomTabs(context)
+        val textRes = if (useCct) {
+            R.string.open_with_chrome
+        } else {
+            R.string.webview_handler_open_in_browser
+        }
+        val key = if (useCct) "open_chrome" else "open_browser"
+        setPrimary(
+            key = key,
+            text = textRes,
+            icon = R.drawable.ic_baseline_launch_24,
+        ) {
+            openInBrowser(rel.htmlUrl ?: releasesUrl())
+        }
+    }
+
+    /**
+     * 主操作只在「动作本身」变化时才重设。进度每秒推 4 次，每次都重建
+     * setTextWithIcon 的 span 会白造垃圾，点一下还会把按压态打断。
+     */
+    private fun setPrimary(
+        key: String,
+        text: Int = R.string.update_download,
+        enabled: Boolean = true,
+        icon: Int = R.drawable.ic_file_download_black_24dp,
+        onClick: (() -> Unit)? = null,
+    ) {
+        val sheet = sheet ?: return
+        if (lastPrimaryKey == key) return
+        lastPrimaryKey = key
+        sheet.setPrimary(text, enabled, icon, onClick)
+    }
+
+    private fun progressLabel(state: ApkDownloadManager.State): CharSequence {
+        val downloaded = formatMb(state.downloadedBytes)
+        val total = if (state.totalBytes > 0L) formatMb(state.totalBytes) else "?"
+        return when (state.phase) {
+            ApkDownloadManager.Phase.RUNNING -> {
+                val base = "$downloaded / $total (${state.percent}%)"
+                // 分片下载时把「还有几条连接在收」露出来：8 条会随着分片陆续下完一路减到 0，
+                // 比一个静止的「8 线程」更能说明多线程真的在跑。
+                if (state.activeThreads > 0) {
+                    "$base · ${getString(R.string.update_threads, state.activeThreads)}"
+                } else {
+                    base
+                }
+            }
+            ApkDownloadManager.Phase.MERGING -> getString(R.string.update_merging)
+            ApkDownloadManager.Phase.PAUSED ->
+                "$downloaded / $total · ${getString(R.string.update_paused)}"
+            ApkDownloadManager.Phase.FAILED ->
+                if (state.resumable) {
+                    "$downloaded / $total · ${getString(R.string.update_interrupted)}"
+                } else {
+                    getString(R.string.update_resume_unavailable)
+                }
+            ApkDownloadManager.Phase.COMPLETED -> "100%"
+            ApkDownloadManager.Phase.IDLE -> ""
+        }
+    }
+
+    private fun formatMb(bytes: Long): String =
+        String.format(Locale.getDefault(), "%.1f MB", bytes / 1048576f)
+
+    // ------------------------------------------------------------ 动作
+
     private fun beginDownload(rel: GitHubRelease) {
-        val asset = AppUpdateChecker.findApkAsset(rel)
-        if (asset == null) {
+        if (AppUpdateChecker.findApkAsset(rel) == null) {
             openInBrowser(rel.htmlUrl ?: releasesUrl())
             return
         }
-        val sheet = sheet ?: return
-        sheet.setPrimary(R.string.update_downloading, enabled = false)
-        sheet.showProgress()
-        startDownload(asset)
+        // 界面不用手动切状态：start 会同步把 state 推到 RUNNING。
+        downloads.start(rel)
     }
 
-    private fun startDownload(asset: GitHubAsset) {
-        val ctx = requireContext().applicationContext
-        val dm = ctx.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-        val tag = release?.tagName ?: ""
-        val downloadDir = ctx.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS) ?: return
-        val apkFile = File(downloadDir, APK_FILE_NAME)
-
-        // If we already have a live record for this version, attach to it instead of re-enqueuing
-        // (otherwise DownloadManager would discard the partial file and restart from 0)
-        val existingId = AppUpdateChecker.getOngoingDownloadId(tag)
-        if (existingId != -1L) {
-            when (queryDownloadStatus(dm, existingId)) {
-                DownloadManager.STATUS_PENDING,
-                DownloadManager.STATUS_RUNNING,
-                DownloadManager.STATUS_PAUSED -> {
-                    attachToDownload(existingId, apkFile)
-                    return
-                }
-                DownloadManager.STATUS_SUCCESSFUL -> {
-                    if (apkFile.exists()) {
-                        onDownloadSuccess(apkFile)
-                        return
-                    }
-                }
-            }
-            try { dm.remove(existingId) } catch (_: Exception) {}
-            AppUpdateChecker.clearOngoingDownload()
-        }
-
-        if (apkFile.exists()) apkFile.delete()
-
-        // APK 资产地址来自 GitHub API，加速地址在这里插一次（「不使用」时原样返回）。
-        val request = DownloadManager.Request(Uri.parse(GithubProxy.wrap(asset.downloadUrl)))
-            .setTitle(getString(R.string.update_download_title))
-            .setDescription("Shaft $tag")
-            .setDestinationInExternalFilesDir(ctx, Environment.DIRECTORY_DOWNLOADS, APK_FILE_NAME)
-            .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE)
-
-        val newId = dm.enqueue(request)
-        AppUpdateChecker.saveOngoingDownload(newId, tag)
-        attachToDownload(newId, apkFile)
+    private fun continueDownload(rel: GitHubRelease) {
+        downloads.start(rel)
     }
 
-    private fun attachToDownload(id: Long, apkFile: File) {
-        downloadId = id
-        val ctx = requireContext().applicationContext
-        val dm = ctx.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-
-        // 失败后点「重试」会第二次走到这里：不先摘掉上一个，它就再也没人注销
-        //（onDestroyView 只认得字段里最后那一个），连着 Fragment 一起留在 AMS 里。
-        unregisterDownloadReceiver()
-        downloadReceiver = object : BroadcastReceiver() {
-            override fun onReceive(context: Context, intent: Intent) {
-                val received = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
-                if (received == downloadId) {
-                    onDownloadSuccess(apkFile)
-                }
-            }
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            ctx.registerReceiver(
-                downloadReceiver,
-                IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE),
-                Context.RECEIVER_EXPORTED
-            )
-        } else {
-            ctx.registerReceiver(
-                downloadReceiver,
-                IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE)
-            )
-        }
-
-        startProgressPolling(dm, apkFile)
+    private fun retryDownload(rel: GitHubRelease) {
+        downloads.restart(rel)
     }
 
-    private fun onDownloadSuccess(apkFile: File) {
-        stopProgressPolling()
-        AppUpdateChecker.clearOngoingDownload()
-        val sheet = sheet ?: return
-        // DM 在某些 OEM 上会把"网络中断时截断的文件"也标成 STATUS_SUCCESSFUL,
-        // 装出来就是"解析包出错"。拿 GitHub asset.size 兜个底
-        if (!isApkComplete(apkFile)) {
-            if (apkFile.exists()) apkFile.delete()
+    private fun installApk() {
+        val apkFile = downloads.apkFile()
+        if (apkFile == null || !apkFile.exists() || apkFile.length() <= 0L) {
+            // 文件被清掉了（用户清理缓存 / 换目录）：当作断点不可用，退回重试。
+            release?.let { retryDownload(it) }
             Common.showToast(getString(R.string.update_apk_invalid))
-            sheet.resetProgress()
-            sheet.setProgressMessage(R.string.update_download_failed)
-            sheet.setPrimary(R.string.update_retry, enabled = true) { retryDownload() }
             return
         }
-        sheet.setProgress(100, "100%")
-        sheet.setPrimary(
-            R.string.update_install,
-            enabled = true,
-            icon = R.drawable.ic_file_download_done_24dp,
-        ) { installApk(apkFile) }
-    }
-
-    private fun retryDownload() {
-        val rel = release ?: return
-        val asset = AppUpdateChecker.findApkAsset(rel) ?: return
-        val sheet = sheet ?: return
-        sheet.setPrimary(R.string.update_downloading, enabled = false)
-        sheet.resetProgress()
-        startDownload(asset)
-    }
-
-    private fun isApkComplete(apkFile: File): Boolean {
-        if (!apkFile.exists() || apkFile.length() <= 0) return false
-        val expected = release?.let { AppUpdateChecker.findApkAsset(it)?.size } ?: return true
-        if (expected <= 0) return true
-        return apkFile.length() == expected
-    }
-
-    private fun queryDownloadStatus(dm: DownloadManager, id: Long): Int {
-        var cursor: Cursor? = null
-        try {
-            cursor = dm.query(DownloadManager.Query().setFilterById(id))
-            if (cursor != null && cursor.moveToFirst()) {
-                val statusIdx = cursor.getColumnIndex(DownloadManager.COLUMN_STATUS)
-                if (statusIdx >= 0) return cursor.getInt(statusIdx)
-            }
-        } catch (_: Exception) {
-        } finally {
-            cursor?.close()
-        }
-        return -1
-    }
-
-    private fun restoreOngoingDownload(versionTag: String) {
-        val ctx = requireContext().applicationContext
-        val downloadDir = ctx.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS) ?: return
-        val apkFile = File(downloadDir, APK_FILE_NAME)
-        val existingId = AppUpdateChecker.getOngoingDownloadId(versionTag)
-        if (existingId == -1L) return
-        val sheet = sheet ?: return
-
-        val dm = ctx.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-        when (queryDownloadStatus(dm, existingId)) {
-            DownloadManager.STATUS_PENDING,
-            DownloadManager.STATUS_RUNNING,
-            DownloadManager.STATUS_PAUSED -> {
-                sheet.setPrimary(R.string.update_downloading, enabled = false)
-                sheet.showProgress()
-                attachToDownload(existingId, apkFile)
-            }
-            DownloadManager.STATUS_SUCCESSFUL -> {
-                if (isApkComplete(apkFile)) {
-                    sheet.showProgress()
-                    sheet.setProgress(100, "100%")
-                    sheet.setPrimary(
-            R.string.update_install,
-            enabled = true,
-            icon = R.drawable.ic_file_download_done_24dp,
-        ) { installApk(apkFile) }
-                } else {
-                    if (apkFile.exists()) apkFile.delete()
-                    AppUpdateChecker.clearOngoingDownload()
-                    Common.showToast(getString(R.string.update_apk_invalid))
-                }
-            }
-            else -> {
-                try { dm.remove(existingId) } catch (_: Exception) {}
-                if (apkFile.exists()) apkFile.delete()
-                AppUpdateChecker.clearOngoingDownload()
-                Common.showToast(getString(R.string.update_download_failed))
-            }
-        }
-    }
-
-    private fun startProgressPolling(dm: DownloadManager, apkFile: File) {
-        progressRunnable = object : Runnable {
-            override fun run() {
-                if (downloadId == -1L) return
-                val sheet = sheet ?: return
-                val query = DownloadManager.Query().setFilterById(downloadId)
-                var cursor: Cursor? = null
-                try {
-                    cursor = dm.query(query)
-                    if (cursor != null && cursor.moveToFirst()) {
-                        val statusIdx = cursor.getColumnIndex(DownloadManager.COLUMN_STATUS)
-                        val bytesIdx = cursor.getColumnIndex(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR)
-                        val totalIdx = cursor.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES)
-
-                        val status = cursor.getInt(statusIdx)
-                        val bytesDownloaded = cursor.getLong(bytesIdx)
-                        val totalBytes = cursor.getLong(totalIdx)
-
-                        when (status) {
-                            DownloadManager.STATUS_RUNNING -> {
-                                if (totalBytes > 0) {
-                                    val percent = (bytesDownloaded * 100 / totalBytes).toInt()
-                                    sheet.setProgress(
-                                        percent,
-                                        String.format(
-                                            Locale.getDefault(),
-                                            "%.1f MB / %.1f MB (%d%%)",
-                                            bytesDownloaded / 1048576f,
-                                            totalBytes / 1048576f,
-                                            percent,
-                                        ),
-                                    )
-                                }
-                            }
-                            DownloadManager.STATUS_SUCCESSFUL -> {
-                                onDownloadSuccess(apkFile)
-                                return
-                            }
-                            DownloadManager.STATUS_FAILED -> {
-                                AppUpdateChecker.clearOngoingDownload()
-                                sheet.setProgressMessage(R.string.update_download_failed)
-                                sheet.setPrimary(R.string.update_retry, enabled = true) { retryDownload() }
-                                return
-                            }
-                        }
-                    }
-                } finally {
-                    cursor?.close()
-                }
-                handler.postDelayed(this, 300)
-            }
-        }
-        handler.post(progressRunnable!!)
-    }
-
-    private fun stopProgressPolling() {
-        progressRunnable?.let { handler.removeCallbacks(it) }
-        progressRunnable = null
-    }
-
-    private fun installApk(apkFile: File) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             if (!requireContext().packageManager.canRequestPackageInstalls()) {
                 pendingInstallFile = apkFile
@@ -384,27 +320,12 @@ class UpdateBottomSheet : BottomSheetDialogFragment() {
         "https://github.com/${GitHubApi.OWNER}/${GitHubApi.REPO}/releases/latest"
 
     private fun openInBrowser(url: String) {
-        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-        try {
-            startActivity(intent)
-        } catch (_: ActivityNotFoundException) {
-            Common.showToast(getString(R.string.msg_no_browser))
-        }
-    }
-
-    private fun unregisterDownloadReceiver() {
-        val receiver = downloadReceiver ?: return
-        downloadReceiver = null
-        try {
-            requireContext().applicationContext.unregisterReceiver(receiver)
-        } catch (_: Exception) {
-        }
+        WebLinkHelper.openUrl(context, url)
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
-        stopProgressPolling()
+        downloads.detachSheet()
         sheet = null
-        unregisterDownloadReceiver()
     }
 }

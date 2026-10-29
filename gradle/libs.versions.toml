@@ -24,6 +24,10 @@ fragment = "1.8.9"
 glide = "4.16.0"
 glideTransformations = "4.3.0"
 gson = "2.11.0"
+# Dagger/Hilt 2.59+ 的 Hilt Gradle 插件要求 AGP 9；插件与运行时共用这一个版本号。
+# 先停在 2.59.x：2.60 起 hilt-android 传递依赖 kotlin-stdlib 2.3.x，而本仓编译器是 Kotlin 2.2，
+# Room 2.7 的 kapt 读不了 2.3 元数据（kaptGithubDebugKotlin 直接失败）。升 Kotlin 2.3 时一并升。
+hilt = "2.59.2"
 hdImageView = "3.0.2"
 htmlTextView = "3.9"
 interpolator = "1.0.0"
@@ -113,6 +117,8 @@ glideOkhttp = { module = "com.github.bumptech.glide:okhttp3-integration", versio
 glideTransformations = { module = "jp.wasabeef:glide-transformations", version.ref = "glideTransformations" }
 googleReview = { module = "com.google.android.play:review", version.ref = "playReview" }
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+hiltAndroid = { module = "com.google.dagger:hilt-android", version.ref = "hilt" }
+hiltCompiler = { module = "com.google.dagger:hilt-compiler", version.ref = "hilt" }
 hdImageView = { module = "xyz.zpayh:hdimageview", version.ref = "hdImageView" }
 htmlTextView = { module = "org.sufficientlysecure:html-textview", version.ref = "htmlTextView" }
 jsoup = { module = "org.jsoup:jsoup", version.ref = "jsoup" }
@@ -143,3 +149,6 @@ utilCode = { module = "com.blankj:utilcodex", version.ref = "utilCode" }
 viewPagerTransforms = { module = "com.ToxicBakery.viewpager.transforms:view-pager-transforms", version.ref = "viewPagerTransforms" }
 zoomImage = { module = "io.github.panpf.zoomimage:zoomimage-view-sketch4", version.ref = "zoomImage" }
 cosAndroid = { module = "com.qcloud.cos:cos-android", version.ref = "cosAndroid" }
+
+[plugins]
+hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }

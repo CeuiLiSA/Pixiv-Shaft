@@ -259,14 +259,19 @@ class RobustWebSocketClientStressTest {
         try {
             // Don't connect — pile up the burst, then connect to drain.
             // Note on pre-fetch: the consumer coroutine is launched on
-            // Dispatchers.IO at construction. *If* it has already parked in
-            // receive() by the time the burst starts, the very first send
-            // (seq-0) is rendezvous'd straight into its local variable (held
-            // in deliver() while waiting for Connected) and survives on top
-            // of the buffer. If the IO thread hasn't scheduled it yet, seq-0
-            // is just another evicted message. Both are correct DropOldest
-            // behaviour, so the assertions accept either — asserting exactly
-            // bufferSize+1 made the test a bet on dispatcher scheduling.
+            // Dispatchers.IO at construction, and it takes a message out of the
+            // channel *before* parking in deliver() to wait for Connected. Which
+            // message it takes depends on when the IO thread first schedules it:
+            //   - parked before the burst starts → holds seq-0;
+            //   - scheduled mid-burst           → holds whatever was head at that
+            //     instant (e.g. seq-706), and the rest of the burst keeps
+            //     refilling the buffer behind it;
+            //   - not scheduled until after it  → holds seq-900, leaving the
+            //     other 99 in the buffer.
+            // All three are correct DropOldest behaviour: the held message was
+            // already dequeued, so eviction cannot reach it. Only the count and
+            // the "newest bufferSize are intact" part are deterministic —
+            // asserting seq-0 specifically made this a bet on dispatcher scheduling.
             for (i in 0 until burst) {
                 assertTrue(client.send("seq-$i"))
             }
@@ -274,7 +279,7 @@ class RobustWebSocketClientStressTest {
             waitFor(timeoutMs = 5_000) { client.state.value is WebSocketState.Connected }
             val fake = fakeFactory.sockets.single()
             waitFor(timeoutMs = 5_000) { fake.sentText.size >= bufferSize }
-            // Settle window so the optional pre-fetched seq-0 (which is
+            // Settle window so the optional pre-fetched message (which is
             // always delivered first, before the buffer) and any in-flight
             // extra send has a chance to surface before we assert the count.
             delay(100)
@@ -288,7 +293,16 @@ class RobustWebSocketClientStressTest {
                 )
                 val prefetched = n - bufferSize
                 if (prefetched == 1) {
-                    assertEquals("seq-0", received.first())
+                    // The message the consumer rendezvoused with can be *any* seq that
+                    // was head-of-queue when it first parked in deliver() — not necessarily
+                    // seq-0. What must hold is that it is an *old* message the DropOldest
+                    // buffer would otherwise have evicted; a newest-range message here
+                    // would mean duplication or reordering, not an extra in-flight send.
+                    val firstSeq = received.first().removePrefix("seq-").toInt()
+                    assertTrue(
+                        "pre-fetched message must predate the newest $bufferSize, got seq-$firstSeq",
+                        firstSeq < burst - bufferSize,
+                    )
                 }
                 // The remaining bufferSize messages must be the newest ones, in order.
                 for (i in prefetched until n) {

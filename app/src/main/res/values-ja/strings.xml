@@ -133,6 +133,12 @@
     <string name="v3_widget_hide_refresh_button">ウィジェットの更新ボタンを隠す</string>
     <string name="v3_widget_hide_refresh_button_desc">隠すと更新間隔にしたがって自動で切り替わるだけになります</string>
     <string name="tablet_layout">タブレット向けレイアウト</string>
+    <string name="bottom_bar_scroll_hide">スクロールでボトムバーを隠す</string>
+    <string name="bottom_bar_scroll_hide_desc">下スクロールでボトムバーを隠し、上スクロールで戻します。オフにすると常に表示されます</string>
+    <string name="top_bar_scroll_hide">スクロールでトップバーを隠す</string>
+    <string name="top_bar_scroll_hide_desc">おすすめページ上部のタイトルバーを下スクロールで隠し、上スクロールで戻します。オフにすると常に表示されます</string>
+    <string name="use_account_avatar_as_drawer_icon">サイドバーアイコンにアカウントアバターを表示</string>
+    <string name="use_account_avatar_as_drawer_icon_desc">ホーム左上のサイドバーアイコンに、ログイン中のアカウントの丸型アバターを表示します。未ログイン時はゲストアバターを表示</string>
     <string name="tablet_layout_desc">タブレットなどの大画面で、サイドナビゲーション、画面幅に合わせて列数が増えるフィード、左右に並ぶ作品詳細を使います。オフにするとスマートフォンと同じレイアウトになります。タブレットのみ有効</string>
     <!-- 平板首页侧边导航栏（#1087）：快捷入口与菜单按钮 -->
     <string name="rail_bookmarks">ブックマーク</string>
@@ -166,6 +172,7 @@
     <string name="filter_bookmarked_rank">ランキングで除外</string>
     <string name="filter_bookmarked_following">フォロー新着で除外</string>
     <string name="filter_bookmarked_search">検索結果で除外</string>
+    <string name="filter_bookmarked_recmd">ホームのおすすめで除外</string>
     <string name="filter_bookmarked_none">フィルタなし</string>
     <string name="filter_bookmarked_summary">%1$d 件有効</string>
     <string name="filter_bookmarked_dialog_hint">ブックマーク済みの作品を非表示にする画面を選択</string>
@@ -1133,6 +1140,15 @@
     <string name="update_later">後で</string>
     <string name="update_skip_version">このバージョンをスキップ</string>
     <string name="update_retry">再試行</string>
+    <string name="update_continue">ダウンロードを再開</string>
+    <string name="update_paused">一時停止中</string>
+    <string name="update_merging">インストーラーを結合中…</string>
+    <string name="update_threads">%1$d スレッド</string>
+    <string name="update_interrupted">ダウンロードが中断されました</string>
+    <string name="update_resume_unavailable">続きから再開できません。もう一度お試しください</string>
+    <string name="update_banner_done_title">アップデートのダウンロードが完了しました</string>
+    <string name="update_banner_done_message">タップして %1$s のインストールを続行</string>
+    <string name="update_banner_action">インストールへ</string>
     <string name="update_download_failed">ダウンロードに失敗しました</string>
     <string name="update_check_failed">更新確認に失敗しました</string>
     <string name="update_rate_limited">レート制限に達しました。しばらく待ってから再試行してください</string>
@@ -2991,9 +3007,10 @@
     <string name="snapshot_progress_comments">コメントを取得中</string>
     <string name="snapshot_progress_comment_assets">コメントのアイコン／スタンプをダウンロード中</string>
     <string name="snapshot_progress_writing">スナップショットを書き込み中</string>
-    <string name="snapshot_unsupported_ugoira">うごイラ / ugoira はオフラインスナップショットに未対応です</string>
+    <string name="snapshot_progress_ugoira">うごイラのフレームを取得中</string>
     <string name="snapshot_error_page_url_missing">%1$d 枚目の画像に利用可能な URL がありません</string>
     <string name="snapshot_error_image_download">画像のダウンロードに失敗しました：%1$s</string>
+    <string name="snapshot_error_ugoira_frames">うごイラのフレーム取得に失敗しました</string>
 
     <!-- 自動スナップショット（試験的） -->
     <string name="setting_auto_snapshot_on_bookmark">ブックマーク時にオフラインスナップショットを作成</string>
@@ -3456,4 +3473,59 @@
     <string name="image_filter_adjust_fade">フェード</string>
     <string name="image_filter_adjust_vignette">周辺減光</string>
     <string name="image_filter_adjust_grain">粒子</string>
+    <!-- 补齐收藏快照（#1275） -->
+    <string name="snapshot_backfill_title">ブックマークのスナップショットを補完</string>
+    <string name="snapshot_backfill_intro">ブックマークしたイラスト・マンガのうち、正式なスナップショットがない作品のオフラインスナップショットを1件ずつ作成します。キューはバックグラウンドで動くため、このページを離れても続きます。</string>
+    <string name="snapshot_backfill_section_settings">キューの設定</string>
+    <string name="snapshot_backfill_scope">ブックマーク範囲</string>
+    <string name="snapshot_backfill_scope_all">すべて</string>
+    <string name="snapshot_backfill_scope_public">公開</string>
+    <string name="snapshot_backfill_scope_private">非公開</string>
+    <string name="snapshot_backfill_comments">コメントを含める</string>
+    <string name="snapshot_backfill_comments_hint">コメントと返信も保存します。1件ごとにリクエストが数回増えます</string>
+    <string name="snapshot_backfill_original">原寸画像を使う</string>
+    <string name="snapshot_backfill_original_hint">最高画質ですが、容量が増えます</string>
+    <string name="snapshot_backfill_wifi">Wi-Fi 接続時のみ実行</string>
+    <string name="snapshot_backfill_wifi_hint">モバイルデータ通信中は待機し、Wi-Fi に接続すると再開します</string>
+    <string name="snapshot_backfill_free_space">空き容量 %1$s・1 GB を下回ると自動で一時停止</string>
+    <string name="snapshot_backfill_locked_hint">設定はキュー全体に適用されます。変更するには現在のキューを停止してください。</string>
+    <string name="snapshot_backfill_notice">正式なスナップショットがある作品はスキップします。設定が合う自動スナップショットは、そのまま正式なスナップショットに切り替えます。スナップショットはアプリの内部ストレージに保存されます。システムがアプリを終了した場合は、次に開いたときに再開します。</string>
+    <string name="snapshot_backfill_start">補完を開始</string>
+    <string name="snapshot_backfill_status_running">実行中</string>
+    <string name="snapshot_backfill_status_paused">一時停止中</string>
+    <string name="snapshot_backfill_status_waiting">待機中</string>
+    <string name="snapshot_backfill_status_finished">完了</string>
+    <string name="snapshot_backfill_total">/ %1$d 件 処理済み</string>
+    <string name="snapshot_backfill_stats">新規 %1$d · 作成済み %2$d · 閲覧不可 %3$d · 失敗 %4$d</string>
+    <string name="snapshot_backfill_detail_generating">作成中：%1$s</string>
+    <string name="snapshot_backfill_detail_scanning">ブックマークを読み込み中です。合計は増えていきます</string>
+    <string name="snapshot_backfill_detail_working">次の作品を処理中</string>
+    <string name="snapshot_backfill_detail_paused">一時停止中です。未処理の作品はキューに残ります</string>
+    <string name="snapshot_backfill_detail_low_storage">空き容量が 1 GB 未満のため一時停止しました。容量を空けてから「再開」をタップしてください。</string>
+    <string name="snapshot_backfill_detail_wifi">Wi-Fi 接続を待機中</string>
+    <string name="snapshot_backfill_detail_network">ネットワーク接続を待機中</string>
+    <string name="snapshot_backfill_detail_login">ログイン後に再開します</string>
+    <string name="snapshot_backfill_detail_cooling">リクエストが多すぎます。しばらくすると再開します</string>
+    <string name="snapshot_backfill_detail_scan_failed">ブックマークを最後まで読み込めませんでした。再試行できます</string>
+    <string name="snapshot_backfill_detail_finished">すべて処理しました</string>
+    <string name="snapshot_backfill_retry_failed">失敗した %1$d 件を再試行</string>
+    <string name="snapshot_backfill_done_action">完了</string>
+    <string name="snapshot_backfill_pause">一時停止</string>
+    <string name="snapshot_backfill_resume">再開</string>
+    <string name="snapshot_backfill_stop">停止</string>
+    <string name="snapshot_backfill_stop_title">補完を停止しますか？</string>
+    <string name="snapshot_backfill_stop_message">作成済みのスナップショットは残ります。未処理の %1$d 件はキューから外れます。</string>
+    <string name="snapshot_backfill_summary_all">すべてのブックマーク</string>
+    <string name="snapshot_backfill_summary_public">公開ブックマーク</string>
+    <string name="snapshot_backfill_summary_private">非公開ブックマーク</string>
+    <string name="snapshot_backfill_summary_original">原寸</string>
+    <string name="snapshot_backfill_summary_regular">標準画質</string>
+    <string name="snapshot_backfill_summary_comments">コメント付き</string>
+    <string name="snapshot_backfill_summary_wifi">Wi-Fi のみ</string>
+    <string name="snapshot_backfill_strip_value">%1$d / %2$d · %3$s</string>
+    <!-- Chrome Custom Tabs -->
+    <string name="chrome_custom_tabs_title">Chrome Custom Tabs</string>
+    <string name="chrome_custom_tabs_desc">Chrome がインストールされている場合、Chrome Custom Tabs でリンクを開きます</string>
+    <string name="chrome_custom_tabs_not_found">Chrome が見つからないため、自動的に無効化されました</string>
+    <string name="open_with_chrome">Chromeで開く</string>
 </resources>

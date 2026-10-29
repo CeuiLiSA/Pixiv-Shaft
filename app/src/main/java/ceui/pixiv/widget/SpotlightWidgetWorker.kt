@@ -165,8 +165,8 @@ class SpotlightWidgetWorker(
             putExtra(Params.POSITION, 0)
             putExtra(Params.PAGE_UUID, UUID.randomUUID().toString())
             // Widget 刷新时不预占进程级 Container；点击后由 VActivity
-            // 使用这份 bean 重建单页 PageData。
-            putExtra(Params.WIDGET_ILLUST, illust)
+            // 使用这份 bean 重建单页 PageData（JSON，原因见 Params.WIDGET_ILLUST_JSON）。
+            putExtra(Params.WIDGET_ILLUST_JSON, Shaft.sGson.toJson(illust))
         }
         val openPi = PendingIntent.getActivity(
             context, widgetId * 31 + 2,

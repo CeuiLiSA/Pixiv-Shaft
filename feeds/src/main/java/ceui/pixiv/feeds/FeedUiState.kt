@@ -94,11 +94,31 @@ data class FeedUiState(
     val showFullscreenLoading: Boolean
         get() = refresh is LoadState.Loading && !hasLoadedOnce
 
+    /**
+     * 真正要渲染的条目：剔除被页面按当前设置临时隐藏的 [FeedItem.hidden]。
+     *
+     * 没有隐藏项时原样返回 [items]（同一个实例，不额外分配）——绝大多数页面每次渲染都走这条。
+     * 隐藏项仍然留在 [items] 里，所以「取消隐藏」只是重新渲染，位置由 DiffUtil 按身份原样插回。
+     */
+    val visibleItems: List<FeedItem> by lazy(LazyThreadSafetyMode.NONE) {
+        if (items.none { it.hidden }) items else items.filterNot { it.hidden }
+    }
+
+    /**
+     * [visibleItems] 是否为空——「这一页还有没有东西可展示」。
+     *
+     * 与 `visibleItems.isNotEmpty()` 同义，只是不分配过滤后的列表。分页链路用它判「这页算不算空」：
+     * 整页条目都被页面按设置隐藏时，数据是满的而屏幕是空的，按 [items] 判空会当成「有内容」，
+     * 于是不再往后翻，用户停在空白上且没有任何 onBind 去点火。
+     */
+    val hasVisibleItems: Boolean
+        get() = items.hasVisibleItem()
+
     /** 页面上没有任何内容可以展示时的全屏错误态（点击整体重试）。 */
     val showFullscreenError: Boolean
-        get() = refresh is LoadState.Error && items.isEmpty()
+        get() = refresh is LoadState.Error && visibleItems.isEmpty()
 
     /** 成功加载过、但确实没有内容的空态。 */
     val showEmptyState: Boolean
-        get() = refresh is LoadState.Idle && hasLoadedOnce && items.isEmpty()
+        get() = refresh is LoadState.Idle && hasLoadedOnce && visibleItems.isEmpty()
 }

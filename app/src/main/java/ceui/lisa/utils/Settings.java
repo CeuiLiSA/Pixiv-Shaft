@@ -211,6 +211,10 @@ public class Settings {
     //入口在设置页「过滤已收藏」弹窗与搜索筛选「其他条件」，过滤在搜索数据源建条目时现读。
     private boolean searchFilterBookmarked = false;
 
+    //首页推荐过滤已收藏的作品，默认不过滤。只作用于首页推荐 tab（插画），推荐漫画页不受影响。
+    //入口在设置页「过滤已收藏」弹窗；开关变化时由 RecmdIllustFeedFragment 就地上下屏，不重新拉数据。
+    private boolean filterRecmdBookmarked = false;
+
     //屏蔽，不显示AI创作的作品，默认不屏蔽
     private boolean deleteAIIllust = false;
 
@@ -491,6 +495,15 @@ public class Settings {
 
     /** 平板适配排版（侧边导航栏 / 瀑布流按宽度加列 / 作品舞台详情，#1087），见 TabletLayout。默认关闭。 */
     private boolean tabletLayout = false;
+
+    /** 首页底栏是否跟随列表滚动收起（false = 固定常显），见 BottomBarAutoHide.setEnabled。默认开启。 */
+    private boolean bottomBarHideOnScroll = true;
+
+    /** 推荐页顶栏是否跟随列表滚动收起（false = 固定常显），见 FragmentLeft#applyTopBarScrollSetting。默认开启。 */
+    private boolean topBarHideOnScroll = true;
+
+    /** 是否将首页左上角侧边栏按钮展示为当前账号头像。默认关闭。 */
+    private boolean useAccountAvatarAsDrawerIcon = false;
 
     /** 隐藏小组件上浮在封面之上的收藏按钮（#1013：挡画面） */
     private boolean widgetHideBookmarkButton = false;
@@ -787,6 +800,14 @@ public class Settings {
 
     public void setSearchFilterBookmarked(boolean searchFilterBookmarked) {
         this.searchFilterBookmarked = searchFilterBookmarked;
+    }
+
+    public boolean isFilterRecmdBookmarked() {
+        return filterRecmdBookmarked;
+    }
+
+    public void setFilterRecmdBookmarked(boolean filterRecmdBookmarked) {
+        this.filterRecmdBookmarked = filterRecmdBookmarked;
     }
 
     public boolean isDeleteAIIllust() {
@@ -1399,6 +1420,9 @@ public class Settings {
 
     public void setR18FilterTempEnable(boolean r18FilterTempEnable) {
         this.r18FilterTempEnable = r18FilterTempEnable;
+        // 显式写过就算初始化过：getter 的懒初始化会在 initialed 为 false 时拿默认值把刚写的值盖掉，
+        // 于是「先 set 后 get」的调用方拿到的是默认值而不是自己刚设的值
+        this.r18FilterTempEnableInitialed = true;
     }
 
     public int getNovelFilterMinTextLength() {
@@ -1513,6 +1537,30 @@ public class Settings {
 
     public void setTabletLayout(boolean enable) {
         this.tabletLayout = enable;
+    }
+
+    public boolean isBottomBarHideOnScroll() {
+        return bottomBarHideOnScroll;
+    }
+
+    public void setBottomBarHideOnScroll(boolean hide) {
+        this.bottomBarHideOnScroll = hide;
+    }
+
+    public boolean isTopBarHideOnScroll() {
+        return topBarHideOnScroll;
+    }
+
+    public void setTopBarHideOnScroll(boolean hide) {
+        this.topBarHideOnScroll = hide;
+    }
+
+    public boolean isUseAccountAvatarAsDrawerIcon() {
+        return useAccountAvatarAsDrawerIcon;
+    }
+
+    public void setUseAccountAvatarAsDrawerIcon(boolean useAccountAvatarAsDrawerIcon) {
+        this.useAccountAvatarAsDrawerIcon = useAccountAvatarAsDrawerIcon;
     }
 
     public boolean isWidgetHideBookmarkButton() {

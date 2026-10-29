@@ -133,6 +133,12 @@
     <string name="v3_widget_hide_refresh_button">Скрыть кнопку обновления в виджете</string>
     <string name="v3_widget_hide_refresh_button_desc">После скрытия иллюстрация меняется только по интервалу обновления</string>
     <string name="tablet_layout">Макет для планшета</string>
+    <string name="bottom_bar_scroll_hide">Скрывать нижнюю панель при прокрутке</string>
+    <string name="bottom_bar_scroll_hide_desc">Панель сворачивается при прокрутке вниз и возвращается при прокрутке вверх. Если выключено, панель закреплена и всегда видна</string>
+    <string name="top_bar_scroll_hide">Скрывать верхнюю панель при прокрутке</string>
+    <string name="top_bar_scroll_hide_desc">Панель заголовка на странице рекомендаций сворачивается при прокрутке вниз и возвращается при прокрутке вверх. Если выключено, панель закреплена и всегда видна</string>
+    <string name="use_account_avatar_as_drawer_icon">Аватар аккаунта вместо иконки боковой панели</string>
+    <string name="use_account_avatar_as_drawer_icon_desc">Отображать круглый аватар текущего аккаунта в левом верхнем углу главной страницы; если вход не выполнен, отображается аватар гостя</string>
     <string name="tablet_layout_desc">На планшетах и других больших экранах: боковая панель навигации, лента с числом колонок по ширине экрана и страница работы с раздельной компоновкой. Если выключено, используется макет телефона. Только для планшетов</string>
     <!-- 平板首页侧边导航栏（#1087）：快捷入口与菜单按钮 -->
     <string name="rail_bookmarks">Закладки</string>
@@ -166,6 +172,7 @@
     <string name="filter_bookmarked_rank">В рейтинге</string>
     <string name="filter_bookmarked_following">В ленте подписок</string>
     <string name="filter_bookmarked_search">В результатах поиска</string>
+    <string name="filter_bookmarked_recmd">В рекомендациях на главной</string>
     <string name="filter_bookmarked_none">Без фильтра</string>
     <string name="filter_bookmarked_summary">Включено: %1$d</string>
     <string name="filter_bookmarked_dialog_hint">Выберите, где скрывать уже добавленные в закладки работы</string>
@@ -1133,6 +1140,15 @@
     <string name="update_later">Позже</string>
     <string name="update_skip_version">Пропустить эту версию</string>
     <string name="update_retry">Повторить</string>
+    <string name="update_continue">Продолжить загрузку</string>
+    <string name="update_paused">Приостановлено</string>
+    <string name="update_merging">Объединение установщика…</string>
+    <string name="update_threads">%1$d потоков</string>
+    <string name="update_interrupted">Загрузка прервана</string>
+    <string name="update_resume_unavailable">Не удаётся продолжить загрузку, попробуйте снова</string>
+    <string name="update_banner_done_title">Обновление загружено</string>
+    <string name="update_banner_done_message">Нажмите, чтобы продолжить установку %1$s</string>
+    <string name="update_banner_action">Установить</string>
     <string name="update_download_failed">Не удалось скачать</string>
     <string name="update_check_failed">Не удалось проверить обновления</string>
     <string name="update_rate_limited">Превышен лимит запросов, повторите попытку позже</string>
@@ -2991,9 +3007,10 @@
     <string name="snapshot_progress_comments">Получение комментариев</string>
     <string name="snapshot_progress_comment_assets">Загрузка аватаров и стикеров комментариев</string>
     <string name="snapshot_progress_writing">Запись снимка</string>
-    <string name="snapshot_unsupported_ugoira">Ugoira пока не поддерживается для офлайн-снимков</string>
+    <string name="snapshot_progress_ugoira">Получение кадров ugoira</string>
     <string name="snapshot_error_page_url_missing">Нет доступного URL для изображения %1$d</string>
     <string name="snapshot_error_image_download">Не удалось загрузить изображение: %1$s</string>
+    <string name="snapshot_error_ugoira_frames">Не удалось получить кадры ugoira</string>
 
     <!-- Автоматический снимок (экспериментально) -->
     <string name="setting_auto_snapshot_on_bookmark">Создавать офлайн-снимок при добавлении в закладки</string>
@@ -3480,4 +3497,59 @@
     <string name="image_filter_adjust_fade">Выцветание</string>
     <string name="image_filter_adjust_vignette">Виньетка</string>
     <string name="image_filter_adjust_grain">Зерно</string>
+    <!-- 补齐收藏快照（#1275） -->
+    <string name="snapshot_backfill_title">Снимки закладок</string>
+    <string name="snapshot_backfill_intro">Создаёт офлайн-снимки по одному для иллюстраций и манги из закладок, у которых ещё нет сохранённого снимка. Очередь работает в фоне, страницу можно закрыть.</string>
+    <string name="snapshot_backfill_section_settings">Настройки очереди</string>
+    <string name="snapshot_backfill_scope">Закладки</string>
+    <string name="snapshot_backfill_scope_all">Все</string>
+    <string name="snapshot_backfill_scope_public">Публичные</string>
+    <string name="snapshot_backfill_scope_private">Приватные</string>
+    <string name="snapshot_backfill_comments">С комментариями</string>
+    <string name="snapshot_backfill_comments_hint">Сохраняет и комментарии с ответами; для каждой работы нужно на несколько запросов больше</string>
+    <string name="snapshot_backfill_original">Оригинальное качество</string>
+    <string name="snapshot_backfill_original_hint">Лучшее качество, но занимает больше места</string>
+    <string name="snapshot_backfill_wifi">Только по Wi-Fi</string>
+    <string name="snapshot_backfill_wifi_hint">На мобильных данных ждёт и продолжает при подключении к Wi-Fi</string>
+    <string name="snapshot_backfill_free_space">Свободно %1$s · пауза, если останется меньше 1 ГБ</string>
+    <string name="snapshot_backfill_locked_hint">Настройки действуют на всю очередь. Чтобы изменить их, остановите текущую очередь.</string>
+    <string name="snapshot_backfill_notice">Работы с сохранённым снимком пропускаются. Подходящий автоснимок сразу становится сохранённым снимком. Снимки хранятся во внутренней памяти приложения; если система закроет приложение, очередь продолжится при следующем запуске.</string>
+    <string name="snapshot_backfill_start">Начать</string>
+    <string name="snapshot_backfill_status_running">Выполняется</string>
+    <string name="snapshot_backfill_status_paused">На паузе</string>
+    <string name="snapshot_backfill_status_waiting">Ожидание</string>
+    <string name="snapshot_backfill_status_finished">Готово</string>
+    <string name="snapshot_backfill_total">/ %1$d обработано</string>
+    <string name="snapshot_backfill_stats">Новых %1$d · Уже есть %2$d · Недоступно %3$d · Ошибок %4$d</string>
+    <string name="snapshot_backfill_detail_generating">Создаётся: %1$s</string>
+    <string name="snapshot_backfill_detail_scanning">Читаем закладки, общее число будет расти</string>
+    <string name="snapshot_backfill_detail_working">Переход к следующей работе</string>
+    <string name="snapshot_backfill_detail_paused">На паузе. Необработанные работы остаются в очереди</string>
+    <string name="snapshot_backfill_detail_low_storage">Свободно меньше 1 ГБ, очередь приостановлена. Освободите место и нажмите «Продолжить».</string>
+    <string name="snapshot_backfill_detail_wifi">Ожидание Wi-Fi</string>
+    <string name="snapshot_backfill_detail_network">Ожидание подключения к сети</string>
+    <string name="snapshot_backfill_detail_login">Продолжится после входа</string>
+    <string name="snapshot_backfill_detail_cooling">Слишком много запросов, скоро продолжим</string>
+    <string name="snapshot_backfill_detail_scan_failed">Список закладок прочитан не полностью. Можно повторить</string>
+    <string name="snapshot_backfill_detail_finished">Все работы обработаны</string>
+    <string name="snapshot_backfill_retry_failed">Повторить ошибки (%1$d)</string>
+    <string name="snapshot_backfill_done_action">Готово</string>
+    <string name="snapshot_backfill_pause">Пауза</string>
+    <string name="snapshot_backfill_resume">Продолжить</string>
+    <string name="snapshot_backfill_stop">Остановить</string>
+    <string name="snapshot_backfill_stop_title">Остановить очередь?</string>
+    <string name="snapshot_backfill_stop_message">Созданные снимки сохранятся. Необработанные работы (%1$d) будут убраны из очереди.</string>
+    <string name="snapshot_backfill_summary_all">Все закладки</string>
+    <string name="snapshot_backfill_summary_public">Публичные закладки</string>
+    <string name="snapshot_backfill_summary_private">Приватные закладки</string>
+    <string name="snapshot_backfill_summary_original">Оригинал</string>
+    <string name="snapshot_backfill_summary_regular">Обычное качество</string>
+    <string name="snapshot_backfill_summary_comments">С комментариями</string>
+    <string name="snapshot_backfill_summary_wifi">Только Wi-Fi</string>
+    <string name="snapshot_backfill_strip_value">%1$d / %2$d · %3$s</string>
+    <!-- Chrome Custom Tabs -->
+    <string name="chrome_custom_tabs_title">Chrome Custom Tabs</string>
+    <string name="chrome_custom_tabs_desc">Использовать Chrome Custom Tabs для открытия веб-ссылок при наличии Chrome</string>
+    <string name="chrome_custom_tabs_not_found">Chrome не найден, автоматически отключено</string>
+    <string name="open_with_chrome">Открыть в Chrome</string>
 </resources>

@@ -34,6 +34,9 @@ import java.io.IOException
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.min
 import kotlin.random.Random
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * 收藏镜像引擎：**静默、限速、可续传**地把一个账号的收藏列表整份拉进本地库。
@@ -83,11 +86,14 @@ import kotlin.random.Random
  * 往前挪，用户不用了它就停在断点上。
  */
 @OptIn(ExperimentalCoroutinesApi::class)
-class BookmarkMirrorService @JvmOverloads constructor(
+@Singleton
+class BookmarkMirrorService(
     app: Context,
     /** 书架 → 翻页实现。只为单测留的缝：生产恒为 [fetcherFor]。 */
-    private val fetchers: (BookmarkShelf) -> BookmarkShelfFetcher = ::fetcherFor,
+    private val fetchers: (BookmarkShelf) -> BookmarkShelfFetcher,
 ) {
+
+    @Inject constructor(@ApplicationContext app: Context) : this(app, ::fetcherFor)
 
     private val appContext: Context = app.applicationContext
 

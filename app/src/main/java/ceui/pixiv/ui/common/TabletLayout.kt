@@ -16,5 +16,7 @@ object TabletLayout {
 
     @JvmStatic
     fun isEnabled(configuration: Configuration): Boolean =
-        Shaft.sSettings.isTabletLayout && configuration.smallestScreenWidthDp >= MIN_WIDTH_DP
+        // sSettings 在 Application.onCreate 里赋值；单测(不跑 Shaft Application)与极早期调用点上
+        // 可能还是 null，此时按「未开启」处理 —— 平板排版是加法，缺省必须是不生效。
+        Shaft.sSettings?.isTabletLayout == true && configuration.smallestScreenWidthDp >= MIN_WIDTH_DP
 }

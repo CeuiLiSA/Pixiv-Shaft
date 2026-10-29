@@ -12,12 +12,18 @@ import ceui.pixiv.utils.hasTrustedCaption
 import ceui.pixiv.utils.isFullDetail
 import ceui.pixiv.utils.reconcileViewerStateFromMirror
 import ceui.pixiv.imageloader.ImageLoaderV3
+import ceui.pixiv.ui.bulk.UgoiraEngine
+import ceui.pixiv.ui.bulk.UgoiraVideoEncoder
+import ceui.pixiv.ui.bulk.readFramesDir
+import ceui.pixiv.ui.bulk.writeFramesDir
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -29,6 +35,7 @@ import java.util.concurrent.atomic.AtomicInteger
  *
  * 数据源优先级：ObjectPool 已有完整元数据 -> 缺失时回 v1/illust/detail 补齐；
  * 图片优先复用 ImageLoaderV3 已下好的共享文件，缺失时由它联网拉取。
+ * 动图另存一份帧序列（见 [copyUgoiraFrames]），p0 那张静图照常存，作封面与播放前的打底图。
  *
  * 正式快照写 manifest.json；自动快照写 auto_manifest.json（内部格式，转正后才成为正式快照）。
  */
@@ -52,11 +59,17 @@ object SnapshotGenerator {
     /** 一页的落盘计划：序号、要取的 URL、目标相对路径。纯数据，构造它不产生任何 IO。 */
     private data class SnapshotPage(val index: Int, val url: String, val rel: String)
 
+    /**
+     * @param freshDetail [illust] 是调用方刚从 v1/illust/detail 拉到的完整版。为真时不再回源：
+     *        简介为空的作品光看 bean 判断不出「确认过没有简介」（见 hasTrustedCaption），
+     *        批量补齐（[SnapshotBackfill]）每件已经自己拉过一次详情，再拉一次是白白翻倍的请求。
+     */
     suspend fun generate(
         context: Context,
         illust: Illust,
         includeComments: Boolean,
         includeOriginal: Boolean,
+        freshDetail: Boolean = false,
         onProgress: suspend (String) -> Unit = {},
     ): SnapshotManifest = withContext(Dispatchers.IO) {
         val content = generateContent(
@@ -64,6 +77,7 @@ object SnapshotGenerator {
             illust = illust,
             includeComments = includeComments,
             includeOriginal = includeOriginal,
+            freshDetail = freshDetail,
             onProgress = onProgress,
         )
         try {
@@ -87,6 +101,7 @@ object SnapshotGenerator {
             illust = illust,
             includeComments = false,
             includeOriginal = includeOriginal,
+            freshDetail = false,
             onProgress = onProgress,
         )
         try {
@@ -117,12 +132,10 @@ object SnapshotGenerator {
         illust: Illust,
         includeComments: Boolean,
         includeOriginal: Boolean,
+        freshDetail: Boolean,
         onProgress: suspend (String) -> Unit,
     ): SnapshotContent = withContext(Dispatchers.IO) {
         val appContext = context.applicationContext
-        if (illust.isGif()) {
-            throw SnapshotException(appContext.getString(R.string.snapshot_unsupported_ugoira))
-        }
         val snapshotId = UUID.randomUUID().toString()
         val snapshotDir = SnapshotRepository.createSnapshotDir(appContext, snapshotId)
         // 进度文案是给用户看的,统一走资源;领域层不硬编码任何一种语言的 UI 串。
@@ -131,14 +144,14 @@ object SnapshotGenerator {
 
         try {
             progress(R.string.snapshot_progress_metadata)
-            // 归档要存「采集那一刻」的真实 viewer 态。走到 else 拿到的是权威 detail，直接用；
-            // 只有退回传入 bean（自建源 / 借号 / 历史快照来源，收藏与关注态可能是别人的）时，
-            // 才用本地镜像补一次 —— 只读，不写池：快照生成不该改动 ObjectPool。
-            val fetched = if (illust.isFullDetail() && illust.hasTrustedCaption()) {
-                null
-            } else {
+            // 归档要存「采集那一刻」的真实 viewer 态。调用方刚拉的完整版（freshDetail）与走到 else
+            // 拿到的都是权威 detail，直接用；只有退回传入 bean（自建源 / 借号 / 历史快照来源，收藏与
+            // 关注态可能是别人的）时，才用本地镜像补一次 —— 只读，不写池：快照生成不该改动 ObjectPool。
+            val fetched = when {
+                freshDetail -> illust
+                illust.isFullDetail() && illust.hasTrustedCaption() -> null
                 // toUpdate = false：快照生成只是读取完整元数据，不应改动 ObjectPool。
-                fetchFullIllustDetail(illust.id, false)
+                else -> fetchFullIllustDetail(illust.id, false)
             }
             val bean = fetched ?: reconcileViewerStateFromMirror(illust, writeBack = false)
 
@@ -212,6 +225,10 @@ object SnapshotGenerator {
                 pagePaths.firstOrNull()?.let { coverRel ->
                     bean.snapshotCoverVariantUrls().forEach { variant -> assets[variant] = coverRel }
                 }
+            }
+
+            if (bean.isGif()) {
+                copyUgoiraFrames(appContext, bean, File(snapshotDir, SNAPSHOT_UGOIRA_DIR), onProgress)
             }
 
             bean.snapshotAuthorAvatarUrl()?.let { url ->
@@ -338,6 +355,44 @@ object SnapshotGenerator {
                 newRel
             }
             assets[url] = rel
+        }
+    }
+
+    /**
+     * 动图的帧序列：借播放引擎拿 pixiv 原速帧（盘上已有就直接用，没有就跑一遍下载 / 解压），
+     * 原样拷进快照的 [target]。目录格式与引擎的帧目录一致，离线端用同一个 [readFramesDir] 读回。
+     * 引擎已压好的 mp4 顺手带上供硬解；没有就不额外压 —— 帧序列本身就能播。
+     */
+    private suspend fun copyUgoiraFrames(
+        context: Context,
+        illust: Illust,
+        target: File,
+        onProgress: suspend (String) -> Unit,
+    ) = coroutineScope {
+        val base = context.getString(R.string.snapshot_progress_ugoira)
+        onProgress(base)
+        // 引擎进度（下载 zip / 压制 mp4 等）带百分比时拼在文案后面，与播放器浮层同一写法。
+        val progressJob = launch {
+            UgoiraEngine.progressOf(illust.id).collect { p ->
+                onProgress(p.percent?.let { "$base  $it%" } ?: base)
+            }
+        }
+        val frames = try {
+            UgoiraEngine.loadOriginalFrames(illust)
+        } catch (ce: CancellationException) {
+            throw ce
+        } catch (e: Exception) {
+            throw SnapshotException(context.getString(R.string.snapshot_error_ugoira_frames), e)
+        } finally {
+            progressJob.cancel()
+        }
+        // 握引擎的 per-illust 文件锁再读再拷：保存链路会往同一目录补压 mp4，播放器自愈会整目录删掉。
+        UgoiraEngine.fileLockFor(illust.id).withLock {
+            val source = readFramesDir(frames.dir, frames.interpolated)
+                ?: throw SnapshotException(context.getString(R.string.snapshot_error_ugoira_frames))
+            writeFramesDir(target, source.files, source.delaysMs)
+                ?: throw SnapshotException(context.getString(R.string.snapshot_error_ugoira_frames))
+            source.video?.let { copyFileTo(it, File(target, UgoiraVideoEncoder.VIDEO_FILE_NAME)) }
         }
     }
 

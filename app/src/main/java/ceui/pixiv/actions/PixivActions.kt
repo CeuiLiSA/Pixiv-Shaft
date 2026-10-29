@@ -3,6 +3,7 @@ package ceui.pixiv.actions
 import android.content.Intent
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import ceui.lisa.BuildConfig
+import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.pixiv.api.model.Illust
 import ceui.lisa.utils.Params
@@ -16,6 +17,9 @@ import ceui.pixiv.cache.withoutViewerState
 import ceui.pixiv.actionqueue.ActionRequest
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.task.NovelAutoDownload
+import ceui.pixiv.ui.novel.reader.export.ExportFormat
+import ceui.pixiv.download.toast.DownloadToastKind
+import ceui.pixiv.download.toast.DownloadToasts
 import ceui.pixiv.widgets.RateAppManager
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -397,6 +401,42 @@ object PixivActions {
     private fun autoDownloadNovel(novel: Novel) {
         if (!Shaft.sSettings.isAutoDownloadAfterStar) return
         NovelAutoDownload.enqueue(novel)
+    }
+
+    // ── 小说下载 ────────────────────────────────────────────────────────────
+
+    /**
+     * 逐篇下载 [novels]，立即返回。每篇一条进 [PixivActionQueue] 的下载队列，串行、按间隔抓正文，
+     * 进度和结果由队列弹 —— 发起的页面可以马上关掉。
+     *
+     * @param seriesPositions novelId → 本篇在系列中的 1-based 位置；不是同一系列的批量传 null。
+     * @param seriesTotal     系列总篇数，只对有位置的篇生效。
+     */
+    @JvmStatic
+    @JvmOverloads
+    fun downloadNovels(
+        novels: List<Novel>,
+        format: ExportFormat,
+        seriesPositions: Map<Long, Int>? = null,
+        seriesTotal: Int? = null,
+    ) {
+        if (novels.isEmpty()) return
+        novelDownloadRequests(novels, format, seriesPositions, seriesTotal)
+            .forEach(actionQueue::enqueueDownload)
+        showDownloadEnqueued()
+    }
+
+    /** 下载整个系列的每一篇（系列页「批量下载」）。章节列表也在队列里拉，见 NovelSeriesDownloadHandler。 */
+    @JvmStatic
+    fun downloadNovelSeries(seriesId: Long, format: ExportFormat) {
+        actionQueue.enqueueDownload(novelSeriesDownloadRequest(seriesId, format))
+        showDownloadEnqueued()
+    }
+
+    /** 队列前面可能还压着上一批，第一条进度要等一阵才出来；先告诉用户点到了。 */
+    private fun showDownloadEnqueued() {
+        val ctx = Shaft.getContext() ?: return
+        DownloadToasts.show(DownloadToastKind.NOVEL_PROGRESS, ctx.getString(R.string.download_toast_enqueued))
     }
 
     // ── 关注 ────────────────────────────────────────────────────────────────

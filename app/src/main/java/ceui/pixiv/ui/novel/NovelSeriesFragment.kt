@@ -24,12 +24,10 @@ import androidx.viewbinding.ViewBinding
 import ceui.lisa.R
 import ceui.lisa.databinding.ItemBigReadButtonBinding
 import ceui.pixiv.witstudio.theme.V3Palette
+import ceui.pixiv.actions.PixivActions
 import ceui.pixiv.api.Client
 import ceui.pixiv.chat.base.viewModels as directViewModel
 import ceui.loxia.Novel
-import ceui.pixiv.api.model.NovelSeriesResp
-import ceui.pixiv.download.toast.DownloadToastKind
-import ceui.pixiv.download.toast.DownloadToasts
 import ceui.pixiv.widgets.ProgressIndicator
 import ceui.pixiv.feeds.FeedFragment
 import ceui.pixiv.feeds.FeedItem
@@ -49,12 +47,7 @@ import ceui.pixiv.ui.novel.reader.export.ExportFormat
 import ceui.pixiv.ui.novel.reader.export.NovelExportManager
 import ceui.pixiv.ui.novel.reader.ui.ExportFormatCallback
 import ceui.pixiv.ui.novel.reader.ui.ExportSheet
-import ceui.pixiv.ui.task.BatchDownloadNovelsTask
-import ceui.pixiv.ui.task.FailedNovel
-import ceui.pixiv.ui.task.FetchAllTask
-import ceui.pixiv.ui.task.HumanReadableTask
 import ceui.pixiv.ui.task.MergeDownloadNovelSeriesTask
-import ceui.pixiv.ui.task.PixivTaskType
 import ceui.pixiv.ui.user.UserActionReceiver
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
@@ -402,14 +395,14 @@ class NovelSeriesFragment :
     }
 
     private fun startBatchDownloadSelected(novels: List<Novel>, ordered: List<Novel>, format: ExportFormat) {
-        BatchDownloadNovelsTask(
-            activity = requireActivity(),
+        PixivActions.downloadNovels(
             novels = novels,
             format = format,
-            onFinished = { failures -> onBatchDownloadFinished(failures) },
             seriesPositions = seriesPositionsOf(ordered),
             seriesTotal = seriesTotalCount(loadedCount = ordered.size),
         )
+        // 已经交给进程级下载队列，结果由队列提示；多选态留着没有意义。
+        selectionModel.setMultiSelectMode(false)
     }
 
     /** novelId → 1-based 系列位置。[ordered] 必须是从系列第 1 篇起的有序列表。 */
@@ -429,26 +422,6 @@ class NovelSeriesFragment :
         return loadedNovels().filter { it.id in selected }
     }
 
-    private fun onBatchDownloadFinished(failures: List<FailedNovel>) {
-        if (!isAdded) return
-        if (failures.isEmpty()) {
-            DownloadToasts.show(
-                DownloadToastKind.NOVEL_BATCH_RESULT,
-                getString(R.string.batch_download_all_ok),
-            )
-            selectionModel.setMultiSelectMode(false)
-            return
-        }
-        val msg = failures.joinToString(separator = "\n") { fn ->
-            getString(R.string.batch_download_failure_line, fn.novel.title.orEmpty(), fn.reason.orEmpty())
-        }
-        WitDialog.MessageDialogBuilder(requireContext())
-            .setTitle(getString(R.string.batch_download_some_failed, failures.size))
-            .setMessage(msg)
-            .addAction(android.R.string.ok) { d, _ -> d.dismiss() }
-            .show()
-    }
-
     private fun launchDownloadAll() {
         val format = NovelExportManager.resolveConfiguredFormat()
         if (format != null) {
@@ -460,33 +433,7 @@ class NovelSeriesFragment :
     }
 
     private fun launchDownloadAll(format: ExportFormat) {
-        object : FetchAllTask<Novel, NovelSeriesResp>(
-            requireActivity(),
-            taskFullName = "下载系列小说全部作品-${seriesId}",
-            taskType = PixivTaskType.DownloadSeriesNovels,
-            initialLoader = { Client.appApi.getNovelSeries(seriesId) },
-        ) {
-            override fun onEnd(humanReadableTask: HumanReadableTask, results: List<Novel>) {
-                if (!isAdded) return
-                if (results.isEmpty()) {
-                    DownloadToasts.show(
-                        DownloadToastKind.NOVEL_SERIES_EXPORT,
-                        getString(R.string.merge_download_failed_empty),
-                    )
-                    return
-                }
-                // FetchAllTask 拉到的就是整个系列的有序章节，位置 = 下标 + 1。
-                val ordered = results.distinctBy { it.id }
-                BatchDownloadNovelsTask(
-                    activity = requireActivity(),
-                    novels = results,
-                    format = format,
-                    onFinished = { failures -> onBatchDownloadFinished(failures) },
-                    seriesPositions = seriesPositionsOf(ordered),
-                    seriesTotal = ordered.size,
-                )
-            }
-        }
+        PixivActions.downloadNovelSeries(seriesId, format)
     }
 
     // ── NovelMultiSelectReceiver ────────────────────────────────────────

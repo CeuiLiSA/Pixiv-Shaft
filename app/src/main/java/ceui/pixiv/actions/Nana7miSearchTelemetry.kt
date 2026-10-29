@@ -35,6 +35,9 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import timber.log.Timber
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * Flow- and request-level telemetry for the Nana7mi borrowed-search feature.
@@ -47,6 +50,7 @@ import timber.log.Timber
  * Events are buffered and delivered in batches: one flush becomes one queue row and therefore
  * one signed request carrying up to [MAX_BATCH_EVENTS] events. See [buffer] for the trade-off.
  */
+@Singleton
 class Nana7miSearchTelemetry internal constructor(
     /**
      * Resolved lazily so JVM unit tests can build an instance without any Android Context
@@ -55,7 +59,7 @@ class Nana7miSearchTelemetry internal constructor(
     private val appContext: Lazy<Context>,
 ) {
 
-    constructor(app: Context) : this(lazy { app.applicationContext })
+    @Inject constructor(@ApplicationContext app: Context) : this(lazy { app.applicationContext })
 
     private val started = AtomicBoolean(false)
     private val scope = CoroutineScope(

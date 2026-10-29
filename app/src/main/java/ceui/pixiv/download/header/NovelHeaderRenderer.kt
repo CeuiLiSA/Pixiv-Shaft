@@ -22,7 +22,7 @@ object NovelHeaderRenderer {
         novel: Novel,
         preset: HeaderPreset,
         isSeriesChapter: Boolean,
-        /** 本篇在系列中的 1-based 位置（BatchDownloadNovelsTask 传的就是 index+1），原样展示。 */
+        /** 本篇在系列中的 1-based 位置（批量下载传的就是系列下标 +1），原样展示。 */
         seriesIndex: Int? = null,
         seriesTotal: Int? = null,
     ): String {

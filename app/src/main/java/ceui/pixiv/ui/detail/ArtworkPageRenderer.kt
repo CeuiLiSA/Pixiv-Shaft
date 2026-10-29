@@ -9,6 +9,8 @@ import ceui.pixiv.api.model.Illust
 import ceui.pixiv.cache.ObjectPool
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.feedRenderer
+import ceui.pixiv.snapshot.SnapshotRuntimeCache
+import ceui.pixiv.snapshot.localizeIllust
 
 /**
  * 顶部大图 —— 逐页原生 [FeedItem],外层瀑布流回收每页。
@@ -173,11 +175,14 @@ internal fun ArtworkV3Fragment.artworkUgoiraRenderer() =
         detach = { cell -> cell.binding.root.onFeedDetached() },
         recycle = { cell -> cell.binding.root.recycle() },
     ) { cell ->
-        val illust: Illust = ObjectPool.get<Illust>(cell.item.illustId).value
+        // 快照模式不写 ObjectPool:作品与帧序列都从快照数据取(同 ensureSnapshotPageAdapter)。
+        val snapshot = snapshotId?.let { SnapshotRuntimeCache.get(it) }
+        val illust: Illust = (if (isSnapshotMode) snapshot?.localizeIllust() else ObjectPool.get<Illust>(cell.item.illustId).value)
             ?: return@feedRenderer
+        val offline = snapshot?.offlineUgoira(snapshotIsAuto)
         val maxHeight = (resources.displayMetrics.heightPixels * 0.7f).toInt()
-        cell.binding.root.bind(viewLifecycleOwner, illust, maxHeight)
-        cell.binding.root.setOnClickListener { openUgoiraViewer(it, illust) }
+        cell.binding.root.bind(viewLifecycleOwner, illust, maxHeight, offline = offline)
+        cell.binding.root.setOnClickListener { openUgoiraViewer(it, illust, offline) }
     }
 
 /**

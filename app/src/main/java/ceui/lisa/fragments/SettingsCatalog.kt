@@ -63,8 +63,8 @@ object SettingsCatalog {
     val entries: List<Entry> = buildList {
         // 账号
         add(Entry(ACCOUNT, "user_manage", R.string.account_manage, keywords = "多账号 切换账号 添加账号 账户 switch account"))
-        add(Entry(ACCOUNT, "edit_account", R.string.string_91, keywords = "邮箱 密码 pixiv id 绑定 email password"))
         if (!ceui.lisa.BuildConfig.IS_LITE) {
+            add(Entry(ACCOUNT, "edit_account", R.string.string_91, keywords = "邮箱 密码 pixiv id 绑定 email password"))
             add(Entry(ACCOUNT, "account_backup", R.string.email_backup_settings_entry, keywords = "备份账号 恢复 邮箱 email backup"))
         }
         add(Entry(ACCOUNT, "edit_file", R.string.string_92, keywords = "个人资料 头像 昵称 简介 性别 生日 profile avatar"))
@@ -102,6 +102,9 @@ object SettingsCatalog {
         add(Entry(APPEARANCE, "predictive_back_rela", R.string.setting_predictive_back, R.string.setting_predictive_back_desc, keywords = "预测返回 返回手势 侧滑 边缘返回 边缘侧滑 花屏 rom 降级 传统返回 逐页 逐项 按页 按页面 predictive back gesture"))
         add(Entry(APPEARANCE, "navigation_init_position_rela", R.string.string_426, keywords = "启动页 默认页 初始页 首页 导航 start page"))
         add(Entry(APPEARANCE, "bottom_bar_order_rela", R.string.string_342, keywords = "底部导航 tab 顺序 排序 页签 bottom bar"))
+        add(Entry(APPEARANCE, "bottom_bar_scroll_hide_rela", R.string.bottom_bar_scroll_hide, R.string.bottom_bar_scroll_hide_desc, keywords = "底栏 底部导航 导航栏 收起 隐藏 自动隐藏 固定 常显 滚动 滑动 bottom bar navigation hide on scroll"))
+        add(Entry(APPEARANCE, "top_bar_scroll_hide_rela", R.string.top_bar_scroll_hide, R.string.top_bar_scroll_hide_desc, keywords = "顶栏 标题栏 工具栏 推荐页 收起 隐藏 自动隐藏 固定 常显 滚动 滑动 top bar toolbar hide on scroll"))
+        add(Entry(APPEARANCE, "use_account_avatar_as_drawer_icon_rela", R.string.use_account_avatar_as_drawer_icon, R.string.use_account_avatar_as_drawer_icon_desc, keywords = "头像 账号头像 侧边栏 抽屉 菜单 左上角 图标 avatar profile drawer menu icon sidebar"))
         add(Entry(APPEARANCE, "recommend_page_order_rela", R.string.recommend_page_content, R.string.recommend_page_content_desc, keywords = "推荐作品 热门标签 推荐页 顺序 排序 插画 小说 recommend hot tags tab order"))
         add(Entry(APPEARANCE, "main_view_r18_rela", R.string.string_359, keywords = "r18 r页 主页 首页 涩图"))
         // 别名按整串子串匹配（同上），「平板双栏」「左右分屏」这类连写说法各铺一遍
@@ -134,7 +137,7 @@ object SettingsCatalog {
         add(Entry(BROWSING, "ai_block_strength_rela", R.string.ai_block_strength, keywords = "ai 屏蔽 效果 级别 强度 模糊 粒子 打码 完全不显示 blur"))
         add(Entry(BROWSING, "ai_tag_rules_rela", R.string.ai_tag_rules, keywords = "ai 标签 tag 识别 判定 生成 内置 自定义 规则 屏蔽"))
         add(Entry(BROWSING, "ai_block_exempt_rela", R.string.ai_block_exempt_authors, keywords = "ai 屏蔽 豁免 白名单 作者 画师 例外 放行 exempt whitelist author"))
-        add(Entry(BROWSING, "filter_bookmarked_rela", R.string.filter_bookmarked_title, keywords = "已收藏 过滤 去重 排行榜 动态 搜索 rank following search bookmark"))
+        add(Entry(BROWSING, "filter_bookmarked_rela", R.string.filter_bookmarked_title, keywords = "已收藏 过滤 去重 排行榜 首页推荐 推荐 动态 搜索 rank following search bookmark home recommend"))
         add(Entry(BROWSING, "novel_filter_min_text_length_rela", R.string.novel_filter_min_text_length, R.string.novel_filter_min_text_length_desc, keywords = "小说 字数 太短 过短 屏蔽 刷屏 广告 spam novel length"))
         add(Entry(BROWSING, "novel_filter_max_text_length_rela", R.string.novel_filter_max_text_length, R.string.novel_filter_max_text_length_desc, keywords = "小说 字数 太长 过长 屏蔽 spam novel length"))
         add(Entry(BROWSING, "novel_filter_max_tag_name_length_rela", R.string.novel_filter_max_tag_name_length, R.string.novel_filter_max_tag_name_length_desc, keywords = "小说 标签 tag 超长 过长 屏蔽 广告 刷屏 spam"))
@@ -148,6 +151,7 @@ object SettingsCatalog {
         add(Entry(BROWSING, "scroll_edge_haptic_rela", R.string.settings_scroll_edge_haptic, R.string.settings_scroll_edge_haptic_desc, keywords = "振动 震动 触感 触觉 震感 马达 滑到底 滑到顶 到底 到顶 边缘 边界 回弹 列表 滚动 关掉振动 关闭振动 不要震动 haptic vibration vibrate scroll edge overscroll"))
         add(Entry(BROWSING, "synonym_dict_enable_rela", R.string.synonym_dict_enable, keywords = "同义词 词典 别名 标签翻译 synonym"))
         add(Entry(BROWSING, "synonym_dict_rela", R.string.synonym_dict_title, keywords = "同义词 词典 管理 导入 导出 合并 synonym"))
+        add(Entry(BROWSING, "chrome_custom_tabs_rela", R.string.chrome_custom_tabs_title, R.string.chrome_custom_tabs_desc, keywords = "chrome custom tabs 浏览器 网页 链接 外部链接 打开方式 标签页 登录 注册 cct browser url link"))
 
         // 看图与详情（FAB 顺序行随 V3 开关显隐，紧贴 V3 行）
         add(Entry(VIEWING, "illust_detail_v3_rela", R.string.illust_detail_v3, keywords = "v3 沉浸式 详情页 新版 详情"))

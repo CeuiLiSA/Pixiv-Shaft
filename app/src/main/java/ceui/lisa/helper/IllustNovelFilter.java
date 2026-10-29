@@ -114,7 +114,12 @@ public class IllustNovelFilter {
      * 其余调用方传全局 {@link Shaft.sSettings#isDeleteAIIllust()}。
      */
     private static boolean isAiBlocked(boolean excludeAi, Illust illust) {
-        return excludeAi && isAiWork(illust) && !isAiExemptAuthor(illust.getUser());
+        return isAiBlocked(excludeAi, illust, isAiWork(illust));
+    }
+
+    /** 同上，但「这条算不算 AI」由调用方给——一次绑定里多处要问时，标签规则只该匹配一遍。 */
+    private static boolean isAiBlocked(boolean excludeAi, Illust illust, boolean aiWork) {
+        return excludeAi && aiWork && !isAiExemptAuthor(illust.getUser());
     }
 
     private static boolean isAiBlocked(boolean excludeAi, Novel novel) {
@@ -131,6 +136,11 @@ public class IllustNovelFilter {
      * <p>标签判定要读设置、逐条规范化比较，比读一个 int 贵得多，所以**调用点必须保持惰性**：
      * 先判「屏蔽 AI 是否开着」「是否仅看 AI」，再进来问；别在循环里无条件预计算。
      * {@link #isAiBlocked(boolean, Illust)} 已经把 {@code excludeAi} 放在最前面短路。
+     *
+     * <p>唯一例外是**展示型**调用点：AI 角标、详情页那张 AI 卡不看屏蔽开关，本来就要对每条作品
+     * 问一次（见 {@code ceui.pixiv.ui.common.IllustStaggerRenderer#buildBadges}）。这类调用点
+     * 不适用上面的惰性要求，但同一次绑定里只该问一遍——打码判定与角标共用一份结果，见
+     * {@link #shouldBlurAi(Illust, boolean, boolean)}。
      */
     public static boolean isAiWork(Illust illust) {
         return isAiWork(illust.isCreatedByAI(), illust.getTagNames());
@@ -149,10 +159,20 @@ public class IllustNovelFilter {
      * @param tagNames   作品标签名；null / 空一律不算
      */
     public static boolean isAiWork(boolean officialAi, List<String> tagNames) {
-        return officialAi
-                || AiTagRules.hasAiTag(tagNames,
-                        Shaft.sSettings.getAiTagDisabledTags(),
-                        Shaft.sSettings.getAiTagUserTags());
+        if (officialAi) {
+            return true;
+        }
+        if (tagNames == null || tagNames.isEmpty()) {
+            return false;
+        }
+        Set<String> disabled = Shaft.sSettings.getAiTagDisabledTags();
+        Set<String> userTags = Shaft.sSettings.getAiTagUserTags();
+        // 规则全关（内置全停用、也没有启用的自定义标签）时标签匹配没有意义：直接早退，别为每条
+        // 作品逐条规范化比较。角标、打码、屏蔽、仅看 AI 最后都走到这里。
+        if (!AiTagRules.hasEnabledRule(disabled, userTags)) {
+            return false;
+        }
+        return AiTagRules.hasAiTag(tagNames, disabled, userTags);
     }
 
     /** 屏蔽 AI 强度 = 完全不显示时，是否应该把这条插画从列表里剔除（豁免作者除外）。 */
@@ -178,6 +198,20 @@ public class IllustNovelFilter {
     /** {@link #shouldHideAi(Illust, boolean)} 的「模糊粒子化」版。 */
     public static boolean shouldBlurAi(Illust illust, boolean excludeAi) {
         return isAiBlocked(excludeAi, illust)
+                && Shaft.sSettings.getAiBlockStrength() == 1;
+    }
+
+    /**
+     * 「AI 判定已经算过」的版本：{@code aiWork} 传 {@link #isAiWork(Illust)} 的结果。
+     *
+     * <p>给一次绑定里既判打码、又要画 AI 角标的渲染器用（见
+     * {@code ceui.pixiv.ui.common.IllustStaggerRenderer}）：标签匹配要逐条规范化比较，是这条
+     * 链路上最贵的一步，同一张卡在一次 bind 里问两遍纯属浪费。语义与
+     * {@link #shouldBlurAi(Illust, boolean)} 完全一致——豁免作者与强度档位照旧现读，只有
+     * 「算不算 AI」这一项由调用方给。
+     */
+    public static boolean shouldBlurAi(Illust illust, boolean excludeAi, boolean aiWork) {
+        return isAiBlocked(excludeAi, illust, aiWork)
                 && Shaft.sSettings.getAiBlockStrength() == 1;
     }
 
@@ -250,23 +284,65 @@ public class IllustNovelFilter {
         return false;
     }
 
+    /**
+     * 全局「R-18 过滤」（设置页默认项 / 长按头像临时切换）是否命中这条插画。
+     *
+     * <p>两条路径任一命中即算：分级字段 {@link Illust#isR18File()}（{@code x_restrict} 1=R-18、2=R-18G），
+     * 或标签串里有字面 {@code R-18} / {@code R-18G}。
+     *
+     * <p><b>只认标签会漏人。</b>pixiv 允许作者只勾「閲覧制限」而不加 R-18 标签，服务端照样按 R-18 下发
+     * （{@code sanity_level} 同时抬到 6）。这类作品在卡片角标、详情页「制限」栏、搜索「其他条件 → 仅安全」
+     * 里都算 R-18，只有这里漏——于是出现「卡上挂着 R-18 角标，却被 R-18 过滤放行」。
+     * 实例 #151031908：x_restrict=1、sanity_level=6、tags 里没有 R-18（作者设了登录可见 + R 级）。
+     *
+     * <p>标签那条仍然保留：网页搜索来的小说不一定带 {@code x_restrict}，历史缓存 JSON 也可能缺字段。
+     *
+     * <p>不碰 {@code sanity_level}（与 {@link ceui.lisa.core.Mapper} 同口径）：sanity 4 是 R-15 级敏感，
+     * 不该被「R-18 过滤」误杀。
+     */
     public static boolean judgeR18Filter(Illust illustsBean) {
-        if (!Shaft.sSettings.isR18FilterTempEnable()) {
-            return false;
-        }
-        String tagString = illustsBean.getTagString();
-        boolean isHit = tagString.contains("*#R-18,") || tagString.contains("*#R-18G,");
-        return isHit;
+        return Shaft.sSettings.isR18FilterTempEnable() && hitsR18Filter(illustsBean);
     }
 
+    /** 小说版，口径同上：{@code x_restrict} 或字面 R-18 标签。 */
     public static boolean judgeR18Filter(Novel illustsBean) {
-        if (!Shaft.sSettings.isR18FilterTempEnable()) {
+        return Shaft.sSettings.isR18FilterTempEnable() && hitsR18Filter(illustsBean);
+    }
+
+    /**
+     * 「这条作品算不算 R-18」——不看开关，只回答事实。
+     *
+     * <p>给需要把 R-18 从「丢掉」改成「按开关临时隐藏」的列表用：那边要能在开关翻转后按条目自身的
+     * 字段重新算一次显隐，而 {@link #judgeR18Filter(Illust)} 把开关一起揉在返回值里，关着的时候
+     * 拿不到「它本来是 R-18」这个事实。
+     *
+     * <p>口径与 {@link #judgeR18Filter(Illust)} 完全一致（同一个方法体，不许分叉）。
+     */
+    public static boolean hitsR18Filter(Illust illust) {
+        return isR18Rated(illust) || hitsR18Tag(illust == null ? null : illust.getTagString());
+    }
+
+    /** 小说版 {@link #hitsR18Filter(Illust)}。 */
+    public static boolean hitsR18Filter(Novel novel) {
+        return isR18Rated(novel) || hitsR18Tag(novel == null ? null : novel.getTagString());
+    }
+
+    /** 分级字段判定：{@code x_restrict} 1/2 都算 R18（同 {@link Illust#isR18File()}）。 */
+    static boolean isR18Rated(Illust illust) {
+        return illust != null && illust.isR18File();
+    }
+
+    /** 小说版分级字段判定。 */
+    static boolean isR18Rated(Novel novel) {
+        return novel != null && novel.getX_restrict() != null && novel.getX_restrict() > 0;
+    }
+
+    /** 标签串（{@code *#a,*#b,} 格式）里是否有字面 R-18 / R-18G。 */
+    static boolean hitsR18Tag(String tagString) {
+        if (tagString == null) {
             return false;
         }
-        String tagString = illustsBean.getTagString();
-        boolean isHit = tagString.contains("*#R-18,") || tagString.contains("*#R-18G,");
-//        illustsBean.setShield(isHit);
-        return isHit;
+        return tagString.contains("*#R-18,") || tagString.contains("*#R-18G,");
     }
 
     // ── 小说自动屏蔽：正文字数区间 + 超长标签名（issue #743）────────────────

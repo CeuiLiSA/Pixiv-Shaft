@@ -1,10 +1,12 @@
 import java.security.SecureRandom
 
 apply plugin: 'com.android.application'
-apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-kapt'
+// AGP 9 内置 Kotlin 不再兼容 kotlin-kapt；Glide 编译器只有 kapt 版，走 AGP 自带的 legacy-kapt。
+apply plugin: 'com.android.legacy-kapt'
 apply plugin: 'kotlin-parcelize'
-apply plugin: 'androidx.room'
+// Hilt 处理器走 KSP（Glide/Room 仍在 kapt，两者在同一模块并存互不干扰）。
+apply plugin: 'com.google.devtools.ksp'
+apply plugin: 'com.google.dagger.hilt.android'
 apply plugin: 'com.google.gms.google-services'
 apply plugin: 'com.google.firebase.crashlytics'
 // apply plugin: 'org.jmailen.kotlinter'  // 临时停用，见根 build.gradle
@@ -86,7 +88,7 @@ android {
         applicationId "ceui.pixiv"
         minSdkVersion 24
         targetSdkVersion 36
-        versionCode 43400
+        versionCode 43500
         versionName "4.9.8"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         ndk {
@@ -182,15 +184,6 @@ android {
         }
     }
 
-    // 按 flavor + buildType 生成一个可区分的名字,给 OutWakeActivity(pixiv 链接的
-    // 「打开方式」处理器)当 label —— 同时装了多个 build 时在系统选择器里能分清是哪个。
-    // github 渠道=Shaft、google(Play)渠道=PixShaft(沿用现有产品名),debug 追加 " Debug"。
-    applicationVariants.all { variant ->
-        def base = variant.flavorName == "google" ? "PixShaft" : "Shaft"
-        def label = variant.buildType.name == "debug" ? base + " Debug" : base
-        variant.resValue "string", "out_wake_label", label
-    }
-
     compileOptions {
         coreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_17
@@ -217,11 +210,12 @@ android {
         dataBinding = true
         viewBinding = true
         buildConfig = true // 启用 BuildConfig
+        resValues = true // AGP 9 起默认关闭；app_name / out_wake_label 靠 resValue 生成
     }
     testOptions {
         unitTests.includeAndroidResources = true
     }
-    packagingOptions {
+    packaging {
         jniLibs {
             useLegacyPackaging = true
         }
@@ -243,14 +237,27 @@ android {
     }
 
     namespace = 'ceui.lisa'
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_17
+}
+
+// 按 flavor + buildType 生成一个可区分的名字,给 OutWakeActivity(pixiv 链接的
+// 「打开方式」处理器)当 label —— 同时装了多个 build 时在系统选择器里能分清是哪个。
+// github 渠道=Shaft、google(Play)渠道=PixShaft(沿用现有产品名),debug 追加 " Debug"。
+androidComponents {
+    onVariants(selector().all()) { variant ->
+        def base = variant.flavorName == "google" ? "PixShaft" : "Shaft"
+        def label = variant.buildType == "debug" ? base + " Debug" : base
+        variant.resValues.put(variant.makeResValueKey("string", "out_wake_label"),
+                new com.android.build.api.variant.ResValue(label, null))
     }
 }
 
-room {
+kapt {
     // schema 是迁移测试的输入，也用于 code review；必须随版本一并提交。
-    schemaDirectory "$projectDir/schemas"
+    // 不用 androidx.room 插件：它（截至 2.8.5）只认 KGP 的 kotlin-kapt，挂不上 AGP 9 内置 kapt，
+    // 参数静默丢失、schema 停止导出。同 :actionqueue 的 ksp arg 写法。
+    arguments {
+        arg('room.schemaLocation', "$projectDir/schemas")
+    }
 }
 
 // CMake compilation must never race the generated secret header, especially when Gradle
@@ -318,6 +325,8 @@ dependencies {
     implementation libs.androidxRoomRuntime
     implementation libs.androidxRoomKtx
     kapt libs.androidxRoomCompiler
+    implementation libs.hiltAndroid
+    ksp libs.hiltCompiler
     implementation libs.agentwebCore
     implementation libs.androidxWebkit
     implementation libs.rebound
@@ -328,7 +337,11 @@ dependencies {
     // the dependency. Debug/D8 tolerated that; R8 correctly exposes the potential runtime crash.
     implementation libs.nineOldAndroids
     implementation libs.viewPagerTransforms
-    implementation libs.utilCode
+    implementation(libs.utilCode) {
+        // 它在 POM 里带了 kotlin-android-extensions-runtime:1.3.72；Kotlin 2.2 起
+        // kotlin-parcelize-runtime 自带 kotlinx.android.parcel.*，两份同名类会撞 checkDuplicateClasses。
+        exclude group: 'org.jetbrains.kotlin', module: 'kotlin-android-extensions-runtime'
+    }
     implementation libs.firebaseAnalytics
     implementation libs.firebaseCrashlytics
 
@@ -406,10 +419,11 @@ dependencies {
     implementation libs.muzei
 
     coreLibraryDesugaring libs.desugarJdkLibs
+}
 
-    configurations {
-        all*.exclude group: 'com.android.support', module: 'support-v13'
-    }
+// Gradle 9 下 dependencies 里的 `configurations { all*.exclude … }` 会在配置期解析配置，改用 configureEach。
+configurations.configureEach {
+    exclude group: 'com.android.support', module: 'support-v13'
 }
 
 //lintKotlin.dependsOn(formatKotlin)

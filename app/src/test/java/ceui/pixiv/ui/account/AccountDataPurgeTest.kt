@@ -100,7 +100,7 @@ class AccountDataPurgeTest {
         // 先有 context（它自己就是那个假 ServicesProvider），服务再挂在它上面。
         context = wrapper(services(remoteConfigProvider = { remoteConfig }))
         mirror = BookmarkMirrorService(context)
-        remoteConfig = RemoteAppConfig(context)
+        remoteConfig = RemoteAppConfig()
     }
 
     @After

@@ -1,7 +1,9 @@
 package ceui.pixiv.ui.novel.reader.export
 
 import android.content.Context
+import android.net.Uri
 import ceui.lisa.activities.Shaft
+import ceui.lisa.core.ManagerReactive
 import ceui.lisa.database.AppDatabase
 import ceui.lisa.database.DownloadEntity
 import ceui.lisa.utils.Params
@@ -105,8 +107,8 @@ object NovelExportManager {
             Timber.e(t, "novel export failed: format=$format id=${novel?.id} dest=${destination.joinTo()}")
             ExportResult.Failure(t.message ?: "导出失败", t)
         }
-        if (result is ExportResult.Success) {
-            recordDownload(novel, result)
+        if (result is ExportResult.Success && novel != null) {
+            recordDownload(novel, result.uri)
         }
         result
     }
@@ -131,16 +133,18 @@ object NovelExportManager {
     // 同 FragmentNovelHolder 旧版「保存」逻辑：以 NOVEL_KEY+id 作为主键，让
     // DownloadedAdapter 通过 fileName.contains(NOVEL_KEY) 把它识别为小说条目。
     // 多次/不同格式导出会 REPLACE 同一行，下载历史里每本小说只占一格。
-    private fun recordDownload(novel: Novel?, success: ExportResult.Success) {
-        val id = novel?.id ?: return
+    // 批量下载的 TXT 分支自己落盘，也走这里记账（issue #1274）。
+    internal fun recordDownload(novel: Novel, uri: Uri) {
+        val id = novel.id
         runCatching {
             val entity = DownloadEntity().apply {
                 fileName = Params.NOVEL_KEY + id
                 downloadTime = System.currentTimeMillis()
-                filePath = success.uri.toString()
+                filePath = uri.toString()
                 illustGson = Shaft.sGson.toJson(novel)
             }
             AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao().insertDownload(entity)
+            ManagerReactive.pokeDoneTable()
         }.onFailure { Timber.e(it, "recordDownload failed for novel $id") }
     }
 }

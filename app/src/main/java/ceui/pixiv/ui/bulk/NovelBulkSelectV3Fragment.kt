@@ -23,16 +23,12 @@ import ceui.lisa.utils.Params
 import ceui.loxia.Novel
 import ceui.pixiv.actions.PixivActions
 import ceui.pixiv.chat.base.viewModels
-import ceui.pixiv.download.toast.DownloadToastKind
-import ceui.pixiv.download.toast.DownloadToasts
 import ceui.pixiv.ui.common.tintMenuIconsWhite
 import ceui.pixiv.ui.detail.showV3Menu
 import ceui.pixiv.ui.novel.reader.export.ExportFormat
 import ceui.pixiv.ui.novel.reader.export.NovelExportManager
 import ceui.pixiv.ui.novel.reader.ui.ExportFormatCallback
 import ceui.pixiv.ui.novel.reader.ui.ExportSheet
-import ceui.pixiv.ui.task.BatchDownloadNovelsTask
-import ceui.pixiv.ui.task.FailedNovel
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
 import com.blankj.utilcode.util.BarUtils
@@ -66,7 +62,7 @@ private class NovelBulkSelectRequestViewModel : ViewModel() {
  * ## 为什么不复用插画那页
  *
  * 两者只有外观像，内里没有一处共用：模型是不可变的 [Novel] 而不是可变的
- * `Illust`；下载走 [BatchDownloadNovelsTask] 直接落盘而不是灌 download_queue，
+ * `Illust`；下载逐篇进 [PixivActions.downloadNovels] 的小说下载队列而不是灌 download_queue，
  * 因此也没有「下载管理」页可跳；没有多页 / 动图徽章、没有「N 张图」这个维度、
  * 没有 original 直链可导出。硬塞进一个 fragment 的结果是每个方法都要先问一句
  * 「这批是什么」，而 SelectableItem 得给小说带一半恒空的字段。
@@ -78,7 +74,7 @@ private class NovelBulkSelectRequestViewModel : ViewModel() {
  * 见 cell_bulk_select_novel_v3。
  *
  * 底栏沿用同一套 MD3-E connected button group：
- *  - 首段（filled）= 下载选中小说。**不 finish 本页**，见 [startDownload]
+ *  - 首段（filled）= 下载选中小说，入队后关掉本页，见 [startDownload]
  *  - 尾段（tonal）= 批量收藏 / 批量取消收藏，走 [PixivActions] 门面 → `:actionqueue` 队列
  */
 class NovelBulkSelectV3Fragment : Fragment(), ExportFormatCallback {
@@ -111,9 +107,6 @@ class NovelBulkSelectV3Fragment : Fragment(), ExportFormatCallback {
     private val adapter: NovelBulkSelectAdapter by lazy {
         NovelBulkSelectAdapter(items, coverGlide) { pos -> toggleAt(pos) }
     }
-
-    /** 下载在跑（[BatchDownloadNovelsTask] 是串行的）。挡住 CTA 被再点一次起第二条链。 */
-    private var downloadRunning = false
 
     private lateinit var toolbar: Toolbar
     private lateinit var hint: TextView
@@ -265,16 +258,12 @@ class NovelBulkSelectV3Fragment : Fragment(), ExportFormatCallback {
     /**
      * 批量下载选中的小说。
      *
-     * **不能 finish 本页**：[BatchDownloadNovelsTask] 跑在 `activity.lifecycleScope` 上，
-     * finish 掉宿主 Activity 等于当场取消下载。所以留在本页，让它自己的「下载中 x/y」
-     * toast 当进度条，跑完再报一次结果。这也是小说这一支跟插画页最大的行为差异 ——
-     * 插画是灌进 download_queue 后跳「下载管理」看进度，小说不进那张表，没得跳。
+     * 下载队列是进程级的，入队后就关掉本页（和批量收藏一样）；「下载中 x/y」与结果 toast
+     * 由队列弹。插画是灌进 download_queue 后跳「下载管理」看进度，小说不进那张表，没得跳。
      *
-     * seriesPositions / seriesTotal 保持 null：这里的小说来自任意列表、不是同一个系列，
-     * 标不出「第 X / Y 篇」（[BatchDownloadNovelsTask] 对 null 会自己跳过该字段）。
+     * 不传系列位置：这里的小说来自任意列表、不是同一个系列，标不出「第 X / Y 篇」。
      */
     private fun startDownload() {
-        if (downloadRunning) return
         val picked = selectedNovels()
         if (picked.isEmpty()) return
         val format = NovelExportManager.resolveConfiguredFormat()
@@ -293,29 +282,8 @@ class NovelBulkSelectV3Fragment : Fragment(), ExportFormatCallback {
     }
 
     private fun startDownload(picked: List<Novel>, format: ExportFormat) {
-        if (downloadRunning) return
-        downloadRunning = true
-        btnConfirm.isEnabled = false
-        BatchDownloadNovelsTask(
-            activity = requireActivity(),
-            novels = picked,
-            format = format,
-            onFinished = { failures -> onDownloadFinished(failures) },
-        )
-    }
-
-    private fun onDownloadFinished(failures: List<FailedNovel>) {
-        downloadRunning = false
-        if (!isAdded) return
-        DownloadToasts.show(
-            DownloadToastKind.NOVEL_BATCH_RESULT,
-            if (failures.isEmpty()) {
-                getString(R.string.batch_download_all_ok)
-            } else {
-                getString(R.string.batch_download_some_failed, failures.size)
-            },
-        )
-        refreshHeaderAndCta()
+        PixivActions.downloadNovels(picked, format)
+        activity?.finish()
     }
 
     // ── 尾段：批量收藏 / 取消收藏 ────────────────────────────────────────────
@@ -422,19 +390,13 @@ class NovelBulkSelectV3Fragment : Fragment(), ExportFormatCallback {
     }
 
     /**
-     * 收藏入队之后关掉本页 —— 但**下载还在跑的时候不关**。
-     *
-     * [BatchDownloadNovelsTask] 挂在 `activity.lifecycleScope` 上，finish 掉宿主 Activity 就是
-     * 当场取消下载。用户点的是「收藏」、没有要求退出，收藏这个动作不该顺手把他正在跑的下载
-     * 弄没了 —— 而且是静默的：任务被取消后 onFinished 根本不会回调，连个提示都没有。
-     * 这种时候留在本页，下载自己的进度 toast 继续走。
+     * 收藏入队之后关掉本页。
      *
      * 用 `activity?.` 而不是 `requireActivity()`：WitDialog 拿的是 Activity context、
      * 不跟 fragment 生命周期绑定，点到这里时 fragment 可能已经 detach。
      * 入队本身已经交给进程级 scope，收不收得到这个 finish 都不影响它。
      */
     private fun finishAfterEnqueue() {
-        if (downloadRunning) return
         activity?.finish()
     }
 
@@ -475,8 +437,7 @@ class NovelBulkSelectV3Fragment : Fragment(), ExportFormatCallback {
         } else {
             getString(R.string.bulk_select_confirm_empty)
         }
-        // 下载在跑时保持禁用 —— 任务是串行的，再点一次会起第二条并发下载链
-        btnConfirm.isEnabled = selected > 0 && !downloadRunning
+        btnConfirm.isEnabled = selected > 0
         setBookmarkActionsEnabled(selected > 0)
         refreshSelectToggleIcon(selected)
     }

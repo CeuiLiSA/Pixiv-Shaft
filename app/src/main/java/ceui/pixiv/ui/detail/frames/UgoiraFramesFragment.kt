@@ -56,6 +56,7 @@ import com.github.panpf.zoomimage.ZoomImageView
 import com.github.panpf.zoomimage.view.zoom.OnViewTapListener
 import com.google.android.material.snackbar.Snackbar
 import com.hjq.toast.Toaster
+import java.io.File
 import java.util.Locale
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
@@ -160,7 +161,7 @@ class UgoiraFramesFragment : Fragment(R.layout.fragment_ugoira_frames) {
         val actions = buildActions(ctx)
         layOut(ctx, content, info, transport, actions)
 
-        model.start(illust)
+        model.start(illust, requireArguments().getString(ARG_OFFLINE_DIR)?.let(::File))
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch { model.load.collect(::renderLoad) }
@@ -935,10 +936,11 @@ class UgoiraFramesFragment : Fragment(R.layout.fragment_ugoira_frames) {
 
     companion object {
         private const val ARG_ILLUST = "illust"
+        const val ARG_OFFLINE_DIR = "offline_frames_dir"
         private const val SAVED_LABEL_MS = 1600L
 
-        fun newInstance(illust: Illust) = UgoiraFramesFragment().apply {
-            arguments = bundleOf(ARG_ILLUST to illust)
+        fun newInstance(illust: Illust, offlineDir: String? = null) = UgoiraFramesFragment().apply {
+            arguments = bundleOf(ARG_ILLUST to illust, ARG_OFFLINE_DIR to offlineDir)
         }
 
         private fun formatTime(ms: Long): String {
@@ -951,11 +953,12 @@ class UgoiraFramesFragment : Fragment(R.layout.fragment_ugoira_frames) {
     }
 }
 
-/** 打开动图逐帧页。 */
-fun openUgoiraFrames(context: Context, illust: Illust) {
+/** 打开动图逐帧页。[offlineDir] = 离线快照里的帧序列目录，给了就不经引擎联网。 */
+fun openUgoiraFrames(context: Context, illust: Illust, offlineDir: File? = null) {
     context.startActivity(
         Intent(context, TemplateActivity::class.java)
             .putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.UGOIRA_FRAMES.key)
-            .putExtra(Params.CONTENT, illust),
+            .putExtra(Params.CONTENT, illust)
+            .putExtra(UgoiraFramesFragment.ARG_OFFLINE_DIR, offlineDir?.path),
     )
 }

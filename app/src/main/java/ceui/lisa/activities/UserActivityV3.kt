@@ -33,8 +33,9 @@ import ceui.pixiv.actions.PixivActions
 import ceui.pixiv.widgets.FeedBackToTopFab
 import ceui.pixiv.widgets.applyV3RefreshTheme
 import ceui.lisa.viewmodel.AppLevelState
-import ceui.pixiv.services.requireEntityWrapper
-import ceui.pixiv.services.appServices
+import ceui.pixiv.db.EntityWrapper
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 import ceui.lisa.viewmodel.UserViewModel
 import ceui.pixiv.api.Client
 import ceui.pixiv.utils.Event
@@ -75,10 +76,14 @@ interface UserNovelFirstPageListener {
     fun onUserNovelFirstPage(novels: List<ceui.loxia.Novel>)
 }
 
+@AndroidEntryPoint
 class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
 
     private var userId = 0L
     private lateinit var mUserViewModel: UserViewModel
+
+    @Inject lateinit var appLevelState: AppLevelState
+    @Inject lateinit var entityWrapper: EntityWrapper
     private lateinit var palette: V3Palette
 
     // Tab 期望顺序:插画 · [漫画] · [漫画系列] · [小说] · [小说系列] · 收藏 · [约稿中] · 资料。
@@ -297,9 +302,9 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
                 writeBackSelfProfile(userResponse)
                 // Record user visit history
                 runCatching {
-                    (application as? ceui.pixiv.services.ServicesProvider)?.entityWrapper?.visitUser(this@UserActivityV3, userResponse.user)
+                    entityWrapper.visitUser(this@UserActivityV3, userResponse.user)
                 }
-                appServices().appLevelState.updateFollowUserStatus(
+                appLevelState.updateFollowUserStatus(
                     userId,
                     if (userResponse.user.is_followed == true)
                         AppLevelState.FollowUserStatus.FOLLOWED
@@ -331,7 +336,7 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
         lifecycleScope.launch {
             try {
                 val followDetail = withContext(Dispatchers.IO) { Client.appApi.getFollowDetail(userId) }
-                appServices().appLevelState.updateFollowUserStatus(userId, followStatusOf(followDetail))
+                appLevelState.updateFollowUserStatus(userId, followStatusOf(followDetail))
                 // 本地动过的话 writeRemote 自己会丢弃；真写进去了它会发通知，重绘不用这里操心。
                 FollowVisibility.writeRemote(userId, followRestrictOf(followDetail))
             } catch (e: CancellationException) {
@@ -700,7 +705,9 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
         //   - not myself
         //   - I'm logged in (ShaftHmacAuthProvider needs SessionManager.loggedInUid > 0)
         //   - pixiv's `canSendMessage` flag is true (preserves existing UX guard)
-        if (!isSelf && detail.canSendMessage == true && ceui.pixiv.session.SessionManager.isLoggedIn) {
+        //   - not the lite (Google Play) channel
+        if (!ceui.lisa.BuildConfig.IS_LITE && !isSelf && detail.canSendMessage == true &&
+            ceui.pixiv.session.SessionManager.isLoggedIn) {
             baseBind.msgBtn.isVisible = true
             baseBind.msgBtn.background = makeBadgeBg(dp, palette.alpha20)
             baseBind.msgBtn.imageTintList = android.content.res.ColorStateList.valueOf(palette.textAccent)
@@ -777,7 +784,6 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
             actions.add { UserShortcutHelper.pin(this, data.user) }
         }
         // 置顶作者:把常看的画师钉在搜索首页,和「置顶标签」各占一段,互不挤占。
-        val entityWrapper = requireEntityWrapper()
         val userPinned = entityWrapper.isUserPinned(data.user.id)
         labels.add(getString(if (userPinned) R.string.unpin_user else R.string.pin_user))
         actions.add {

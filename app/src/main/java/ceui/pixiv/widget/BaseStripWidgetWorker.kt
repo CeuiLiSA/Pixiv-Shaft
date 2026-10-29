@@ -11,6 +11,7 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import ceui.lisa.R
 import ceui.lisa.activities.MainActivity
+import ceui.lisa.activities.Shaft
 import ceui.lisa.activities.VActivity
 import ceui.pixiv.api.model.Illust
 import ceui.lisa.utils.GlideUtil
@@ -140,8 +141,8 @@ abstract class BaseStripWidgetWorker(
                 putExtra(Params.POSITION, 0)
                 putExtra(Params.PAGE_UUID, UUID.randomUUID().toString())
                 // Widget 刷新时不预占进程级 Container；点击后由 VActivity
-                // 使用这份 bean 重建单页 PageData。
-                putExtra(Params.WIDGET_ILLUST, illust)
+                // 使用这份 bean 重建单页 PageData（JSON，原因见 Params.WIDGET_ILLUST_JSON）。
+                putExtra(Params.WIDGET_ILLUST_JSON, Shaft.sGson.toJson(illust))
             }
             val pi = PendingIntent.getActivity(
                 context,

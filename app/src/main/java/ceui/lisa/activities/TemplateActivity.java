@@ -21,8 +21,10 @@ import ceui.pixiv.ui.comic.reader.ComicReaderV3Fragment;
 import ceui.pixiv.ui.navigation.TemplateRoute;
 import ceui.pixiv.ui.navigation.TemplateRouteFactory;
 import ceui.pixiv.ui.novel.reader.NovelReaderV3Fragment;
+import dagger.hilt.android.AndroidEntryPoint;
 import timber.log.Timber;
 
+@AndroidEntryPoint
 public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> implements ColorPickerDialogListener {
 
     public static final String EXTRA_FRAGMENT = "dataType";

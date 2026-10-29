@@ -38,7 +38,8 @@
             android:background="@color/v3_surface_2"
             android:contentDescription="@null"
             android:scaleType="centerCrop"
-            app:shapeAppearanceOverlay="@style/ShapeAppearance.V3SeriesCover" />
+            app:shapeAppearanceOverlay="@style/ShapeAppearance.V3SeriesCover"
+            app:strokeColor="@android:color/transparent" />
 
         <!-- 名次徽标(仅榜单):底色由 SeriesCard 用 V3Palette.pillPrimary 注入,文字 floatingPillContent。 -->
         <TextView
@@ -125,7 +126,8 @@
                 android:background="@color/v3_surface_2"
                 android:contentDescription="@null"
                 android:scaleType="centerCrop"
-                app:shapeAppearanceOverlay="@style/ShapeAppearance.Chat.Avatar" />
+                app:shapeAppearanceOverlay="@style/ShapeAppearance.Chat.Avatar"
+                app:strokeColor="@android:color/transparent" />
 
             <TextView
                 android:id="@+id/author"

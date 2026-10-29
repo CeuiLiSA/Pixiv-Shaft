@@ -115,6 +115,9 @@ internal interface ActionDao {
     @Query("DELETE FROM queued_action WHERE owner = :owner AND status = 'FAILED'")
     suspend fun clearFailed(owner: String): Int
 
+    @Query("DELETE FROM queued_action WHERE owner = :owner AND status = 'PENDING'")
+    suspend fun clearPending(owner: String): Int
+
     @Query(
         "DELETE FROM queued_action WHERE owner = :owner AND status = 'FAILED' AND id NOT IN (" +
             "SELECT id FROM queued_action WHERE owner = :owner AND status = 'FAILED' " +

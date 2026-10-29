@@ -2,7 +2,6 @@ package ceui.pixiv.ui.download
 
 import android.content.Intent
 import android.graphics.Color
-import android.content.Context
 import android.os.Bundle
 import android.os.SystemClock
 import android.text.TextUtils
@@ -50,8 +49,9 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import ceui.pixiv.services.appServices
 import ceui.pixiv.ui.bulk.QueueDownloadManager
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 /**
  * V3 风格 "正在下载" —— 订阅 [ManagerReactive.contentFlow]。
@@ -73,19 +73,15 @@ import ceui.pixiv.ui.bulk.QueueDownloadManager
  *   - 顶部状态行明确写 "N 正在 · M 等待 · K 已暂停"
  *   - 运行时 invariant：snapshot 里 DOWNLOADING > 配置上限 直接 warn 到日志
  */
+@AndroidEntryPoint
 class ActiveListV3Fragment : Fragment() {
 
     /**
-     * 在 [onAttach] 取一次而不是每次 `requireContext()`:清空/重试这类操作跑在
-     * IO 协程里,阻塞的 DB 调用返回时 Fragment 可能已 detach,再 requireContext 就崩。
-     * 实例是应用级的,提前拿住没有泄漏问题。
+     * 注入一次而不是每次 `requireContext()` 去取:清空/重试这类操作跑在 IO 协程里,
+     * 阻塞的 DB 调用返回时 Fragment 可能已 detach,再 requireContext 就崩。
+     * 实例是应用级的,拿住没有泄漏问题。
      */
-    private lateinit var queueDownloadManager: QueueDownloadManager
-
-    override fun onAttach(context: Context) {
-        super.onAttach(context)
-        queueDownloadManager = context.appServices().queueDownloadManager
-    }
+    @Inject lateinit var queueDownloadManager: QueueDownloadManager
 
     private val adapter = ActiveAdapterV3()
     private var statusHeader: TextView? = null

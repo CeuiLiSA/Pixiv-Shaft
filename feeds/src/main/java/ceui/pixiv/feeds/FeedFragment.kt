@@ -274,6 +274,8 @@ abstract class FeedFragment(
     override fun onDestroyView() {
         feedAdapter = null
         _binding = null
+        // 视图没了，这次提交也不会再来：锚点留着只会在重建后的第一次提交上莫名滚一下
+        pendingVisibilityAnchor = null
         super.onDestroyView()
     }
 
@@ -403,6 +405,101 @@ abstract class FeedFragment(
      * （如新评论发出后滚回顶部高亮）在子类覆写，而不是自己拍延迟猜时机。默认 no-op。 */
     protected open fun onListCommitted(state: FeedUiState) {}
 
+    /** 显隐变更前记下的滚动锚点，等这次提交落地后按它把位置接回来（见 [applyItemVisibility]）。 */
+    private var pendingVisibilityAnchor: VisibilityAnchor? = null
+
+    /**
+     * 记下的一张卡：身份 + 卡片顶部相对列表 paddingTop 的高度 + 当时的刷新代号。
+     *
+     * 用身份而不是下标：条目增删会让下标整体错位，身份不会。
+     */
+    private data class VisibilityAnchor(
+        val identity: Any,
+        val offset: Int,
+        val generation: Int,
+    )
+
+    /**
+     * 批量翻条目的 [FeedItem.hidden]（[transform] 原样返回入参表示这条不变），并把滚动位置接回去。
+     *
+     * 条目不会被摘走：它们留在 [FeedUiState.items] 里，身份和位置都不变，只是不参与渲染
+     *（见 [FeedUiState.visibleItems]）。所以「设置改回去把条目放回来」不需要暂存表，也不需要为了
+     * 放回来重新拉一次数据。
+     *
+     * 位置还原是必要的：DiffUtil 只保证「可见卡片的内容不变」，上方条目增删会让整段内容整体
+     * 上移 / 下移。方向按隐藏条目数的增减判：
+     * - 变多（藏起来）：锚点还压在内容区顶部（offset <= 0）说明被藏的都在这张卡上方，按住它位置
+     *   不动；否则被藏的正是顶部那张，让下面的内容自然顶上来——硬按回原位只会在顶部留一块空白。
+     * - 变少（放回来）：内容整体下移，一律按锚点按住。
+     *
+     * [transform] 在主线程逐条求值，必须只依赖条目自身的字段（「同一条目在两种设置下该不该
+     * 出现」），不要在里面做 IO，也不要为了改标记重新请求数据。
+     *
+     * @return 是否真的改了列表。一条都没变时不发新状态，也不碰滚动位置。
+     */
+    protected fun applyItemVisibility(transform: (FeedItem) -> FeedItem): Boolean {
+        val before = feedViewModel.uiState.value
+        if (before.items.isEmpty()) return false
+        val hiddenBefore = before.items.count { it.hidden }
+        // 屏上位置必须在改标记之前取：改完 diff 会把布局动掉，那时再问「哪张卡原来在哪」已经晚了
+        val onScreen = captureOnScreenPositions()
+        var changed = false
+        feedViewModel.mutateItems { items ->
+            var mutated: ArrayList<FeedItem>? = null
+            items.forEachIndexed { index, item ->
+                val next = transform(item)
+                if (next === item) return@forEachIndexed
+                (mutated ?: ArrayList(items).also { mutated = it })[index] = next
+                changed = true
+            }
+            mutated ?: items
+        }
+        if (!changed) return false
+
+        val after = feedViewModel.uiState.value
+        val visibleIdentities = after.items.asSequence()
+            .filterNot { it.hidden }
+            .mapTo(HashSet()) { it.identity }
+        // 锚点取「最靠上、且改完之后仍然显示」的那张：藏起来的那张没得对，只能往下找
+        val anchor = onScreen.sortedBy { it.second }.firstOrNull { it.first in visibleIdentities }
+        val hiding = after.items.count { it.hidden } > hiddenBefore
+        pendingVisibilityAnchor = if (anchor != null && (!hiding || anchor.second <= 0)) {
+            VisibilityAnchor(anchor.first, anchor.second, before.refreshGeneration)
+        } else {
+            null
+        }
+        return true
+    }
+
+    /** 屏上每张卡的「身份 + 顶部相对 paddingTop 的高度」；视图没建 / 还没排版时是空表。 */
+    private fun captureOnScreenPositions(): List<Pair<Any, Int>> {
+        val listView = _binding?.feedListView ?: return emptyList()
+        val adapter = feedAdapter ?: return emptyList()
+        val shown = adapter.currentList
+        val out = ArrayList<Pair<Any, Int>>(listView.childCount)
+        for (i in 0 until listView.childCount) {
+            val child = listView.getChildAt(i) ?: continue
+            val position = listView.getChildAdapterPosition(child)
+            if (position == RecyclerView.NO_POSITION) continue
+            val item = shown.getOrNull(position) ?: continue
+            out += item.identity to (child.top - listView.paddingTop)
+        }
+        return out
+    }
+
+    /** 按 [applyItemVisibility] 记下的锚点把位置接回去；没有锚点 / 换代 / 那张卡已经不在时是 no-op。 */
+    private fun restoreVisibilityAnchor(state: FeedUiState) {
+        val anchor = pendingVisibilityAnchor ?: return
+        pendingVisibilityAnchor = null
+        // 换代了就不再按旧锚点跳：那张卡属于上一代，位置没有参考意义
+        if (state.refreshGeneration != anchor.generation) return
+        val listView = _binding?.feedListView ?: return
+        val adapter = feedAdapter ?: return
+        val index = adapter.currentList.indexOfFirst { it.identity == anchor.identity }
+        if (index < 0) return
+        listView.scrollFeedItemToOffset(index, anchor.offset)
+    }
+
     /** 当前 adapter 已完成提交的代号；重装列表时清空，首次提交保留视图恢复的滚动位置。 */
     private var lastCommittedGeneration: Int? = null
 
@@ -466,6 +563,7 @@ abstract class FeedFragment(
             resetToTop(feedBinding.feedListView)
         }
         lastCommittedGeneration = state.refreshGeneration
+        restoreVisibilityAnchor(state)
         onListCommitted(state)
         rearmPaginationIfNearEnd()
     }
@@ -497,7 +595,13 @@ abstract class FeedFragment(
         // adapter 现取：rebuildList 可能已经换过一轮，别拿提交时那个
         val adapter = feedAdapter ?: return
         val listView = _binding?.feedListView ?: return
-        if (adapter.itemCount == 0) return
+        // 屏上一条都没有时没有「最后可见位置」可判。这既可能是真的空，也可能是条目全被页面
+        // 按设置隐藏了——后者不补一次就永远停在一片空白上（没有 onBind 点火）。
+        // 重复调用无害：[FeedViewModel.loadMore] 自带 reachedEnd / 刷新中 / 单飞守卫。
+        if (adapter.itemCount == 0) {
+            feedViewModel.loadMore()
+            return
+        }
         val lastVisible = when (val manager = listView.layoutManager) {
             is StaggeredGridLayoutManager -> manager.findLastVisibleItemPositions(null).max()
             is LinearLayoutManager -> manager.findLastVisibleItemPosition()
@@ -576,12 +680,15 @@ abstract class FeedFragment(
     /** adapter 现取不缓存：[rebuildList] 换过 adapter 之后，长活的 uiState collector 不能再往旧的提交。 */
     private fun render(state: FeedUiState) {
         val adapter = feedAdapter ?: return
+        // 页面按当前设置临时隐藏的条目（[FeedItem.hidden]）不进列表：它们仍留在 state.items 里，
+        // 设置改回去就原地回来——既不用页面自己攒暂存表，也不用重新拉数据。
+        val visibleItems = state.visibleItems
         val displayList = when {
             state.append is LoadState.Loading || state.append is LoadState.Error ->
-                state.items + AppendFooterItem(state.append)
+                visibleItems + AppendFooterItem(state.append)
             // 自动翻页预算用完：还有下一页，footer 变「点击加载更多」等用户点
-            state.appendPaused -> state.items + AppendFooterItem(state.append, paused = true)
-            else -> state.items
+            state.appendPaused -> visibleItems + AppendFooterItem(state.append, paused = true)
+            else -> visibleItems
         }
         // 整代替换（下拉刷新 / 冷启的缓存→网络）**且新旧两代真的会撕**时才绕开 DiffUtil，
         // 见 [FeedUiState.refreshGeneration] 和 [needsCleanSwapAcrossGenerations]。

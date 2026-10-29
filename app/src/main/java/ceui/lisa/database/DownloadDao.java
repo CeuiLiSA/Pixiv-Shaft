@@ -384,6 +384,10 @@ public interface DownloadDao {
     @Query("SELECT * FROM user_table limit 1")
     UserEntity getCurrentUser();
 
+    /** 按 uid 取账号表里的一行；没有就返回 null（调用方据此判断「这个号没在本机登录过」）。 */
+    @Query("SELECT * FROM user_table WHERE userID = :uid limit 1")
+    UserEntity getUserByUid(long uid);
+
     @Query("SELECT * FROM upload_image_table ORDER BY uploadTime DESC")
     List<ImageEntity> getUploadedImage();
 
