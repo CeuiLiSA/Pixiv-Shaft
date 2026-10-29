@@ -33,8 +33,9 @@ import ceui.pixiv.ui.usage.observeNana7miQuotaNotice
  *
  * 搜索链路重（sort 路由 / 内置热门榜 / 投稿期间档 / 关键字后缀 / R18 三态 + 仅看 AI + starSize
  * 客户端过滤）——**为无损、零发散，数据源直接包裹既有的 [SearchIllustRepo]**（复刻它全部逻辑风险太大），
- * 直接调它的 suspend initApi/initNextApi，过滤走 repo 自己的 FilterMapper，再补一条「对搜索页过滤」已收藏。过滤后已是「搜索专属过滤过」的 bean，
- * 用 [IllustFeedItem.raw] 直接建条目（**绝不能走 .of，会在仅看 AI 时误删 AI**）。
+ * 直接调它的 suspend initApi/initNextApi，通用过滤走 repo 自己的 FilterMapper；R-18 三态 / AI / 已收藏
+ * 由 [shouldHideSearchIllust] 只打隐藏标记（条件变了能就地放回）。用 [IllustFeedItem.raw] 直接建条目
+ *（**绝不能走 .of，会在仅看 AI 时误删 AI**）。
  *
  * 响应式重搜：数据源读 activity-scoped [SearchModel] 最新参数（不快照），fragment observe nowGo →
  * 命中标签匹配档才 refresh（对齐 legacy 的 TAG_MATCH_VALUE guard，防选了小说专属 target 时插画也重搜）。
@@ -80,18 +81,18 @@ class SearchIllustFeedFragment : IllustFeedFragment() {
      *
      * 基类那句默认（「pixiv 列表的游标本身就是 nextUrl，详情页划到底可以照着它继续请求」）隐含
      * 一个前提：**nextUrl 拉回来的东西就是本列表的结果集**。搜索不满足——搜索的结果集是由
-     * [ceui.lisa.repo.SearchIllustRepo] 的 FilterMapper 流水线定义的（R-18 三态 / 仅看 AI /
-     * 收藏数门槛），nextUrl 只是那条流水线的入料。
+     * [ceui.lisa.repo.SearchIllustRepo] 的 FilterMapper（收藏数门槛）加 [shouldHideSearchIllust]
+     *（R-18 三态 / 仅看 AI）共同定义的，nextUrl 只是那条流水线的入料。
      *
      * 而详情 pager 的回传链复现不了这条流水线：VActivity 用的是裸 `Mapper`（不认 searchR18Restriction
      * / searchOnlyAi），回到本页 `feedItemFromBean` 默认走 [IllustFeedItem.of] →
      * `passesContentFilters`（只有全局过滤链）。两头都丢，于是：
      * - R-18 限制选「仅安全」→ 续拉页整页 R-18 全部放行，追回列表；
-     * - 「仅看 AI」+ 全局「屏蔽 AI 作品」开 → 首屏靠 FilterMapper 的 `!searchOnlyAi` 让步保住 AI，
+     * - 「仅看 AI」+ 全局「屏蔽 AI 作品」开 → 首屏靠 [shouldHideSearchIllust] 在仅看 AI 时不判屏蔽保住 AI，
      *   续拉页没有这个让步，`passesContentFilters` 把 AI 全删干净 —— 与用户诉求正好相反。
      *
      * 交 null 即关掉续读：详情页仍可在交接来的快照里翻，只是划到底不再自动续拉（对齐所有本地源
-     * 的既有做法）。要恢复续读，得先让回传链拿得到搜索档位、能一比一复现 FilterMapper，
+     * 的既有做法）。要恢复续读，得先让回传链拿得到搜索档位、能一比一复现上面这条流水线，
      * 而不是把这个游标交出去。[IllustFeedItem.raw] 的文档已经写明「搜索专属过滤 feeds 侧
      * 不复刻」——本页正是那条禁令的适用对象。
      */
@@ -243,9 +244,9 @@ class SearchIllustFeedFragment : IllustFeedFragment() {
 
 /**
  * 搜索插画数据源：包裹 [SearchIllustRepo]。load(null) 前 `update(searchModel)` 重读最新参数 +
- * 配置 FilterMapper（R18 三态 / onlyAi / starSize）；load(cursor) 用 repo 翻页。过滤走 repo.mapper()
- * （FilterMapper，含 legacy 全部搜索过滤 + ObjectPool 合池，setValue 失败自动 postValue 兜底，off-main 安全），
- * 之后按「对搜索页过滤」设置剔除已收藏的作品。
+ * 配置 FilterMapper（starSize）；load(cursor) 用 repo 翻页。通用过滤走 repo.mapper()
+ * （FilterMapper，屏蔽 tag/用户 + ObjectPool 合池，setValue 失败自动 postValue 兜底，off-main 安全），
+ * 之后按当前 R-18 三态 / AI / 已收藏档位给每条打隐藏标记（[shouldHideSearchIllust]），不丢条目。
  */
 class SearchIllustFeedSource(
     private val searchModel: SearchModel,

@@ -98,7 +98,7 @@ class SearchIllustRepo @JvmOverloads constructor(
         // 两者来自 V3 sheet 的两个独立维度（bookmarkRange / keywordUsersBucket），用户可同时设置。
         val keywordSuffix = if (TextUtils.isEmpty(starSize)) "" else " $starSize"
         // R18 三档不再拼 -R-18 / R-18 关键字（hack 匹配字面标签会让全年龄/R 混在一起）；
-        // 改由 FilterMapper.setSearchR18Restriction 按真实 x_restrict 客户端过滤（见 update()）。
+        // 改由搜索页按真实 x_restrict 客户端打隐藏标记（ceui.pixiv.ui.search.shouldHideSearchIllust）。
         val assembledKeyword: String = (keyword + keywordSuffix).trim()
 
         // 路由 sort：
@@ -551,7 +551,7 @@ class SearchIllustRepo @JvmOverloads constructor(
         heightMax = searchModel.heightMax.value
         durationBucket = searchModel.durationBucket.value
         // AI：屏蔽走 search_ai_type=1；「仅看 AI」会话态（issue #909）→ 服务端全返(search_ai_type=0)，
-        // 再由 FilterMapper 客户端按 illust_ai_type==2 筛。
+        // 再由搜索页客户端打隐藏标记（ceui.pixiv.ui.search.shouldHideSearchIllust）。
         // 「屏蔽 AI」的有效档位优先取搜索页「其他条件」的会话临时值（单击改、不写设置），
         // 没设过才回退全局 isDeleteAIIllust。
         val onlyAi = searchModel.onlyAi.value == true
