@@ -3,6 +3,7 @@ package ceui.pixiv.cache
 import android.app.Application
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import ceui.loxia.User
+import ceui.pixiv.actions.PixivActions
 import ceui.pixiv.api.model.Illust
 import ceui.pixiv.db.mirror.MirrorContentType
 import ceui.pixiv.utils.reconcileViewerStateFromMirror
@@ -215,6 +216,29 @@ class ViewerStateSelfHealTest {
         }
         assertTrue(shown.isBookmarked)
         assertTrue(poolIllust(illustId).isBookmarked)
+    }
+
+    /**
+     * 在自建源榜单卡（不喂池）上点红心：池里没有这条，收藏动作拿卡片 bean 兜底进池并标成可信。
+     * 卡片 bean 里的作者关注态是上报者的，不能跟着一起被「可信」带进详情页。
+     */
+    @Test
+    fun `镜像没就绪_自建源卡片上点红心_详情页不显示上报者的关注态`() {
+        val illustId = 7_008L
+        val authorId = 9_008L
+
+        PixivActions.writeIllustBookmarkLocally(
+            illustId,
+            bookmark = true,
+            illust = illust(illustId, authorId, bookmarked = false, followed = true),
+        )
+        assertTrue(ObjectPool.isIllustViewerStateTrusted(illustId))
+
+        val shown = runBlocking {
+            reconcileViewerStateFromMirror(poolIllust(illustId)) { _, _ -> emptySet() }
+        }
+        assertTrue(shown.isBookmarked)
+        assertNull(shown.user?.is_followed)
     }
 
     private fun illust(

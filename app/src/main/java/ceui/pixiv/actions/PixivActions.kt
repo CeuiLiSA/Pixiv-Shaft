@@ -502,7 +502,10 @@ object PixivActions {
         illust: Illust? = null,
     ) {
         val pooled = ObjectPool.get<Illust>(illustId).value
-        val current = pooled ?: illust
+        // 池里没有这条时拿调用方的 bean 兜底：收藏态马上会被这次动作覆盖，但嵌在里面的作者关注态
+        // 还是列表快照的（自建源 / 借号来源可能是别人的），清成未知再进池 —— 下面会把这条标成可信，
+        // 脏值带进去，详情页的镜像校正就会把它当成已知值直接上屏。
+        val current = pooled ?: illust?.let { it.copy(user = it.user?.withoutViewerState()) }
         if (current != null && current.is_bookmarked != bookmark) {
             val delta = if (bookmark) 1 else -1
             ObjectPool.update(
@@ -511,10 +514,8 @@ object PixivActions {
                     total_bookmarks = current.total_bookmarks?.plus(delta),
                 )
             )
-        } else if (pooled == null && illust != null) {
-            // 池里没有这条时拿调用方的 bean 兜底：收藏态是用户刚点的（权威），但嵌在里面的
-            // 作者关注态还是列表快照的（自建源 / 借号来源可能是别人的），清成未知再进池。
-            ObjectPool.update(illust.withoutViewerState().copy(is_bookmarked = bookmark))
+        } else if (pooled == null && current != null) {
+            ObjectPool.update(current)
         }
         // 用户自己的收藏动作 = 当前用户视角的权威值，之前「来源不可信」的标记到此为止。
         ObjectPool.markViewerStateTrusted(illustId, ObjectSpec.Illust)
