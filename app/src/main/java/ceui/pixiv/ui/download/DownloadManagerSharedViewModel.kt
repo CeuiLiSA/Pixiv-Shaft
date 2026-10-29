@@ -137,30 +137,4 @@ class DownloadManagerSharedViewModel @Inject constructor(
     fun setDoneSearchQuery(q: String?) {
         _doneSearchQuery.value = q
     }
-
-    /**
-     * 已完成 tab 当前布局模式。由 [DoneListV3Fragment] 挂载和切换时回填，
-     * 用于让 host ([DownloadManagerV3Fragment]) 控制右上角「显示/隐藏垃圾桶」菜单的显示与隐藏。
-     */
-    private val _doneLayoutMode = MutableStateFlow(DoneLayoutMode.fromInt(ceui.lisa.activities.Shaft.sSettings.doneListLayoutMode))
-    internal val doneLayoutMode: StateFlow<DoneLayoutMode> get() = _doneLayoutMode
-
-    internal fun publishDoneLayoutMode(mode: DoneLayoutMode) {
-        _doneLayoutMode.value = mode
-    }
-
-    /**
-     * 缩略（紧凑）模式下是否显示垃圾桶图标。
-     * 仅当前页面会话有效，默认 false（即进入缩略布局时默认隐藏）。
-     */
-    private val _compactDeleteVisible = MutableStateFlow(false)
-    val compactDeleteVisible: StateFlow<Boolean> get() = _compactDeleteVisible
-
-    fun toggleCompactDeleteVisible() {
-        _compactDeleteVisible.value = !_compactDeleteVisible.value
-    }
-
-    fun setCompactDeleteVisible(visible: Boolean) {
-        _compactDeleteVisible.value = visible
-    }
 }

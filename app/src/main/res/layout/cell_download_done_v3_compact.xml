@@ -54,7 +54,6 @@
             android:contentDescription="@null"
             android:padding="4dp"
             android:src="@drawable/ic_delete_black_24dp"
-            android:visibility="gone"
             app:tint="#CCFFFFFF" />
 
         <!-- 不显示但保留 ID，让 binding 代码不需要分支判断 -->

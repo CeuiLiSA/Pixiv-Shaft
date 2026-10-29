@@ -10,6 +10,7 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.annotation.StringRes
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
@@ -97,8 +98,10 @@ class DoneListV3Fragment : Fragment() {
     ) { group, action ->
         when (action) {
             DoneAction.OPEN -> openDetail(group)
-            DoneAction.DELETE -> deleteOne(group)
-            DoneAction.DELETE_MENU -> showDeleteMenuDialog(group)
+            // 垃圾桶紧贴卡片点击区，缩图布局下尤其容易误触（#1287），单条删除同样先确认
+            DoneAction.DELETE -> showDeleteConfirmDialog(R.string.dlmgr_delete_done_title) {
+                deleteOne(group)
+            }
             DoneAction.OPEN_AUTHOR -> openAuthor(group)
         }
     }
@@ -111,9 +114,7 @@ class DoneListV3Fragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         val list = view.findViewById<RecyclerView>(R.id.list)
         list.adapter = adapter
-        val initialLayoutMode = DoneLayoutMode.fromInt(Shaft.sSettings.doneListLayoutMode)
-        applyLayoutMode(list, initialLayoutMode)
-        sharedVm.publishDoneLayoutMode(initialLayoutMode)
+        applyLayoutMode(list, DoneLayoutMode.fromInt(Shaft.sSettings.doneListLayoutMode))
 
         val empty = view.findViewById<View>(R.id.emptyState)
         view.findViewById<TextView>(R.id.emptyTitle).text = getString(R.string.dlmgr_done_empty_title)
@@ -130,8 +131,6 @@ class DoneListV3Fragment : Fragment() {
                 Local.setSettings(Shaft.sSettings)
                 applyLayoutMode(list, next)
                 text = getString(next.labelRes)
-                sharedVm.publishDoneLayoutMode(next)
-                sharedVm.setCompactDeleteVisible(false)
             }
         }
         view.findViewById<Button>(R.id.btn2).visibility = View.GONE
@@ -143,7 +142,7 @@ class DoneListV3Fragment : Fragment() {
             setOnClickListener {
                 // destructive 操作前必须确认。文案明确告知"文件不会被删除"，避免
                 // 用户因恐慌而不敢清理记录。
-                showClearDoneConfirmDialog {
+                showDeleteConfirmDialog(R.string.dlmgr_clear_done_title) {
                     viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
                         runCatching { dao.deleteAllDownload() }
                         ManagerReactive.pokeDoneTable()
@@ -180,15 +179,6 @@ class DoneListV3Fragment : Fragment() {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 sharedVm.exportRequest.collect { pos ->
                     if (pos == 2) triggerExport()
-                }
-            }
-        }
-
-        // 紧凑缩图模式下联动垃圾桶显隐（无闪烁）
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                sharedVm.compactDeleteVisible.collect { visible ->
-                    adapter.setCompactDeleteVisible(visible)
                 }
             }
         }
@@ -326,11 +316,11 @@ class DoneListV3Fragment : Fragment() {
         )
     }
 
-    private fun showClearDoneConfirmDialog(onConfirm: () -> Unit) {
+    private fun showDeleteConfirmDialog(@StringRes titleRes: Int, onConfirm: () -> Unit) {
         val act = activity ?: return
         if (act.isFinishing || act.isDestroyed) return
         WitDialog.MessageDialogBuilder(act)
-            .setTitle(R.string.dlmgr_clear_done_title)
+            .setTitle(titleRes)
             .setMessage(R.string.dlmgr_clear_done_message)
             .addAction(R.string.cancel) { d, _ -> d.dismiss() }
             .addAction(0, R.string.sure, WitDialogAction.ACTION_PROP_NEGATIVE) { d, _ ->
@@ -348,23 +338,6 @@ class DoneListV3Fragment : Fragment() {
             DoneLayoutMode.COMPACT -> GridLayoutManager(requireContext(), 4)
         }
         adapter.setMode(mode)
-    }
-
-    private fun showDeleteMenuDialog(group: DownloadGroup) {
-        val act = activity ?: return
-        if (act.isFinishing || act.isDestroyed) return
-        val title = if (group.isNovel) {
-            group.parsedNovel?.title?.takeIf { it.isNotBlank() } ?: group.latest.fileName.orEmpty()
-        } else {
-            group.parsedIllust?.title?.takeIf { it.isNotBlank() } ?: group.latest.fileName.orEmpty()
-        }
-        WitDialog.MenuDialogBuilder(act)
-            .setTitle(title)
-            .addItem(getString(R.string.action_delete)) { dialog, _ ->
-                dialog.dismiss()
-                deleteOne(group)
-            }
-            .show()
     }
 
     private fun deleteOne(group: DownloadGroup) {
@@ -456,7 +429,7 @@ private fun groupByIllust(rows: List<DownloadEntity>): List<DownloadGroup> {
     return groups.sortedByDescending { it.latest.downloadTime }
 }
 
-private enum class DoneAction { OPEN, DELETE, DELETE_MENU, OPEN_AUTHOR }
+private enum class DoneAction { OPEN, DELETE, OPEN_AUTHOR }
 
 /**
  * 已完成 tab 三种布局模式。值与 [Settings.doneListLayoutMode] 同步：
@@ -489,7 +462,6 @@ private class DoneAdapterV3(
 
     private val timeFmt = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
     private var mode: DoneLayoutMode = initialMode
-    private var compactDeleteVisible: Boolean = false
 
     /** 封面 URL → 同一个 GlideUrl 实例，见 [glideUrlOf]。一屏 20 多张，128 够翻好几屏。 */
     private val glideUrls = LruCache<String, GlideUrl>(128)
@@ -497,17 +469,8 @@ private class DoneAdapterV3(
     fun setMode(m: DoneLayoutMode) {
         if (mode == m) return
         mode = m
-        compactDeleteVisible = false
         // viewType 改了，必须 invalidate 让 RecyclerView 重 inflate 不同 cell
         notifyDataSetChanged()
-    }
-
-    fun setCompactDeleteVisible(visible: Boolean) {
-        if (compactDeleteVisible == visible) return
-        compactDeleteVisible = visible
-        if (mode == DoneLayoutMode.COMPACT) {
-            notifyItemRangeChanged(0, itemCount, PAYLOAD_TOGGLE_DELETE)
-        }
     }
 
     override fun getItemViewType(position: Int): Int = mode.ordinal
@@ -520,15 +483,6 @@ private class DoneAdapterV3(
         }
         val v = LayoutInflater.from(parent.context).inflate(layoutRes, parent, false)
         return VH(v)
-    }
-
-    override fun onBindViewHolder(h: VH, pos: Int, payloads: MutableList<Any>) {
-        if (payloads.contains(PAYLOAD_TOGGLE_DELETE)) {
-            val group = getItem(pos)
-            bindDeleteAndLongClick(h, group)
-            return
-        }
-        super.onBindViewHolder(h, pos, payloads)
     }
 
     override fun onBindViewHolder(h: VH, pos: Int) {
@@ -597,24 +551,9 @@ private class DoneAdapterV3(
         // 点作者名单独跳作者主页(消费掉点击,不冒泡到卡片的打开作品)
         h.author.setOnClickListener { onAction(group, DoneAction.OPEN_AUTHOR) }
         h.deleteBtn.setOnClickListener { onAction(group, DoneAction.DELETE) }
-        bindDeleteAndLongClick(h, group)
-    }
-
-    private fun bindDeleteAndLongClick(h: VH, group: DownloadGroup) {
-        if (mode == DoneLayoutMode.COMPACT) {
-            if (compactDeleteVisible) {
-                h.deleteBtn.visibility = View.VISIBLE
-                h.itemView.setOnLongClickListener(null)
-            } else {
-                h.deleteBtn.visibility = View.GONE
-                h.itemView.setOnLongClickListener {
-                    onAction(group, DoneAction.DELETE_MENU)
-                    true
-                }
-            }
-        } else {
-            h.deleteBtn.visibility = View.VISIBLE
-            h.itemView.setOnLongClickListener(null)
+        h.itemView.setOnLongClickListener {
+            onAction(group, DoneAction.DELETE)
+            true
         }
     }
 
@@ -685,9 +624,5 @@ private class DoneAdapterV3(
         val author: TextView = v.findViewById(R.id.author)
         val time: TextView = v.findViewById(R.id.time)
         val deleteBtn: ImageView = v.findViewById(R.id.deleteBtn)
-    }
-
-    companion object {
-        private const val PAYLOAD_TOGGLE_DELETE = "payload_toggle_delete"
     }
 }

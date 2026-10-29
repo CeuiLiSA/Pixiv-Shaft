@@ -26,14 +26,6 @@
         android:title="@string/dlmgr_import_title"
         app:showAsAction="never" />
     <!--
-      compact_delete_toggle 只在「已完成」(pos==2) 且布局为「缩图」时显示，收进溢出菜单。
-      在「显示垃圾桶」与「隐藏垃圾桶」之间切换。
-    -->
-    <item
-        android:id="@+id/action_compact_delete_toggle"
-        android:title="@string/dlmgr_done_show_delete_btn"
-        app:showAsAction="never" />
-    <!--
       search 只在「已完成」(pos==2) tab 显示。host 把 SearchView 输入透传到
       DownloadManagerSharedViewModel.doneSearchQuery，DoneListV3Fragment collect
       后切换数据源 (DAO.searchDownloads vs invalidations 默认列表)。
