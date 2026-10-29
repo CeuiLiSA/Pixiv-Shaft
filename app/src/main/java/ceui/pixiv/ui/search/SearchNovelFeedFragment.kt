@@ -32,6 +32,7 @@ import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.common.NovelFeedFragment
 import ceui.pixiv.ui.common.NovelFeedItem
+import ceui.pixiv.ui.common.observeR18FilterChanges
 import ceui.pixiv.ui.common.openUserActivity
 import ceui.pixiv.ui.novel.NovelSeriesFragment
 import ceui.pixiv.utils.ppppx
@@ -39,7 +40,11 @@ import ceui.pixiv.utils.setOnClick
 import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestManager
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
+import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import ceui.pixiv.ui.usage.observeNana7miQuotaNotice
 import ceui.pixiv.ui.navigation.TemplateRoute
@@ -57,9 +62,14 @@ import ceui.pixiv.ui.navigation.TemplateRoute
 class SearchNovelFeedFragment : NovelFeedFragment() {
 
     private var searchRefreshPending = false
+    private var syncVisibilityJob: Job? = null
 
     private val searchModel: SearchModel by lazy(LazyThreadSafetyMode.NONE) {
         ViewModelProvider(requireActivity())[SearchModel::class.java]
+    }
+
+    private val loadedSpec: LoadedSearchSpec by lazy(LazyThreadSafetyMode.NONE) {
+        ViewModelProvider(this)[LoadedSearchSpec::class.java]
     }
 
     /** 系列卡的封面 / 头像；与基类小说卡同一个 RequestManager（Glide.with(Fragment) 解析结果一致）。 */
@@ -68,7 +78,8 @@ class SearchNovelFeedFragment : NovelFeedFragment() {
     override val feedViewModel by feedViewModels(autoLoad = false) {
         val searchModel = ViewModelProvider(requireActivity())[SearchModel::class.java]
         val services = requireContext().appServices()
-        SearchNovelFeedSource(searchModel) {
+        val loadedSpec = loadedSpec
+        SearchNovelFeedSource(searchModel, loadedSpec) {
             SearchNovelRepo(
                 null, null, null, null, null, null, null, null,
                 nana7miOutbox = services.accountOnlineReportOutbox,
@@ -122,6 +133,7 @@ class SearchNovelFeedFragment : NovelFeedFragment() {
         super.onViewCreated(view, savedInstanceState)
         // 撞热度排序额度时结果会静默降级成预览，这条提示是用户唯一能知道原因的地方。
         observeNana7miQuotaNotice()
+        viewLifecycleOwner.observeR18FilterChanges(requireContext(), ::syncItemVisibility)
         searchModel.nowGo.observe(viewLifecycleOwner) {
             // 命中本地策略时不受普通搜索类型限制：小说页也要清空旧结果。
             val shouldWithhold = SearchRiskPolicy.shouldWithhold(searchModel.keyword.value)
@@ -130,9 +142,16 @@ class SearchNovelFeedFragment : NovelFeedFragment() {
                 searchRefreshPending = false
                 feedViewModel.refresh()
             } else if (PixivSearchParamUtil.TAG_MATCH_VALUE_NOVEL.contains(searchModel.searchType.value)) {
-                // 离屏 ViewPager 页处于 STARTED 也会收到 LiveData；不在后台搜索，
-                // 只记一次待刷新，等这个 tab 真正 RESUMED 时再执行。
-                if (viewLifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                val isResumed = viewLifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)
+                if (canSyncInPlace()) {
+                    // 网络 URL 未变：就地上下屏，不发请求、不丢位置
+                    searchRefreshPending = false
+                    if (isResumed) {
+                        deferSyncItemVisibilityWithSpinner()
+                    } else {
+                        syncItemVisibility()
+                    }
+                } else if (isResumed) {
                     searchRefreshPending = false
                     feedViewModel.refresh()
                 } else {
@@ -144,6 +163,84 @@ class SearchNovelFeedFragment : NovelFeedFragment() {
         }
     }
 
+    /** 口径同 [SearchIllustFeedFragment] 的同名方法。 */
+    private fun canSyncInPlace(): Boolean {
+        val state = feedViewModel.uiState.value
+        return state.hasLoadedOnce && state.refresh is LoadState.Idle &&
+            loadedSpec.spec == buildNovelNetworkSpec(searchModel)
+    }
+
+    /**
+     * 前台点击搜索条件 sheet 弹窗的搜索后，若网络 URL 未变，
+     * 转动假加载环等待 sheet 收起动画结束，再执行就地上下屏。
+     */
+    private fun deferSyncItemVisibilityWithSpinner() {
+        syncVisibilityJob?.cancel()
+        syncVisibilityJob = viewLifecycleOwner.lifecycleScope.launch {
+            setRefreshSpinnerActive(true)
+            try {
+                delay(SHEET_DISMISS_DELAY_MS)
+                syncItemVisibility()
+            } finally {
+                setRefreshSpinnerActive(false)
+            }
+        }
+    }
+
+    private fun setRefreshSpinnerActive(active: Boolean) {
+        if (view != null) {
+            runCatching { feedBinding.feedRefreshLayout.isRefreshing = active }
+        }
+    }
+
+    override fun onDestroyView() {
+        syncVisibilityJob?.cancel()
+        syncVisibilityJob = null
+        super.onDestroyView()
+    }
+
+    /**
+     * 就地重算屏上每条小说的显隐（过滤已收藏 / R-18 限制），不发网络请求、保留滚动锚点。
+     */
+    fun syncItemVisibility(): Boolean {
+        val bookmarkFilter = searchModel.sessionBookmarkFilter.value
+            ?: Shaft.sSettings.isSearchFilterBookmarked
+        val r18Restriction = searchModel.r18Restriction.value ?: 0
+        val globalR18Filter = Shaft.sSettings.isR18FilterTempEnable
+        val onlyAi = searchModel.onlyAi.value == true
+        val excludeAi = searchModel.sessionExcludeAi.value
+            ?: (runCatching { Shaft.sSettings?.isDeleteAIIllust }.getOrNull() ?: false)
+        return applyItemVisibility { item ->
+            when (item) {
+                is NovelFeedItem -> {
+                    val wantHidden = shouldHideSearchNovel(
+                        novel = item.novel,
+                        bookmarkFilter = bookmarkFilter,
+                        r18Restriction = r18Restriction,
+                        globalR18FilterOn = globalR18Filter,
+                        onlyAi = onlyAi,
+                        excludeAi = excludeAi,
+                        supportsBlur = true,
+                    )
+                    if (item.hidden == wantHidden) item else item.withHidden(wantHidden)
+                }
+                is SearchNovelSeriesFeedItem -> {
+                    val wantHidden = shouldHideSearchNovel(
+                        novel = item.novel,
+                        bookmarkFilter = bookmarkFilter,
+                        r18Restriction = r18Restriction,
+                        globalR18FilterOn = globalR18Filter,
+                        onlyAi = onlyAi,
+                        excludeAi = excludeAi,
+                        supportsBlur = false,
+                    )
+                    if (item.hidden == wantHidden) item else item.withHidden(wantHidden)
+                }
+                else -> item
+            }
+        }
+    }
+
     override fun onResume() {
         val hadExistingLoad = feedViewModel.uiState.value.let {
             it.hasLoadedOnce || it.refresh is LoadState.Loading
@@ -151,10 +248,12 @@ class SearchNovelFeedFragment : NovelFeedFragment() {
         super.onResume()
         if (searchRefreshPending) {
             searchRefreshPending = false
-            // 首次进入由 FeedFragment.ensureLoaded() 加载最新条件；只有旧数据或
-            // 旧请求存在时才显式刷新，避免首次进入连续发两次。
             if (hadExistingLoad) {
-                feedViewModel.refresh()
+                if (canSyncInPlace()) {
+                    syncItemVisibility()
+                } else {
+                    feedViewModel.refresh()
+                }
             }
         }
     }
@@ -242,6 +341,8 @@ class SearchNovelFeedFragment : NovelFeedFragment() {
     }
 
     companion object {
+        private const val SHEET_DISMISS_DELAY_MS = 350L
+
         @JvmStatic
         fun newInstance(): SearchNovelFeedFragment = SearchNovelFeedFragment()
     }
@@ -258,6 +359,8 @@ class SearchNovelFeedFragment : NovelFeedFragment() {
  */
 class SearchNovelFeedSource(
     private val searchModel: SearchModel,
+    /** 首页成功落地后记下本代网络入参，供 Fragment 判断条件变更要不要重新请求。 */
+    private val loadedSpec: LoadedSearchSpec,
     /** 只在首页真正要发请求时才调；风险拦截命中的首页不会建 Repo。 */
     private val repoFactory: () -> SearchNovelRepo,
 ) : FeedSource<String> {
@@ -281,6 +384,7 @@ class SearchNovelFeedSource(
                 }
             }
             if (shouldWithhold) {
+                loadedSpec.spec = buildNovelNetworkSpec(searchModel, keywordSnapshot)
                 return FeedPage(emptyList(), null)
             }
         }
@@ -291,7 +395,10 @@ class SearchNovelFeedSource(
         }
         if (grouped) {
             return if (cursor == null) {
-                webSource.loadFirstPage(requireNotNull(keywordSnapshot))
+                // 入参与请求同一刻快照，理由见下方 app-api 路径
+                val keyword = requireNotNull(keywordSnapshot)
+                val spec = buildNovelNetworkSpec(searchModel, keyword)
+                webSource.loadFirstPage(keyword).also { loadedSpec.spec = spec }
             } else {
                 webSource.load(cursor)
             }
@@ -299,7 +406,10 @@ class SearchNovelFeedSource(
         val r = repo ?: repoFactory().also { repo = it }
         val list: ListNovel = if (cursor == null) {
             r.update(searchModel, keywordSnapshot)
-            r.initApi()
+            // 入参必须与 update 同一刻快照：请求挂起期间 SearchModel 会随键入 / 条件面板实时变，
+            // 回来再读会把没发出去的条件记成「已加载」，下次提交被误判为 URL 未变而不重搜。
+            val spec = buildNovelNetworkSpec(searchModel, requireNotNull(keywordSnapshot))
+            r.initApi().also { loadedSpec.spec = spec }
         } else {
             r.nextUrl = cursor
             r.initNextApi()
@@ -307,15 +417,26 @@ class SearchNovelFeedSource(
         val items = withContext(Dispatchers.Default) {
             @Suppress("UNCHECKED_CAST")
             val filtered = r.mapper().apply(list)
-            // Mapper 已做完搜索专属过滤（R18 三态 / 仅看 AI），不再重复走全局过滤。
-            // 只补一条它管不到的：「对搜索页过滤」已收藏。
-            // 有效档位优先取搜索页「其他条件」的会话临时值（单击改、不写设置），
-            // 没设过才回退全局 isSearchFilterBookmarked。
+            // FilterMapper 已做完搜索通用过滤。R-18 限制与过滤已收藏改为 feeds 侧「只打标记、不丢条目」
+            // （支持零请求就地上下屏，不破坏关掉开关原地放回的能力）。
             val bookmarkFilter = searchModel.sessionBookmarkFilter.value
                 ?: Shaft.sSettings.isSearchFilterBookmarked
+            val r18Restriction = searchModel.r18Restriction.value ?: 0
+            val globalR18Filter = Shaft.sSettings.isR18FilterTempEnable
+            val onlyAi = searchModel.onlyAi.value == true
+            val excludeAi = searchModel.sessionExcludeAi.value
+                ?: (runCatching { Shaft.sSettings?.isDeleteAIIllust }.getOrNull() ?: false)
             filtered.list.orEmpty().mapNotNull { novel ->
-                if (bookmarkFilter && novel.is_bookmarked == true) null
-                else NovelFeedItem(novel)
+                val isHidden = shouldHideSearchNovel(
+                    novel = novel,
+                    bookmarkFilter = bookmarkFilter,
+                    r18Restriction = r18Restriction,
+                    globalR18FilterOn = globalR18Filter,
+                    onlyAi = onlyAi,
+                    excludeAi = excludeAi,
+                    supportsBlur = true,
+                )
+                NovelFeedItem(novel, hidden = isHidden)
             }
         }
         return FeedPage(items, list.nextUrl?.takeIf { it.isNotEmpty() })

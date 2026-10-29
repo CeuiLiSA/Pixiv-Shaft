@@ -64,8 +64,8 @@ class SearchNovelRepo @JvmOverloads constructor(
     /** 下一页游标（`next_url`），由调用方在翻页前写入；对齐旧 RemoteRepo 的同名属性。 */
     var nextUrl: String = ""
 
-    // 小说侧的搜索专属过滤器（通用屏蔽 tag/ID/用户 + 全局 R18 + 搜索 R-18 三档 + 仅看 AI +
-    // 收藏数区间兜底）。档位在 update() 里推给它（与 SearchIllustRepo 的 FilterMapper 同套路），
+    // 小说侧的搜索过滤器（通用屏蔽 tag/ID/用户 + 反刷屏 + 收藏数区间兜底；R-18 / AI 在这里统一放行，
+    // 由搜索页打隐藏标记，见 ceui.pixiv.ui.search.shouldHideSearchNovel）。档位在 update() 里推给它（与 SearchIllustRepo 的 FilterMapper 同套路），
     // 所以构造期就建好。enableFilterStarSize：非会员端点会无视 bookmark_num_min/max，
     // 靠它在客户端二次兜底，否则「喜欢！数」筛选会静默消失。
     private val filterMapper: NovelFilterMapper = NovelFilterMapper().enableFilterStarSize()
@@ -92,7 +92,7 @@ class SearchNovelRepo @JvmOverloads constructor(
             else -> " $starSize"
         }
         // R18 三档不再拼 -R-18 / R-18 关键字（hack 匹配字面标签会让全年龄/R 混在一起）；
-        // 改由 [mapper] 的 Mapper.setSearchR18Restriction 按真实 x_restrict 客户端过滤（见 update()）。
+        // 改由搜索页按真实 x_restrict 客户端打隐藏标记（ceui.pixiv.ui.search.shouldHideSearchNovel）。
         val assembledKeyword: String = (keyword + keywordSuffix).trim()
 
         // popular_preview 是预览 endpoint 专属；非会员选择会员人气排序时借用一个 Nana7mi
@@ -552,7 +552,7 @@ class SearchNovelRepo @JvmOverloads constructor(
         genre = searchModel.genre.value
         lang = searchModel.lang.value
         // AI：屏蔽走 search_ai_type=1；「仅看 AI」会话态（issue #909）→ 服务端全返(0)，
-        // 再由 Mapper 客户端按 novel_ai_type==2 筛。
+        // 再由搜索页客户端打隐藏标记（ceui.pixiv.ui.search.shouldHideSearchNovel）。
         // 「屏蔽 AI」的有效档位优先取搜索页「其他条件」的会话临时值（单击改、不写设置），
         // 没设过才回退全局 isDeleteAIIllust。
         val onlyAi = searchModel.onlyAi.value == true
@@ -570,13 +570,12 @@ class SearchNovelRepo @JvmOverloads constructor(
         readingTimeMin = searchModel.readingTimeMin.value
         readingTimeMax = searchModel.readingTimeMax.value
         durationBucket = searchModel.durationBucket.value
-        // R18 三档（0=不限/1=仅安全/2=仅R-18）→ 客户端按 x_restrict 过滤
-        filterMapper.setSearchR18Restriction(r18Restriction ?: 0)
-        // 「仅 R-18」是用户在这一页显式要 R-18，全局「R-18 过滤」必须让路（口径同插画侧 SearchIllustRepo）。
-        filterMapper.setSkipR18Filter((r18Restriction ?: 0) == 2)
-        filterMapper.setSearchOnlyAi(onlyAi)
-        // 客户端兜底剔除也按「有效档位」走——临时「屏蔽 AI」不写全局设置同样能滤掉
-        filterMapper.setSearchExcludeAi(excludeAi)
+        // 搜索页 R-18 与 AI 过滤改由 feeds 侧「只打标记、不丢条目」（支持零请求就地上下屏），
+        // 故 filterMapper 统一放行 R-18 与 AI，不在映射期做丢弃式剔除。
+        filterMapper.setSearchR18Restriction(0)
+        filterMapper.setSkipR18Filter(true)
+        filterMapper.setSearchOnlyAi(false)
+        filterMapper.setSearchExcludeAi(false)
         filterMapper.setKeepAiForBlur(true)
         // 收藏数区间兜底：非会员端点（popular-preview 预览 / 非会员自己的 token）会静默无视
         // bookmark_num_min/max，这里按 total_bookmarks 在客户端再筛一遍，避免「喜欢！数」静默失效。
