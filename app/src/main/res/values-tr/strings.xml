@@ -1986,6 +1986,7 @@
     <string name="dlmgr_clear_active_queue_message">Süren ve sırada bekleyen tüm indirmeler durdurulup temizlenecek.\n(Disk üzerinde kısmen indirilmiş dosyalar korunur.)</string>
     <string name="dlmgr_clear_done_title">Tamamlanan kayıtları temizle?</string>
     <string name="dlmgr_clear_done_message">İndirilen dosyalar diskte kalır; yalnızca buradaki kayıtlar silinir.</string>
+    <string name="dlmgr_delete_done_title">Bu indirme kaydı silinsin mi?</string>
     <string name="setting_max_concurrent_downloads">Eş zamanlı indirmeler</string>
     <string name="setting_max_concurrent_downloads_one">1 (sıralı · varsayılan)</string>
     <string name="setting_max_concurrent_downloads_n">%1$d paralel</string>

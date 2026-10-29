@@ -1986,6 +1986,7 @@
     <string name="dlmgr_clear_active_queue_message">Downloads in progress and queued items will be stopped and cleared.\n(Partially-downloaded files on disk are kept.)</string>
     <string name="dlmgr_clear_done_title">Clear completed history?</string>
     <string name="dlmgr_clear_done_message">Downloaded files stay on disk; only the records here are removed.</string>
+    <string name="dlmgr_delete_done_title">Delete this download record?</string>
     <string name="setting_max_concurrent_downloads">Concurrent downloads</string>
     <string name="setting_max_concurrent_downloads_one">1 (serial · default)</string>
     <string name="setting_max_concurrent_downloads_n">%1$d in parallel</string>

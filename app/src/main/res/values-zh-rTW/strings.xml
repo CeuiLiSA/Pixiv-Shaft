@@ -1988,6 +1988,7 @@
     <string name="dlmgr_clear_active_queue_message">正在下載和排隊中的任務都會停止並清除。\n（已下載到一半的檔案不會被刪除。）</string>
     <string name="dlmgr_clear_done_title">清空已完成記錄？</string>
     <string name="dlmgr_clear_done_message">已下載的檔案不會被刪除，只是從這裡看不到了。</string>
+    <string name="dlmgr_delete_done_title">刪除這條下載記錄？</string>
     <string name="setting_max_concurrent_downloads">同時下載數</string>
     <string name="setting_max_concurrent_downloads_one">1（串列 · 預設）</string>
     <string name="setting_max_concurrent_downloads_n">%1$d 並發</string>

@@ -10,6 +10,7 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.annotation.StringRes
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
@@ -97,7 +98,10 @@ class DoneListV3Fragment : Fragment() {
     ) { group, action ->
         when (action) {
             DoneAction.OPEN -> openDetail(group)
-            DoneAction.DELETE -> deleteOne(group)
+            // 垃圾桶紧贴卡片点击区，缩图布局下尤其容易误触（#1287），单条删除同样先确认
+            DoneAction.DELETE -> showDeleteConfirmDialog(R.string.dlmgr_delete_done_title) {
+                deleteOne(group)
+            }
             DoneAction.OPEN_AUTHOR -> openAuthor(group)
         }
     }
@@ -138,7 +142,7 @@ class DoneListV3Fragment : Fragment() {
             setOnClickListener {
                 // destructive 操作前必须确认。文案明确告知"文件不会被删除"，避免
                 // 用户因恐慌而不敢清理记录。
-                showClearDoneConfirmDialog {
+                showDeleteConfirmDialog(R.string.dlmgr_clear_done_title) {
                     viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
                         runCatching { dao.deleteAllDownload() }
                         ManagerReactive.pokeDoneTable()
@@ -312,11 +316,11 @@ class DoneListV3Fragment : Fragment() {
         )
     }
 
-    private fun showClearDoneConfirmDialog(onConfirm: () -> Unit) {
+    private fun showDeleteConfirmDialog(@StringRes titleRes: Int, onConfirm: () -> Unit) {
         val act = activity ?: return
         if (act.isFinishing || act.isDestroyed) return
         WitDialog.MessageDialogBuilder(act)
-            .setTitle(R.string.dlmgr_clear_done_title)
+            .setTitle(titleRes)
             .setMessage(R.string.dlmgr_clear_done_message)
             .addAction(R.string.cancel) { d, _ -> d.dismiss() }
             .addAction(0, R.string.sure, WitDialogAction.ACTION_PROP_NEGATIVE) { d, _ ->
@@ -547,6 +551,10 @@ private class DoneAdapterV3(
         // 点作者名单独跳作者主页(消费掉点击,不冒泡到卡片的打开作品)
         h.author.setOnClickListener { onAction(group, DoneAction.OPEN_AUTHOR) }
         h.deleteBtn.setOnClickListener { onAction(group, DoneAction.DELETE) }
+        h.itemView.setOnLongClickListener {
+            onAction(group, DoneAction.DELETE)
+            true
+        }
     }
 
     /**

@@ -1986,6 +1986,7 @@
     <string name="dlmgr_clear_active_queue_message">ダウンロード中と待機中の項目はすべて停止・削除されます。\n(ディスクに途中までダウンロードされたファイルは残ります。)</string>
     <string name="dlmgr_clear_done_title">完了履歴をクリア？</string>
     <string name="dlmgr_clear_done_message">ダウンロード済みファイルはディスクに残ります。ここの記録のみが削除されます。</string>
+    <string name="dlmgr_delete_done_title">このダウンロード記録を削除しますか？</string>
     <string name="setting_max_concurrent_downloads">同時ダウンロード数</string>
     <string name="setting_max_concurrent_downloads_one">1（直列 · デフォルト）</string>
     <string name="setting_max_concurrent_downloads_n">%1$d 並列</string>

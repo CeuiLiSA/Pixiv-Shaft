@@ -1986,6 +1986,7 @@
     <string name="dlmgr_clear_active_queue_message">Текущие и ожидающие загрузки будут остановлены и удалены.\n(Частично загруженные файлы на диске сохранятся.)</string>
     <string name="dlmgr_clear_done_title">Очистить историю завершённых?</string>
     <string name="dlmgr_clear_done_message">Скачанные файлы останутся на диске; удалятся только записи из этого списка.</string>
+    <string name="dlmgr_delete_done_title">Удалить эту запись о загрузке?</string>
     <string name="setting_max_concurrent_downloads">Одновременные загрузки</string>
     <string name="setting_max_concurrent_downloads_one">1 (последовательно · по умолчанию)</string>
     <string name="setting_max_concurrent_downloads_n">%1$d параллельно</string>
