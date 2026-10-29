@@ -238,27 +238,47 @@ public final class AppApiGsonR8InstrumentedTest {
     @Test
     public void objectPoolTypeKeysDoNotDependOnObfuscatedClassNames() throws Exception {
         long id = 9_223_372_036_854_770_000L;
-        Illust illust = new Illust(
-                null, null, 800, id, null, false, 0, false, null, null,
-                1, null, null, null, null, "r8-object-pool", null, 10, 20,
-                "illust", null, true, 1200, null, false, null);
 
         // Target R8 may staticize ObjectPool's instance methods, while androidTest is optimized in
         // a separate APK. Invoke the actual release methods reflectively so this test validates
         // ObjectPool semantics without adding production keep rules just for the test ABI.
+        //
+        // 池里不止一个「Illust → void」入口（updateIllust / updateIllustTrusted / seedUntrusted），
+        // 而 getDeclaredMethods() 的顺序是未定义的：seedUntrusted 存进去的是去掉 viewer 态之后的
+        // 副本（withoutViewerState 在 is_bookmarked 非空时 copy），把它当「刚存进去的那份」断言
+        // 同一实例必然失败。所以每个入口各用一个新 id 试一次，命中同一实例即通过 —— 与反射顺序无关。
         boolean updated = false;
+        int slot = 0;
         for (Method method : ObjectPool.class.getDeclaredMethods()) {
             Class<?>[] parameters = method.getParameterTypes();
             if (parameters.length == 1 && parameters[0] == Illust.class
                     && method.getReturnType() == void.class) {
+                // 每个入口各用一个新 id：同一个 id 连着写两次会走 mergeKeepingExisting，
+                // 存进去的又是一个新实例，identity 断言就分不清「入口存了副本」和「池读不出来」。
+                long probeId = id - slot++;
+                Illust probe = newIllust(probeId);
                 method.setAccessible(true);
-                method.invoke(receiverFor(method), illust);
+                method.invoke(receiverFor(method), probe);
                 updated = true;
-                break;
+                if (readsBackSameInstance(probeId, probe)) return;
             }
         }
         assertTrue("Missing ObjectPool Illust update method", updated);
+        fail("Obfuscated ObjectPool could not read the Illust that it just stored");
+    }
 
+    private static Illust newIllust(long id) {
+        return new Illust(
+                null, null, 800, id, null, false, 0, false, null, null,
+                1, null, null, null, null, "r8-object-pool", null, 10, 20,
+                "illust", null, true, 1200, null, false, null);
+    }
+
+    /**
+     * 读回 id 对应的 LiveData，看里面是不是刚写进去的那一份。新 key 是直接以对象建 LiveData
+     *（不是 setValue），所以这里不需要等主线程；池里所有 (long) → LiveData 的读口都要试一遍。
+     */
+    private static boolean readsBackSameInstance(long id, Illust illust) throws Exception {
         for (Method method : ObjectPool.class.getDeclaredMethods()) {
             Class<?>[] parameters = method.getParameterTypes();
             if (parameters.length == 1 && parameters[0] == long.class
@@ -267,11 +287,11 @@ public final class AppApiGsonR8InstrumentedTest {
                 LiveData<?> result = (LiveData<?>) method.invoke(receiverFor(method), id);
                 if (result != null && result.getValue() == illust) {
                     assertSame(illust, result.getValue());
-                    return;
+                    return true;
                 }
             }
         }
-        fail("Obfuscated ObjectPool could not read the Illust that it just stored");
+        return false;
     }
 
     private static Object receiverFor(Method method) throws Exception {
