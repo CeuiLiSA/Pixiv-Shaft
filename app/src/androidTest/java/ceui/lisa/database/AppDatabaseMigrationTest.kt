@@ -87,7 +87,7 @@ class AppDatabaseMigrationTest {
 
         /** 与 MIGRATION_43_44 里的 CREATE INDEX 一一对应。 */
         val V44_INDICES = listOf(
-            "tag_mute_table" to "index_tag_mute_table_type_searchTime",
+            "tag_mute_table" to "index_tag_mute_table_type_searchTime_id",
             "search_table" to "index_search_table_pinned_searchTime",
             "feature_table" to "index_feature_table_dateTime",
             "illust_table" to "index_illust_table_time",

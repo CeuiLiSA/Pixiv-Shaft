@@ -565,8 +565,8 @@ public abstract class AppDatabase extends RoomDatabase {
             final long start = SystemClock.elapsedRealtime();
             // 顺序按「表体积从小到大」：便宜的先落地，日志能看出进展，
             // 真机上万一慢，一眼知道卡在哪张表。
-            createIndexGuarded(database, "index_tag_mute_table_type_searchTime",
-                    "CREATE INDEX IF NOT EXISTS index_tag_mute_table_type_searchTime ON tag_mute_table(type, searchTime)");
+            createIndexGuarded(database, "index_tag_mute_table_type_searchTime_id",
+                    "CREATE INDEX IF NOT EXISTS index_tag_mute_table_type_searchTime_id ON tag_mute_table(type, searchTime, id)");
             createIndexGuarded(database, "index_search_table_pinned_searchTime",
                     "CREATE INDEX IF NOT EXISTS index_search_table_pinned_searchTime ON search_table(pinned, searchTime)");
             createIndexGuarded(database, "index_feature_table_dateTime",

@@ -463,30 +463,6 @@ public class Shaft extends Application implements ServicesProvider {
         ceui.pixiv.ui.interpolate.RifePrefs.migrateLegacy(
                 sPreferences.getString(Local.SETTINGS, ""), this);
 
-        // v43→v44 是「建索引」迁移，代价约等于一次全表扫描：1.02GB 的库真机实测 555 ms。
-        // Room 的迁移跑在**第一个碰库的线程**上。这里抢先起一条 IO 线程开库，让它**大概率**
-        // 落在后台线程、和首屏初始化重叠，而不是落在用户第一次操作的主线程上。
-        //
-        // 注意这只是「抢跑」，不是保证：主线程若先碰到库，迁移照样在它身上跑（一次性，几毫秒到
-        // 一秒级）。真要做到确定，只能把开库同步塞进 onCreate —— 那等于用首帧去换，不划算。
-        // 两条日志（ok / failed）都带 tag AppDatabase，线上 `adb logcat -s AppDatabase` 就能看出
-        // 迁移落在哪个线程、花了多久、有没有失败。
-        new Thread(() -> {
-            final long t0 = android.os.SystemClock.elapsedRealtime();
-            try {
-                ceui.lisa.database.AppDatabase.getAppDatabase(this).downloadDao()
-                        .countDownloadsNeedingIdBackfill();
-                Timber.tag("AppDatabase").i("early db open ok in %d ms",
-                        android.os.SystemClock.elapsedRealtime() - t0);
-            } catch (Throwable t) {
-                // 走到这里通常是 v43→v44 建索引迁移没跑通（磁盘满 / 表损坏 / 索引名与 schema 不一致）。
-                // 迁移在事务里，失败会整体回滚、版本停在 43；主线程随后再开库会重试并抛同样的错。
-                // 所以这条是「第一次失败现场」，别当噪音过滤掉 —— 里面带着具体是哪条索引。
-                Timber.tag("AppDatabase").e(t, "early db open failed after %d ms",
-                        android.os.SystemClock.elapsedRealtime() - t0);
-            }
-        }, "db-early-open").start();
-
         entityWrapper = new EntityWrapper(this);
         entityWrapper.initialize();
 

@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 44,
-    "identityHash": "a874c6b1ca819db9de450dedf01b491c",
+    "identityHash": "32eac7fe5683c1b892c959b646f0f233",
     "entities": [
       {
         "tableName": "illust_table",
@@ -291,14 +291,15 @@
         },
         "indices": [
           {
-            "name": "index_tag_mute_table_type_searchTime",
+            "name": "index_tag_mute_table_type_searchTime_id",
             "unique": false,
             "columnNames": [
               "type",
-              "searchTime"
+              "searchTime",
+              "id"
             ],
             "orders": [],
-            "createSql": "CREATE INDEX IF NOT EXISTS `index_tag_mute_table_type_searchTime` ON `${TABLE_NAME}` (`type`, `searchTime`)"
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_tag_mute_table_type_searchTime_id` ON `${TABLE_NAME}` (`type`, `searchTime`, `id`)"
           }
         ]
       },
@@ -1974,7 +1975,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'a874c6b1ca819db9de450dedf01b491c')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '32eac7fe5683c1b892c959b646f0f233')"
     ]
   }
 }
