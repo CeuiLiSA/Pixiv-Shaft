@@ -361,6 +361,8 @@
     <string name="clear_bulk_download_cache">清除批次下載關聯資料</string>
     <string name="clear_bulk_download_cache_message">下載管理裡的「已完成」「佇列」清單會被清空，跟第一次打開 app 一樣。\n（已下載到本機的圖片和小說不會被刪除。）</string>
     <string name="clear_bulk_download_cache_progress">正在清除批次下載關聯資料…</string>
+    <string name="clear_bulk_download_cache_queue_not_empty">批次下載佇列不為空！未執行清理</string>
+    <string name="clear_bulk_download_cache_failed">清理未完成，請稍後再試</string>
     <string name="string_103">點擊展開</string>
     <string name="string_105">點擊展開</string>
     <string name="string_107">---結束---</string>

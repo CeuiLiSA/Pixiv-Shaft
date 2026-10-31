@@ -381,6 +381,8 @@
     <string name="clear_bulk_download_cache">清除批量下载关联数据</string>
     <string name="clear_bulk_download_cache_message">下载管理里的「已完成」「队列」列表会清空，跟第一次打开 app 一样。\n（已经下载到本地的图片和小说不会被删除。）</string>
     <string name="clear_bulk_download_cache_progress">正在清除批量下载关联数据…</string>
+    <string name="clear_bulk_download_cache_queue_not_empty">批量队列不为空！未执行清理</string>
+    <string name="clear_bulk_download_cache_failed">清理未完成，请稍后重试</string>
     <string name="string_103">点击展开</string>
     <string name="string_105">点击展开</string>
     <string name="string_107">--- END ---</string>

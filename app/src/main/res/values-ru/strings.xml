@@ -359,6 +359,8 @@
     <string name="clear_bulk_download_cache">Очистить данные массовых загрузок</string>
     <string name="clear_bulk_download_cache_message">Списки «Готово» и «Очередь» в менеджере загрузок будут очищены, как после чистой установки.\n(Уже сохранённые на устройстве файлы не удаляются.)</string>
     <string name="clear_bulk_download_cache_progress">Очищаем данные массовых загрузок…</string>
+    <string name="clear_bulk_download_cache_queue_not_empty">Очередь загрузок не пуста. Очистка не выполнена.</string>
+    <string name="clear_bulk_download_cache_failed">Очистка не завершена. Повторите попытку позже.</string>
     <string name="string_103">Нажмите, чтобы развернуть</string>
     <string name="string_105">Нажмите, чтобы развернуть</string>
     <string name="string_107">--- END ---</string>

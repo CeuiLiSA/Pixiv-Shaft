@@ -359,6 +359,8 @@
     <string name="clear_bulk_download_cache">일괄 다운로드 관련 데이터 삭제</string>
     <string name="clear_bulk_download_cache_message">다운로드 관리의 \'완료\', \'대기열\' 목록이 비워집니다. 앱을 처음 켰을 때와 같은 상태가 됩니다.\n(이미 저장된 이미지/소설 파일은 삭제되지 않습니다.)</string>
     <string name="clear_bulk_download_cache_progress">일괄 다운로드 관련 데이터를 삭제하는 중…</string>
+    <string name="clear_bulk_download_cache_queue_not_empty">다운로드 대기열이 비어 있지 않습니다. 정리를 실행하지 않았습니다.</string>
+    <string name="clear_bulk_download_cache_failed">정리가 완료되지 않았습니다. 잠시 후 다시 시도해 주세요.</string>
     <string name="string_103">클릭 하여 펼 치기</string>
     <string name="string_105">클릭 하여 펼 치기</string>
     <string name="string_107">--- 끝 -</string>

@@ -359,6 +359,8 @@
     <string name="clear_bulk_download_cache">一括ダウンロード関連データを削除</string>
     <string name="clear_bulk_download_cache_message">「ダウンロード管理」の「完了」「キュー」リストが空になります。初回起動時と同じ状態です。\n（端末に保存済みの画像・小説は削除されません。）</string>
     <string name="clear_bulk_download_cache_progress">一括ダウンロード関連データを削除中…</string>
+    <string name="clear_bulk_download_cache_queue_not_empty">ダウンロードキューが空ではありません。削除は実行されませんでした。</string>
+    <string name="clear_bulk_download_cache_failed">削除が完了しませんでした。しばらくしてから再度お試しください。</string>
     <string name="string_103">クリックして展開</string>
     <string name="string_105">クリックして展開</string>
     <string name="string_107">--終わり--</string>

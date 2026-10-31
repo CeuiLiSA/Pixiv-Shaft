@@ -359,6 +359,8 @@
     <string name="clear_bulk_download_cache">Clear bulk download data</string>
     <string name="clear_bulk_download_cache_message">The Done / Queue lists in Download Manager will be wiped — just like a fresh install.\n(Files already saved to your device are not deleted.)</string>
     <string name="clear_bulk_download_cache_progress">Clearing bulk download data…</string>
+    <string name="clear_bulk_download_cache_queue_not_empty">The download queue is not empty. Nothing was cleared.</string>
+    <string name="clear_bulk_download_cache_failed">Cleanup did not finish. Please try again.</string>
     <string name="string_103">Click to expand</string>
     <string name="string_105">Click to expand</string>
     <string name="string_107">--- END ---</string>

@@ -359,6 +359,8 @@
     <string name="clear_bulk_download_cache">Toplu indirme verilerini temizle</string>
     <string name="clear_bulk_download_cache_message">İndirme yöneticisindeki «Tamamlandı» ve «Sıra» listeleri temizlenecek — uygulamayı ilk açtığınız andaki gibi.\n(Cihaza zaten indirilmiş dosyalar silinmez.)</string>
     <string name="clear_bulk_download_cache_progress">Toplu indirme verileri temizleniyor…</string>
+    <string name="clear_bulk_download_cache_queue_not_empty">İndirme kuyruğu boş değil. Temizlik yapılmadı.</string>
+    <string name="clear_bulk_download_cache_failed">Temizlik tamamlanamadı. Lütfen daha sonra tekrar deneyin.</string>
     <string name="string_103">Açmak için tıkla</string>
     <string name="string_105">Açmak için tıkla</string>
     <string name="string_107">--- SON ---</string>

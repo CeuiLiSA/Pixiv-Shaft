@@ -355,6 +355,8 @@
     <string name="clear_bulk_download_cache">Hapus data terkait unduhan massal</string>
     <string name="clear_bulk_download_cache_message">Daftar «Selesai» dan «Antrean» di pengelola unduhan akan dikosongkan, seperti saat pertama kali membuka aplikasi.\n(Gambar dan novel yang sudah diunduh ke perangkat tidak akan dihapus.)</string>
     <string name="clear_bulk_download_cache_progress">Menghapus data terkait unduhan massal…</string>
+    <string name="clear_bulk_download_cache_queue_not_empty">Antrean unduhan belum kosong. Pembersihan tidak dijalankan.</string>
+    <string name="clear_bulk_download_cache_failed">Pembersihan tidak selesai. Coba lagi nanti.</string>
     <string name="string_103">Ketuk untuk membuka</string>
     <string name="string_105">Ketuk untuk membuka</string>
     <string name="string_107">--- END ---</string>
