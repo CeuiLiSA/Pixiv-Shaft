@@ -21,7 +21,9 @@ import androidx.lifecycle.lifecycleScope
 import androidx.viewpager.widget.ViewPager
 import ceui.lisa.R
 import ceui.lisa.core.ManagerReactive
+import ceui.lisa.core.JavaAsync
 import ceui.lisa.database.AppDatabase
+import java.util.concurrent.ConcurrentHashMap
 import ceui.lisa.database.DownloadEntity
 import ceui.lisa.databinding.ActivityImageDetailBinding
 import ceui.lisa.databinding.ViewV3FabBarBinding
@@ -123,6 +125,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
     private var downloadSingle: TextView? = null
     internal var plazaImageSource: ceui.pixiv.plaza.ui.PlazaImageSource? = null
         private set
+    private val savingPages = ConcurrentHashMap.newKeySet<Int>()
 
     private var index = 0
 
@@ -812,13 +815,23 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
             // 这一页正显示译图:保存的就是看到的那张(原分辨率译图),不是底下的原图
             val translated = translatedFileOf(page)
             if (translated != null) {
-                lifecycleScope.launch {
-                    if (saveTranslatedPage(illust, page, translated)) {
-                        Common.showToast(R.string.string_181)
-                        if (baseBind?.viewPager?.currentItem == page) {
-                            fabBar.renderDownload(DownloadFab.Done)
+                if (!savingPages.add(page)) return@setOnClick
+                fabBar.renderDownload(DownloadFab.Downloading(0))
+                JavaAsync.appScope.launch {
+                    try {
+                        if (saveTranslatedPage(illust, page, translated)) {
+                            Common.showToast(R.string.string_181)
+                            if (!isFinishing && !isDestroyed && baseBind?.viewPager?.currentItem == page) {
+                                fabBar.renderDownload(DownloadFab.Done)
+                            }
+                            autoLikeAfterDownloadIfNeeded(illust, fabBar)
+                        } else {
+                            if (!isFinishing && !isDestroyed && baseBind?.viewPager?.currentItem == page) {
+                                fabBar.renderDownload(DownloadFab.Idle)
+                            }
                         }
-                        autoLikeAfterDownloadIfNeeded(illust, fabBar)
+                    } finally {
+                        savingPages.remove(page)
                     }
                 }
                 return@setOnClick
@@ -827,13 +840,25 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                 IllustDownload.getUrl(illust, page, Params.IMAGE_RESOLUTION_ORIGINAL)
                     ?: IllustDownload.getUrl(illust, page, Params.IMAGE_RESOLUTION_LARGE)
                     ?: return@setOnClick
-            lifecycleScope.launch {
-                IllustCaptionExporter.export(illust)
-                val ok = saveLoadedIllustPage(illust, page, imageUrl)
-                if (ok) {
-                    Common.showToast(R.string.string_181)
-                    checkDownload(page)
-                    autoLikeAfterDownloadIfNeeded(illust, fabBar)
+            if (!savingPages.add(page)) return@setOnClick
+            fabBar.renderDownload(DownloadFab.Downloading(0))
+            JavaAsync.appScope.launch {
+                try {
+                    IllustCaptionExporter.export(illust)
+                    val ok = saveLoadedIllustPage(illust, page, imageUrl)
+                    if (ok) {
+                        Common.showToast(R.string.string_181)
+                        if (!isFinishing && !isDestroyed) {
+                            checkDownload(page)
+                        }
+                        autoLikeAfterDownloadIfNeeded(illust, fabBar)
+                    } else {
+                        if (!isFinishing && !isDestroyed) {
+                            checkDownload(page)
+                        }
+                    }
+                } finally {
+                    savingPages.remove(page)
                 }
             }
         }
@@ -856,9 +881,11 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         ObjectPool.get<Illust>(it.id).value ?: it
     }
 
-    private fun autoLikeAfterDownloadIfNeeded(illust: Illust, fabBar: V3FabBarController) {
+    private fun autoLikeAfterDownloadIfNeeded(illust: Illust, fabBar: V3FabBarController?) {
         if (Shaft.sSettings.isAutoPostLikeWhenDownload && !illust.isBookmarked) {
-            fabBar.setBookmarked(true)
+            if (!isFinishing && !isDestroyed) {
+                fabBar?.setBookmarked(true)
+            }
             PixivOperate.postLikeDefaultStarType(illust)
         }
     }
@@ -920,6 +947,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
      */
     private suspend fun saveTranslatedPage(illust: Illust, page: Int, file: File): Boolean =
         withContext(Dispatchers.IO) {
+            val appContext = Shaft.getContext()
             runCatching {
                 // open 返回 null = Skip 策略且同名译图已存在 → 视为已保存
                 val handle =
@@ -937,10 +965,13 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                 true
             }
                 .getOrElse { ex ->
+                    if (ex is CancellationException) throw ex
                     Timber.e(ex, "[ImageDetail] saveTranslatedPage failed page=%d", page)
-                    Common.showToast(
-                        getString(R.string.save_image_failed, ex.message ?: ex.javaClass.simpleName)
-                    )
+                    withContext(Dispatchers.Main) {
+                        Common.showToast(
+                            appContext.getString(R.string.save_image_failed, ex.message ?: ex.javaClass.simpleName)
+                        )
+                    }
                     false
                 }
         }
@@ -952,23 +983,43 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
      */
     private suspend fun saveLoadedIllustPage(illust: Illust, page: Int, imageUrl: String): Boolean =
         withContext(Dispatchers.IO) {
+            val appContext = Shaft.getContext()
+            var resolveError: Throwable? = null
             val file =
                 try {
-                    PageImageSourceResolver.resolve(this@ImageDetailActivity, illust, page, imageUrl)
-                        .awaitFile(this@ImageDetailActivity)
+                    PageImageSourceResolver.resolve(appContext, illust, page, imageUrl)
+                        .awaitFile(appContext)
+                } catch (e: CancellationException) {
+                    throw e
                 } catch (e: Exception) {
                     Timber.w(e, "[ImageDetail] save: await loaded file failed page=%d", page)
+                    resolveError = e
                     null
-                } ?: return@withContext false
+                }
+            if (file == null) {
+                val detail = resolveError?.message ?: resolveError?.javaClass?.simpleName
+                withContext(Dispatchers.Main) {
+                    Common.showToast(
+                        appContext.getString(R.string.save_image_failed, detail ?: "load error")
+                    )
+                }
+                return@withContext false
+            }
 
             // 这一页已下载时,本地来源可能正是这次要写的目标本身(同模板同路径)。替换策略下后端会先删 /
             // 截断目标再写,边读边写就把用户的原图抹成 0 字节。私有目录之外的来源先落一份副本再写。
             val staged =
                 if (file.isInsideAppPrivateDir()) null
                 else runCatching {
-                    File.createTempFile("save_src", null, cacheDir).also { file.copyTo(it, overwrite = true) }
+                    File.createTempFile("save_src", null, appContext.cacheDir).also { file.copyTo(it, overwrite = true) }
                 }.getOrElse {
+                    if (it is CancellationException) throw it
                     Timber.w(it, "[ImageDetail] save: stage local source failed page=%d", page)
+                    withContext(Dispatchers.Main) {
+                        Common.showToast(
+                            appContext.getString(R.string.save_image_failed, it.message ?: it.javaClass.simpleName)
+                        )
+                    }
                     return@withContext false
                 }
             val source = staged ?: file
@@ -991,7 +1042,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                 if (Shaft.sSettings.isWriteTagsToImageExif()) {
                     runCatching {
                         ExifKeywordWriter.writeIfEnabled(
-                            this@ImageDetailActivity,
+                            appContext,
                             handle.uri,
                             FileCreator.customFileName(illust, page),
                             illust.tags.orEmpty().mapNotNull { it?.name },
@@ -1010,12 +1061,21 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                         this.page = page
                     }
                 // insertDownload 会从 illustGson 顶层 id 补上 illustId（走 v38 索引）。
-                AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao().insertDownload(entity)
+                AppDatabase.getAppDatabase(appContext).downloadDao().insertDownload(entity)
                 ManagerReactive.pokeDoneTable()
                 true
             }
                 .getOrElse { ex ->
+                    if (ex is CancellationException) throw ex
                     Timber.e(ex, "[ImageDetail] saveLoadedIllustPage failed page=%d", page)
+                    withContext(Dispatchers.Main) {
+                        Common.showToast(
+                            appContext.getString(
+                                R.string.save_image_failed,
+                                ex.message ?: ex.javaClass.simpleName,
+                            )
+                        )
+                    }
                     false
                 }
                 .also { staged?.delete() }
@@ -1024,7 +1084,8 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
     /** 查看器缓存 / 快照存档都在私有目录里,不可能是下载后端的写入目标,无需另拷一份。 */
     private fun File.isInsideAppPrivateDir(): Boolean {
         val path = canonicalPath
-        return listOfNotNull(cacheDir, filesDir, externalCacheDir).any {
+        val ctx = Shaft.getContext()
+        return listOfNotNull(ctx.cacheDir, ctx.filesDir, ctx.externalCacheDir).any {
             path.startsWith(it.canonicalPath + File.separator)
         }
     }
