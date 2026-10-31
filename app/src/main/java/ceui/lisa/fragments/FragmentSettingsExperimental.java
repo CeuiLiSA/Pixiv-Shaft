@@ -40,6 +40,7 @@ public class FragmentSettingsExperimental extends SettingsPageFragment<FragmentS
         bindTriggerCrashRow();
         bindDebugMirrorBannerRow();
         bindDebugUpdateSheetRow();
+        bindDbCallTraceRow();
 
         // 自动快照是本地离线能力，不涉及站外 UGC，所有渠道都显示。
         baseBind.autoSnapshotOnBookmark.setChecked(Shaft.sSettings.isAutoSnapshotOnBookmark());
@@ -112,6 +113,22 @@ public class FragmentSettingsExperimental extends SettingsPageFragment<FragmentS
         }
         baseBind.witGalleryRela.setOnClickListener(v ->
                 ceui.pixiv.ui.settings.WitDialogGallery.showWit(mContext));
+    }
+
+    /**
+     * 「打印所有数据库耗时」开关。状态存 MMKV（[ceui.pixiv.db.DbTracePrefs]），不进 Settings、
+     * 也不进备份 —— 这是排查开关，不该跟着备份跑到别的设备上。
+     *
+     * 打开后 [ceui.pixiv.db.DbCallTracker] 会把每一条 SQL 的耗时都写进日志（tag DbCallTracker），
+     * 而不只是超阈值的那几条。
+     */
+    private void bindDbCallTraceRow() {
+        baseBind.dbCallTrace.setChecked(ceui.pixiv.db.DbTracePrefs.isEnabled());
+        baseBind.dbCallTrace.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            ceui.pixiv.db.DbTracePrefs.setEnabled(isChecked);
+            Common.showToast(getString(R.string.string_428));
+        });
+        baseBind.dbCallTraceRela.setOnClickListener(v -> baseBind.dbCallTrace.performClick());
     }
 
     private void bindLogFileRow() {

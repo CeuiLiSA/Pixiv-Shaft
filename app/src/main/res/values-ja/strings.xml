@@ -359,6 +359,13 @@
     <string name="clear_bulk_download_cache">一括ダウンロード関連データを削除</string>
     <string name="clear_bulk_download_cache_message">「ダウンロード管理」の「完了」「キュー」リストが空になります。初回起動時と同じ状態です。\n（端末に保存済みの画像・小説は削除されません。）</string>
     <string name="clear_bulk_download_cache_progress">一括ダウンロード関連データを削除中…</string>
+    <string name="clear_bulk_download_cache_queue_not_empty">ダウンロードキューが空ではありません。削除は実行されませんでした。</string>
+    <string name="clear_bulk_download_cache_failed">削除が完了しませんでした。しばらくしてから再度お試しください。</string>
+    <string name="db_stall_title">データベースのデッドロック / 長時間待ち</string>
+    <string name="db_stall_message">ローカルデータベースの応答が非常に遅くなっています。読み書きが滞留しています。この間、リストが空のままになったり、タップしても反応しなかったり、ダウンロードの進捗が止まったりします。端末に保存済みのファイルには影響せず、データも失われません。\n\nしばらくお待ちください。データベースが復旧するとこのダイアログは自動的に閉じます。復旧しない場合は「ログをコピー」をタップして詳細を開発者に送ってください。</string>
+    <string name="db_stall_copy_log">ログをコピー</string>
+    <string name="setting_db_call_trace">データベースの所要時間を記録</string>
+    <string name="setting_db_call_trace_desc">すべての SQL の所要時間をログに出力します（タグ DbCallTracker）。重い原因を調べるときだけオンにしてください。ログが大量に出ます。</string>
     <string name="string_103">クリックして展開</string>
     <string name="string_105">クリックして展開</string>
     <string name="string_107">--終わり--</string>

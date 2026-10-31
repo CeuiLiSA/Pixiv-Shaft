@@ -290,6 +290,30 @@
 
                 </RelativeLayout>
 
+                <!-- 打印所有数据库耗时：排查「哪条查询在拖」用，开关状态存 MMKV，不进备份。 -->
+                <RelativeLayout
+                    android:id="@+id/db_call_trace_rela"
+                    style="@style/M3SetRow"
+                    android:layout_marginTop="14dp"
+                    android:background="@drawable/wit_row_single">
+
+                    <LinearLayout style="@style/M3SetTexts">
+
+                        <TextView
+                            style="@style/M3SetTitle"
+                            android:text="@string/setting_db_call_trace" />
+
+                        <TextView
+                            style="@style/M3SetDesc"
+                            android:text="@string/setting_db_call_trace_desc" />
+                    </LinearLayout>
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/db_call_trace"
+                        style="@style/M3SetSwitch" />
+
+                </RelativeLayout>
+
             </LinearLayout>
 
         </androidx.core.widget.NestedScrollView>

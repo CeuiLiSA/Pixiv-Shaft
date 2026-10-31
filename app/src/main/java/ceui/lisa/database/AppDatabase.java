@@ -573,7 +573,10 @@ public abstract class AppDatabase extends RoomDatabase {
                             // Don't do this on a real app! See PersistenceBasicSample for an example.
                             //.fallbackToDestructiveMigration()
                             // #1261：默认的 corrupt 处理会把整个库删掉，换成不删数据的版本。
-                            .openHelperFactory(new NonDestructiveOpenHelperFactory())
+                            // 外面再套一层计时：所有库调用都从这一个咽喉过，卡住时能报出
+                            // 「是哪条 SQL、卡了多久」（见 DbCallTracker）。
+                            .openHelperFactory(new ceui.pixiv.db.DbTimingHelperFactory(
+                                    new NonDestructiveOpenHelperFactory()))
                             .allowMainThreadQueries()
                             .addMigrations(ALL_MIGRATIONS)
                             .build();

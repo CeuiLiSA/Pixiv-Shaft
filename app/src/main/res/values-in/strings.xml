@@ -355,6 +355,13 @@
     <string name="clear_bulk_download_cache">Hapus data terkait unduhan massal</string>
     <string name="clear_bulk_download_cache_message">Daftar «Selesai» dan «Antrean» di pengelola unduhan akan dikosongkan, seperti saat pertama kali membuka aplikasi.\n(Gambar dan novel yang sudah diunduh ke perangkat tidak akan dihapus.)</string>
     <string name="clear_bulk_download_cache_progress">Menghapus data terkait unduhan massal…</string>
+    <string name="clear_bulk_download_cache_queue_not_empty">Antrean unduhan belum kosong. Pembersihan tidak dijalankan.</string>
+    <string name="clear_bulk_download_cache_failed">Pembersihan tidak selesai. Coba lagi nanti.</string>
+    <string name="db_stall_title">Database mengalami deadlock / antrean panjang</string>
+    <string name="db_stall_message">Database lokal saat ini merespons sangat lambat - baca dan tulis sedang mengantre. Selama ini, daftar bisa kosong, ketukan tidak merespons, dan progres unduhan berhenti. File yang sudah tersimpan di perangkat tidak terpengaruh dan tidak ada data yang hilang.\n\nMohon tunggu sebentar - dialog ini akan tertutup sendiri setelah database pulih. Jika tidak pulih, ketuk \"Salin log\" dan kirim detailnya ke pengembang.</string>
+    <string name="db_stall_copy_log">Salin log</string>
+    <string name="setting_db_call_trace">Catat durasi database</string>
+    <string name="setting_db_call_trace_desc">Menulis durasi setiap pernyataan SQL ke log (tag DbCallTracker). Nyalakan hanya saat mendiagnosis kelambatan - outputnya sangat banyak.</string>
     <string name="string_103">Ketuk untuk membuka</string>
     <string name="string_105">Ketuk untuk membuka</string>
     <string name="string_107">--- END ---</string>
