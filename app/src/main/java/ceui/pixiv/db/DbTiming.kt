@@ -52,7 +52,7 @@ object DbCallTracker {
     /** 单次调用超过这个时长即判定长排队/卡死。 */
     private const val SLOW_MS = 2_000L
 
-    private class Call(val sql: String, val startMs: Long, val thread: String)
+    private class Call(val sql: String, val startMs: Long, val thread: String, @Volatile var firstRowMs: Long = -1L)
 
     private val handler = Handler(Looper.getMainLooper())
     private val seq = AtomicLong(0)
@@ -122,17 +122,25 @@ object DbCallTracker {
         return token
     }
 
+    fun markFirstRow(token: Long) {
+        val call = active[token] ?: return
+        if (call.firstRowMs < 0) {
+            call.firstRowMs = SystemClock.elapsedRealtime() - call.startMs
+        }
+    }
+
     fun end(token: Long) {
         val call = active.remove(token) ?: return
         val cost = SystemClock.elapsedRealtime() - call.startMs
+        val detail = if (call.firstRowMs >= 0) " (首行 ${call.firstRowMs} ms)" else ""
         if (cost >= SLOW_MS) {
-            Timber.tag(TAG).w("慢调用 %d ms: %s", cost, call.sql.take(200))
+            Timber.tag(TAG).w("慢调用 %d ms%s: %s", cost, detail, call.sql.take(200))
         }
         // 试验性开关：把每一条 SQL 的耗时都打出来，而不只是超阈值的。
         // 默认关；开着时日志量很大，只适合短时间排查。读 MMKV 是 mmap + 解码，
         // 相对一次查询的开销可以忽略，所以不额外做缓存（少一层失效风险）。
         if (DbTracePrefs.isEnabled) {
-            Timber.tag(TAG).d("DB %5d ms  %s", cost, call.sql.take(300).replace('\n', ' '))
+            Timber.tag(TAG).d("DB %5d ms%s  %s", cost, detail, call.sql.take(300).replace('\n', ' '))
         }
         if (active.isEmpty()) {
             handler.removeCallbacks(checkRunnable)
@@ -337,27 +345,34 @@ private class TimingCursor(
 ) : Cursor by delegate {
 
     private val settled = AtomicBoolean(false)
+    private val firstRowMarked = AtomicBoolean(false)
 
-    private fun settle() {
-        if (settled.compareAndSet(false, true)) DbCallTracker.end(token)
+    private fun markFirstRow() {
+        if (firstRowMarked.compareAndSet(false, true)) {
+            DbCallTracker.markFirstRow(token)
+        }
     }
 
-    // 注意 settle() 必须在**委托调用之后**：fillWindow（真正跑语句、读第一个窗口）
-    // 是在这些方法内部发生的，提前结算等于又把真实耗时漏掉。
-    override fun getCount(): Int = delegate.count.also { settle() }
+    private fun settle() {
+        if (settled.compareAndSet(false, true)) {
+            DbCallTracker.end(token)
+        }
+    }
 
-    override fun moveToFirst(): Boolean = delegate.moveToFirst().also { settle() }
+    override fun getCount(): Int = delegate.count.also { markFirstRow() }
 
-    override fun moveToNext(): Boolean = delegate.moveToNext().also { settle() }
+    override fun moveToFirst(): Boolean = delegate.moveToFirst().also { markFirstRow() }
+
+    override fun moveToNext(): Boolean = delegate.moveToNext().also { markFirstRow() }
 
     override fun moveToPosition(position: Int): Boolean =
-        delegate.moveToPosition(position).also { settle() }
+        delegate.moveToPosition(position).also { markFirstRow() }
 
-    override fun moveToLast(): Boolean = delegate.moveToLast().also { settle() }
+    override fun moveToLast(): Boolean = delegate.moveToLast().also { markFirstRow() }
 
-    override fun moveToPrevious(): Boolean = delegate.moveToPrevious().also { settle() }
+    override fun moveToPrevious(): Boolean = delegate.moveToPrevious().also { markFirstRow() }
 
-    override fun move(offset: Int): Boolean = delegate.move(offset).also { settle() }
+    override fun move(offset: Int): Boolean = delegate.move(offset).also { markFirstRow() }
 
     override fun close() {
         try {
