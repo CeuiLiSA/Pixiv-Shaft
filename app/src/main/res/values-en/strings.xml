@@ -361,6 +361,11 @@
     <string name="clear_bulk_download_cache_progress">Clearing bulk download data…</string>
     <string name="clear_bulk_download_cache_queue_not_empty">The download queue is not empty. Nothing was cleared.</string>
     <string name="clear_bulk_download_cache_failed">Cleanup did not finish. Please try again.</string>
+    <string name="db_stall_title">Database deadlock / long queue</string>
+    <string name="db_stall_message">The local database is responding very slowly right now - reads and writes are queued up. While this lasts, lists may stay blank, taps may do nothing, and download progress may freeze. Files already saved to your device are not affected and no data is lost.\n\nPlease wait a moment - this dialog closes by itself once the database recovers. If it never does, tap \"Copy log\" and send the details to the developer.</string>
+    <string name="db_stall_copy_log">Copy log</string>
+    <string name="setting_db_call_trace">Log database timings</string>
+    <string name="setting_db_call_trace_desc">Writes the duration of every SQL statement to the log (tag DbCallTracker). Turn this on only while diagnosing slowness - it produces a lot of output.</string>
     <string name="string_103">Click to expand</string>
     <string name="string_105">Click to expand</string>
     <string name="string_107">--- END ---</string>

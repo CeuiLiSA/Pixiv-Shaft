@@ -5,6 +5,7 @@ import androidx.annotation.WorkerThread
 import ceui.lisa.core.Manager
 import ceui.lisa.core.ManagerReactive
 import ceui.lisa.database.AppDatabase
+import ceui.pixiv.db.DbCallTracker
 import kotlinx.coroutines.runBlocking
 import timber.log.Timber
 import java.io.File
@@ -51,7 +52,11 @@ import ceui.pixiv.services.appServices
  */
 object BulkDownloadCacheCleaner {
 
-    private const val TAG = "BulkDownloadCacheCleaner"
+    /**
+     * 日志 tag 必须 ≤ 23 字符：超过这个长度 `Log.println` 在部分 Android 版本会直接抛
+     * `IllegalArgumentException`（不只是 lint 噪音）。原来写的是类名全称（24 字符）。
+     */
+    private const val TAG = "BulkDlCacheCleaner"
 
     /** 单飞闸:清理是"全清"语义,叠两个只会互相抢锁。 */
     private val wiping = AtomicBoolean(false)
@@ -105,6 +110,8 @@ object BulkDownloadCacheCleaner {
             Timber.tag(TAG).w("wipe() 已在执行,忽略这次调用")
             return false
         }
+        // 清大表是「我们自己知道要慢」的合法操作，别让看门狗把它当卡死弹窗。
+        DbCallTracker.beginLongOperation()
         try {
             Timber.tag(TAG).i("wipe() started")
 
@@ -162,6 +169,7 @@ object BulkDownloadCacheCleaner {
             Timber.tag(TAG).i("wipe() done, dbOk=%s", dbOk)
             return dbOk
         } finally {
+            DbCallTracker.endLongOperation()
             wiping.set(false)
         }
     }

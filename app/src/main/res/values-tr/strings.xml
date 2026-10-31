@@ -361,6 +361,11 @@
     <string name="clear_bulk_download_cache_progress">Toplu indirme verileri temizleniyor…</string>
     <string name="clear_bulk_download_cache_queue_not_empty">İndirme kuyruğu boş değil. Temizlik yapılmadı.</string>
     <string name="clear_bulk_download_cache_failed">Temizlik tamamlanamadı. Lütfen daha sonra tekrar deneyin.</string>
+    <string name="db_stall_title">Veritabanı kilitlendi / uzun kuyruk</string>
+    <string name="db_stall_message">Yerel veritabanı şu anda çok yavaş yanıt veriyor: okuma ve yazma işlemleri kuyrukta. Bu süre boyunca listeler boş kalabilir, dokunmalar yanıt vermeyebilir ve indirme ilerlemesi durabilir. Cihaza kaydedilmiş dosyalar etkilenmez ve veri kaybı olmaz.\n\nLütfen biraz bekleyin - veritabanı düzelince bu pencere kendiliğinden kapanır. Düzelmezse \"Günlüğü kopyala\"ya dokunup ayrıntıları geliştiriciye gönderin.</string>
+    <string name="db_stall_copy_log">Günlüğü kopyala</string>
+    <string name="setting_db_call_trace">Veritabanı sürelerini günlüğe yaz</string>
+    <string name="setting_db_call_trace_desc">Her SQL ifadesinin süresini günlüğe yazar (etiket DbCallTracker). Yalnızca yavaşlığı incelerken açın - çok fazla çıktı üretir.</string>
     <string name="string_103">Açmak için tıkla</string>
     <string name="string_105">Açmak için tıkla</string>
     <string name="string_107">--- SON ---</string>

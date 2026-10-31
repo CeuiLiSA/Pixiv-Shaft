@@ -363,6 +363,11 @@
     <string name="clear_bulk_download_cache_progress">正在清除批次下載關聯資料…</string>
     <string name="clear_bulk_download_cache_queue_not_empty">批次下載佇列不為空！未執行清理</string>
     <string name="clear_bulk_download_cache_failed">清理未完成，請稍後再試</string>
+    <string name="db_stall_title">資料庫發生死鎖/長排隊</string>
+    <string name="db_stall_message">本機資料庫現在回應很慢，讀寫都在排隊。這段時間裡，清單可能空白、按鈕點了沒反應、下載進度不更新。已經下載到本機的檔案不受影響，也不會遺失資料。\n\n先等一下——資料庫恢復正常後這個提示會自動關閉。如果一直不恢復，點「複製日誌」把現場資訊傳給開發者。</string>
+    <string name="db_stall_copy_log">複製日誌</string>
+    <string name="setting_db_call_trace">列印資料庫耗時</string>
+    <string name="setting_db_call_trace_desc">把每一條 SQL 的耗時都寫進日誌（tag DbCallTracker）。只在排查卡頓時開啟——開著時日誌量很大。</string>
     <string name="string_103">點擊展開</string>
     <string name="string_105">點擊展開</string>
     <string name="string_107">---結束---</string>

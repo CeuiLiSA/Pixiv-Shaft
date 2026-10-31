@@ -361,6 +361,11 @@
     <string name="clear_bulk_download_cache_progress">Очищаем данные массовых загрузок…</string>
     <string name="clear_bulk_download_cache_queue_not_empty">Очередь загрузок не пуста. Очистка не выполнена.</string>
     <string name="clear_bulk_download_cache_failed">Очистка не завершена. Повторите попытку позже.</string>
+    <string name="db_stall_title">Блокировка / долгая очередь в базе данных</string>
+    <string name="db_stall_message">Локальная база данных сейчас отвечает очень медленно: чтение и запись стоят в очереди. В это время списки могут оставаться пустыми, нажатия не срабатывать, а прогресс загрузки замирать. Файлы, уже сохранённые на устройстве, не затрагиваются, данные не теряются.\n\nПодождите немного — это окно закроется само, когда база восстановится. Если этого не произойдёт, нажмите «Копировать лог» и отправьте сведения разработчику.</string>
+    <string name="db_stall_copy_log">Копировать лог</string>
+    <string name="setting_db_call_trace">Логировать время запросов к БД</string>
+    <string name="setting_db_call_trace_desc">Записывает в лог длительность каждого SQL-запроса (тег DbCallTracker). Включайте только для поиска причин тормозов - логов будет очень много.</string>
     <string name="string_103">Нажмите, чтобы развернуть</string>
     <string name="string_105">Нажмите, чтобы развернуть</string>
     <string name="string_107">--- END ---</string>
