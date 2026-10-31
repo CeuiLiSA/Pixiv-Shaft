@@ -380,14 +380,22 @@ internal data class DownloadGroup(
     val pageCount: Int,
     val allFilePaths: List<String>,
     val allEntities: List<DownloadEntity>,
-    /** 预解析的 Illust —— 在 IO 线程做完 Gson；UI 绑卡时直接用，不再 fromJson 卡帧 */
-    val parsedIllust: Illust? = null,
-    /** 预解析的 Novel —— 同 [parsedIllust]，仅小说行有值。issue #876:
-     *  DB 里 fileName 是 PK（NOVEL_KEY+id），不带标题；下载记录卡片要从这里
-     *  取真正的小说名 + 作者展示。 */
-    val parsedNovel: Novel? = null,
     val isNovel: Boolean = false,
-)
+) {
+    /** 惰性解析的 Illust —— 避免全量 fromJson 占用 CPU 并在首屏触发连续 GC */
+    val parsedIllust: Illust? by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
+        if (isNovel) null else runCatching {
+            Shaft.sGson.fromJson(latest.illustGson, Illust::class.java)
+        }.getOrNull()
+    }
+
+    /** 惰性解析的 Novel —— 同 [parsedIllust]，仅小说行需要 */
+    val parsedNovel: Novel? by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
+        if (isNovel) runCatching {
+            Shaft.sGson.fromJson(latest.illustGson, Novel::class.java)
+        }.getOrNull() else null
+    }
+}
 
 private fun groupByIllust(rows: List<DownloadEntity>): List<DownloadGroup> {
     if (rows.isEmpty()) return emptyList()
@@ -397,31 +405,23 @@ private fun groupByIllust(rows: List<DownloadEntity>): List<DownloadGroup> {
         val key = if (isNovel) {
             "novel:${row.fileName.orEmpty()}"
         } else {
-            val id = extractIllustId(row.illustGson)
+            val id = if (row.illustId > 0) row.illustId else extractIllustId(row.illustGson)
             if (id > 0) "illust:$id" else "anon:${row.fileName.orEmpty()}"
         }
         buckets.getOrPut(key) { mutableListOf() }.add(row)
     }
     // 每组按页码排序（page 列优先、fileName 自然序兜底，见 DownloadPageOrder），
-    // 代表 entity 取 downloadTime 最大的；Gson.fromJson 在这里（IO 线程）就解掉，绑卡时不再 parse
+    // 代表 entity 取 downloadTime 最大的；改为惰性解析，不再在 IO 线程同步解 600 次
     val groups = buckets.entries.map { (k, list) ->
         val sortedByName = list.sortedWith(DownloadPageOrder)
         val latest = list.maxByOrNull { it.downloadTime } ?: list.first()
         val isNovel = latest.fileName?.contains(Params.NOVEL_KEY) == true
-        val parsedIllust = if (isNovel) null else runCatching {
-            Shaft.sGson.fromJson(latest.illustGson, Illust::class.java)
-        }.getOrNull()
-        val parsedNovel = if (isNovel) runCatching {
-            Shaft.sGson.fromJson(latest.illustGson, Novel::class.java)
-        }.getOrNull() else null
         DownloadGroup(
             key = k,
             latest = latest,
             pageCount = list.size,
             allFilePaths = sortedByName.map { it.filePath.orEmpty() },
             allEntities = sortedByName,
-            parsedIllust = parsedIllust,
-            parsedNovel = parsedNovel,
             isNovel = isNovel,
         )
     }
