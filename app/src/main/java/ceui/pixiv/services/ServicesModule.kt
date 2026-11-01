@@ -2,6 +2,7 @@ package ceui.pixiv.services
 
 import android.content.Context
 import ceui.lisa.database.AppDatabase
+import ceui.lisa.database.DownloadDao
 import ceui.pixiv.db.EntityWrapper
 import ceui.pixiv.db.queue.DownloadQueueDao
 import ceui.pixiv.db.synonym.SynonymDao
@@ -38,6 +39,10 @@ object ServicesModule {
 
     @Provides
     fun downloadQueueDao(db: AppDatabase): DownloadQueueDao = db.downloadQueueDao()
+
+    /** 已完成 tab 的作品数对账要查 illust_download_table（见 DoneCardCounter）。 */
+    @Provides
+    fun downloadDao(db: AppDatabase): DownloadDao = db.downloadDao()
 
     @Provides
     fun synonymDao(db: AppDatabase): SynonymDao = db.synonymDao()

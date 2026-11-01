@@ -4,6 +4,7 @@ import android.content.Intent
 import android.net.Uri
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import ceui.lisa.activities.Shaft
+import ceui.lisa.core.DoneCardCounter
 import ceui.lisa.core.ManagerReactive
 import ceui.lisa.database.AppDatabase
 import ceui.lisa.database.DownloadEntity
@@ -58,7 +59,9 @@ object UgoiraDownloadRecord {
                 downloadTime = System.currentTimeMillis()
                 illustGson = Shaft.sGson.toJson(illust)
             }
-            AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao().insertDownload(entity)
+            DoneCardCounter.onRowInserted(
+                AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao().insertDownload(entity),
+            )
             ManagerReactive.pokeDoneTable()
             // 详情页的下载 FAB 靠这条广播翻成「已下载」。以前它由中间 zip 落盘时发出 ——
             // 那会儿 GIF 还没编出来，徽标是抢跑的；现在发在成品真正写完之后。

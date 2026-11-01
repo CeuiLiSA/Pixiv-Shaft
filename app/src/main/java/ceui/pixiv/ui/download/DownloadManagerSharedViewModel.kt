@@ -1,8 +1,12 @@
 package ceui.pixiv.ui.download
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import ceui.lisa.core.DoneCardCounter
 import ceui.lisa.core.DownloadItem
 import ceui.lisa.core.ManagerReactive
+import ceui.lisa.database.DownloadDao
+import ceui.lisa.utils.Params
 import ceui.pixiv.db.queue.DownloadQueueDao
 import ceui.pixiv.db.queue.QueueStatus
 import ceui.pixiv.ui.bulk.QueueDownloadManager
@@ -17,6 +21,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import dagger.Lazy
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -40,6 +45,8 @@ class DownloadManagerSharedViewModel @Inject constructor(
     queueDownloadManager: QueueDownloadManager,
     // Lazy：首次计数查询（已在 IO 上）才去拿库，VM 构造仍不碰 Room。
     private val queueDao: Lazy<DownloadQueueDao>,
+    /** 同理 Lazy：只有 [refreshDoneCardCount] 才去拿库。 */
+    private val downloadDao: Lazy<DownloadDao>,
 ) : ViewModel() {
 
     data class Snapshot(
@@ -109,20 +116,62 @@ class DownloadManagerSharedViewModel @Inject constructor(
     }
 
     /**
-     * 已完成 tab 标题末尾的数字 —— 由 [DoneListV3Fragment] 分组聚合完成后回填
-     * (groups.size = 实际展示的卡片数)。
+     * 已完成 tab 标题末尾的数字 —— 数字 = 前 600 行折成的卡片数，跟列表同源同口径。
      *
-     * 历史上从 download_queue.SUCCESS 行派生,但那张表跟列表数据源
-     * illust_download_table 不是一张表。Auto Backup 部分还原 / 用户历史上
-     * 分别清理过其中一张表等场景下,两边会错位 —— 用户会看到 "已完成 1944"
-     * 但列表却是空的(issue: 卸载重装后 1944/空列表)。改为列表自己回填后,数字
-     * 永远等于实际可见卡片数,从数据源上消除不一致。
+     * 历史上从 download_queue.SUCCESS 行派生，但那张表跟列表数据源
+     * illust_download_table 不是一张表。Auto Backup 部分还原 / 用户历史上分别清理过
+     * 其中一张表等场景下，两边会错位 —— 用户会看到 "已完成 1944" 但列表却是空的
+     * (issue: 卸载重装后 1944/空列表)。改为跟列表同源后，数字永远等于实际可见卡片数。
+     *
+     * 现在由 [DoneCardCounter] 持有：列表只在已完成 tab 可见时才跑（RESUMED），离开 tab
+     * 后靠写库时的增量维持，不再要求列表一直重算。口径与「窗口满后冻结」的原因见该类注释。
      */
-    private val _doneCardCount = MutableStateFlow(0)
-    val doneCardCount: StateFlow<Int> get() = _doneCardCount
+    val doneCardCount: StateFlow<Int> get() = DoneCardCounter.cards
 
+    /**
+     * 列表算完一组就整组覆盖（对账）。[rowCount] 是这次加载到的行数，用来判断 600 行窗口
+     * 满没满 —— 满了以后增量会冻结（原因见 [DoneCardCounter]）。
+     *
+     * 搜索态不要走这里 —— 那时行数只是命中行数，拿它更新「窗口满没满」会把行数改小，
+     * 增量就会误以为窗口还有空位而继续 +1。搜索态用 [publishDoneCardCount]。
+     */
+    fun reconcileDoneCardCount(cards: Int, rowCount: Int) {
+        DoneCardCounter.reconcile(cards, rowCount)
+    }
+
+    /** 只改数字、不动行数：搜索态（数字是命中数）和删一条后的乐观更新都走这里。 */
     fun publishDoneCardCount(count: Int) {
-        _doneCardCount.value = count
+        DoneCardCounter.set(count)
+    }
+
+    /**
+     * 进下载管理页时对一次账。
+     *
+     * 已完成 tab 是 RESUMED 才跑列表，用户可能压根没点进去，那就没人算数字了；这里用一条
+     * 只读 fileName + illustId 的查询（[DownloadDao.countDoneCardsInWindow]）补上，不搬
+     * illustGson blob。数字平时的更新靠 [DoneCardCounter.onRowInserted] 的增量，这里只是
+     * 给增量提供基准。
+     *
+     * **只在 [DoneCardCounter.needsReconcile] 为 true 时查**：那条查询要全表扫描 + 排序，
+     * 3GB / 5 万行实测约 1s（同条件的 `SELECT *` 是 13s，省掉的是 blob 那部分）。
+     * 每次进页面都跑是不可接受的，而 #1288 的 downloadTime 索引合入后它会变成索引 seek，
+     * 那时可以考虑放宽这个闸。
+     *
+     * 顺带兜住两类**不经过 insertDownload、因此没有增量**的写库：设置页的
+     * 「清除批量下载关联数据」和批量导入。它们会 markStale，下次进页面时在这里纠正。
+     */
+    fun refreshDoneCardCount() {
+        // 搜索态下 tab 数字是命中数，这时候对账会把它覆盖成全库数，跳过。
+        if (doneSearchQuery.value != null) return
+        if (!DoneCardCounter.needsReconcile()) return
+        viewModelScope.launch(Dispatchers.IO) {
+            val dao = runCatching { downloadDao.get() }.getOrNull() ?: return@launch
+            val total = runCatching { dao.countAll() }.getOrDefault(0)
+            val cards = if (total == 0) 0 else runCatching {
+                dao.countDoneCardsInWindow(Params.NOVEL_KEY, DoneCardCounter.WINDOW)
+            }.getOrDefault(0)
+            DoneCardCounter.reconcile(cards, total)
+        }
     }
 
     /**

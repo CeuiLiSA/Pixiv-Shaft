@@ -10,6 +10,7 @@ import androidx.room.Query;
 import java.util.List;
 
 import ceui.lisa.feature.FeatureEntity;
+import ceui.lisa.utils.Params;
 import kotlinx.coroutines.flow.Flow;
 
 //保存下载历史记录
@@ -30,13 +31,62 @@ public interface DownloadDao {
      * 索引查不到 → “已下载”徽标误判成没下过。调用方若已知 id 可先 {@code setIllustId(...)}
      * 跳过解析（Manager 下载完成分支就直接传 illust.id）。所有往 illust_download_table 写
      * DownloadEntity 的地方都必须走这个而不是裸 {@link #insert(DownloadEntity)}。
+     *
+     * <p>返回值 = 这次写入是否**新增了一张已完成卡片**，供
+     * {@code ceui.lisa.core.DoneCardCounter} 增量维护 tab 上的作品数（见该类注释）。
+     * 判定口径必须与 {@code DoneListV3Fragment.groupByIllust} 的分组键一致：小说按
+     * fileName 一格，插画按 illustId 一格。
+     *
+     * <p>两次判定都走索引（fileName 是主键、illustId 有索引），不碰 illustGson blob；
+     * 调用方本来就在 IO 线程上写库，不额外引入线程切换。
      */
-    default void insertDownload(DownloadEntity entity) {
+    default boolean insertDownload(DownloadEntity entity) {
         if (entity.getIllustId() <= 0L) {
             entity.setIllustId(DownloadIdExtractor.extractIllustId(entity.getIllustGson()));
         }
+        String fileName = entity.getFileName();
+        long illustId = entity.getIllustId();
+        // 分组键退化成 fileName 的两种情况：小说（key = "novel:" + fileName），以及
+        // illustId 解析失败（key = "anon:" + fileName）。这两种下每行各自一张卡，
+        // 不能拿 illustId 去查「同作品」——否则所有解析失败的行会被并成一张。
+        boolean perFile = fileName.contains(Params.NOVEL_KEY) || illustId <= 0L;
+        boolean newCard = !hasRowWithFileName(fileName)
+                && (perFile || !hasOtherRowWithIllustId(illustId, fileName));
         insert(entity);
+        return newCard;
     }
+
+    /** 主键点查：这一行之前是否已经存在。REPLACE 覆盖同一页时卡片数不该变。 */
+    @Query("SELECT COUNT(*) > 0 FROM illust_download_table WHERE fileName = :fileName")
+    boolean hasRowWithFileName(String fileName);
+
+    /**
+     * 同一作品是否已经有别的行 —— 走 illustId 索引。用来判断「这是不是该作品的第一张
+     * 卡片」：第一行才新增一张卡，后续页只是同一张卡里的第 N 页。
+     */
+    @Query("SELECT COUNT(*) > 0 FROM illust_download_table WHERE illustId = :illustId AND fileName != :fileName")
+    boolean hasOtherRowWithIllustId(long illustId, String fileName);
+
+    /** 全表行数（只数行，不读 illustGson）。给 DoneCardCounter 判断 600 行窗口是否已满。 */
+    @Query("SELECT COUNT(*) FROM illust_download_table")
+    int countAll();
+
+    /**
+     * 前 [limit] 行能折成多少张卡片 —— 与 {@code DoneListV3Fragment.groupByIllust} 的
+     * 分组键逐字对应：小说按 fileName 一格、插画按 illustId 一格、id 未知按 fileName 兜底。
+     *
+     * <p>只读 fileName + illustId 两个小列：illustGson 那种 10–30KB 的大字段落在溢出页，
+     * 全表扫描不会读到；也不做 Gson 解析和正则扫描。3GB / 5 万行实测约 1s，同条件的
+     * {@code SELECT *} 是 13s —— 省掉的就是 blob 那部分。仍然不算便宜，所以调用方只在
+     * 「还没有对账基准」时跑一次，不是每次进页面都跑。
+     */
+    @Query("SELECT COUNT(DISTINCT CASE " +
+            "WHEN fileName LIKE '%' || :novelKey || '%' THEN 'n:' || fileName " +
+            "WHEN illustId > 0 THEN 'i:' || illustId " +
+            "ELSE 'a:' || fileName END) " +
+            "FROM (SELECT fileName, illustId FROM illust_download_table " +
+            "ORDER BY downloadTime DESC LIMIT :limit)")
+    int countDoneCardsInWindow(String novelKey, int limit);
 
     /**
      * 批量写入且**不覆盖**已有行 —— 只给 {@code DownloadImporter}（扫描导入本地文件，

@@ -3,6 +3,7 @@ package ceui.pixiv.download.importer
 import android.content.Context
 import android.net.Uri
 import ceui.lisa.activities.Shaft
+import ceui.lisa.core.DoneCardCounter
 import ceui.lisa.database.AppDatabase
 import ceui.lisa.database.DownloadEntity
 import kotlinx.coroutines.Dispatchers
@@ -234,6 +235,9 @@ object DownloadImporter {
         }
         val workIds = plan.rows.mapTo(HashSet()) { it.illustId }
         ImportEnrichQueue.enqueue(workIds)
+        // 导入走 insertIgnoreAll（IGNORE 语义，不能走 insertDownload 的 REPLACE），
+        // 所以没有增量。标脏让下次进下载管理页时对账一次。
+        DoneCardCounter.markStale()
         // 已完成列表是 Room reactive Flow，写完自己就刷新了，这里不用再 poke。
         Timber.tag(TAG).i("导入完成：%d 行 / %d 个作品", inserted, workIds.size)
         ImportResult(inserted = inserted, works = workIds.size)

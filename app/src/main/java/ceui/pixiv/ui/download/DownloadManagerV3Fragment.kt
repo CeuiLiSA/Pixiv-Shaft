@@ -241,10 +241,12 @@ class DownloadManagerV3Fragment : Fragment() {
                 }
             }
         }
-        // tab 2 数字独立 collect:数据源是 DoneListV3Fragment 回填的分组卡片数,
-        // 跟列表用同一份数据,杜绝 "1944 / 空列表" 那种错位。
+        // tab 2 数字独立 collect:数字 = 前 600 行折成的卡片数,跟列表同源同口径。
+        // 已完成列表现在只在 RESUMED 跑,用户没点进去就没人算数字 —— 所以进页面时先对一次账
+        // （只读 fileName + illustId，不搬 illustGson blob），之后靠写库时的增量维持。
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                sharedVm.refreshDoneCardCount()
                 sharedVm.doneCardCount.collect { setTabCount(2, it) }
             }
         }

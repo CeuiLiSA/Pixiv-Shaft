@@ -20,6 +20,7 @@ import androidx.fragment.app.FragmentPagerAdapter
 import androidx.lifecycle.lifecycleScope
 import androidx.viewpager.widget.ViewPager
 import ceui.lisa.R
+import ceui.lisa.core.DoneCardCounter
 import ceui.lisa.core.ManagerReactive
 import ceui.lisa.database.AppDatabase
 import ceui.lisa.database.DownloadEntity
@@ -1010,7 +1011,9 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                         this.page = page
                     }
                 // insertDownload 会从 illustGson 顶层 id 补上 illustId（走 v38 索引）。
-                AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao().insertDownload(entity)
+                DoneCardCounter.onRowInserted(
+                    AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao().insertDownload(entity),
+                )
                 ManagerReactive.pokeDoneTable()
                 true
             }
