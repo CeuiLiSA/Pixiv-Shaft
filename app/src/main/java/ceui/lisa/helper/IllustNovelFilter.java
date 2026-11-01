@@ -3,6 +3,7 @@ package ceui.lisa.helper;
 import android.text.TextUtils;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -14,6 +15,7 @@ import ceui.pixiv.api.model.Illust;
 import ceui.loxia.Novel;
 import ceui.lisa.models.TagsBean;
 import ceui.pixiv.ui.common.IllustMuteStore;
+import ceui.pixiv.ui.common.MutedUserStore;
 import ceui.pixiv.ui.common.NovelMuteStore;
 import ceui.loxia.Tag;
 import ceui.loxia.User;
@@ -61,10 +63,7 @@ public class IllustNovelFilter {
         if (illust.getUser() == null) {
             return false;
         }
-        MuteEntity temp = AppDatabase.getAppDatabase(Shaft.getContext())
-                .searchDao()
-                .getUserMuteEntityByID(illust.getUser().getId());
-        return temp != null;
+        return MutedUserStore.INSTANCE.isMuted(illust.getUser().getId());
     }
 
     public static boolean judgeUserID(Novel illust) {
@@ -72,10 +71,7 @@ public class IllustNovelFilter {
         if (user == null) {
             return false;
         }
-        MuteEntity temp = AppDatabase.getAppDatabase(Shaft.getContext())
-                .searchDao()
-                .getUserMuteEntityByID(user.getUserId());
-        return temp != null;
+        return MutedUserStore.INSTANCE.isMuted(user.getUserId());
     }
 
     private static boolean isAiExemptAuthor(User user) {
@@ -399,7 +395,43 @@ public class IllustNovelFilter {
         return false;
     }
 
+    /**
+     * 屏蔽标签名单的进程级缓存。
+     *
+     * 判定发生在 feeds mapper 的热路径上 —— 首页首屏每一条都要过 {@link #judgeTag}，而
+     * {@link #loadMutedTags} 是一次 {@code SELECT * FROM tag_mute_table WHERE type = 0}
+     * （无 LIMIT）外加逐条 Gson 反序列化。原先每次调用都重新查，等于「刷新一次就把全表翻一遍」，
+     * 一页 30 条就是 30 次全表读，而且跑在 Dispatchers.Default 上排队等 SQLite 连接。
+     *
+     * 变更入口（屏蔽 / 取消 / 改生效态、记录导入、备份恢复）改完库必须调
+     * {@link #invalidateMutedTags}，否则列表会一直用旧名单。
+     */
+    private static volatile List<TagsBean> sMutedTagsCache;
+
+    /**
+     * 取屏蔽标签名单。首次查库，之后命中内存缓存。
+     *
+     * 返回值是**只读**列表：调用方只该遍历，不要改它（改了会污染所有后续判定）。
+     */
     public static List<TagsBean> getMutedTags() {
+        List<TagsBean> cached = sMutedTagsCache;
+        if (cached != null) {
+            return cached;
+        }
+        synchronized (IllustNovelFilter.class) {
+            if (sMutedTagsCache == null) {
+                sMutedTagsCache = Collections.unmodifiableList(loadMutedTags());
+            }
+            return sMutedTagsCache;
+        }
+    }
+
+    /** 屏蔽标签变更后调用：下次 {@link #getMutedTags} 重新查库。 */
+    public static void invalidateMutedTags() {
+        sMutedTagsCache = null;
+    }
+
+    private static List<TagsBean> loadMutedTags() {
         List<TagsBean> result = new ArrayList<>();
         List<MuteEntity> muteEntities = AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().getAllMutedTags();
         if (muteEntities == null || muteEntities.isEmpty()) {

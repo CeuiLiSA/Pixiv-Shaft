@@ -128,7 +128,7 @@ open class MutedWorkStore(
         synchronized(this) {
             if (loaded) return
             loadedOk = runCatching {
-                dao().getMutedWorkIds(muteType).forEach { mutedIds.add(it.toLong()) }
+                dao().getMutedWorkIds(muteType).forEach { mutedIds.add(it) }
             }.onFailure { Timber.w(it, "MutedWorkStore($muteType) load failed") }.isSuccess
             loaded = true
         }
@@ -259,6 +259,21 @@ open class MutedWorkStore(
     }
 
     /**
+     * 只改内存、不写库。给「库已经被别人直接写过」的入口用 —— `PixivOperate` 的
+     * `muteUser` / `unMuteUser` 走的是 `searchDao().insertMuteTag` / `unMuteTag`，
+     * 备份恢复与记录导入则整表灌行。
+     *
+     * 这些入口改完库之后调一下这里，判定立刻生效；比 [invalidate] 省掉一次全表重读，
+     * 也不会出现「刚屏蔽完，列表里那张卡还没打码」的窗口。
+     */
+    fun markInMemory(workId: Long, muted: Boolean) {
+        if (workId <= 0L) return
+        ensureLoaded()
+        val changed = if (muted) mutedIds.add(workId) else mutedIds.remove(workId)
+        if (changed) bumpRevision()
+    }
+
+    /**
      * 把名单读进内存，排到 [io] 上跑。
      *
      * 排队而不是新起线程有两个好处：与落库写共用一条时间线（不会和排队中的 insert 打架），
@@ -293,6 +308,18 @@ object IllustMuteStore : MutedWorkStore(Params.MUTE_ILLUST, "illust_spoiler_v1")
 /** 小说卡（recy_novel）的屏蔽名单。 */
 object NovelMuteStore : MutedWorkStore(Params.MUTE_NOVEL, "novel_spoiler_v1")
 
+/**
+ * 屏蔽画师名单（`tag_mute_table` type=3）。
+ *
+ * 判定发生在 feeds 的 mapper 里 —— 首页首屏每条都要过一遍 `IllustNovelFilter.judgeUserID`。
+ * 原先那里每条都跑一次 `getUserMuteEntityByID`（读整行 MuteEntity），一页 30 条就是 30 次
+ * 同步查询，而且跑在 `Dispatchers.Default` 上、要排队等 SQLite 连接：库一忙，刷新就被拖住。
+ *
+ * 没有 legacy MMKV 名单（画师屏蔽一直是直接写库的），所以传一个不存在的 id，
+ * 迁移逻辑读到空就跳过。
+ */
+object MutedUserStore : MutedWorkStore(Params.MUTE_USER, "user_mute_v1")
+
 /** 两份名单的统一入口，给启动预热和「绕过本类的批量写库」之后的作废用。 */
 object MutedWorkStores {
 
@@ -304,6 +331,7 @@ object MutedWorkStores {
     fun warmUp() {
         IllustMuteStore.warmUp()
         NovelMuteStore.warmUp()
+        MutedUserStore.warmUp()
     }
 
     /**
@@ -314,6 +342,9 @@ object MutedWorkStores {
     fun invalidateAll() {
         IllustMuteStore.invalidate()
         NovelMuteStore.invalidate()
+        MutedUserStore.invalidate()
+        // 屏蔽标签是另一套结构（List<TagsBean> 而不是 id Set），失效入口在 IllustNovelFilter 上。
+        ceui.lisa.helper.IllustNovelFilter.invalidateMutedTags()
         warmUp()
     }
 }
