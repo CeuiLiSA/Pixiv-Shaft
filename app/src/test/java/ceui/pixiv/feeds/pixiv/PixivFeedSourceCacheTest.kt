@@ -16,6 +16,7 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Test
 
 /**
@@ -46,8 +47,22 @@ class PixivFeedSourceCacheTest {
         }
     }
 
+    /**
+     * 每个用例一个独立 slot。
+     *
+     * [FeedFirstPageCache] 现在有一层**进程级**常驻内存（同一个 key 跨实例共享），
+     * 用例之间共用一个 slot 的话，前一条 write 的快照会被后一条 read 直接命中，
+     * 绕过它想验证的「未命中 / 落盘」路径。用唯一 slot 做隔离，比清共享状态更可靠。
+     */
+    private var slot = "test"
+
+    @Before
+    fun freshSlot() {
+        slot = "test-${System.nanoTime()}"
+    }
+
     private fun cache(backend: FeedCacheBackend) = FeedFirstPageCache(
-        slot = "test",
+        slot = slot,
         type = FakeResp::class.java,
         maxAgeMillis = 60_000L,
         backend = backend,

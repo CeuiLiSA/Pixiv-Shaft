@@ -8,6 +8,7 @@ import kotlinx.coroutines.yield
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
+import org.junit.Before
 import org.junit.Test
 
 /**
@@ -46,6 +47,15 @@ class FeedFirstPageCacheTest {
         now = now,
     )
 
+    /**
+     * 常驻内存层是**进程级静态**（同一个 key 跨实例共享），用例之间必须自己复位 ——
+     * 否则前一条 write 进去的快照会被后一条 read 直接命中，绕过它想验证的磁盘路径。
+     */
+    @Before
+    fun resetSharedMemory() {
+        FeedFirstPageCache.clearMemoryForTest()
+    }
+
     @Test
     fun `write then read round-trips payload and cursor`() = runBlocking {
         val cache = cache(InMemoryBackend())
@@ -80,6 +90,8 @@ class FeedFirstPageCacheTest {
         val key = backend.map.keys.single()
         backend.map[key] = backend.map.getValue(key)
             .copy(schemaVersion = FeedFirstPageCache.SCHEMA_VERSION + 1)
+        // 上面改的是磁盘；内存里那份还是好的，清掉才验得到「版本不符即未命中」。
+        FeedFirstPageCache.clearMemoryForTest()
 
         assertNull(cache.read())
     }
@@ -91,6 +103,7 @@ class FeedFirstPageCacheTest {
         cache.write(FakeResp(1, "a"), null)
         val key = backend.map.keys.single()
         backend.map[key] = backend.map.getValue(key).copy(payloadJson = "{ not valid json")
+        FeedFirstPageCache.clearMemoryForTest()
 
         assertNull(cache.read())
     }
@@ -145,7 +158,7 @@ class FeedFirstPageCacheTest {
     }
 
     @Test
-    fun `finished prefetch is served once without touching disk`() = runBlocking {
+    fun `finished prefetch is served once and then stays in memory`() = runBlocking {
         // 预取槽是进程级的：用独占账号号，不和其它用例串
         val inner = InMemoryBackend()
         cache(inner, account = 901L).write(FakeResp(1, "a"), null)
@@ -157,8 +170,9 @@ class FeedFirstPageCacheTest {
 
         assertEquals(FakeResp(1, "a"), cache.read()!!.payload)
         assertEquals(1, backend.loads) // 取的是预取那份
+        // 预取那份已经进了常驻内存层：之后再读命中内存，不再回磁盘。
         assertNotNull(cache.read())
-        assertEquals(2, backend.loads) // 一次性：再读回到磁盘
+        assertEquals(1, backend.loads)
     }
 
     @Test
