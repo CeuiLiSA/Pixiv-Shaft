@@ -7,7 +7,7 @@ import androidx.room.Query
 
 /**
  * 首屏快照的存取。阻塞式（对齐本仓 DAO 约定 + allowMainThreadQueries），调用方
- * （RoomFeedCacheBackend）负责切到 IO 线程。
+ * 负责切到 IO 线程。
  */
 @Dao
 interface FeedCacheDao {
