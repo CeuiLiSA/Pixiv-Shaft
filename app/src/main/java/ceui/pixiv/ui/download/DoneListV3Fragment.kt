@@ -158,7 +158,7 @@ class DoneListV3Fragment : Fragment() {
 
         // 数据源 = 默认走 ManagerReactive.doneTableInvalidations 脏标记。Manager
         // 写 illust_download_table / 用户清空 / 单条删除都 poke 一次。这边 collect
-        // 后用 suspend dao.getAll(...) 拿最新行。
+        // 后用 [loadDonePage] 两段式取最新行（先排主键、再按主键点查）。
         //
         // ⚠️ 不用 dao.flowAll：Room InvalidationTracker 在连续 INSERT 序列下
         // 首次 emit 后静默不再 re-emit（同 download_queue 那个 bug）。
@@ -190,7 +190,7 @@ class DoneListV3Fragment : Fragment() {
      * 接 [ManagerReactive.doneTableInvalidations]（replay=1 SharedFlow，新订阅
      * 立即拿一帧），保证删一条 / 新增完成都能即时刷新列表。
      *
-     * - query==null : 全量列表 → dao.getAll(PAGE_SIZE)
+     * - query==null : 全量列表 → [loadDonePage] 两段式（见该函数注释）
      * - query==""   : 搜索框展开但未输入 — 给空列表，让 empty state 提示
      * - query!=""   : 过滤列表 → dao.searchDownloads(query)
      */
@@ -200,7 +200,7 @@ class DoneListV3Fragment : Fragment() {
             .flatMapLatest { query ->
                 when {
                     query == null -> ManagerReactive.doneTableInvalidations.map {
-                        val rows = runCatching { dao.getAll(PAGE_SIZE, 0) }
+                        val rows = runCatching { loadDonePage(PAGE_SIZE, 0) }
                             .getOrDefault(emptyList())
                         groupByIllust(rows)
                     }
@@ -221,6 +221,34 @@ class DoneListV3Fragment : Fragment() {
                 // 搜索中也回填，让 tab 显示当前过滤命中数。
                 sharedVm.publishDoneCardCount(groups.size)
             }
+    }
+
+    /**
+     * 已完成列表的两段式取数：先只按时间排序取主键，再按主键取回完整行。
+     *
+     * **为什么不直接 `dao.getAll(PAGE_SIZE, 0)`**：`illust_download_table` 在 #1288 之前没有
+     * `downloadTime` 索引，`SELECT * ... ORDER BY downloadTime DESC` 会让 SQLite 把
+     * **整表每一行每一列**灌进临时排序器 —— 每行还带着 10–30KB 的 `illustGson`。
+     * 并发下载 5 时每秒有数次「一张图完成 → pokeDoneTable」，也就是每秒数次全表排序；
+     * 单次只要超过 0.4 秒需求就超过产能，积压只增不减，连接池被占满后其它读库界面
+     * 全部拿不到连接（列表空白、空态文案也不出现，重启才恢复）。
+     *
+     * 第一段只选 `fileName` + `downloadTime`：`illustGson` 这种大字段落在溢出页，
+     * 全表扫描不会读到，排序器里每行也只有几十字节。第二段按主键点查。
+     *
+     * 返回的集合与 `getAll` 相同；顺序无所谓 —— [groupByIllust] 内部会按
+     * `latest.downloadTime` 重新倒序。
+     */
+    private fun loadDonePage(limit: Int, offset: Int): List<DownloadEntity> {
+        val names = dao.getRecentFileNames(limit, offset)
+        if (names.isEmpty()) return emptyList()
+        // IN 的绑定参数个数要控制：SQLite 默认上限 999。这里再按 [IN_CHUNK] 分批，
+        // 顺带避免用户那种超长文件名把单条 SQL 撑得过大。
+        val out = ArrayList<DownloadEntity>(names.size)
+        for (chunk in names.chunked(IN_CHUNK)) {
+            out += dao.getByFileNames(chunk)
+        }
+        return out
     }
 
     /**
@@ -351,6 +379,8 @@ class DoneListV3Fragment : Fragment() {
 
     companion object {
         private const val PAGE_SIZE = 600   // 一次取多点；分组后实际卡片数会少
+        /** [loadDonePage] 里 IN 的分批大小 —— 远低于 SQLite 的 999 绑定参数上限 */
+        private const val IN_CHUNK = 500
         /** 导出时一次拉的硬上限 —— 5w 行 ≈ 2MB 文本，正常用户都装不了这么多 */
         private const val EXPORT_HARD_CAP = 50000
     }

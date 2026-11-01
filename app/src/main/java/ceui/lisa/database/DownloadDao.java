@@ -90,6 +90,34 @@ public interface DownloadDao {
     List<DownloadEntity> getAll(int limit, int offset);
 
     /**
+     * 已完成列表的第一段：只取主键 fileName，把「最近 [limit] 条是哪些」定下来。
+     *
+     * <p>为什么不直接 {@link #getAll}：illust_download_table 在 #1288 之前没有
+     * downloadTime 索引，{@code SELECT * ... ORDER BY downloadTime DESC} 会让 SQLite
+     * 把整表每一行每一列灌进临时排序器 —— 每行还带着 10–30KB 的 illustGson。
+     * 并发下载 5 时每秒有数次「一张图完成 → pokeDoneTable」，等于每秒数次全表排序；
+     * 单次只要超过 0.4 秒，需求就超过产能、积压只增不减，连接池被占满后其它读库界面
+     * 全部拿不到连接（列表空白且无空态文案，重启才恢复）。
+     *
+     * <p>只选 fileName + downloadTime 时，illustGson 这种大字段落在溢出页，全表扫描
+     * 不会读到，排序器里每行也只有几十字节 —— 成本降一到两个数量级。
+     *
+     * <p>第二段见 {@link #getByFileNames}。
+     */
+    @Query("SELECT fileName FROM illust_download_table ORDER BY downloadTime DESC LIMIT :limit OFFSET :offset")
+    List<String> getRecentFileNames(int limit, int offset);
+
+    /**
+     * 已完成列表的第二段：按主键取回这些行的完整数据（含 illustGson，卡片标题要用）。
+     * 走主键索引，等于 fileNames.size 次点查。
+     *
+     * <p>调用方要控制 IN 的绑定参数个数（SQLite 默认上限 999），见
+     * DoneListV3Fragment 里的分批逻辑。
+     */
+    @Query("SELECT * FROM illust_download_table WHERE fileName IN (:fileNames)")
+    List<DownloadEntity> getByFileNames(List<String> fileNames);
+
+    /**
      * 模糊搜索已下载记录。在 fileName 和 illustGson（含 title / user.name 等
      * 反序列化前的 JSON 文本）两个字段里 LIKE 命中。LIMIT 600 与
      * [DoneListV3Fragment.PAGE_SIZE] 一致，避免搜索后看到的卡比平时还多。
