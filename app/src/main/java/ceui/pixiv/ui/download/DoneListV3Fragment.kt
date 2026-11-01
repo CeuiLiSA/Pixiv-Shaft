@@ -3,6 +3,7 @@ package ceui.pixiv.ui.download
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.os.SystemClock
 import android.util.LruCache
 import android.view.LayoutInflater
 import android.view.View
@@ -46,6 +47,8 @@ import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
@@ -143,6 +146,11 @@ class DoneListV3Fragment : Fragment() {
                 // destructive 操作前必须确认。文案明确告知"文件不会被删除"，避免
                 // 用户因恐慌而不敢清理记录。
                 showDeleteConfirmDialog(R.string.dlmgr_clear_done_title) {
+                    // 乐观更新：这是「全清」，列表必然变空，不必等冷却后的重查
+                    // （那条路径最多 800ms 才回来）。删除失败时重查会把行带回来。
+                    adapter.submitList(emptyList())
+                    sharedVm.publishDoneCardCount(0)
+                    view.findViewById<View>(R.id.emptyState)?.visibility = View.VISIBLE
                     viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
                         runCatching { dao.deleteAllDownload() }
                         ManagerReactive.pokeDoneTable()
@@ -190,6 +198,10 @@ class DoneListV3Fragment : Fragment() {
      * 接 [ManagerReactive.doneTableInvalidations]（replay=1 SharedFlow，新订阅
      * 立即拿一帧），保证删一条 / 新增完成都能即时刷新列表。
      *
+     * 两条分支都过 [mapWithCooldown]：批量下载时 poke 约每 400ms 一次，而单次
+     * 刷新成本远大于此，不节流会把库连接占满、连累其它读库界面。首帧不受冷却
+     * 影响（新订阅立即出结果），只有同一订阅内的后续重查才合并。
+     *
      * - query==null : 全量列表 → dao.getAll(PAGE_SIZE)
      * - query==""   : 搜索框展开但未输入 — 给空列表，让 empty state 提示
      * - query!=""   : 过滤列表 → dao.searchDownloads(query)
@@ -199,17 +211,19 @@ class DoneListV3Fragment : Fragment() {
         sharedVm.doneSearchQuery
             .flatMapLatest { query ->
                 when {
-                    query == null -> ManagerReactive.doneTableInvalidations.map {
-                        val rows = runCatching { dao.getAll(PAGE_SIZE, 0) }
-                            .getOrDefault(emptyList())
-                        groupByIllust(rows)
-                    }
+                    query == null -> ManagerReactive.doneTableInvalidations
+                        .mapWithCooldown(REFRESH_COOLDOWN_MS) {
+                            val rows = runCatching { dao.getAll(PAGE_SIZE, 0) }
+                                .getOrDefault(emptyList())
+                            groupByIllust(rows)
+                        }
                     query.isEmpty() -> flow { emit(emptyList<DownloadGroup>()) }
-                    else -> ManagerReactive.doneTableInvalidations.map {
-                        val rows = runCatching { dao.searchDownloads(query) }
-                            .getOrDefault(emptyList())
-                        groupByIllust(rows)
-                    }
+                    else -> ManagerReactive.doneTableInvalidations
+                        .mapWithCooldown(REFRESH_COOLDOWN_MS) {
+                            val rows = runCatching { dao.searchDownloads(query) }
+                                .getOrDefault(emptyList())
+                            groupByIllust(rows)
+                        }
                 }
             }
             .flowOn(Dispatchers.IO)
@@ -221,6 +235,49 @@ class DoneListV3Fragment : Fragment() {
                 // 搜索中也回填，让 tab 显示当前过滤命中数。
                 sharedVm.publishDoneCardCount(groups.size)
             }
+    }
+
+    /**
+     * 「首帧立即、之后冷却」的 map —— 把高频脏标记压成有节奏的重查。
+     *
+     * **为什么需要**：Manager 每落盘一个 page 就 [ManagerReactive.pokeDoneTable] 一次
+     * （`Manager.java:1346`），并发 5、单张约 2s 时约每 400ms 一次。而一次刷新
+     * = 一次全表排序（`illust_download_table` 在 #1288 之前没有 downloadTime 索引）
+     * + 最多 600 次 `illustGson` 反序列化（见 [groupByIllust]），单次成本远大于
+     * 400ms。刷新追不上事件，库连接被长期占用，其它读库界面（批量队列、占用统计、
+     * 下拉刷新）一起拿不到连接 —— 表现为列表空白、连空态文案都不出现。
+     *
+     * **为什么不用 sample / debounce**：
+     * - `sample` 连首帧也推迟一个周期。已完成页的新订阅（切 tab 回来、搜索条件切换
+     *   触发 `flatMapLatest` 重订阅）拿到的就是 replay=1 那一帧，被推迟的话用户会先
+     *   看到空白 —— 正是本改动要修的现象，不能引入。
+     * - `debounce` 在事件间隔持续小于阈值时永远等不到静默期，一帧都不发。
+     *
+     * 闸门（[RefreshGate]）在 collect 内新建，状态不跨订阅 —— 每次重新订阅都会
+     * 重置，所以首帧永远立即。
+     * 冷却期内到达的 poke 由 [ManagerReactive.doneTableInvalidations] 的
+     * replay=1 + DROP_OLDEST 合并，不会堆积。
+     */
+    private fun <T, R> Flow<T>.mapWithCooldown(
+        cooldownMs: Long,
+        block: suspend (T) -> R,
+    ): Flow<R> {
+        val upstream = this
+        return flow {
+            // 每次订阅新建一个闸门 —— 状态不跨订阅，所以首帧永远立即。
+            val gate = RefreshGate(cooldownMs)
+            upstream.collect { value ->
+                gate.awaitTurn()
+                val result = try {
+                    block(value)
+                } finally {
+                    // 成功失败都记：查询抛异常时同样要冷却，否则失败会退化成高频
+                    // 重试，把本来就慢的库彻底压死。
+                    gate.markFinished()
+                }
+                emit(result)
+            }
+        }
     }
 
     /**
@@ -340,7 +397,25 @@ class DoneListV3Fragment : Fragment() {
         adapter.setMode(mode)
     }
 
+    /**
+     * 删一条记录。
+     *
+     * 先做**乐观更新**：立即把这张卡从列表摘掉，不等 poke 之后的重查 ——
+     * 那条路径有 [REFRESH_COOLDOWN_MS] 冷却，最多要 800ms 才回来，用户会以为
+     * 点了没反应（这也是加冷却带来的副作用，必须在这里补上）。
+     *
+     * 最终仍以库为准：删除失败时下一次重查会把行带回来；删除本身是幂等的，
+     * 用户重复点也不会多删什么。
+     */
     private fun deleteOne(group: DownloadGroup) {
+        val remaining = adapter.currentList.filterNot { it.key == group.key }
+        adapter.submitList(remaining)
+        sharedVm.publishDoneCardCount(remaining.size)
+        // 用 findViewById 现取而不是把 emptyState 提成字段：删除是低频操作，
+        // 不值得为一个 view 引用在 fragment 里多挂一个可能泄漏的字段。
+        view?.findViewById<View>(R.id.emptyState)?.visibility =
+            if (remaining.isEmpty()) View.VISIBLE else View.GONE
+
         viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
             runCatching {
                 group.allEntities.forEach { dao.delete(it) }
@@ -351,6 +426,14 @@ class DoneListV3Fragment : Fragment() {
 
     companion object {
         private const val PAGE_SIZE = 600   // 一次取多点；分组后实际卡片数会少
+
+        /**
+         * 两次重查之间的最小间隔。取值依据见 [mapWithCooldown] 的注释：
+         * 并发 5、单张约 2s 时 poke 间隔约 400ms，800ms 能把相邻两次合并成一次，
+         * 同时把「删一条后列表多久消失」控制在可感知但不误认为没反应的范围内。
+         */
+        private const val REFRESH_COOLDOWN_MS = 800L
+
         /** 导出时一次拉的硬上限 —— 5w 行 ≈ 2MB 文本，正常用户都装不了这么多 */
         private const val EXPORT_HARD_CAP = 50000
     }
@@ -427,6 +510,31 @@ private fun groupByIllust(rows: List<DownloadEntity>): List<DownloadGroup> {
     }
     // 按代表的 downloadTime 倒序
     return groups.sortedByDescending { it.latest.downloadTime }
+}
+
+/**
+ * 重查闸门：首次放行，之后每次查询结束起至少间隔 [cooldownMs]。
+ *
+ * 状态放在实例字段上，而不是 [DoneListV3Fragment.mapWithCooldown] 里被 lambda
+ * 捕获的可变局部变量 —— 后者虽然在运行时正确（Kotlin 会把 var 包成 Ref 对象），
+ * 但 IDE 的数据流分析只建模单次 lambda 执行，会报 "Assigned value is never
+ * read"，让读者难以确信状态真的被保存了。拆成对象后语义直白：一个订阅一个闸门。
+ */
+private class RefreshGate(private val cooldownMs: Long) {
+
+    /** 下次允许开始查询的时刻（[SystemClock.elapsedRealtime] 基准）。0 = 还没查过 */
+    private var nextAllowedAt = 0L
+
+    /** 等够冷却。还没查过时直接放行 —— 首帧不等，避免切 tab 回来先看到空白。 */
+    suspend fun awaitTurn() {
+        val wait = nextAllowedAt - SystemClock.elapsedRealtime()
+        if (wait > 0) delay(wait)
+    }
+
+    /** 记一次查询结束。成功失败都要调，否则失败会退化成高频重试。 */
+    fun markFinished() {
+        nextAllowedAt = SystemClock.elapsedRealtime() + cooldownMs
+    }
 }
 
 private enum class DoneAction { OPEN, DELETE, OPEN_AUTHOR }
