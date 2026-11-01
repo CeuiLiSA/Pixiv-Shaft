@@ -2,6 +2,9 @@ package ceui.pixiv.ui.bulk
 
 import android.app.Application
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
+import android.os.SystemClock
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.core.DownloadItem
@@ -95,6 +98,23 @@ class QueueDownloadManager @Inject constructor(@ApplicationContext app: Context)
     private val tickle = Channel<Unit>(Channel.CONFLATED)
 
     private var loopJob: Job? = null
+
+    /**
+     * contentFlow → [tickle] 的桥。与 [loopJob] 互为兄弟（都挂在 [scope] 下），见 [startBridge]。
+     */
+    private var bridgeJob: Job? = null
+
+    /**
+     * 冷启动的一次性恢复是否已经跑过。泵重启时跳过它 —— 那里面会弹「恢复下载」确认框，
+     * 重跑等于重复弹。见 [start]。
+     */
+    @Volatile private var coldStartDone: Boolean = false
+
+    private val mainHandler by lazy { Handler(Looper.getMainLooper()) }
+
+    /** 泵死提示的防抖时间戳，只在主线程读写。 */
+    private var lastDiedNoticeAt: Long = 0L
+
     @Volatile private var paused: Boolean = false
 
     /**
@@ -311,56 +331,139 @@ class QueueDownloadManager @Inject constructor(@ApplicationContext app: Context)
     /**
      * 启动冷启动恢复 + 消费循环。幂等。[Shaft.onCreate] 同步调（不能放进延迟批，
      * 见那边注释：promptResumeOnFirstActivity 要赶在首个 Activity 的 onResume 之前注册）。
+     *
+     * 泵意外终止后由 [ensureRunning] 再进来一次 —— 那时 [coldStartDone] 已为 true，
+     * 只重启主循环，不重跑冷启动（那里面会弹「恢复下载」确认框，重跑就是重复弹）。
      */
     fun start() {
-        if (loopJob != null) return
+        if (loopJob?.isActive == true) return
         // 注意：这里不要触碰 dao；首次 dao 访问发生在下面的 launch 协程（IO 线程）里。
-        loopJob = scope.launch {
-            // 冷启动：上次崩溃残留的 DOWNLOADING 全部归位为 PENDING
-            runCatching { dao.resurrectInProgress() }
-                .onFailure { Timber.tag(TAG).e(it, "resurrectInProgress failed") }
-
-            // issue #857：清理上一次会话遗留的 IS_PENDING=1 行（4.6.0~4.6.4 版本
-            // 在网络抖动时下载失败留下的 0 字节 `.pending-NNNN` 文件）。这一时刻
-            // 没有任何下载在进行，所以查到的全是孤儿，删除安全。
-            runCatching {
-                MediaStoreOrphanCleaner.cleanupPendingOrphans(appContext)
-            }.onFailure { Timber.tag(TAG).w(it, "cleanupPendingOrphans failed") }
-
-            // 断点续传的 stage 落点（cacheDir/staging_dl/*.part[.meta]）回收：永久失败 /
-            // 清空队列 / 崩溃残留的孤儿 .part 会一直占 cacheDir。正在下载的 .part 会被高频
-            // write 顶新 lastModified，只有真被遗弃的才老到被扫走，纯按年龄回收即安全。
-            runCatching {
-                val stageDir = java.io.File(appContext.cacheDir, StageStore.STAGE_DIR_NAME)
-                val swept = StageStore.sweepOrphans(stageDir, STAGE_MAX_AGE_MS, System.currentTimeMillis())
-                if (swept > 0) Timber.tag(TAG).i("[QUEUE-CONSUMER] swept $swept orphan stage files")
-            }.onFailure { Timber.tag(TAG).w(it, "stage sweep failed") }
-
-            // 检查是否有需要恢复的批量下载 —— 不无脑继续，让用户决定
-            val pending = runCatching { dao.countByStatus(QueueStatus.PENDING) }.getOrDefault(0)
-            if (pending > 0) {
-                paused = true   // 默认暂停；等用户在第一个 Activity 弹窗里决定
-                _pausedFlow.value = true
-                (appContext as? Application)?.let { app ->
-                    promptResumeOnFirstActivity(app, pending) { resumeByUser() }
-                }
-                Timber.tag(TAG).i("cold start: $pending pending items, awaiting user decision")
-            } else {
-                paused = false
-                _pausedFlow.value = false
+        startBridge()
+        val job = scope.launch {
+            if (!coldStartDone) {
+                coldStartDone = true
+                runColdStart()
             }
-            refreshRunning()
-
-            // 把 ManagerReactive.contentFlow 的 emit 桥到 ticker，让主循环既能响应
-            // 队列变更（tickle）也能响应 Manager 内部状态变更（addTask / state 翻转 /
-            // P 完成 remove / clearAll / pumpAvailableSlots / progress）。
-            launch {
-                ManagerReactive.contentFlow.collect { tickle.trySend(Unit) }
-            }
-
             runMainLoop()
         }
+        loopJob = job
+        // 死即置空：否则 start() 的幂等闸（loopJob != null）会把泵永久锁死。
+        job.invokeOnCompletion { cause -> onLoopFinished(job, cause) }
         Timber.tag(TAG).d("QueueDownloadManager started")
+    }
+
+    /**
+     * 冷启动的一次性恢复：崩溃残留归位、孤儿文件清理、以及是否需要让用户决定继续。
+     * 只在进程内第一次 [start] 时跑。
+     */
+    private suspend fun runColdStart() {
+        // 冷启动：上次崩溃残留的 DOWNLOADING 全部归位为 PENDING
+        runCatching { dao.resurrectInProgress() }
+            .onFailure { Timber.tag(TAG).e(it, "resurrectInProgress failed") }
+
+        // issue #857：清理上一次会话遗留的 IS_PENDING=1 行（4.6.0~4.6.4 版本
+        // 在网络抖动时下载失败留下的 0 字节 `.pending-NNNN` 文件）。这一时刻
+        // 没有任何下载在进行，所以查到的全是孤儿，删除安全。
+        runCatching {
+            MediaStoreOrphanCleaner.cleanupPendingOrphans(appContext)
+        }.onFailure { Timber.tag(TAG).w(it, "cleanupPendingOrphans failed") }
+
+        // 断点续传的 stage 落点（cacheDir/staging_dl/*.part[.meta]）回收：永久失败 /
+        // 清空队列 / 崩溃残留的孤儿 .part 会一直占 cacheDir。正在下载的 .part 会被高频
+        // write 顶新 lastModified，只有真被遗弃的才老到被扫走，纯按年龄回收即安全。
+        runCatching {
+            val stageDir = java.io.File(appContext.cacheDir, StageStore.STAGE_DIR_NAME)
+            val swept = StageStore.sweepOrphans(stageDir, STAGE_MAX_AGE_MS, System.currentTimeMillis())
+            if (swept > 0) Timber.tag(TAG).i("[QUEUE-CONSUMER] swept $swept orphan stage files")
+        }.onFailure { Timber.tag(TAG).w(it, "stage sweep failed") }
+
+        // 检查是否有需要恢复的批量下载 —— 不无脑继续，让用户决定
+        val pending = runCatching { dao.countByStatus(QueueStatus.PENDING) }.getOrDefault(0)
+        if (pending > 0) {
+            paused = true   // 默认暂停；等用户在第一个 Activity 弹窗里决定
+            _pausedFlow.value = true
+            (appContext as? Application)?.let { app ->
+                promptResumeOnFirstActivity(app, pending) { resumeByUser() }
+            }
+            Timber.tag(TAG).i("cold start: $pending pending items, awaiting user decision")
+        } else {
+            paused = false
+            _pausedFlow.value = false
+        }
+        refreshRunning()
+    }
+
+    /**
+     * 把 ManagerReactive.contentFlow 的 emit 桥到 [tickle]，让主循环既能响应队列变更，
+     * 也能响应 Manager 内部状态变更（addTask / state 翻转 / P 完成 remove / clearAll /
+     * pumpAvailableSlots / progress）。
+     *
+     * **必须挂在 [scope] 下，不能放进 [loopJob] 里 launch**：结构化并发下，loopJob 内
+     * launch 出来的子协程抛异常会取消 loopJob 本身。这条桥每收到一次 invalidate 都要跑
+     * `Manager.contentSnapshot()`（下载进度 1% 一次，5 并发约 500 次/秒，每次都新建一个
+     * ArrayList），内存紧张时 OOM 是真会发生的 —— 一旦把主循环连坐掉，队列就永久停摆
+     * （见 [onLoopFinished]）。挂到 [scope] 下它才是 SupervisorJob 的直接子协程，与主
+     * 循环互为兄弟，互不连坐。
+     */
+    private fun startBridge() {
+        if (bridgeJob?.isActive == true) return
+        val job = scope.launch {
+            ManagerReactive.contentFlow.collect { tickle.trySend(Unit) }
+        }
+        bridgeJob = job
+        job.invokeOnCompletion { bridgeJob = null }
+    }
+
+    /**
+     * 确保消费循环还活着。任意线程可调。
+     *
+     * 泵只在 [Shaft.onCreate] 启动一次，而 [loopJob] 异常终止后没有任何人会再拉它。
+     * 更麻烦的是 [tickle] 是 CONFLATED Channel：没人消费时 `trySend` 照样返回成功，
+     * 于是 `resume()` / `notifyNewItems()` 的日志看起来完全正常，队列却一动不动。
+     *
+     * 所以把「重启」挂在这几个「有人想让队列动起来」的入口上 —— 死掉的泵在用户下一次
+     * 操作时复活，不需要额外的轮询看门狗。
+     */
+    private fun ensureRunning() {
+        if (loopJob?.isActive == true) return
+        Timber.tag(TAG).w("[QUEUE-CONSUMER] consumer not running, restarting")
+        start()
+    }
+
+    /**
+     * 消费循环结束。正常取消（进程退出 / scope 取消）不打扰用户；异常终止则**暂停队列
+     * 并告知用户**。
+     *
+     * 为什么不静默自动重启：泵死说明有没预料到的问题，偷偷重试会把现场掩盖掉，用户也会
+     * 看到「队列自己在动」这种更费解的现象。恢复路径是用户点「继续」→ [resume] →
+     * [ensureRunning] 把泵重新拉起来。
+     */
+    private fun onLoopFinished(job: Job, cause: Throwable?) {
+        if (loopJob === job) loopJob = null
+        // cause == null：正常完成（主循环是 while(true)，实际走不到）。
+        // CancellationException：进程退出 / scope 被取消，不是故障。
+        if (cause == null || cause is kotlinx.coroutines.CancellationException) return
+
+        Timber.tag(TAG).e(cause, "[QUEUE-CONSUMER] main loop died")
+        mainHandler.post {
+            // 这期间可能已经被 ensureRunning 重新拉起来了（用户手快点了继续），那就别再
+            // 把它按回暂停 —— 状态一致性优先，死亡记录已经留在日志里。
+            if (loopJob?.isActive == true) return@post
+            // 与 pause() 同语义地置暂停，但不 cancel ugoira workers —— 泵死不是用户主动
+            // 暂停，在飞的那几条让它们自然收尾，恢复时不用重下。
+            paused = true
+            _pausedFlow.value = true
+            userForced = false
+            refreshRunning()
+
+            val now = SystemClock.elapsedRealtime()
+            if (lastDiedNoticeAt != 0L && now - lastDiedNoticeAt < DIED_NOTICE_DEBOUNCE_MS) return@post
+            lastDiedNoticeAt = now
+            DownloadToasts.showLong(
+                DownloadToastKind.QUEUE_CONSUMER_DIED,
+                appContext.getString(R.string.download_queue_stopped_paused),
+            )
+        }
     }
 
     /**
@@ -838,7 +941,12 @@ class QueueDownloadManager @Inject constructor(@ApplicationContext app: Context)
 
     // —— 公共 API（被 Fragment / 其他 enqueue 入口调用） ——
 
-    fun notifyNewItems() { tickle.trySend(Unit) }
+    fun notifyNewItems() {
+        // 泵可能已经异常终止（见 onLoopFinished）—— 有新的入队就得把它拉起来，
+        // 否则这次 tickle 有去无回。
+        ensureRunning()
+        tickle.trySend(Unit)
+    }
     fun pause() {
         paused = true
         _pausedFlow.value = true
@@ -856,6 +964,9 @@ class QueueDownloadManager @Inject constructor(@ApplicationContext app: Context)
         paused = false
         _pausedFlow.value = false
         refreshRunning()
+        // 泵异常终止时 onLoopFinished 会把队列置暂停并弹提示，用户点「继续」就是要它接着
+        // 跑 —— 先把泵拉起来，再唤醒。
+        ensureRunning()
         val sent = tickle.trySend(Unit).isSuccess
         Timber.tag(TAG).i("[QUEUE-CONSUMER] resume() called, tickle.trySend=$sent")
     }
@@ -884,6 +995,7 @@ class QueueDownloadManager @Inject constructor(@ApplicationContext app: Context)
      */
     fun onNetworkGateOpened() {
         refreshRunning()
+        ensureRunning()
         val sent = tickle.trySend(Unit).isSuccess
         Timber.tag(TAG).i("[QUEUE-CONSUMER] onNetworkGateOpened, tickle.trySend=$sent")
     }
@@ -1025,6 +1137,8 @@ class QueueDownloadManager @Inject constructor(@ApplicationContext app: Context)
         private const val STALL_TIMEOUT_MS = 90_000L
         /** resolveIllust 失败 / addTask 异常等"软错误"后的退避 */
         private const val SOFT_ERROR_BACKOFF_MS = 1500L
+        /** 泵死提示的防抖窗口：短时间内反复死（用户连点继续）只弹一次。 */
+        private const val DIED_NOTICE_DEBOUNCE_MS = 2_000L
 
     }
 }
