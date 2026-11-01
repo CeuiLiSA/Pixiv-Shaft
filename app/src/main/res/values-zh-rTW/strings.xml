@@ -358,17 +358,22 @@
     <string name="string_100">快取</string>
     <string name="string_101">清除圖片快取</string>
     <string name="string_102">清除 GIF 快取</string>
-    <string name="clear_bulk_download_cache">清除批次下載關聯資料</string>
+    <string name="clear_bulk_download_cache">管理下載關聯資料</string>
     <string name="clear_bulk_download_cache_message">下載管理裡的「已完成」「佇列」清單會被清空，跟第一次打開 app 一樣。\n（已下載到本機的圖片和小說不會被刪除。）</string>
-    <string name="clear_bulk_download_cache_progress">正在清除批次下載關聯資料…</string>
+    <string name="clear_bulk_download_cache_progress">正在清除下載關聯資料…</string>
     <string name="clear_bulk_download_cache_queue_not_empty">批次下載佇列不為空！未執行清理</string>
     <string name="clear_bulk_download_cache_failed">清理未完成，請稍後再試</string>
+    <string name="manage_download_cache_dialog_title">管理下載關聯資料</string>
+    <string name="download_cache_action_slim">深度瘦身</string>
+    <string name="download_cache_action_wipe">清空全部</string>
+    <string name="download_cache_slim_progress">正在對下載關聯資料進行深度瘦身…</string>
+    <string name="download_cache_slim_success">瘦身完成！優化了 %1$d 條記錄，釋放約 %2$s 空間</string>
+    <string name="download_cache_manage_message">已下載記錄：%1$d 條（約 %2$s）\n已完成佇列殘留載荷：%3$d 條（約 %4$s）\n暫存快取：約 %5$s\n\n【深度瘦身】：保留全部下載記錄與歷史，壓縮冗餘資料並清空無用快照，隨後整理回收資料庫空間。\n【清空全部】：重置下載管理（本機已下載的檔案不會被刪除）。</string>
     <string name="db_stall_title">資料庫發生死鎖/長排隊</string>
     <string name="db_stall_message">本機資料庫現在回應很慢，讀寫都在排隊。這段時間裡，清單可能空白、按鈕點了沒反應、下載進度不更新。已經下載到本機的檔案不受影響，也不會遺失資料。\n\n先等一下——資料庫恢復正常後這個提示會自動關閉。如果一直不恢復，點「複製日誌」把現場資訊傳給開發者。</string>
     <string name="db_stall_copy_log">複製日誌</string>
     <string name="setting_db_call_trace">列印資料庫耗時</string>
-    <string name="setting_db_call_trace_desc">把每一條 SQL 的耗時都寫進日誌（tag DbCallTracker）。只在排查卡頓時開啟——開著時日誌量很大。</string>
-    <string name="string_103">點擊展開</string>
+    <string name="setting_db_call_trace_desc">把每一條 SQL 的耗時都寫進日誌（tag DbCallTracker）。只在排查卡頓時開啟——開著時日誌量很大。</string>    <string name="string_103">點擊展開</string>
     <string name="string_105">點擊展開</string>
     <string name="string_107">---結束---</string>
     <string name="string_108">取消關注</string>
@@ -974,7 +979,7 @@
     <string name="singlePage_isAdd_p0">單頁作品，文件名加上 p0</string>
     <string name="success_clearImageCache">圖片快取清除成功！</string>
     <string name="success_clearGifCache">GIF 快取清除成功！</string>
-    <string name="success_clear_bulk_download_cache">批次下載關聯資料已清除</string>
+    <string name="success_clear_bulk_download_cache">下載關聯資料已清除</string>
     <string name="restore_success">還原成功</string>
     <string name="restore_failed">還原失敗</string>
     <string name="restore_found_account_title">從備份中發現帳號</string>

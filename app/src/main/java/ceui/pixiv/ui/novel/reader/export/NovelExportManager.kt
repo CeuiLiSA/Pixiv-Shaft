@@ -141,7 +141,7 @@ object NovelExportManager {
                 fileName = Params.NOVEL_KEY + id
                 downloadTime = System.currentTimeMillis()
                 filePath = uri.toString()
-                illustGson = Shaft.sGson.toJson(novel)
+                illustGson = ceui.pixiv.download.model.DownloadRecordSlim.createNovelJson(novel)
             }
             AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao().insertDownload(entity)
             ManagerReactive.pokeDoneTable()

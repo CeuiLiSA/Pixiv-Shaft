@@ -521,8 +521,8 @@ class QueueDownloadManager @Inject constructor(@ApplicationContext app: Context)
                 FinalizeKind.SUCCESS -> {
                     retryStates.remove(inf.queueRowId)  // 进度看门狗状态随行终结
                     val updated = runCatching {
-                        dao.updateStatus(
-                            inf.queueRowId, QueueStatus.SUCCESS,
+                        dao.markSuccess(
+                            inf.queueRowId,
                             finishedAt = System.currentTimeMillis()
                         )
                     }.onFailure {
@@ -947,8 +947,8 @@ class QueueDownloadManager @Inject constructor(@ApplicationContext app: Context)
                     setUgoiraPhase(row.id, bean, phase)
                 }
                 val updated = runCatching {
-                    dao.updateStatus(
-                        row.id, QueueStatus.SUCCESS,
+                    dao.markSuccess(
+                        row.id,
                         finishedAt = System.currentTimeMillis()
                     )
                 }.getOrDefault(0)

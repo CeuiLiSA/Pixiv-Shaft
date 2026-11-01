@@ -38,6 +38,14 @@ interface DownloadQueueDao {
     @Query("UPDATE download_queue SET status = :newStatus, errorMsg = :err, finishedAt = :finishedAt WHERE id = :id")
     suspend fun updateStatus(id: Long, newStatus: String, err: String? = null, finishedAt: Long? = null): Int
 
+    /**
+     * 标记任务成功完成，并将 illustGson 设为 NULL。
+     * 任务成功后已落盘且转入已完成表，队列中的成功记录不再需要携带完整的 JSON 负载。
+     * @return 受影响行数；行已被「清空全部」删掉时为 0。
+     */
+    @Query("UPDATE download_queue SET status = '${QueueStatus.SUCCESS}', illustGson = NULL, errorMsg = NULL, finishedAt = :finishedAt WHERE id = :id")
+    suspend fun markSuccess(id: Long, finishedAt: Long): Int
+
     @Query("UPDATE download_queue SET retryCount = retryCount + 1 WHERE id = :id")
     suspend fun bumpRetry(id: Long)
 
@@ -145,7 +153,7 @@ interface DownloadQueueDao {
     suspend fun deleteBatch(limit: Int): Int
 
     /** 给 BulkDownloadCacheCleaner 估"清出来多少字节"用。 */
-    @Query("SELECT IFNULL(SUM(LENGTH(illustGson)), 0) FROM download_queue")
+    @Query("SELECT IFNULL(SUM(LENGTH(CAST(illustGson AS BLOB))), 0) FROM download_queue")
     suspend fun sumIllustGsonBytes(): Long
 
     @Query("SELECT MAX(seq) FROM download_queue")

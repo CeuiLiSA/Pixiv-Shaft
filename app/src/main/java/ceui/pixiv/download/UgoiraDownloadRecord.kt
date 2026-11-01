@@ -56,7 +56,7 @@ object UgoiraDownloadRecord {
                 // 反复捞起来重解析文件名。
                 page = 0
                 downloadTime = System.currentTimeMillis()
-                illustGson = Shaft.sGson.toJson(illust)
+                illustGson = ceui.pixiv.download.model.DownloadRecordSlim.createIllustJson(illust)
             }
             AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao().insertDownload(entity)
             ManagerReactive.pokeDoneTable()
