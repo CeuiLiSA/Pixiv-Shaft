@@ -508,7 +508,7 @@ private class DoneAdapterV3(
             // 的「同 URL 复用 GlideUrl + 同 key 短路 + 当前图当占位」。
             bindThumb(h.thumb, null, coverUrl)
         } else {
-            // 用预解析的 illust（reload 时 IO 线程已 fromJson 完）—— 绑卡 0 解析
+            // 惰性解析：这张卡第一次绑定时才 fromJson（主线程，约 1ms），之后同一个 group 不再解析
             val illust: Illust? = group.parsedIllust
             // 多页 illust：左上角只显示 "Np"（去掉 "MANGA · " 冗余前缀）。
             // 单页 illust：徽章直接隐藏 —— 没有页数信息可言。
