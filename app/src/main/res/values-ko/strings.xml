@@ -359,6 +359,13 @@
     <string name="clear_bulk_download_cache">일괄 다운로드 관련 데이터 삭제</string>
     <string name="clear_bulk_download_cache_message">다운로드 관리의 \'완료\', \'대기열\' 목록이 비워집니다. 앱을 처음 켰을 때와 같은 상태가 됩니다.\n(이미 저장된 이미지/소설 파일은 삭제되지 않습니다.)</string>
     <string name="clear_bulk_download_cache_progress">일괄 다운로드 관련 데이터를 삭제하는 중…</string>
+    <string name="clear_bulk_download_cache_queue_not_empty">다운로드 대기열이 비어 있지 않습니다. 정리를 실행하지 않았습니다.</string>
+    <string name="clear_bulk_download_cache_failed">정리가 완료되지 않았습니다. 잠시 후 다시 시도해 주세요.</string>
+    <string name="db_stall_title">데이터베이스 교착 / 긴 대기</string>
+    <string name="db_stall_message">로컬 데이터베이스 응답이 매우 느려졌습니다. 읽기와 쓰기가 대기 중입니다. 이 동안 목록이 비어 있거나, 탭이 반응하지 않거나, 다운로드 진행률이 멈출 수 있습니다. 기기에 저장된 파일은 영향을 받지 않으며 데이터도 손실되지 않습니다.\n\n잠시 기다려 주세요. 데이터베이스가 복구되면 이 대화상자는 자동으로 닫힙니다. 복구되지 않으면 \"로그 복사\"를 눌러 개발자에게 전달해 주세요.</string>
+    <string name="db_stall_copy_log">로그 복사</string>
+    <string name="setting_db_call_trace">데이터베이스 소요 시간 기록</string>
+    <string name="setting_db_call_trace_desc">모든 SQL의 소요 시간을 로그에 남깁니다(태그 DbCallTracker). 느려지는 원인을 찾을 때만 켜세요. 로그가 매우 많이 쌓입니다.</string>
     <string name="string_103">클릭 하여 펼 치기</string>
     <string name="string_105">클릭 하여 펼 치기</string>
     <string name="string_107">--- 끝 -</string>

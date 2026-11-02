@@ -63,6 +63,15 @@ public class FragmentSettingsData extends SettingsPageFragment<FragmentSettingsD
     /** 设置备份的名字：临时文件名，同时是 Backup 桶模板里的 {title}。 */
     private static final String BACKUP_FILE_NAME = "Shaft-Backup.json";
 
+    /**
+     * 「清除批量下载关联数据」是否正在跑。
+     *
+     * 只在主线程读写。旧实现没有这道闸，连点几次会叠出多条 wipe 线程 —— 每条都在收尾做
+     * `wal_checkpoint` + `VACUUM`（独占锁），叠在一起会把库连接池锁死，全 App 读库的界面
+     * 一起空白，只能重启恢复。
+     */
+    private boolean bulkWipeRunning;
+
     @Override
     public void initLayout() {
         mLayoutID = R.layout.fragment_settings_data;
@@ -203,7 +212,7 @@ public class FragmentSettingsData extends SettingsPageFragment<FragmentSettingsD
         // 加这一行让用户能把"下载管理"reset 回初始状态。落盘的图不会被删,
         // 已下载的内容仍能在系统相册看到。
         loadBulkDownloadCacheSizeAsync(baseBind.bulkDownloadCacheSize);
-        baseBind.clearBulkDownloadCache.setOnClickListener(v -> showClearBulkDownloadConfirmDialog());
+        baseBind.clearBulkDownloadCache.setOnClickListener(v -> onClearBulkDownloadClicked());
 
         // 图片缓存「预期上限」（issue #1120）。只写设置：Glide 的 maxSize 只在初始化时读一次，
         // 改完必须重启 App 才生效（与图片加速代理同款限制），所以提示重启而不是「设置成功」。
@@ -502,6 +511,36 @@ public class FragmentSettingsData extends SettingsPageFragment<FragmentSettingsD
      * 跟 DoneListV3Fragment.showClearDoneConfirmDialog 一样的 destructive 二次确认 ——
      * 文案明确说"已下好的图不会被删",避免用户因恐慌而不敢清理。
      */
+    /**
+     * 「清除批量下载关联数据」的入口。两道闸，都在真正动库之前：
+     *
+     * 1. **批量队列非空 → 直接 toast 挡掉**，不弹确认框。清理会打断下载，而下载中的写入
+     *    正是最容易和清理抢锁的东西；用户以为在「清缓存」，实际是在拆正在跑的队列。
+     * 2. 已经有一次清理在跑 → 忽略（[bulkWipeRunning]）。旧实现没有这道闸，连点几次会叠出
+     *    多条 wipe 线程，把库连接池锁死。
+     *
+     * 队列计数要查库（`countActive` 是 suspend），先甩到 IO 线程，回主线程再决定弹哪个。
+     * 走 status 索引，GB 级库上也是毫秒级。
+     */
+    private void onClearBulkDownloadClicked() {
+        if (getActivity() == null || getActivity().isFinishing() || getActivity().isDestroyed()) return;
+        if (bulkWipeRunning) return;
+        final android.content.Context appCtx = mContext.getApplicationContext();
+        final android.os.Handler main = new android.os.Handler(android.os.Looper.getMainLooper());
+        new Thread(() -> {
+            final int active =
+                    ceui.pixiv.db.bulkclean.BulkDownloadCacheCleaner.activeQueueCount(appCtx);
+            main.post(() -> {
+                if (!isAdded() || baseBind == null) return;
+                if (active > 0) {
+                    Common.showToast(getString(R.string.clear_bulk_download_cache_queue_not_empty), 2);
+                    return;
+                }
+                showClearBulkDownloadConfirmDialog();
+            });
+        }, "bulk-dl-check").start();
+    }
+
     private void showClearBulkDownloadConfirmDialog() {
         if (getActivity() == null || getActivity().isFinishing() || getActivity().isDestroyed()) return;
         new WitDialog.MessageDialogBuilder(getActivity())
@@ -517,17 +556,23 @@ public class FragmentSettingsData extends SettingsPageFragment<FragmentSettingsD
     }
 
     /**
-     * 真正执行 wipe。VACUUM 1.5GB DB 在低端机上能跑 30s+,期间挂个 progress dialog
-     * 不让用户重复点;wipe 内部把队列 / Manager 都 stop 了,再次写库的入口已经关掉。
+     * 真正执行 wipe。
+     *
+     * 弹的是**阻塞**加载环（不可取消、点外面也关不掉），并且**只在库侧真的清完了**才关掉、
+     * 才弹成功。旧实现无论成败都 dismiss + 弹「已清除」—— DELETE/VACUUM 失败时用户看到的
+     * 就是「点了没反应，还说成功了」。
      */
     private void runBulkDownloadCacheWipe() {
+        if (bulkWipeRunning) return;
         if (getActivity() == null || getActivity().isFinishing() || getActivity().isDestroyed()) return;
+        bulkWipeRunning = true;
+
         final android.content.Context appCtx = mContext.getApplicationContext();
+        // create(false) = 不可取消 + 点外面不关；加载环本身由 WitTipDialog 的 ProgressBar 提供。
         final ceui.pixiv.witstudio.dialog.WitTipDialog progress =
                 new ceui.pixiv.witstudio.dialog.WitTipDialog.Builder(getActivity())
                         .setTipWord(getString(R.string.clear_bulk_download_cache_progress))
-                        .create();
-        progress.setCancelable(false);
+                        .create(false);
         progress.show();
 
         // 用 Main looper 的 Handler 而不是绑某个 View 的 post —— 旋屏时 baseBind 会被
@@ -536,19 +581,25 @@ public class FragmentSettingsData extends SettingsPageFragment<FragmentSettingsD
         final android.os.Handler main = new android.os.Handler(android.os.Looper.getMainLooper());
 
         new Thread(() -> {
+            boolean cleaned;
             try {
-                ceui.pixiv.db.bulkclean.BulkDownloadCacheCleaner.wipe(appCtx);
+                cleaned = ceui.pixiv.db.bulkclean.BulkDownloadCacheCleaner.wipe(appCtx);
             } catch (Throwable t) {
                 android.util.Log.w("FragmentSettingsData", "bulk download wipe failed", t);
+                cleaned = false;
             }
+            final boolean success = cleaned;
             main.post(() -> {
+                bulkWipeRunning = false;
                 // 先无条件 dismiss —— 即使 fragment 已被销毁,旧 activity 上挂着的
                 // 这个 dialog 也必须解掉,否则 WindowLeaked。
                 try { progress.dismiss(); } catch (Throwable ignored) {}
-                if (isAdded() && baseBind != null) {
-                    Common.showToast(getString(R.string.success_clear_bulk_download_cache));
-                    loadBulkDownloadCacheSizeAsync(baseBind.bulkDownloadCacheSize);
-                }
+                if (!isAdded() || baseBind == null) return;
+                Common.showToast(getString(success
+                        ? R.string.success_clear_bulk_download_cache
+                        : R.string.clear_bulk_download_cache_failed), 2);
+                // 成败都重算一次：失败时用户也该看到真实剩余量，而不是旧数字。
+                loadBulkDownloadCacheSizeAsync(baseBind.bulkDownloadCacheSize);
             });
         }, "bulk-dl-wipe").start();
     }

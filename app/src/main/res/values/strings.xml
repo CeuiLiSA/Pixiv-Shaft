@@ -381,6 +381,13 @@
     <string name="clear_bulk_download_cache">清除批量下载关联数据</string>
     <string name="clear_bulk_download_cache_message">下载管理里的「已完成」「队列」列表会清空，跟第一次打开 app 一样。\n（已经下载到本地的图片和小说不会被删除。）</string>
     <string name="clear_bulk_download_cache_progress">正在清除批量下载关联数据…</string>
+    <string name="clear_bulk_download_cache_queue_not_empty">批量队列不为空！未执行清理</string>
+    <string name="clear_bulk_download_cache_failed">清理未完成，请稍后重试</string>
+    <string name="db_stall_title">数据库发生死锁/长排队</string>
+    <string name="db_stall_message">本地数据库现在响应很慢，读写都在排队。这段时间里，列表可能空白、按钮点了没反应、下载进度不更新。已经下载到本机的文件不受影响，也不会丢数据。\n\n先等一会儿——库恢复正常后这个提示会自动关闭。如果一直不恢复，点「复制日志」把现场信息发给开发者。</string>
+    <string name="db_stall_copy_log">复制日志</string>
+    <string name="setting_db_call_trace">打印数据库耗时</string>
+    <string name="setting_db_call_trace_desc">把每一条 SQL 的耗时都写进日志（tag DbCallTracker）。只在排查卡顿时打开——开着时日志量很大。</string>
     <string name="string_103">点击展开</string>
     <string name="string_105">点击展开</string>
     <string name="string_107">--- END ---</string>

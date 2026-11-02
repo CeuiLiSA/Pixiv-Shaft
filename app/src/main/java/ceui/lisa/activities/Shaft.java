@@ -141,6 +141,19 @@ public class Shaft extends Application implements ServicesProvider {
     }
 
     /**
+     * 当前前台 Activity（onActivityCreated / onActivityResumed 记，onActivityDestroyed 清）。
+     *
+     * 给「没有 View 上下文也要弹窗」的进程级提示用 —— 目前是
+     * {@link ceui.pixiv.db.DbCallTracker} 的库卡顿提示。可能为 null（刚启动、页面正在销毁），
+     * 调用方必须自己判空并检查 isFinishing / isDestroyed。
+     */
+    public static Activity getCurrentActivity() {
+        // sContext 就是本 Application（Application.getApplicationContext() 返回自身），
+        // 但签名上是 Context，这里显式判一次类型，别让调用方各自 cast。
+        return sContext instanceof Shaft ? ((Shaft) sContext).currentActivity : null;
+    }
+
+    /**
      * 在 super.attachBaseContext 之前：预热 SharedPreferences（见 [prefetchPreferences]）、
      * init MMKV，再用 [AppLocales.wrapWithSavedLocale] 包出正确 locale 的 base context。
      *
@@ -498,6 +511,11 @@ public class Shaft extends Application implements ServicesProvider {
         // 让「已存在则跳过」和详情页复用本地文件能按 (illustId, page) 命中老记录，
         // 而不是只对之后新下载的生效。同样后台跑、跑完置标志、幂等。
         ceui.lisa.database.DownloadPageBackfill.runIfNeeded(this);
+
+        // 库「死锁 / 长排队」监测：量的是**真实调用**的耗时（见 DbCallTracker / DbTimingHelperFactory），
+        // 不是定时探针 —— 没有调用在飞时一条定时器都不挂。单次调用超过 2s 就在当前页面弹一个
+        // 不可取消的提示（带「复制日志」），库恢复后自动关闭。
+        ceui.pixiv.db.DbCallTracker.install();
 
         // 服务端基础配置（pixshaft-api /v1/config）：目前只有借号搜索总开关，让它出问题时
         // 能不发版关掉。拉取全在后台，读到的永远是内存里的最后一个已知值。
