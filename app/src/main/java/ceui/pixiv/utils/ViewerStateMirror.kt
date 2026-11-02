@@ -7,13 +7,25 @@ import ceui.pixiv.api.model.Illust
 import ceui.pixiv.cache.ObjectPool
 import ceui.pixiv.db.mirror.MirrorContentType
 import ceui.pixiv.services.appServices
+import kotlinx.coroutines.CancellationException
 import timber.log.Timber
 
 private const val VIEWER_STATE_TAG = "ViewerStateMirror"
 
 /** 生产用的镜像查询口：内容类型 + 一批 id → 命中的 id。 */
 private suspend fun defaultMirrorLookup(type: MirrorContentType, ids: List<Long>): Set<Long> =
-    Shaft.getContext().appServices().bookmarkMirror.bookmarkedAmong(type, ids)
+    try {
+        Shaft.getContext().appServices().bookmarkMirror.bookmarkedAmong(type, ids)
+    } catch (ce: CancellationException) {
+        throw ce
+    } catch (t: Throwable) {
+        // 镜像只是「把未知补成已知」的旁路，不是首屏的必需项：服务没就绪（进程刚起 / 宿主不是
+        // ServicesProvider）/ 镜像表异常时，正确的结果就是「仍然未知」，不是让整页读不出条目。
+        // 这一步在详情页首屏的阻塞路径上（见 ArtworkV3FeedSource.load），抛出去等于一次补字段
+        // 失败把大图与 header 一起吞掉。口径与 BookmarkMirrorService.bookmarkedAmong 内部一致。
+        Timber.tag(VIEWER_STATE_TAG).w(t, "读取镜像收藏态失败，viewer 态按未知处理")
+        emptySet()
+    }
 
 /**
  * 池里这条作品的 viewer 态不可信时（自建源上报快照 / 借号 / 历史快照喂进来的），

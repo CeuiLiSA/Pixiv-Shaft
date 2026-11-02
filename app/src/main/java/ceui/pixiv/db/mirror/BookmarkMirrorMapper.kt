@@ -64,9 +64,12 @@ object BookmarkMirrorMapper {
                 aiType = illust.illust_ai_type,
                 xRestrict = illust.x_restrict ?: 0,
                 sanityLevel = illust.sanity_level ?: 0,
-                // pixiv 对已删除 / 仅限好P友的作品回 visible=false 且字段几乎全空。
-                // 照样入库（用户自己收藏过的东西不该凭空消失），由界面上的
-                // 「失效作品」筛选决定看不看。
+                // 失效作品（非公开 / 限定 / 无法显示，见 Illust.isUnavailable）服务端回
+                // visible=false，其余字段随失效原因而变（多数近乎为空，商店政策藏起来的仍带占位图）。
+                // 照样入库（用户自己收藏过的东西不该凭空消失），由界面上的「失效作品」筛选决定看不看。
+                // 注意这一列的口径是 `!= false`（null 当可见），与 feeds 侧 `isUnavailable`
+                // 的 `!= true` 不同：这里要落库、要能用 SQL 反查「只看失效的」，
+                // 而 feeds 侧面对的是「服务端没说能看」就当不能看。
                 isVisible = illust.visible != false,
                 isMuted = illust.is_muted == true,
                 seriesId = illust.series?.id ?: 0L,

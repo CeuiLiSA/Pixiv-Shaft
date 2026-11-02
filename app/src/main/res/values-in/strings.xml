@@ -1000,6 +1000,7 @@
     <string name="download_toast_storage_unavailable">Folder unduhan tidak tersedia</string>
     <string name="download_toast_record_restored">Riwayat unduhan dipulihkan</string>
     <string name="download_toast_low_storage_paused">Unduhan dijeda karena ruang tidak cukup</string>
+    <string name="download_toast_queue_stopped">Antrean unduhan berhenti</string>
     <string name="download_toast_bulk_enqueue">Progres antrean massal</string>
     <string name="download_toast_bulk_summary">Ringkasan unduhan massal</string>
     <string name="download_toast_novel_progress">Progres unduhan novel per judul</string>
@@ -1963,6 +1964,7 @@
     <string name="dlmgr_active_empty_hint">Tugas di antrean otomatis pindah ke sini\ndan menampilkan progres per halaman secara langsung</string>
     <string name="dlmgr_active_action_resume_all">Lanjutkan semua</string>
     <string name="download_paused_low_storage">Ruang penyimpanan tidak cukup (sisa %1$s), semua unduhan dijeda. Kosongkan ruang lalu ketuk «Lanjutkan semua» di pengelola unduhan untuk melanjutkan</string>
+    <string name="download_queue_stopped_paused">Antrean unduhan berhenti tak terduga dan telah dijeda. Ketuk Lanjutkan untuk melanjutkan.</string>
     <string name="dlmgr_active_action_pause_all">Jeda semua</string>
     <string name="dlmgr_active_action_clear">Kosongkan</string>
     <string name="dlmgr_active_status_downloading_n">Mengunduh</string>
