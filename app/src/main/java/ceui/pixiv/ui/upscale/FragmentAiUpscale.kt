@@ -250,7 +250,20 @@ class FragmentAiUpscale : Fragment() {
 
         task.status.observe(viewLifecycleOwner) { status ->
             when (status) {
+                UpscaleStatus.Queued -> {
+                    overlayRoot.animate().cancel()
+                    overlayRoot.alpha = 1f
+                    overlayRoot.visibility = View.VISIBLE
+                    loadingState.visibility = View.VISIBLE
+                    doneState.visibility = View.GONE
+                    statusText.setText(R.string.string_ai_task_queued)
+                    progressRing.isIndeterminate = true
+                    progressText.visibility = View.GONE
+                    etaText.text = ""
+                }
                 UpscaleStatus.Running -> {
+                    progressRing.isIndeterminate = false
+                    progressText.visibility = View.VISIBLE
                     overlayRoot.visibility = View.VISIBLE
                     loadingState.visibility = View.VISIBLE
                     doneState.visibility = View.GONE
@@ -297,10 +310,11 @@ class FragmentAiUpscale : Fragment() {
         task.progress.observe(viewLifecycleOwner) { percent ->
             val p = (percent * 100).toInt()
             progressRing.setProgressCompat(p, true)
-            progressText.text = "$p%"
+            progressText.text = requireContext().getString(R.string.string_ai_task_percent, p)
         }
         task.eta.observe(viewLifecycleOwner) { eta ->
-            etaText.text = if (eta > 0) "预计 ${String.format("%.0f", eta)} 秒后完成" else ""
+            val etaSec = (eta + 0.5f).toInt()
+            etaText.text = if (etaSec > 0) requireContext().getString(R.string.string_ai_task_eta_seconds, etaSec) else ""
         }
     }
 
@@ -316,7 +330,7 @@ class FragmentAiUpscale : Fragment() {
         val key = currentTaskKey ?: return
         val task = UpscaleTaskPool.getTask(key) ?: return
         when (task.status.value) {
-            UpscaleStatus.Running, UpscaleStatus.Done -> {
+            UpscaleStatus.Queued, UpscaleStatus.Running, UpscaleStatus.Done -> {
                 observeTask(task, rootView)
             }
             UpscaleStatus.Failed -> {

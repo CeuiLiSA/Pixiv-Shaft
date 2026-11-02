@@ -285,6 +285,38 @@ class ArtworkPageReuseTest {
         return CollapsibleIllustAdapter(host, owner, work, 600, false).also { delegates += it }
     }
 
+    @Test
+    fun `rebinding another page clears the previous original overlay`() {
+        val adapter = delegate()
+        val holder = boundPage(adapter)
+        holder.baseBind.illustHd.setImageDrawable(ColorDrawable(Color.BLUE))
+        holder.baseBind.illustHd.visibility = View.VISIBLE
+        adapter.onBindViewHolder(holder, 1)
+        assertNull(holder.baseBind.illustHd.drawable)
+        assertEquals(View.GONE, holder.baseBind.illustHd.visibility)
+    }
+
+    @Test
+    fun `rebinding the same page preserves its original overlay`() {
+        val adapter = delegate()
+        val holder = boundPage(adapter)
+        val original = ColorDrawable(Color.BLUE)
+        holder.baseBind.illustHd.setImageDrawable(original)
+        holder.baseBind.illustHd.visibility = View.VISIBLE
+        adapter.onBindViewHolder(holder, 0)
+        assertSame(original, holder.baseBind.illustHd.drawable)
+        assertEquals(View.VISIBLE, holder.baseBind.illustHd.visibility)
+    }
+
+    @Test
+    fun `replacement adapter cannot keep an unrelated original overlay`() {
+        val holder = boundPage(delegate())
+        holder.baseBind.illustHd.setImageDrawable(ColorDrawable(Color.BLUE))
+        holder.baseBind.illustHd.visibility = View.VISIBLE
+        delegate().onBindViewHolder(holder, 0)
+        assertNull(holder.baseBind.illustHd.drawable)
+    }
+
     private fun delegate(pinned: Boolean = true): IllustAdapter =
         object : IllustAdapter(host, owner, work, 600, false) {
             // No DB/network fixture: the work deliberately has no URLs. Exercise real bind/recycle.

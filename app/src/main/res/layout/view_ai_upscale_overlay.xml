@@ -82,6 +82,7 @@
         android:visibility="gone">
 
         <TextView
+            android:id="@+id/ai_done_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/ai_upscaling_complete"

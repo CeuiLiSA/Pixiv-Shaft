@@ -61,6 +61,17 @@
 
     </Button>
 
+    <!-- AI 画质增强 / 智能抠图 进行中覆盖层：四边对齐 illust，仅叠加在工作的图上，不盖住其它区域 -->
+    <ViewStub
+        android:id="@+id/ai_working_overlay_stub"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignTop="@+id/illust"
+        android:layout_alignBottom="@+id/illust"
+        android:layout_alignStart="@+id/illust"
+        android:layout_alignEnd="@+id/illust"
+        android:layout="@layout/view_ai_upscale_overlay" />
+
     <!-- 「展开剩余 X 张」覆盖层：只有 pageCount > 2 的作品才会折叠、才会显示它，
          所以 1~2 页的作品不该为它付 8 个 View。改 ViewStub，第一次真要显示时才建
          （见 CollapsibleIllustAdapter.ensureOverlayInflated）。

@@ -31,6 +31,8 @@ import ceui.pixiv.ui.navigation.TemplateRoute
 import ceui.pixiv.ui.share.saveArtworkPoster
 import ceui.pixiv.ui.share.shareFirstImage
 import ceui.pixiv.ui.upscale.IllustAiHelper
+import ceui.pixiv.ui.upscale.IllustAiStore
+import ceui.pixiv.ui.upscale.UpscaleStatus
 import ceui.pixiv.ui.upscale.ModelPickerDialog
 import ceui.pixiv.ui.upscale.RembgModelPickerDialog
 import ceui.pixiv.utils.playToggleHaptic
@@ -266,13 +268,33 @@ internal class ArtworkV3Actions(
                     onForceOriginal()
                 }
                 item(context.getString(R.string.string_ai_upscale), R.drawable.ic_upscale_add_photo) {
+                    val pageIndex = currentPageIndex().coerceAtLeast(0)
+                    val state = IllustAiStore.get(illust.id, pageIndex)
+                    if (state?.hasUpscaleResult == true) {
+                        Common.showToast(R.string.string_ai_upscale_already_completed)
+                        return@item
+                    }
+                    if (state?.upscaleRunning == true || state?.upscaleStatus == UpscaleStatus.Queued) {
+                        Common.showToast(R.string.string_ai_task_already_running)
+                        return@item
+                    }
                     ModelPickerDialog.pickOrUseDefault(fragment.childFragmentManager) { model ->
-                        aiHelper()?.performUpscale(illust, model)
+                        aiHelper()?.performUpscale(illust, model, pageIndex)
                     }
                 }
                 item(context.getString(R.string.string_ai_rembg), R.drawable.ic_baseline_filter_24) {
+                    val pageIndex = currentPageIndex().coerceAtLeast(0)
+                    val state = IllustAiStore.get(illust.id, pageIndex)
+                    if (state?.hasRembgResult == true) {
+                        Common.showToast(R.string.string_ai_rembg_already_completed)
+                        return@item
+                    }
+                    if (state?.rembgRunning == true || state?.rembgStatus == UpscaleStatus.Queued) {
+                        Common.showToast(R.string.string_ai_task_already_running)
+                        return@item
+                    }
                     RembgModelPickerDialog.pickOrUseDefault(fragment.childFragmentManager) { model ->
-                        aiHelper()?.performRembg(illust, model)
+                        aiHelper()?.performRembg(illust, model, pageIndex)
                     }
                 }
                 item(context.getString(R.string.image_filter), R.drawable.ic_photo_filter_24) {

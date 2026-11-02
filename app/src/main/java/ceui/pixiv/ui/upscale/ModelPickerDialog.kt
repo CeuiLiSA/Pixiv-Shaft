@@ -30,13 +30,13 @@ class ModelPickerDialog : PixivDialog(R.layout.dialog_model_picker) {
         super.onViewFirstCreated(view)
 
         binding.cardEsrgan.setOnClick {
-            onModelSelected?.invoke(UpscaleModel.REAL_ESRGAN)
             dismissAllowingStateLoss()
+            onModelSelected?.invoke(UpscaleModel.REAL_ESRGAN)
         }
 
         binding.cardCugan.setOnClick {
-            onModelSelected?.invoke(UpscaleModel.REAL_CUGAN)
             dismissAllowingStateLoss()
+            onModelSelected?.invoke(UpscaleModel.REAL_CUGAN)
         }
 
         binding.btnCancel.setOnClick {

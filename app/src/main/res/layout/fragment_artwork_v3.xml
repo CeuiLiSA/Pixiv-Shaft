@@ -173,13 +173,5 @@
         android:layout_height="match_parent"
         android:layout="@layout/view_artwork_abandoned" />
 
-    <!-- AI 画质增强 / 智能抠图共用覆盖层(加载中进度 + 完成态)，与经典 FragmentIllust 同一份布局。
-         只在跑 AI 任务时才用得上，改 ViewStub —— 目标布局 view_ai_upscale_overlay.xml 本身是单根，
-         可直接当 android:layout。触发见 IllustAiHelper 的 ensureOverlay 回调。 -->
-    <ViewStub
-        android:id="@+id/ai_overlay_stub"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout="@layout/view_ai_upscale_overlay" />
 
 </FrameLayout>
