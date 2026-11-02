@@ -49,6 +49,10 @@ class OtherFilterSheet : V3BottomSheetBase() {
     private var draftR18: R18Mode = R18Mode.All
     /** R-18 档位的持久化层级；无全局档，最多到「仅这里记住」。 */
     private var draftR18Persist: FilterPersist = FilterPersist.Global
+    /** 「可能妨碍搜索的作品」草稿：true = 显示（默认，且不传参数）。 */
+    private var draftIncludePotentialViolation: Boolean = true
+    /** 上述档位的持久化层级；无全局档，最多到「仅这里记住」。 */
+    private var draftPotentialViolationPersist: FilterPersist = FilterPersist.Global
     private var draftOriginalOnly: Boolean = false
     private var draftReplaceableOnly: Boolean = false
     private var draftGroupBySeries: Boolean = false
@@ -85,6 +89,10 @@ class OtherFilterSheet : V3BottomSheetBase() {
         val bookmarkFilterPersist: FilterPersist = FilterPersist.Global,
         /** R-18 档位的持久化层级。 */
         val r18ModePersist: FilterPersist = FilterPersist.Global,
+        /** 「可能妨碍搜索的作品」：true = 显示（默认），false = 不显示。 */
+        val includePotentialViolationWorks: Boolean = true,
+        /** 上述档位的持久化层级。 */
+        val potentialViolationPersist: FilterPersist = FilterPersist.Global,
     ) : Serializable
 
     private var _binding: DialogSearchFilterOtherBinding? = null
@@ -103,6 +111,8 @@ class OtherFilterSheet : V3BottomSheetBase() {
         draftAiModePersist = patch?.aiModePersist ?: FilterPersist.Global
         draftR18 = patch?.r18Mode ?: R18Mode.All
         draftR18Persist = patch?.r18ModePersist ?: FilterPersist.Global
+        draftIncludePotentialViolation = patch?.includePotentialViolationWorks ?: true
+        draftPotentialViolationPersist = patch?.potentialViolationPersist ?: FilterPersist.Global
         draftOriginalOnly = patch?.isOriginalOnly ?: false
         draftReplaceableOnly = patch?.isReplaceableOnly ?: false
         draftGroupBySeries = patch?.groupBySeries ?: false
@@ -116,7 +126,8 @@ class OtherFilterSheet : V3BottomSheetBase() {
         outState.putSerializable(KEY_DRAFT,
             Patch(draftAiMode, draftR18, draftOriginalOnly, draftReplaceableOnly, draftTool,
                 draftGroupBySeries, draftBookmarkFilter,
-                draftAiModePersist, draftBookmarkFilterPersist, draftR18Persist))
+                draftAiModePersist, draftBookmarkFilterPersist, draftR18Persist,
+                draftIncludePotentialViolation, draftPotentialViolationPersist))
     }
 
     override fun onCreateView(
@@ -154,6 +165,7 @@ class OtherFilterSheet : V3BottomSheetBase() {
                     draftAiMode, draftR18, originalOnly, replaceableOnly, tool, groupBySeries,
                     draftBookmarkFilter,
                     draftAiModePersist, draftBookmarkFilterPersist, draftR18Persist,
+                    draftIncludePotentialViolation, draftPotentialViolationPersist,
                 )),
             )
             dismissAllowingStateLoss()
@@ -217,6 +229,19 @@ class OtherFilterSheet : V3BottomSheetBase() {
         bindR18Row(binding.rowR18Safe, R18Mode.SafeOnly, R.string.search_filter_v3_r18_safe)
         bindR18Row(binding.rowR18Only, R18Mode.R18Only,  R.string.search_filter_v3_r18_only)
         renderR18Marks()
+
+        // 「可能妨碍搜索的作品」二选一（illust / novel 共用，官方 app 同一行）
+        bindPotentialViolationRow(
+            binding.rowPotentialViolationShow,
+            include = true,
+            R.string.search_filter_v3_potential_violation_show,
+        )
+        bindPotentialViolationRow(
+            binding.rowPotentialViolationHide,
+            include = false,
+            R.string.search_filter_v3_potential_violation_hide,
+        )
+        renderPotentialViolationMarks()
     }
 
     private fun renderToolRow() {
@@ -539,6 +564,78 @@ class OtherFilterSheet : V3BottomSheetBase() {
         bindTierHint(binding.rowR18Only, draftR18 == R18Mode.R18Only, draftR18Persist, hasGlobal = false)
     }
 
+    // ── 「可能妨碍搜索的作品」（官方 app「其他条件」同名开关）──────────────
+    //
+    // app-api 侧是 `include_potential_violation_works`（web 侧同义参数 dgw）：
+    // 「不显示」才会把这个参数发成 false，官方服务端剔掉被打标的作品后用后面的作品补位。
+    // 与 R-18 三档同性质——没有全局对应设置，持久化最多到「仅这里记住」。
+
+    /** 这一维度没有全局对应档，基线恒为内置默认「显示」。 */
+    private fun persistedPotentialViolation(): Boolean = true
+
+    /** 搜索页「仅这里记住」的档位；null = 没记住过。 */
+    private fun rememberedPotentialViolation(): Boolean? =
+        Shaft.sSettings.searchRememberedPotentialViolation?.toBooleanStrictOrNull()
+
+    private fun rememberPotentialViolation(include: Boolean) {
+        Shaft.sSettings.searchRememberedPotentialViolation = include.toString()
+        Local.setSettings(Shaft.sSettings)
+    }
+
+    private fun clearRememberedPotentialViolation() {
+        if (Shaft.sSettings.searchRememberedPotentialViolation != null) {
+            Shaft.sSettings.searchRememberedPotentialViolation = null
+            Local.setSettings(Shaft.sSettings)
+        }
+    }
+
+    /** 行：单击 = 临时；长按第 1 下 = 仅这里记住；无全局档，长按第 2 下只弹 toast。 */
+    private fun bindPotentialViolationRow(
+        row: CellSearchFilterCheckRowBinding,
+        include: Boolean,
+        labelRes: Int,
+    ) {
+        row.checkLabel.setText(labelRes)
+        row.checkMark.setTextColor(palette.textAccent)
+        row.checkHint.setTextColor(palette.textAccent)
+        row.root.setOnClick {
+            selectPotentialViolation(include)
+            renderPotentialViolationMarks()
+        }
+        row.root.setOnLongClickListener {
+            selectPotentialViolation(include)
+            draftPotentialViolationPersist = advancePersist(
+                current = draftPotentialViolationPersist,
+                hasGlobal = false,
+                onRememberHere = { rememberPotentialViolation(include) },
+                onGlobal = { },
+            )
+            renderPotentialViolationMarks()
+            true
+        }
+    }
+
+    /** 单击口径，同 [selectR18Mode]。 */
+    private fun selectPotentialViolation(include: Boolean) {
+        draftIncludePotentialViolation = include
+        draftPotentialViolationPersist =
+            tierAfterClick(include, rememberedPotentialViolation(), persistedPotentialViolation())
+        if (draftPotentialViolationPersist == FilterPersist.Global) clearRememberedPotentialViolation()
+    }
+
+    private fun renderPotentialViolationMarks() {
+        binding.rowPotentialViolationShow.checkMark.isInvisible = !draftIncludePotentialViolation
+        binding.rowPotentialViolationHide.checkMark.isInvisible = draftIncludePotentialViolation
+        bindTierHint(
+            binding.rowPotentialViolationShow, draftIncludePotentialViolation,
+            draftPotentialViolationPersist, hasGlobal = false,
+        )
+        bindTierHint(
+            binding.rowPotentialViolationHide, !draftIncludePotentialViolation,
+            draftPotentialViolationPersist, hasGlobal = false,
+        )
+    }
+
     companion object {
         /** 结果 Bundle 里 [Patch] 的 key。 */
         const val KEY_PATCH = "patch"
@@ -570,6 +667,8 @@ class OtherFilterSheet : V3BottomSheetBase() {
                     current.aiModePersist,
                     current.bookmarkFilterPersist,
                     current.r18ModePersist,
+                    current.includePotentialViolationWorks,
+                    current.potentialViolationPersist,
                 ))
             }
         }

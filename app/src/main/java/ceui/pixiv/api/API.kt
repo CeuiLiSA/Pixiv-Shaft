@@ -594,6 +594,9 @@ interface API {
         @Query("width_max") widthMax: Int? = null,
         @Query("height_min") heightMin: Int? = null,
         @Query("height_max") heightMax: Int? = null,
+        // 「可能妨碍搜索的作品」—— 官方 app「其他条件」里的同名开关（web 侧同义参数 dgw）：
+        // null = 不传（服务端默认包含，等价 dgw=1「显示」）；false = 不显示（dgw=0）。
+        @Query("include_potential_violation_works") includePotentialViolationWorks: Boolean? = null,
     ): ListIllust
 
     @Headers("X-Shaft-Explicit-Authorization: 1")
@@ -616,6 +619,9 @@ interface API {
         @Query("width_max") widthMax: Int? = null,
         @Query("height_min") heightMin: Int? = null,
         @Query("height_max") heightMax: Int? = null,
+        // 「可能妨碍搜索的作品」—— 官方 app「其他条件」里的同名开关（web 侧同义参数 dgw）：
+        // null = 不传（服务端默认包含，等价 dgw=1「显示」）；false = 不显示（dgw=0）。
+        @Query("include_potential_violation_works") includePotentialViolationWorks: Boolean? = null,
     ): ListIllust
 
     @GET("v1/search/novel?filter=for_android&include_translated_tag_results=true&merge_plain_keyword_results=true")
@@ -638,6 +644,9 @@ interface API {
         @Query("word_count_max") wordCountMax: Int? = null,
         @Query("reading_time_min") readingTimeMin: Int? = null,
         @Query("reading_time_max") readingTimeMax: Int? = null,
+        // 「可能妨碍搜索的作品」—— 官方 app「其他条件」里的同名开关（web 侧同义参数 dgw）：
+        // null = 不传（服务端默认包含，等价 dgw=1「显示」）；false = 不显示（dgw=0）。
+        @Query("include_potential_violation_works") includePotentialViolationWorks: Boolean? = null,
     ): ListNovel
 
     @Headers("X-Shaft-Explicit-Authorization: 1")
@@ -662,6 +671,9 @@ interface API {
         @Query("word_count_max") wordCountMax: Int? = null,
         @Query("reading_time_min") readingTimeMin: Int? = null,
         @Query("reading_time_max") readingTimeMax: Int? = null,
+        // 「可能妨碍搜索的作品」—— 官方 app「其他条件」里的同名开关（web 侧同义参数 dgw）：
+        // null = 不传（服务端默认包含，等价 dgw=1「显示」）；false = 不显示（dgw=0）。
+        @Query("include_potential_violation_works") includePotentialViolationWorks: Boolean? = null,
     ): ListNovel
 
     @GET("v1/search/popular-preview/illust?filter=for_android&include_translated_tag_results=true&merge_plain_keyword_results=true")
@@ -681,6 +693,9 @@ interface API {
         @Query("width_max") widthMax: Int? = null,
         @Query("height_min") heightMin: Int? = null,
         @Query("height_max") heightMax: Int? = null,
+        // 「可能妨碍搜索的作品」—— 官方 app「其他条件」里的同名开关（web 侧同义参数 dgw）：
+        // null = 不传（服务端默认包含，等价 dgw=1「显示」）；false = 不显示（dgw=0）。
+        @Query("include_potential_violation_works") includePotentialViolationWorks: Boolean? = null,
     ): ListIllust
 
     @GET("v1/search/popular-preview/novel?filter=for_android&include_translated_tag_results=true&merge_plain_keyword_results=true")
@@ -702,6 +717,9 @@ interface API {
         @Query("word_count_max") wordCountMax: Int? = null,
         @Query("reading_time_min") readingTimeMin: Int? = null,
         @Query("reading_time_max") readingTimeMax: Int? = null,
+        // 「可能妨碍搜索的作品」—— 官方 app「其他条件」里的同名开关（web 侧同义参数 dgw）：
+        // null = 不传（服务端默认包含，等价 dgw=1「显示」）；false = 不显示（dgw=0）。
+        @Query("include_potential_violation_works") includePotentialViolationWorks: Boolean? = null,
     ): ListNovel
 
     @GET("v1/illust/detail?filter=for_android")

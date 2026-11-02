@@ -58,6 +58,15 @@ class SearchIllustRepo @JvmOverloads constructor(
     // 放最尾靠 @JvmOverloads 的默认值兜底 positional 构造：feeds 版 [ceui.pixiv.ui.search.SearchIllustFeedSource]
     // 用 SearchIllustRepo(null×8) 构造后靠 update(searchModel) 填参，也依赖这些默认值。
     private var contentType: String? = null,
+    /**
+     * 「可能妨碍搜索的作品」（官方 app「其他条件」同名开关）—— app-api
+     * `include_potential_violation_works`：
+     *   - null = 不传（服务端默认包含，等价 web `dgw=1`「显示」，也是本 app 的历史行为）；
+     *   - false = 不显示（等价 `dgw=0`，服务端剔掉被标记的作品后自动补位下一页）。
+     * 默认档保持「不传」而不是显式 true，让 URL 与旧版逐字一致——否则
+     * [Nana7miSearchCache] 里已有的缓存条目会整片失效。
+     */
+    private var includePotentialViolationWorks: Boolean? = null,
     // 进程级服务，由构造方（Fragment）从 ServicesProvider 取出注入；Repo 自己不认识 Application。
     private val nana7miOutbox: AccountOnlineReportOutbox,
     private val nana7miTelemetryService: Nana7miSearchTelemetry,
@@ -183,6 +192,7 @@ class SearchIllustRepo @JvmOverloads constructor(
                 widthMax,
                 heightMin,
                 heightMax,
+                includePotentialViolationWorks,
             )
         }
 
@@ -206,6 +216,7 @@ class SearchIllustRepo @JvmOverloads constructor(
                 widthMax,
                 heightMin,
                 heightMax,
+                includePotentialViolationWorks,
             )
         }
 
@@ -278,6 +289,9 @@ class SearchIllustRepo @JvmOverloads constructor(
                 "tool" to tool,
                 "lang" to lang,
                 "search_ai_type" to searchAiType,
+                // 「可能妨碍搜索的作品」也是 searchIllustWithAuth 的入参，必须进 key——
+                // 漏了会让「显示」和「不显示」共用一条缓存，切了档也拿回同一页。
+                "include_potential_violation_works" to includePotentialViolationWorks,
                 "ratio" to ratioPattern,
                 "content_type" to contentType,
                 "width_min" to widthMin,
@@ -345,6 +359,7 @@ class SearchIllustRepo @JvmOverloads constructor(
                             widthMax,
                             heightMin,
                             heightMax,
+                            includePotentialViolationWorks,
                         )
                     }.also { page ->
                         // 只回填真正借号打到的官方结果；回退页（preview / 直连）不是同一个东西。
@@ -559,6 +574,10 @@ class SearchIllustRepo @JvmOverloads constructor(
         // 模糊粒子化或存在豁免作者时服务端不能直接剔除 AI，必须全量返回后由客户端滤/遮。
         val clientSideAi = onlyAi || (excludeAi && Shaft.sSettings.isAiBlockClientSide)
         searchAiType = if (clientSideAi) 0 else if (excludeAi) 1 else 0
+        // 「可能妨碍搜索的作品」：只有用户显式关掉才发 false；默认档发 null（不传），
+        // 与服务端默认（包含）等价，同时保持 URL 与旧版一致。
+        includePotentialViolationWorks =
+            if (searchModel.includePotentialViolationWorks.value == false) false else null
 
         this.filterMapper.updateStarSizeLimit(this.getStarSizeLimit())
         // 区间上限只有官方 query 一条来源（starSize 关键字桶没有上限语义）；

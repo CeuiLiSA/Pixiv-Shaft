@@ -54,6 +54,12 @@ class SearchNovelRepo @JvmOverloads constructor(
      * 跨午夜也不会窗口停滞。null 时直接用 [startDate]/[endDate]（指定期间自定义）。
      */
     private var durationBucket: String? = null,
+    /**
+     * 「可能妨碍搜索的作品」（官方 app「其他条件」同名开关）—— app-api
+     * `include_potential_violation_works`：null = 不传（服务端默认包含，等价 web `dgw=1`「显示」）；
+     * false = 不显示（`dgw=0`）。默认档保持「不传」，URL 与旧版一致，不吃掉既有搜索缓存。
+     */
+    private var includePotentialViolationWorks: Boolean? = null,
     // 进程级服务，由构造方（Fragment）从 ServicesProvider 取出注入；Repo 自己不认识 Application。
     private val nana7miOutbox: AccountOnlineReportOutbox,
     private val nana7miTelemetryService: Nana7miSearchTelemetry,
@@ -188,6 +194,7 @@ class SearchNovelRepo @JvmOverloads constructor(
                     wordCountMax,
                     readingTimeMin,
                     readingTimeMax,
+                    includePotentialViolationWorks,
                 )
             }
         }
@@ -215,6 +222,7 @@ class SearchNovelRepo @JvmOverloads constructor(
                     wordCountMax,
                     readingTimeMin,
                     readingTimeMax,
+                    includePotentialViolationWorks,
                 )
             }
         }
@@ -288,6 +296,8 @@ class SearchNovelRepo @JvmOverloads constructor(
                 "genre" to genre,
                 "lang" to lang,
                 "search_ai_type" to searchAiType,
+                // 同 SearchIllustRepo：这个参数也是 searchNovelWithAuth 的入参，必须进 key。
+                "include_potential_violation_works" to includePotentialViolationWorks,
                 "is_original_only" to isOriginalOnly,
                 "is_replaceable_only" to isReplaceableOnly,
                 "text_length_min" to textLengthMin,
@@ -361,6 +371,7 @@ class SearchNovelRepo @JvmOverloads constructor(
                                 wordCountMax,
                                 readingTimeMin,
                                 readingTimeMax,
+                                includePotentialViolationWorks,
                             )
                         }
                     }.also { page ->
@@ -561,6 +572,9 @@ class SearchNovelRepo @JvmOverloads constructor(
         val clientSideAi = onlyAi || (excludeAi && Shaft.sSettings.isAiBlockClientSide)
         searchAiType = if (clientSideAi) 0 else if (excludeAi) 1 else 0
         // null 让 retrofit 跳过 query；只有显式 true 才传，行为对齐 iOS（关闭时不带）
+        // 「可能妨碍搜索的作品」：只有用户显式关掉才发 false；默认档发 null（不传）。
+        includePotentialViolationWorks =
+            if (searchModel.includePotentialViolationWorks.value == false) false else null
         isOriginalOnly = if (searchModel.isOriginalOnly.value == true) true else null
         isReplaceableOnly = if (searchModel.isReplaceableOnly.value == true) true else null
         textLengthMin = searchModel.textLengthMin.value

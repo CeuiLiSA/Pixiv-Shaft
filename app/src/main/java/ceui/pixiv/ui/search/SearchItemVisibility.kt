@@ -28,6 +28,11 @@ data class IllustSearchNetworkSpec(
     val tool: String?,
     val lang: String?,
     val searchAiType: Int,
+    /**
+     * 「可能妨碍搜索的作品」（`include_potential_violation_works`）：null = 不传（显示），
+     * false = 不显示。必须进 Spec——它改变请求 URL，切档要重新发请求，不能就地上下屏。
+     */
+    val includePotentialViolationWorks: Boolean?,
     val ratioPattern: String?,
     val contentType: String?,
     val widthMin: Int?,
@@ -54,6 +59,8 @@ data class NovelSearchNetworkSpec(
     val genre: Int?,
     val lang: String?,
     val searchAiType: Int,
+    /** 「可能妨碍搜索的作品」—— 语义同 [IllustSearchNetworkSpec.includePotentialViolationWorks]。 */
+    val includePotentialViolationWorks: Boolean?,
     val isOriginalOnly: Boolean?,
     val isReplaceableOnly: Boolean?,
     val textLengthMin: Int?,
@@ -74,6 +81,15 @@ data class NovelSearchNetworkSpec(
 class LoadedSearchSpec : ViewModel() {
     var spec: Any? = null
 }
+
+/**
+ * 网络入参里 `include_potential_violation_works` 的取值——与
+ * [ceui.lisa.repo.SearchIllustRepo] / [ceui.lisa.repo.SearchNovelRepo] 的归一化逐字一致：
+ * 只有显式关掉才发 false，默认档发 null（不传）。两边口径一旦不同，Spec 会误判「URL 没变」
+ * 而跳过重发——用户切了「不显示」却什么也没发生。
+ */
+private fun includePotentialViolationOf(searchModel: SearchModel): Boolean? =
+    if (searchModel.includePotentialViolationWorks.value == false) false else null
 
 /**
  * 从当前 [SearchModel] 构造插画搜索的网络入参快照。
@@ -103,6 +119,7 @@ fun buildIllustNetworkSpec(
         tool = searchModel.tool.value,
         lang = searchModel.lang.value,
         searchAiType = searchAiType,
+        includePotentialViolationWorks = includePotentialViolationOf(searchModel),
         ratioPattern = searchModel.ratioPattern.value,
         contentType = searchModel.contentType.value,
         widthMin = searchModel.widthMin.value,
@@ -140,6 +157,7 @@ fun buildNovelNetworkSpec(
         genre = searchModel.genre.value,
         lang = searchModel.lang.value,
         searchAiType = searchAiType,
+        includePotentialViolationWorks = includePotentialViolationOf(searchModel),
         isOriginalOnly = if (searchModel.isOriginalOnly.value == true) true else null,
         isReplaceableOnly = if (searchModel.isReplaceableOnly.value == true) true else null,
         textLengthMin = searchModel.textLengthMin.value,

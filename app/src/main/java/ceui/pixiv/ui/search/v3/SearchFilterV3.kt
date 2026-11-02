@@ -37,6 +37,10 @@ import ceui.pixiv.ui.search.SortType
  *                              阅读预计用时）
  *  15. contentType           — 作品类别（仅 illust/manga，走官方 `content_type` query 参数）；
  *                              默认 [IllustContentType.IllustAndMangaAndUgoira] 等价于不传
+ *  16. includePotentialViolationWorks — 「可能妨碍搜索的作品」（官方 app「其他条件」同名开关，
+ *                              走官方 `include_potential_violation_works`；web 侧同义参数 `dgw`）。
+ *                              默认 true = 显示（不传该参数）；false = 不显示。无全局对应档，
+ *                              持久化最多到「仅这里记住」。
  */
 data class SearchFilterV3(
     val sort: String = SortType.POPULAR_DESC,
@@ -65,6 +69,23 @@ data class SearchFilterV3(
     val r18Mode: R18Mode = R18Mode.All,
     /** R-18 档位的持久化层级。R-18 无全局对应档，最多到 [FilterPersist.RememberHere]。 */
     val r18ModePersist: FilterPersist = FilterPersist.Global,
+    /**
+     * 「可能妨碍搜索的作品」—— 官方 app「其他条件」里的同名开关，官方说明文案是
+     * 「可以选择是否显示有较大可能违反本站方针的作品。」。对应 app-api
+     * `include_potential_violation_works`（web 侧同义参数 `dgw`：1 显示 / 0 不显示）。
+     *
+     *   - `true`（默认）= 显示。发请求时**不传**该参数——服务端默认即包含，且不传能保持请求
+     *     URL 与旧版逐字一致，不让 [ceui.pixiv.shaftapi.Nana7miSearchCache] 的既有条目作废；
+     *   - `false` = 不显示。服务端剔掉被打标的作品后用后面的作品自动补位，结果条数不变。
+     *
+     * 只能走服务端参数：被打标作品的 `restriction_attributes` / `visible` / `is_muted` 与正常
+     * 作品没有差异，客户端拿不到可判定的标记（不像 R-18 能看 `x_restrict`）。
+     *
+     * 持久化：**没有全局对应档**，最多到 [FilterPersist.RememberHere]。
+     */
+    val includePotentialViolationWorks: Boolean = true,
+    /** 上述档位的持久化层级；无全局档，最多到 [FilterPersist.RememberHere]。 */
+    val potentialViolationPersist: FilterPersist = FilterPersist.Global,
     val ratioPattern: RatioPattern? = null,   // illust/manga only
     val resolutionBucket: ResolutionBucket? = null,   // illust/manga only
     // 作品类别（仅 illust/manga）—— pixiv iOS 8.6.6 抓包确认走 `content_type` query 参数。
@@ -121,6 +142,8 @@ data class SearchFilterV3(
             val rememberedBookmark = s.searchRememberedBookmarkFilter?.toBooleanStrictOrNull()
             val rememberedR18 = s.searchRememberedR18Mode
                 ?.let { name -> R18Mode.entries.firstOrNull { it.name == name } }
+            val rememberedPotentialViolation =
+                s.searchRememberedPotentialViolation?.toBooleanStrictOrNull()
             return SearchFilterV3(
                 sort = sort,
                 keywordUsersBucket = keywordBucket,
@@ -133,6 +156,11 @@ data class SearchFilterV3(
                 r18Mode = rememberedR18 ?: R18Mode.All,
                 r18ModePersist =
                     if (rememberedR18 != null) FilterPersist.RememberHere else FilterPersist.Global,
+                // 「可能妨碍搜索的作品」没有全局档：没记住过就是内置默认「显示」。
+                includePotentialViolationWorks = rememberedPotentialViolation ?: true,
+                potentialViolationPersist =
+                    if (rememberedPotentialViolation != null) FilterPersist.RememberHere
+                    else FilterPersist.Global,
             )
         }
     }
@@ -152,6 +180,7 @@ data class SearchFilterV3(
         if (aiMode != AiMode.All) n++
         if (bookmarkFilter) n++
         if (r18Mode != R18Mode.All) n++
+        if (!includePotentialViolationWorks) n++
         if (isNovel && isOriginalOnly) n++
         if (isNovel && isReplaceableOnly) n++
         if (isNovel && groupBySeries) n++

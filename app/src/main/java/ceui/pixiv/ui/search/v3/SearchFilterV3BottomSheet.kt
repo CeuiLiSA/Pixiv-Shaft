@@ -78,22 +78,28 @@ class SearchFilterV3BottomSheet : V3BottomSheetBase() {
     private fun updateFilter(transform: (SearchFilterV3) -> SearchFilterV3) {
         val store = if (isNovel) searchViewModel.novelFilter else searchViewModel.illustFilter
         val next = transform(currentFilter())
-        store.value = next
-        // 「AI 作品」与「过滤已收藏」是**搜索页级**条件（两个 tab 共用同一份 SearchModel 会话态），
-        // 这里镜像给另一份 filter，保证两个 tab 的 sheet 显示与实际搜索一致。
+        // 「AI 作品」「过滤已收藏」「可能妨碍搜索的作品」是**搜索页级**条件（两个 tab 共用同一份
+        // SearchModel 会话态），这里镜像给另一份 filter，保证两个 tab 的 sheet 显示与实际搜索一致。
+        // 镜像必须先写：两份 filter 的 observer 都会把整份条件写进 SearchModel，当前 tab 要留到
+        // 最后，否则不点「搜索」直接关面板时，下拉刷新会用上另一个 tab 的排序等条件。
         val other = if (isNovel) searchViewModel.illustFilter else searchViewModel.novelFilter
         other.value?.let { o ->
             if (o.aiMode != next.aiMode || o.aiModePersist != next.aiModePersist
                 || o.bookmarkFilter != next.bookmarkFilter
-                || o.bookmarkFilterPersist != next.bookmarkFilterPersist) {
+                || o.bookmarkFilterPersist != next.bookmarkFilterPersist
+                || o.includePotentialViolationWorks != next.includePotentialViolationWorks
+                || o.potentialViolationPersist != next.potentialViolationPersist) {
                 other.value = o.copy(
                     aiMode = next.aiMode,
                     aiModePersist = next.aiModePersist,
                     bookmarkFilter = next.bookmarkFilter,
                     bookmarkFilterPersist = next.bookmarkFilterPersist,
+                    includePotentialViolationWorks = next.includePotentialViolationWorks,
+                    potentialViolationPersist = next.potentialViolationPersist,
                 )
             }
         }
+        store.value = next
         renderRows()
     }
 
@@ -390,6 +396,8 @@ class SearchFilterV3BottomSheet : V3BottomSheetBase() {
                     groupBySeries = patch.groupBySeries,
                     bookmarkFilter = patch.bookmarkFilter,
                     bookmarkFilterPersist = patch.bookmarkFilterPersist,
+                    includePotentialViolationWorks = patch.includePotentialViolationWorks,
+                    potentialViolationPersist = patch.potentialViolationPersist,
                 )
             }
         }
@@ -621,6 +629,11 @@ class SearchFilterV3BottomSheet : V3BottomSheetBase() {
             R18Mode.SafeOnly -> flags += getString(R.string.search_filter_v3_r18_safe)
             R18Mode.R18Only  -> flags += getString(R.string.search_filter_v3_r18_only)
             R18Mode.All -> Unit
+        }
+        // 「可能妨碍搜索的作品」：默认是「显示」（＝不传参数），只有关掉才上摘要。
+        // 用专门的摘要文案而不是卡片标题——标题只写了「可能妨碍搜索的作品」，不说是显示还是隐藏。
+        if (!filter.includePotentialViolationWorks) {
+            flags += getString(R.string.search_filter_v3_other_summary_hide_potential_violation)
         }
         // 过滤已收藏：与全局设置联动，开着就上 summary（illust / novel 两种模式都适用）。
         // 这里取**卡片标题**而不是卡片里的选项文案——选项是「过滤 / 不过滤」二选一，单拎

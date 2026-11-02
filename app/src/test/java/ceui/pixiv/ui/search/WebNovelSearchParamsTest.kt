@@ -30,6 +30,17 @@ class WebNovelSearchParamsTest {
     }
 
     @Test
+    fun `potential violation works use dgw with the web default inverted`() {
+        assertEquals(1, buildWebNovelSearchParams(model(), excludeAi = false).potentialViolationWorks)
+        assertNull(
+            buildWebNovelSearchParams(
+                model { includePotentialViolationWorks.value = false },
+                excludeAi = false,
+            ).potentialViolationWorks,
+        )
+    }
+
+    @Test
     fun `sort maps to web order values`() {
         fun orderOf(sort: String?) =
             buildWebNovelSearchParams(model { sortType.value = sort }, excludeAi = false).order
