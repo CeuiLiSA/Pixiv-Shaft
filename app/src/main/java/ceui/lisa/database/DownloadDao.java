@@ -90,6 +90,19 @@ public interface DownloadDao {
     List<DownloadEntity> getAll(int limit, int offset);
 
     /**
+     * 前 [limit] 行能折成多少张卡片 —— 已完成 tab 标题上的数字，分组键与
+     * {@code DoneListV3Fragment.groupByIllust} 逐字对应：小说按 fileName 一格、插画按
+     * illustId 一格、id 未知按 fileName 兜底。走 downloadTime 索引，不解析 illustGson。
+     */
+    @Query("SELECT COUNT(DISTINCT CASE " +
+            "WHEN fileName LIKE '%' || :novelKey || '%' THEN 'n:' || fileName " +
+            "WHEN illustId > 0 THEN 'i:' || illustId " +
+            "ELSE 'a:' || fileName END) " +
+            "FROM (SELECT fileName, illustId FROM illust_download_table " +
+            "ORDER BY downloadTime DESC LIMIT :limit)")
+    int countDoneCardsInWindow(String novelKey, int limit);
+
+    /**
      * 模糊搜索已下载记录。在 fileName 和 illustGson（含 title / user.name 等
      * 反序列化前的 JSON 文本）两个字段里 LIKE 命中。LIMIT 600 与
      * [DoneListV3Fragment.PAGE_SIZE] 一致，避免搜索后看到的卡比平时还多。

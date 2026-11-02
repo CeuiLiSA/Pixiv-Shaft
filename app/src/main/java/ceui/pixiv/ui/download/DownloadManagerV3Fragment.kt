@@ -37,6 +37,7 @@ import com.google.android.material.tabs.TabLayoutMediator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -245,6 +246,12 @@ class DownloadManagerV3Fragment : Fragment() {
         // 跟列表用同一份数据,杜绝 "1944 / 空列表" 那种错位。
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                // 已完成列表离屏时不跑，数字靠这里跟着脏标记重算；replay=1 让进页面时立刻有值。
+                launch {
+                    ManagerReactive.doneTableInvalidations.collectLatest {
+                        sharedVm.refreshDoneCardCount()
+                    }
+                }
                 sharedVm.doneCardCount.collect { setTabCount(2, it) }
             }
         }

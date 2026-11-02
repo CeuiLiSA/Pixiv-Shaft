@@ -166,8 +166,12 @@ class DoneListV3Fragment : Fragment() {
         // 搜索模式：host toolbar 的 SearchView 输入会写到
         // sharedVm.doneSearchQuery（null=未进入搜索；""=已展开未输；非空=查询词）。
         // 切到搜索分支时数据源换成 dao.searchDownloads(query)。
+        //
+        // RESUMED 而不是 STARTED：ViewPager2 把离屏 tab 停在 STARTED，用 STARTED 的话用户
+        // 只要访问过一次已完成 tab，下载期间它就一直在后台重查。离屏时 tab 上的数字由
+        // DownloadManagerSharedViewModel.refreshDoneCardCount 维护。
         viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.RESUMED) {
                 runDoneListFlow(empty)
             }
         }
@@ -350,7 +354,7 @@ class DoneListV3Fragment : Fragment() {
     }
 
     companion object {
-        private const val PAGE_SIZE = 600   // 一次取多点；分组后实际卡片数会少
+        private const val PAGE_SIZE = DONE_LIST_WINDOW   // 一次取多点；分组后实际卡片数会少
         /** 导出时一次拉的硬上限 —— 5w 行 ≈ 2MB 文本，正常用户都装不了这么多 */
         private const val EXPORT_HARD_CAP = 50000
     }

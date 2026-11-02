@@ -3,6 +3,8 @@ package ceui.pixiv.ui.download
 import androidx.lifecycle.ViewModel
 import ceui.lisa.core.DownloadItem
 import ceui.lisa.core.ManagerReactive
+import ceui.lisa.database.DownloadDao
+import ceui.lisa.utils.Params
 import ceui.pixiv.db.queue.DownloadQueueDao
 import ceui.pixiv.db.queue.QueueStatus
 import ceui.pixiv.ui.bulk.QueueDownloadManager
@@ -17,9 +19,13 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 import dagger.Lazy
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+
+/** 已完成列表一次加载的行数，tab 上的数字必须按同一个窗口算，否则数字和卡片数对不上。 */
+internal const val DONE_LIST_WINDOW = 600
 
 /**
  * 三个 tab 共享的 stats 数据源。
@@ -31,7 +37,8 @@ import javax.inject.Inject
  *     序列下首次 emit 后静默不再 re-emit（用户已复现，17 个 SUCCESS 一次都
  *     没让 Flow 再 emit）。改成自己 tick 后 suspend 查一次，可靠。
  *   - 当前活跃 page 数从 [ManagerReactive.contentFlow] 派生。
- *   - 已完成 tab 数字走 [doneCardCount]，由 [DoneListV3Fragment] 回填（不再
+ *   - 已完成 tab 数字走 [doneCardCount]，列表可见时由 [DoneListV3Fragment] 回填，
+ *     离屏时由 [refreshDoneCardCount] 重算（不再
  *     由本 VM 派生）—— 历史上从 download_queue.SUCCESS 派生，跟列表数据源
  *     illust_download_table 是两张表，会出现 "1944 / 空列表" 的错位。
  */
@@ -40,6 +47,8 @@ class DownloadManagerSharedViewModel @Inject constructor(
     queueDownloadManager: QueueDownloadManager,
     // Lazy：首次计数查询（已在 IO 上）才去拿库，VM 构造仍不碰 Room。
     private val queueDao: Lazy<DownloadQueueDao>,
+    /** 同理 Lazy：只有 [refreshDoneCardCount] 才去拿库。 */
+    private val downloadDao: Lazy<DownloadDao>,
 ) : ViewModel() {
 
     data class Snapshot(
@@ -123,6 +132,21 @@ class DownloadManagerSharedViewModel @Inject constructor(
 
     fun publishDoneCardCount(count: Int) {
         _doneCardCount.value = count
+    }
+
+    /**
+     * 已完成列表只在可见时才跑，离屏时数字由下载管理页收到脏标记后调这里重算。查询走
+     * downloadTime 索引且不解析 illustGson，比列表轻得多，下载期间高频触发也负担得起。
+     * 搜索态下数字是命中数，由列表回填，这里不覆盖。
+     */
+    suspend fun refreshDoneCardCount() {
+        if (doneSearchQuery.value != null) return
+        val cards = withContext(Dispatchers.IO) {
+            runCatching {
+                downloadDao.get().countDoneCardsInWindow(Params.NOVEL_KEY, DONE_LIST_WINDOW)
+            }.getOrNull()
+        } ?: return
+        if (doneSearchQuery.value == null) _doneCardCount.value = cards
     }
 
     /**
