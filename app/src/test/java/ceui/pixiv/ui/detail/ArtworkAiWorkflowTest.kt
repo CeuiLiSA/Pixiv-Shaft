@@ -269,6 +269,94 @@ class ArtworkAiWorkflowTest {
         }
     }
 
+    private fun finishedUpscale(result: File): UpscaleTask {
+        val task = UpscaleTask(UpscaleTask.illustKey(work.id), host, File("unused"), "original")
+        (task.resultFile as MutableLiveData).value = result
+        (task.status as MutableLiveData).value = UpscaleStatus.Done
+        ReflectionHelpers.getField<MutableMap<String, UpscaleTask>>(UpscaleTaskPool, "_tasks")[task.taskKey] = task
+        IllustAiStore.getOrCreate(work.id, 0).apply {
+            upscaleStatus = UpscaleStatus.Done
+            upscaleResultPath = result.absolutePath
+            upscaleOriginalPath = "original"
+        }
+        return task
+    }
+
+    @Test fun `result seen in the viewer does not prompt again on the classic page`() {
+        val result = File.createTempFile("ai-result", ".png", host.cacheDir)
+        try {
+            val task = finishedUpscale(result)
+            IllustAiStore.getOrCreate(work.id, 0).acknowledgeResult()
+            IllustAiHelper(owner, owner.requireView()).restoreAiTasksIfRunning(work.id)
+            assertNull(shadowOf(host).nextStartedActivity)
+            assertEquals(View.GONE, owner.requireView().findViewById<View>(R.id.ai_overlay_root).visibility)
+            assertNull(UpscaleTaskPool.getTask(task.taskKey))
+        } finally {
+            result.delete()
+        }
+    }
+
+    @Test fun `unseen result still opens from the classic page`() {
+        val result = File.createTempFile("ai-result", ".png", host.cacheDir)
+        try {
+            finishedUpscale(result)
+            IllustAiHelper(owner, owner.requireView()).restoreAiTasksIfRunning(work.id)
+            assertEquals(result.absolutePath, shadowOf(host).nextStartedActivity?.getStringExtra("upscaled_path"))
+            assertFalse(IllustAiStore.getOrCreate(work.id, 0).hasUnacknowledgedResult)
+        } finally {
+            result.delete()
+        }
+    }
+
+    @Test fun `opening a result from its pill acknowledges it`() {
+        val result = File.createTempFile("ai-result", ".png", host.cacheDir)
+        try {
+            val state = IllustAiStore.getOrCreate(work.id, 0)
+            state.rembgResultPath = result.absolutePath
+            state.rembgOriginalPath = "original"
+            IllustAiHelper(owner, owner.requireView()).openRembgHighlight(state)
+            assertEquals(result.absolutePath, shadowOf(host).nextStartedActivity?.getStringExtra("rembg_path"))
+            assertFalse(state.hasUnacknowledgedResult)
+        } finally {
+            result.delete()
+        }
+    }
+
+    @Test fun `only a collapsed first page hides the result pills`() {
+        val collapsed = CollapsibleIllustAdapter(host, owner, work, 600, false)
+        val expanded = CollapsibleIllustAdapter(host, owner, work, 600, false, initiallyExpanded = true)
+        val flat = NonCollapsibleIllustAdapter(host, owner, work.copy(page_count = 2), 600, false)
+        try {
+            assertTrue(collapsed.showsExpandPill(0))
+            assertFalse(collapsed.showsExpandPill(1))
+            assertFalse(expanded.showsExpandPill(0))
+            assertFalse(flat.showsExpandPill(0))
+        } finally {
+            collapsed.release()
+            expanded.release()
+            flat.release()
+        }
+    }
+
+    @Test fun `viewer done overlay names the finished operation`() {
+        val controller = Robolectric.buildActivity(ImageDetailActivity::class.java).setup()
+        val viewer = controller.get()
+        val result = File.createTempFile("ai-result", ".png", host.cacheDir)
+        try {
+            ReflectionHelpers.setField(viewer, "mIllust", work)
+            val state = IllustAiStore.getOrCreate(work.id, 0)
+            state.rembgResultPath = result.absolutePath
+            state.rembgOriginalPath = "original"
+            ReflectionHelpers.callInstanceMethod<Void>(viewer, "syncAiOverlayForPage",
+                ReflectionHelpers.ClassParameter.from(Int::class.javaPrimitiveType, 0))
+            assertEquals(host.getString(R.string.string_ai_rembg_done),
+                viewer.findViewById<TextView>(R.id.ai_done_title).text)
+        } finally {
+            controller.pause().stop().destroy()
+            result.delete()
+        }
+    }
+
     @Test fun `late progress cannot resurrect a completed image overlay`() {
         val adapter = object : NonCollapsibleIllustAdapter(host, owner, work, 600, false) {
             override fun scanLocalDownloads() = Unit

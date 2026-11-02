@@ -1685,6 +1685,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         val overlayRoot = findViewById<View>(R.id.ai_overlay_root) ?: return
         val loadingState = findViewById<View>(R.id.ai_loading_state)
         val doneState = findViewById<View>(R.id.ai_done_state)
+        val doneTitle = findViewById<TextView>(R.id.ai_done_title)
         val viewCompare = findViewById<TextView>(R.id.ai_view_compare)
         val dismiss = findViewById<View>(R.id.ai_dismiss)
         val progressRing = findViewById<SeamlessCircularProgressIndicator>(R.id.ai_progress_ring)
@@ -1740,11 +1741,13 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
             doneState?.visibility = View.VISIBLE
             overlayRoot.alpha = 1f
             if (aiState.hasUpscaleResult) {
+                doneTitle?.setText(R.string.ai_upscaling_complete)
                 viewCompare?.text = getString(R.string.action_view_comparison)
                 viewCompare?.setOnClickListener {
                     openAiResult(aiState.upscaleResultPath, aiState.upscaleOriginalPath, true)
                 }
             } else if (aiState.hasRembgResult) {
+                doneTitle?.setText(R.string.string_ai_rembg_done)
                 viewCompare?.text = getString(R.string.string_ai_rembg)
                 viewCompare?.setOnClickListener {
                     openAiResult(aiState.rembgResultPath, aiState.rembgOriginalPath, false)

@@ -750,11 +750,11 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
             ).apply {
                 onUpscalePillClick = { pos, state ->
                     (aiHelper ?: IllustAiHelper(this@ArtworkV3Fragment, chromeBind.root))
-                        .openUpscaleComparison(state.upscaleResultPath, state.upscaleOriginalPath)
+                        .openUpscaleComparison(state)
                 }
                 onRembgPillClick = { pos, state ->
                     (aiHelper ?: IllustAiHelper(this@ArtworkV3Fragment, chromeBind.root))
-                        .openRembgHighlight(state.rembgResultPath, state.rembgOriginalPath)
+                        .openRembgHighlight(state)
                 }
             }
         // 悬浮「收起」胶囊点击 → 折叠(collapse() 触发 onExpandedChanged(false) → 收回页 + 回顶 + 藏胶囊)
@@ -781,11 +781,11 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         ).apply {
             onUpscalePillClick = { pos, state ->
                 (aiHelper ?: IllustAiHelper(this@ArtworkV3Fragment, chromeBind.root))
-                    .openUpscaleComparison(state.upscaleResultPath, state.upscaleOriginalPath)
+                    .openUpscaleComparison(state)
             }
             onRembgPillClick = { pos, state ->
                 (aiHelper ?: IllustAiHelper(this@ArtworkV3Fragment, chromeBind.root))
-                    .openRembgHighlight(state.rembgResultPath, state.rembgOriginalPath)
+                    .openRembgHighlight(state)
             }
         }
     }
@@ -1846,7 +1846,10 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
     }
 
     private fun onAiTaskCompleted(pageIndex: Int, isUpscale: Boolean) {
-        if (!isArtworkPageInViewport(pageIndex)) {
+        // 折叠态的首图不出结果胶囊，不提示的话遮罩淡出后用户看不到任务已经完成。
+        val pillHidden =
+            (pageAdapter as? ArtworkDetailIllustAdapter)?.showsExpandPill(pageIndex) == true
+        if (pillHidden || !isArtworkPageInViewport(pageIndex)) {
             val total = currentPageCount()
             val msg = if (isUpscale) {
                 if (total > 1) getString(R.string.string_ai_upscale_page_done, pageIndex + 1)

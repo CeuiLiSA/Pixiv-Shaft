@@ -587,10 +587,7 @@ internal class ArtworkTabletStage(
                     upscalePill.visibility = if (hasUpscale) View.VISIBLE else View.GONE
                     if (hasUpscale) {
                         upscalePill.setOnClickListener {
-                            fragment.aiHelper?.openUpscaleComparison(
-                                aiState?.upscaleResultPath,
-                                aiState?.upscaleOriginalPath
-                            )
+                            aiState?.let { fragment.aiHelper?.openUpscaleComparison(it) }
                         }
                         upscalePill.pressScale()
                     }
@@ -600,10 +597,7 @@ internal class ArtworkTabletStage(
                     rembgPill.visibility = if (hasRembg) View.VISIBLE else View.GONE
                     if (hasRembg) {
                         rembgPill.setOnClickListener {
-                            fragment.aiHelper?.openRembgHighlight(
-                                aiState?.rembgResultPath,
-                                aiState?.rembgOriginalPath
-                            )
+                            aiState?.let { fragment.aiHelper?.openRembgHighlight(it) }
                         }
                         rembgPill.pressScale()
                     }

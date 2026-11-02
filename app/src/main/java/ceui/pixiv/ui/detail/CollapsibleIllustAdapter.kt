@@ -80,6 +80,10 @@ open class ArtworkDetailIllustAdapter(
         }
     }
 
+    /** 折叠态的首图由「展开剩余 X 张」占位，AI 结果胶囊要展开后才出现。 */
+    internal fun showsExpandPill(position: Int): Boolean =
+        position == 0 && (this as? CollapsibleIllustAdapter)?.isCollapsed == true
+
     @SuppressLint("ClickableViewAccessibility")
     protected fun bindExpandOverlay(
         holder: ViewHolder<RecyIllustDetailBinding>,
@@ -87,7 +91,7 @@ open class ArtworkDetailIllustAdapter(
         fadeIn: Boolean,
     ) {
         val collapsible = this as? CollapsibleIllustAdapter
-        val showExpand = position == 0 && collapsible?.isCollapsed == true && collapsible.isCollapsible
+        val showExpand = showsExpandPill(position)
         val aiState = IllustAiStore.get(illust.id, position)
         val canShowAiPills = !showExpand
         val hasUpscale = canShowAiPills && aiState?.hasUpscaleResult == true

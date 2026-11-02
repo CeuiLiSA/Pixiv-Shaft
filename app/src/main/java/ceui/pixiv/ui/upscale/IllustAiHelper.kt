@@ -43,6 +43,7 @@ class IllustAiHelper(
     private val overlayRoot: View get() = rootView.findViewById(R.id.ai_overlay_root)
     private val loadingState: View get() = rootView.findViewById(R.id.ai_loading_state)
     private val doneState: View get() = rootView.findViewById(R.id.ai_done_state)
+    private val doneTitle: TextView get() = rootView.findViewById(R.id.ai_done_title)
     private val viewCompare: View get() = rootView.findViewById(R.id.ai_view_compare)
     private val dismiss: View get() = rootView.findViewById(R.id.ai_dismiss)
     private val progressRing: SeamlessCircularProgressIndicator get() = rootView.findViewById(R.id.ai_progress_ring)
@@ -54,7 +55,7 @@ class IllustAiHelper(
         val state = IllustAiStore.getOrCreate(illust.id, pageIndex)
         if (state.hasRembgResult) {
             if (onAiStateChanged == null) {
-                openRembgHighlight(state.rembgResultPath, state.rembgOriginalPath)
+                openRembgHighlight(state)
             } else {
                 Common.showToast(R.string.string_ai_rembg_already_completed)
             }
@@ -118,11 +119,13 @@ class IllustAiHelper(
 
         fun navigateToHighlight(): Boolean {
             val result = task.resultFile.value ?: return false
+            state.acknowledgeResult()
             openRembgHighlight(result.absolutePath, task.originalFilePath)
             return true
         }
 
         fun showDoneState() {
+            doneTitle.setText(R.string.string_ai_rembg_done)
             loadingState.visibility = View.GONE
             doneState.visibility = View.VISIBLE
             overlayRoot.visibility = View.VISIBLE
@@ -138,6 +141,7 @@ class IllustAiHelper(
                 }
             }
             dismiss.setOnClickListener {
+                state.acknowledgeResult()
                 overlayRoot.animate().alpha(0f).setDuration(300).withEndAction {
                     overlayRoot.visibility = View.GONE
                 }.start()
@@ -198,6 +202,10 @@ class IllustAiHelper(
                     if (onAiStateChanged != null) {
                         onAiStateChanged.invoke(pageIndex)
                         onAiTaskCompleted?.invoke(pageIndex, false)
+                    } else if (!state.hasUnacknowledgedResult) {
+                        // 这个结果已在大图页看过或关过，回到经典页不再提示第二遍。
+                        overlayRoot.visibility = View.GONE
+                        removeTaskIfCurrent(task)
                     } else {
                         if (fragment.isResumed && navigateToHighlight()) {
                             overlayRoot.animate().alpha(0f).setDuration(300).withEndAction {
@@ -246,7 +254,7 @@ class IllustAiHelper(
         val state = IllustAiStore.getOrCreate(illust.id, pageIndex)
         if (state.hasUpscaleResult) {
             if (onAiStateChanged == null) {
-                openUpscaleComparison(state.upscaleResultPath, state.upscaleOriginalPath)
+                openUpscaleComparison(state)
             } else {
                 Common.showToast(R.string.string_ai_upscale_already_completed)
             }
@@ -384,11 +392,13 @@ class IllustAiHelper(
 
         fun navigateToCompare(): Boolean {
             val result = task.resultFile.value ?: return false
+            state.acknowledgeResult()
             openUpscaleComparison(result.absolutePath, task.originalFilePath)
             return true
         }
 
         fun showDoneState() {
+            doneTitle.setText(R.string.ai_upscaling_complete)
             loadingState.visibility = View.GONE
             doneState.visibility = View.VISIBLE
             overlayRoot.visibility = View.VISIBLE
@@ -404,6 +414,7 @@ class IllustAiHelper(
                 }
             }
             dismiss.setOnClickListener {
+                state.acknowledgeResult()
                 overlayRoot.animate().alpha(0f).setDuration(300).withEndAction {
                     overlayRoot.visibility = View.GONE
                 }.start()
@@ -463,6 +474,10 @@ class IllustAiHelper(
                     if (onAiStateChanged != null) {
                         onAiStateChanged.invoke(pageIndex)
                         onAiTaskCompleted?.invoke(pageIndex, true)
+                    } else if (!state.hasUnacknowledgedResult) {
+                        // 这个结果已在大图页看过或关过，回到经典页不再提示第二遍。
+                        overlayRoot.visibility = View.GONE
+                        removeTaskIfCurrent(task)
                     } else {
                         if (fragment.isResumed && navigateToCompare()) {
                             overlayRoot.animate().alpha(0f).setDuration(300).withEndAction {
@@ -516,6 +531,17 @@ class IllustAiHelper(
                 etaText.text = if (etaSec > 0) context.getString(R.string.string_ai_task_eta_seconds, etaSec) else ""
             }
         }
+    }
+
+    /** 看过的结果要记下来，否则进大图页还会弹一遍全屏的完成遮罩。 */
+    fun openUpscaleComparison(state: PageAiState) {
+        state.acknowledgeResult()
+        openUpscaleComparison(state.upscaleResultPath, state.upscaleOriginalPath)
+    }
+
+    fun openRembgHighlight(state: PageAiState) {
+        state.acknowledgeResult()
+        openRembgHighlight(state.rembgResultPath, state.rembgOriginalPath)
     }
 
     fun openUpscaleComparison(upscaledPath: String?, originalPath: String?) {
