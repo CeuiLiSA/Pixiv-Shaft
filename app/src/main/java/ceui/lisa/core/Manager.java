@@ -1331,7 +1331,7 @@ public class Manager {
                 }
                 try {
                     downloadEntity = new DownloadEntity();
-                    downloadEntity.setIllustGson(Shaft.sGson.toJson(downloadItem.getIllust()));
+                    downloadEntity.setIllustGson(ceui.pixiv.download.model.DownloadRecordSlim.createIllustJson(downloadItem.getIllust()));
                     downloadEntity.setFileName(downloadItem.getName());
                     downloadEntity.setDownloadTime(System.currentTimeMillis());
                     downloadEntity.setFilePath(factory.getFileUri().toString());

@@ -8,6 +8,7 @@ import ceui.lisa.R
 import ceui.pixiv.api.model.Illust
 import ceui.pixiv.download.DownloadsRegistry
 import ceui.pixiv.download.model.Bucket
+import ceui.pixiv.download.model.DownloadRecordSlim
 import ceui.pixiv.download.model.RelativePath
 import com.hjq.toast.Toaster
 import ceui.pixiv.witstudio.dialog.WitDialog
@@ -182,23 +183,7 @@ internal object DownloadExportLinks {
 
 /**
  * 单个 illust → 它的 N 个 original 直链。
- *
- * pixiv API 的两套互斥结构：
- *  - 多 P：[Illust.meta_pages] 非空，每项的 `image_urls.original` 是直链
- *  - 单 P：[Illust.meta_single_page].original_image_url 是直链
- *
- * 历史数据 / 老 API 偶尔出现两边都空但 [Illust.image_urls].original 有
- * 值的情况，作为 fallback 不丢导出。空字符串过滤掉。
- *
- * 调用方应该在 IO 线程内调用——遍历几千个 Illust 主线程会卡帧。
+ * 委托至 [DownloadRecordSlim.resolveOriginalUrls] 处理，支持基于“/”目录级的公共路径还原。
  */
-internal fun originalUrlsOf(illust: Illust): List<String> {
-    val pages = illust.meta_pages
-    if (!pages.isNullOrEmpty()) {
-        return pages.mapNotNull { it.image_urls?.original?.takeIf(String::isNotEmpty) }
-    }
-    val single = illust.meta_single_page?.original_image_url
-    if (!single.isNullOrEmpty()) return listOf(single)
-    val fallback = illust.image_urls?.original
-    return if (!fallback.isNullOrEmpty()) listOf(fallback) else emptyList()
-}
+internal fun originalUrlsOf(illust: Illust): List<String> =
+    DownloadRecordSlim.resolveOriginalUrls(illust)

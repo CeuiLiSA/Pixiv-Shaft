@@ -7,7 +7,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
+import android.os.CancellationSignal;
 import android.os.Environment;
+import android.os.OperationCanceledException;
+import timber.log.Timber;
 import android.provider.DocumentsContract;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
@@ -71,6 +74,8 @@ public class FragmentSettingsData extends SettingsPageFragment<FragmentSettingsD
      * 一起空白，只能重启恢复。
      */
     private boolean bulkWipeRunning;
+    private CancellationSignal bulkSizeSignal;
+    private CancellationSignal manageDialogSignal;
 
     @Override
     public void initLayout() {
@@ -212,7 +217,7 @@ public class FragmentSettingsData extends SettingsPageFragment<FragmentSettingsD
         // 加这一行让用户能把"下载管理"reset 回初始状态。落盘的图不会被删,
         // 已下载的内容仍能在系统相册看到。
         loadBulkDownloadCacheSizeAsync(baseBind.bulkDownloadCacheSize);
-        baseBind.clearBulkDownloadCache.setOnClickListener(v -> onClearBulkDownloadClicked());
+        baseBind.clearBulkDownloadCache.setOnClickListener(v -> showManageBulkDownloadDialog());
 
         // 图片缓存「预期上限」（issue #1120）。只写设置：Glide 的 maxSize 只在初始化时读一次，
         // 改完必须重启 App 才生效（与图片加速代理同款限制），所以提示重启而不是「设置成功」。
@@ -489,18 +494,28 @@ public class FragmentSettingsData extends SettingsPageFragment<FragmentSettingsD
      * 大表 (Mio 用户 50k 行) 仍是毫秒级。
      */
     private void loadBulkDownloadCacheSizeAsync(TextView target) {
+        if (target == null) return;
+        if (bulkSizeSignal != null) {
+            bulkSizeSignal.cancel();
+        }
+        bulkSizeSignal = new CancellationSignal();
+        final CancellationSignal signal = bulkSizeSignal;
         target.setText("…");
         new Thread(() -> {
             long bytes;
             try {
                 bytes = ceui.pixiv.db.bulkclean.BulkDownloadCacheCleaner
-                        .computeReclaimableBytes(mContext.getApplicationContext());
+                        .computeReclaimableBytes(mContext.getApplicationContext(), signal);
+            } catch (OperationCanceledException ignored) {
+                return;
             } catch (Throwable t) {
+                if (signal.isCanceled()) return;
                 bytes = 0L;
             }
+            if (signal.isCanceled()) return;
             final String size = android.text.format.Formatter.formatShortFileSize(mContext, bytes);
             target.post(() -> {
-                if (isAdded()) {
+                if (isAdded() && !signal.isCanceled()) {
                     target.setText(size);
                 }
             });
@@ -508,43 +523,121 @@ public class FragmentSettingsData extends SettingsPageFragment<FragmentSettingsD
     }
 
     /**
-     * 跟 DoneListV3Fragment.showClearDoneConfirmDialog 一样的 destructive 二次确认 ——
-     * 文案明确说"已下好的图不会被删",避免用户因恐慌而不敢清理。
+     * 打开「管理下载关联数据」弹窗：先在后台快速统计下载记录条数/体积、队列残留和 stage 大小，
+     * 然后以 WitDialog 展示存储概览，供用户选择「深度瘦身（推荐）」或「清空全部」。
      */
-    /**
-     * 「清除批量下载关联数据」的入口。两道闸，都在真正动库之前：
-     *
-     * 1. **批量队列非空 → 直接 toast 挡掉**，不弹确认框。清理会打断下载，而下载中的写入
-     *    正是最容易和清理抢锁的东西；用户以为在「清缓存」，实际是在拆正在跑的队列。
-     * 2. 已经有一次清理在跑 → 忽略（[bulkWipeRunning]）。旧实现没有这道闸，连点几次会叠出
-     *    多条 wipe 线程，把库连接池锁死。
-     *
-     * 队列计数要查库（`countActive` 是 suspend），先甩到 IO 线程，回主线程再决定弹哪个。
-     * 走 status 索引，GB 级库上也是毫秒级。
-     */
-    private void onClearBulkDownloadClicked() {
+    private void showManageBulkDownloadDialog() {
         if (getActivity() == null || getActivity().isFinishing() || getActivity().isDestroyed()) return;
         if (bulkWipeRunning) return;
-        final android.content.Context appCtx = mContext.getApplicationContext();
-        final android.os.Handler main = new android.os.Handler(android.os.Looper.getMainLooper());
+        if (manageDialogSignal != null) {
+            manageDialogSignal.cancel();
+        }
+        manageDialogSignal = new CancellationSignal();
+        final CancellationSignal signal = manageDialogSignal;
+        final Context context = getActivity();
         new Thread(() -> {
-            final int active =
-                    ceui.pixiv.db.bulkclean.BulkDownloadCacheCleaner.activeQueueCount(appCtx);
-            main.post(() -> {
-                if (!isAdded() || baseBind == null) return;
-                if (active > 0) {
-                    Common.showToast(getString(R.string.clear_bulk_download_cache_queue_not_empty), 2);
-                    return;
-                }
-                showClearBulkDownloadConfirmDialog();
+            final ceui.pixiv.db.bulkclean.BulkDownloadCacheCleaner.StorageStats stats;
+            final int active;
+            try {
+                stats = ceui.pixiv.db.bulkclean.BulkDownloadCacheCleaner
+                        .computeStorageStats(context.getApplicationContext(), signal);
+                active = ceui.pixiv.db.bulkclean.BulkDownloadCacheCleaner
+                        .activeQueueCount(context.getApplicationContext(), signal);
+            } catch (OperationCanceledException ignored) {
+                return;
+            } catch (Throwable t) {
+                if (signal.isCanceled()) return;
+                Timber.e(t, "showManageBulkDownloadDialog stats failed");
+                return;
+            }
+            if (signal.isCanceled()) return;
+            if (getActivity() == null || getActivity().isFinishing() || getActivity().isDestroyed()) return;
+            getActivity().runOnUiThread(() -> {
+                if (!isAdded() || signal.isCanceled()) return;
+                showManageBulkDownloadDialogWithStats(stats, active);
             });
-        }, "bulk-dl-check").start();
+        }, "bulk-dl-stats").start();
+    }
+
+    private void showManageBulkDownloadDialogWithStats(ceui.pixiv.db.bulkclean.BulkDownloadCacheCleaner.StorageStats stats, int active) {
+        if (getActivity() == null || getActivity().isFinishing() || getActivity().isDestroyed()) return;
+        String recordsSize = android.text.format.Formatter.formatShortFileSize(mContext, stats.getDownloadRecordsBytes());
+        String queueSize = android.text.format.Formatter.formatShortFileSize(mContext, stats.getQueuePayloadBytes());
+        String stagingSize = android.text.format.Formatter.formatShortFileSize(mContext, stats.getStagingBytes());
+        String message = getString(R.string.download_cache_manage_message,
+                stats.getDownloadRecordsCount(), recordsSize,
+                stats.getQueueSuccessCount(), queueSize,
+                stagingSize);
+
+        new WitDialog.MessageDialogBuilder(getActivity())
+                .setTitle(R.string.manage_download_cache_dialog_title)
+                .setMessage(message)
+                .addAction(R.string.cancel, (d, idx) -> d.dismiss())
+                .addAction(0, R.string.download_cache_action_wipe, WitDialogAction.ACTION_PROP_NEGATIVE, (d, idx) -> {
+                    d.dismiss();
+                    if (active > 0) {
+                        Common.showToast(getString(R.string.clear_bulk_download_cache_queue_not_empty), 2);
+                        return;
+                    }
+                    showClearBulkDownloadConfirmDialog();
+                })
+                .addAction(0, R.string.download_cache_action_slim, WitDialogAction.ACTION_PROP_POSITIVE, (d, idx) -> {
+                    d.dismiss();
+                    if (active > 0) {
+                        Common.showToast(getString(R.string.clear_bulk_download_cache_queue_not_empty), 2);
+                        return;
+                    }
+                    runBulkDownloadCacheDeepSlim();
+                })
+                .create()
+                .show();
+    }
+
+    /**
+     * 执行深度瘦身：清理无用字段与队列残留载荷，流式压缩历史多页与冗余 JSON，并执行 VACUUM 回收磁盘物理碎片。
+     */
+    private void runBulkDownloadCacheDeepSlim() {
+        if (bulkWipeRunning) return;
+        if (getActivity() == null || getActivity().isFinishing() || getActivity().isDestroyed()) return;
+        bulkWipeRunning = true;
+
+        final android.content.Context appCtx = mContext.getApplicationContext();
+        final ceui.pixiv.witstudio.dialog.WitTipDialog progress =
+                new ceui.pixiv.witstudio.dialog.WitTipDialog.Builder(getActivity())
+                        .setTipWord(getString(R.string.download_cache_slim_progress))
+                        .create(false);
+        progress.show();
+
+        final android.os.Handler main = new android.os.Handler(android.os.Looper.getMainLooper());
+
+        new Thread(() -> {
+            ceui.pixiv.db.bulkclean.BulkDownloadCacheCleaner.SlimResult result = null;
+            try {
+                result = ceui.pixiv.db.bulkclean.BulkDownloadCacheCleaner.deepSlim(appCtx);
+            } catch (Throwable t) {
+                android.util.Log.w("FragmentSettingsData", "bulk download deep slim failed", t);
+            }
+            final ceui.pixiv.db.bulkclean.BulkDownloadCacheCleaner.SlimResult finalResult = result;
+            main.post(() -> {
+                bulkWipeRunning = false;
+                try { progress.dismiss(); } catch (Throwable ignored) {}
+                if (isAdded() && baseBind != null) {
+                    if (finalResult != null && finalResult.getComplete()) {
+                        String savedStr = android.text.format.Formatter.formatShortFileSize(mContext, finalResult.getBytesSaved());
+                        Common.showToast(getString(R.string.download_cache_slim_success, finalResult.getRowsSlimmed(), savedStr));
+                    } else {
+                        Common.showToast(getString(R.string.clear_bulk_download_cache_failed), 2);
+                    }
+                    loadBulkDownloadCacheSizeAsync(baseBind.bulkDownloadCacheSize);
+                }
+            });
+        }, "bulk-dl-slim").start();
     }
 
     private void showClearBulkDownloadConfirmDialog() {
         if (getActivity() == null || getActivity().isFinishing() || getActivity().isDestroyed()) return;
         new WitDialog.MessageDialogBuilder(getActivity())
-                .setTitle(R.string.clear_bulk_download_cache)
+                .setTitle(R.string.download_cache_action_wipe)
                 .setMessage(R.string.clear_bulk_download_cache_message)
                 .addAction(R.string.cancel, (d, idx) -> d.dismiss())
                 .addAction(0, R.string.sure, WitDialogAction.ACTION_PROP_NEGATIVE, (d, idx) -> {
@@ -557,10 +650,6 @@ public class FragmentSettingsData extends SettingsPageFragment<FragmentSettingsD
 
     /**
      * 真正执行 wipe。
-     *
-     * 弹的是**阻塞**加载环（不可取消、点外面也关不掉），并且**只在库侧真的清完了**才关掉、
-     * 才弹成功。旧实现无论成败都 dismiss + 弹「已清除」—— DELETE/VACUUM 失败时用户看到的
-     * 就是「点了没反应，还说成功了」。
      */
     private void runBulkDownloadCacheWipe() {
         if (bulkWipeRunning) return;
@@ -568,16 +657,12 @@ public class FragmentSettingsData extends SettingsPageFragment<FragmentSettingsD
         bulkWipeRunning = true;
 
         final android.content.Context appCtx = mContext.getApplicationContext();
-        // create(false) = 不可取消 + 点外面不关；加载环本身由 WitTipDialog 的 ProgressBar 提供。
         final ceui.pixiv.witstudio.dialog.WitTipDialog progress =
                 new ceui.pixiv.witstudio.dialog.WitTipDialog.Builder(getActivity())
                         .setTipWord(getString(R.string.clear_bulk_download_cache_progress))
                         .create(false);
         progress.show();
 
-        // 用 Main looper 的 Handler 而不是绑某个 View 的 post —— 旋屏时 baseBind 会被
-        // DataBinding 重建,绑 view 的 post 可能根本不跑,留下孤儿 progress dialog
-        // 抓着旧 activity 触发 WindowLeaked。Handler 是 activity-agnostic,稳。
         final android.os.Handler main = new android.os.Handler(android.os.Looper.getMainLooper());
 
         new Thread(() -> {
@@ -591,14 +676,11 @@ public class FragmentSettingsData extends SettingsPageFragment<FragmentSettingsD
             final boolean success = cleaned;
             main.post(() -> {
                 bulkWipeRunning = false;
-                // 先无条件 dismiss —— 即使 fragment 已被销毁,旧 activity 上挂着的
-                // 这个 dialog 也必须解掉,否则 WindowLeaked。
                 try { progress.dismiss(); } catch (Throwable ignored) {}
                 if (!isAdded() || baseBind == null) return;
                 Common.showToast(getString(success
                         ? R.string.success_clear_bulk_download_cache
                         : R.string.clear_bulk_download_cache_failed), 2);
-                // 成败都重算一次：失败时用户也该看到真实剩余量，而不是旧数字。
                 loadBulkDownloadCacheSizeAsync(baseBind.bulkDownloadCacheSize);
             });
         }, "bulk-dl-wipe").start();
@@ -651,6 +733,29 @@ public class FragmentSettingsData extends SettingsPageFragment<FragmentSettingsD
                 }
             });
             return content;
+        }
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        cancelStorageStatsTasks();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        cancelStorageStatsTasks();
+    }
+
+    private void cancelStorageStatsTasks() {
+        if (bulkSizeSignal != null) {
+            bulkSizeSignal.cancel();
+            bulkSizeSignal = null;
+        }
+        if (manageDialogSignal != null) {
+            manageDialogSignal.cancel();
+            manageDialogSignal = null;
         }
     }
 }

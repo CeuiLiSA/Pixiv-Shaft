@@ -252,7 +252,7 @@ public interface DownloadDao {
      * 给 BulkDownloadCacheCleaner 估"清出来多少字节"用 —— 单 illustGson 列就是占用大头,
      * 元数据/index 不算在用户感知的"瘦身额度"里。
      */
-    @Query("SELECT IFNULL(SUM(LENGTH(illustGson)), 0) FROM illust_download_table")
+    @Query("SELECT IFNULL(SUM(LENGTH(CAST(illustGson AS BLOB))), 0) FROM illust_download_table")
     long sumIllustGsonBytes();
 
     /** 分批删，理由同 {@link #deleteAllDownload()}（taskGson 单行 ~80KB）。 */

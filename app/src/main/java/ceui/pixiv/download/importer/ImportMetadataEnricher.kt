@@ -77,7 +77,7 @@ object ImportMetadataEnricher {
                     failed++
                     emit(FetchEvent.Warning("illust=$illustId 拉取失败，跳过"))
                 } else {
-                    val json = Shaft.sGson.toJson(illust)
+                    val json = ceui.pixiv.download.model.DownloadRecordSlim.createIllustJson(illust)
                     runCatching { dao.updateIllustGsonByIllustId(illustId, json) }
                         .onFailure { Timber.tag(TAG).w(it, "写回 illustGson 失败 id=%d", illustId) }
                     done++

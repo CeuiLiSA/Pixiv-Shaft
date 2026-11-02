@@ -1052,7 +1052,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                 // 与 Manager 成功分支一致地写库(fileName 用 FileCreator=模板命名,filePath 用写盘 uri)。
                 val entity =
                     DownloadEntity().apply {
-                        illustGson = Shaft.sGson.toJson(illust)
+                        illustGson = ceui.pixiv.download.model.DownloadRecordSlim.createIllustJson(illust)
                         fileName = FileCreator.customFileName(illust, page)
                         downloadTime = System.currentTimeMillis()
                         filePath = handle.uri.toString()

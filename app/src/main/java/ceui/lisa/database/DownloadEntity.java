@@ -23,6 +23,10 @@ public final class DownloadEntity implements Serializable {
     @NonNull
     private String fileName = "";
     private String filePath = "";
+    /**
+     * @deprecated 历史遗留字段，已废弃。新记录不再写入与读取，深度瘦身时会被清空为 NULL 释放空间。
+     */
+    @Deprecated
     private String taskGson;
     private String illustGson;
     private long downloadTime;
@@ -85,10 +89,12 @@ public final class DownloadEntity implements Serializable {
                 '}';
     }
 
+    @Deprecated
     public String getTaskGson() {
         return taskGson;
     }
 
+    @Deprecated
     public void setTaskGson(String taskGson) {
         this.taskGson = taskGson;
     }
