@@ -3,7 +3,6 @@ package ceui.pixiv.ui.novel.reader.export
 import android.content.Context
 import android.net.Uri
 import ceui.lisa.activities.Shaft
-import ceui.lisa.core.DoneCardCounter
 import ceui.lisa.core.ManagerReactive
 import ceui.lisa.database.AppDatabase
 import ceui.lisa.database.DownloadEntity
@@ -144,9 +143,7 @@ object NovelExportManager {
                 filePath = uri.toString()
                 illustGson = Shaft.sGson.toJson(novel)
             }
-            DoneCardCounter.onRowInserted(
-                AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao().insertDownload(entity),
-            )
+            AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao().insertDownload(entity)
             ManagerReactive.pokeDoneTable()
         }.onFailure { Timber.e(it, "recordDownload failed for novel $id") }
     }

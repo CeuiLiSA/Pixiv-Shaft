@@ -1340,11 +1340,7 @@ public class Manager {
                     // v41 的 page 列：DownloadItem.index 就是 0 基页码。让「已存在则跳过」和
                     // 详情页复用本地文件能按 (illustId, page) 查，不依赖文件叫什么名字。
                     downloadEntity.setPage(downloadItem.getIndex());
-                    // 返回值 = 这次落盘是否新增了一张已完成卡片，交给 DoneCardCounter 增量维护
-                    // tab 上的作品数。并发 5 时这里会被 5 条线程同时进来，计数器内部是 CAS 自增。
-                    final boolean newDoneCard = AppDatabase.getAppDatabase(Shaft.getContext())
-                            .downloadDao().insertDownload(downloadEntity);
-                    DoneCardCounter.onRowInserted(newDoneCard);
+                    AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao().insertDownload(downloadEntity);
                     Common.showLog("[DL-CACHE] db inserted DownloadEntity fileName=" + downloadEntity.getFileName()
                             + " filePath=" + downloadEntity.getFilePath());
                     ManagerReactive.pokeDoneTable();

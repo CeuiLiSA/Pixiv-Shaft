@@ -2,7 +2,6 @@ package ceui.pixiv.db.bulkclean
 
 import android.content.Context
 import androidx.annotation.WorkerThread
-import ceui.lisa.core.DoneCardCounter
 import ceui.lisa.core.Manager
 import ceui.lisa.core.ManagerReactive
 import ceui.lisa.database.AppDatabase
@@ -108,9 +107,6 @@ object BulkDownloadCacheCleaner {
 
         // 5) 通知 UI —— 已完成 / 队列 tab 当前打开着的话立刻翻到空状态
         runCatching { ManagerReactive.pokeDoneTable() }
-        // tab 上的作品数是增量维护的，这里把整张表清了它看不见 —— 标脏，下次进下载管理页
-        // 时对账一次（见 DoneCardCounter.markStale）。
-        runCatching { DoneCardCounter.markStale() }
         runCatching { queue.queueListInvalidations.tryEmit(Unit) }
 
         Timber.tag(TAG).i("wipe() done")

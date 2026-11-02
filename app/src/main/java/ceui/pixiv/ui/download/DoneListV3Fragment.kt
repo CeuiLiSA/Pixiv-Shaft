@@ -28,7 +28,6 @@ import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.activities.UActivity
 import ceui.lisa.activities.VActivity
 import ceui.lisa.core.Container
-import ceui.lisa.core.DoneCardCounter
 import ceui.lisa.core.ManagerReactive
 import ceui.lisa.core.PageData
 import ceui.lisa.database.AppDatabase
@@ -167,13 +166,10 @@ class DoneListV3Fragment : Fragment() {
         // 搜索模式：host toolbar 的 SearchView 输入会写到
         // sharedVm.doneSearchQuery（null=未进入搜索；""=已展开未输；非空=查询词）。
         // 切到搜索分支时数据源换成 dao.searchDownloads(query)。
-        // RESUMED 而不是 STARTED：ViewPager2 把离屏 tab 停在 STARTED，用 STARTED 的话
-        // 用户只要访问过一次已完成 tab，它就会在后台一直重查 —— 而单次重查是「全表排序
-        // + 600 次 illustGson 反序列化」，并发 5 下载时 poke 约 400ms 一次，追不上，
-        // 库连接被长期占用，连累批量队列 / 占用统计 / 下拉刷新一起拿不到连接。
         //
-        // 改成 RESUMED 后只有切到这个 tab 才翻表。代价是「tab 标题上的作品数」不能再靠
-        // 这里算 —— 那个数字改由 DoneCardCounter 在写库时增量维护，见该类的注释。
+        // RESUMED 而不是 STARTED：ViewPager2 把离屏 tab 停在 STARTED，用 STARTED 的话用户
+        // 只要访问过一次已完成 tab，下载期间它就一直在后台重查。离屏时 tab 上的数字由
+        // DownloadManagerSharedViewModel.refreshDoneCardCount 维护。
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.RESUMED) {
                 runDoneListFlow(empty)
@@ -227,18 +223,7 @@ class DoneListV3Fragment : Fragment() {
                 // tab 标题数字回填:数字必须 = 实际可见卡片数,否则会出现 "已完成
                 // 1944 / 列表却为空" 这种数据源错位(参考 DownloadManagerSharedViewModel.doneCardCount)。
                 // 搜索中也回填，让 tab 显示当前过滤命中数。
-                //
-                // 第二个参数是「这次加载到了多少行」，用来判断 600 行窗口满没满 —— 满了以后
-                // 写库时的增量会冻结（没有 downloadTime 索引就判断不出窗口滑动挤掉了哪张卡，
-                // 见 DoneCardCounter）。pageCount 是每组包含的行数，求和恰好是 rows.size，
-                // 不用为此多查一次库。
-                if (sharedVm.doneSearchQuery.value == null) {
-                    sharedVm.reconcileDoneCardCount(groups.size, groups.sumOf { it.pageCount })
-                } else {
-                    // 搜索态：数字是命中数，且行数也只是命中行数，不能拿去判断 600 行窗口
-                    // 满没满 —— 所以只改数字，不动计数器里的行数。
-                    sharedVm.publishDoneCardCount(groups.size)
-                }
+                sharedVm.publishDoneCardCount(groups.size)
             }
     }
 
@@ -369,8 +354,7 @@ class DoneListV3Fragment : Fragment() {
     }
 
     companion object {
-        /** 一次取多点；分组后实际卡片数会少。与 DoneCardCounter.WINDOW 同一个数，不能各写一份。 */
-        private const val PAGE_SIZE = DoneCardCounter.WINDOW
+        private const val PAGE_SIZE = DONE_LIST_WINDOW   // 一次取多点；分组后实际卡片数会少
         /** 导出时一次拉的硬上限 —— 5w 行 ≈ 2MB 文本，正常用户都装不了这么多 */
         private const val EXPORT_HARD_CAP = 50000
     }

@@ -40,7 +40,7 @@ object ServicesModule {
     @Provides
     fun downloadQueueDao(db: AppDatabase): DownloadQueueDao = db.downloadQueueDao()
 
-    /** 已完成 tab 的作品数对账要查 illust_download_table（见 DoneCardCounter）。 */
+    /** 已完成 tab 的作品数要查 illust_download_table。 */
     @Provides
     fun downloadDao(db: AppDatabase): DownloadDao = db.downloadDao()
 

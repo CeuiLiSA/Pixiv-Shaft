@@ -37,6 +37,7 @@ import com.google.android.material.tabs.TabLayoutMediator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -241,12 +242,16 @@ class DownloadManagerV3Fragment : Fragment() {
                 }
             }
         }
-        // tab 2 数字独立 collect:数字 = 前 600 行折成的卡片数,跟列表同源同口径。
-        // 已完成列表现在只在 RESUMED 跑,用户没点进去就没人算数字 —— 所以进页面时先对一次账
-        // （只读 fileName + illustId，不搬 illustGson blob），之后靠写库时的增量维持。
+        // tab 2 数字独立 collect:数据源是 DoneListV3Fragment 回填的分组卡片数,
+        // 跟列表用同一份数据,杜绝 "1944 / 空列表" 那种错位。
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                sharedVm.refreshDoneCardCount()
+                // 已完成列表离屏时不跑，数字靠这里跟着脏标记重算；replay=1 让进页面时立刻有值。
+                launch {
+                    ManagerReactive.doneTableInvalidations.collectLatest {
+                        sharedVm.refreshDoneCardCount()
+                    }
+                }
                 sharedVm.doneCardCount.collect { setTabCount(2, it) }
             }
         }

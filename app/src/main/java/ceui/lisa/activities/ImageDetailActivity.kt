@@ -20,7 +20,6 @@ import androidx.fragment.app.FragmentPagerAdapter
 import androidx.lifecycle.lifecycleScope
 import androidx.viewpager.widget.ViewPager
 import ceui.lisa.R
-import ceui.lisa.core.DoneCardCounter
 import ceui.lisa.core.ManagerReactive
 import ceui.lisa.core.JavaAsync
 import ceui.lisa.database.AppDatabase
