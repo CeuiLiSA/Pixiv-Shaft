@@ -334,7 +334,7 @@
                 android:paddingTop="8dp"
                 android:paddingEnd="18dp"
                 android:text="@string/search_filter_v3_potential_violation_hint"
-                android:textColor="@color/v3_text_3"
+                android:textColor="@color/v3_text_2"
                 android:textSize="12sp" />
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>

@@ -78,9 +78,10 @@ class SearchFilterV3BottomSheet : V3BottomSheetBase() {
     private fun updateFilter(transform: (SearchFilterV3) -> SearchFilterV3) {
         val store = if (isNovel) searchViewModel.novelFilter else searchViewModel.illustFilter
         val next = transform(currentFilter())
-        store.value = next
         // 「AI 作品」「过滤已收藏」「可能妨碍搜索的作品」是**搜索页级**条件（两个 tab 共用同一份
         // SearchModel 会话态），这里镜像给另一份 filter，保证两个 tab 的 sheet 显示与实际搜索一致。
+        // 镜像必须先写：两份 filter 的 observer 都会把整份条件写进 SearchModel，当前 tab 要留到
+        // 最后，否则不点「搜索」直接关面板时，下拉刷新会用上另一个 tab 的排序等条件。
         val other = if (isNovel) searchViewModel.illustFilter else searchViewModel.novelFilter
         other.value?.let { o ->
             if (o.aiMode != next.aiMode || o.aiModePersist != next.aiModePersist
@@ -98,6 +99,7 @@ class SearchFilterV3BottomSheet : V3BottomSheetBase() {
                 )
             }
         }
+        store.value = next
         renderRows()
     }
 
