@@ -49,17 +49,55 @@
                 tools:text="3P"
                 tools:visibility="visible" />
 
-            <ImageView
-                android:id="@+id/delete_item"
-                android:layout_width="30dp"
-                android:layout_height="30dp"
+            <!-- 右下角操作行：快照标记 + 删除钮。
+                 快照标记只在「这件作品本地有离线快照」时出现，点开直接进离线详情页；
+                 删除钮在选择态隐藏（见 HistorySelectBadge.bindSelection），快照标记跟着一起藏 ——
+                 多选是「挑出来删」的态，不该留着别的可点控件。
+                 8dp 外边距挂在这一行上，删除钮的位置与改造前逐像素一致。 -->
+            <com.google.android.flexbox.FlexboxLayout
+                android:id="@+id/card_action_row"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:layout_gravity="bottom|end"
                 android:layout_margin="8dp"
-                android:background="@drawable/v3_nav_btn_bg"
-                android:contentDescription="@null"
-                android:padding="6dp"
-                android:src="@drawable/ic_delete_black_24dp"
-                app:tint="#CCFFFFFF" />
+                app:alignItems="flex_end"
+                app:justifyContent="flex_end"
+                app:flexWrap="wrap">
+
+                <!-- 可见底座与删除钮保持 30dp；透明上/左沿扩到 48dp 热区，
+                     窄列由 Flexbox 换行，两个操作都保留在卡片内。 -->
+                <FrameLayout
+                    android:id="@+id/snapshot_button"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_marginEnd="4dp"
+                    android:contentDescription="@string/snapshot_downloaded_label"
+                    android:focusable="true"
+                    android:visibility="gone"
+                    app:layout_flexShrink="0">
+
+                    <ImageView
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:layout_gravity="bottom|end"
+                        android:background="@drawable/v3_nav_btn_bg"
+                        android:importantForAccessibility="no"
+                        android:padding="4dp"
+                        android:src="@drawable/ic_snapshot_24"
+                        app:tint="#CCFFFFFF" />
+                </FrameLayout>
+
+                <ImageView
+                    android:id="@+id/delete_item"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:background="@drawable/v3_nav_btn_bg"
+                    android:contentDescription="@null"
+                    android:padding="6dp"
+                    android:src="@drawable/ic_delete_black_24dp"
+                    app:layout_flexShrink="0"
+                    app:tint="#CCFFFFFF" />
+            </com.google.android.flexbox.FlexboxLayout>
 
             <!-- 多选勾标:仅选择态显示(HistorySelectBadge 切实心/空心)。 -->
             <ImageView

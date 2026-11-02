@@ -47,6 +47,9 @@ enum class DownloadToastKind(
     /** 空间不足，下载被自动暂停。 */
     LOW_STORAGE_PAUSED(R.string.download_toast_low_storage_paused, Group.IMAGE),
 
+    /** 批量队列的消费循环意外停止，队列被自动暂停（见 QueueDownloadManager.onLoopFinished）。 */
+    QUEUE_CONSUMER_DIED(R.string.download_toast_queue_stopped, Group.IMAGE),
+
     /** 批量入队：发起 / 完成 / 失败 / 空 / 截断。 */
     BULK_ENQUEUE(R.string.download_toast_bulk_enqueue, Group.IMAGE),
 

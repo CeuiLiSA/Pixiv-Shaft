@@ -29,6 +29,7 @@ import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.FeedRenderer
 import ceui.pixiv.feeds.FeedSkeletonView
 import ceui.pixiv.feeds.FeedViewModel
+import ceui.pixiv.snapshot.SnapshotIndex
 import ceui.pixiv.utils.pinHostGlide
 import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestManager
@@ -151,6 +152,26 @@ abstract class IllustFeedFragment(
      */
     internal var boundHideLikeButton: Boolean? = null
 
+    /**
+     * 【调试】失效作品模拟在本页是否生效。默认关；只有两个收藏页（[ceui.pixiv.ui.collection.LikeIllustFeedFragment]
+     * 与 [ceui.pixiv.ui.library.BookmarkLibraryFragment]）覆写成
+     * [ceui.pixiv.ui.debug.DebugInvalidWorks.enabled]，也就是试验性页里那行 debug 开关。
+     *
+     * 开关打开时，卡片渲染器会把「本地有离线快照的作品」画成失效作品的样子（占位图封面、无角标），
+     * 用来验「失效作品卡仍显示快照标记」这条路径。这里的「失效」指服务端不给看的三种状态 ——
+     * 非公开 / 限定 / 无法显示（见 [Illust.isUnavailable]），它们全靠服务端下发 `visible=false`
+     * 才会出现，本地没法随时造。
+     */
+    internal open val fakeInvalidWorksEnabled: Boolean
+        get() = false
+
+    /**
+     * 卡片最近一次绑定时 [fakeInvalidWorksEnabled] 的取值（null = 还没绑过），由渲染器在绑定处回写。
+     * 与 [boundHideLikeButton] 同理：开关在独立 Activity 的设置页里改，回来时屏上已绑好的卡不会自己重绑，
+     * 而这次的差别是「画法」变了（图 / 角标 / 高度），局部重绑不够，必须整表全量重绑。
+     */
+    internal var boundFakeInvalidWorks: Boolean? = null
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         // 必须在 super 之前：基类 onViewCreated 里就会建 renderer / LayoutManager
         illustListLayout = IllustListLayout.current()
@@ -168,6 +189,7 @@ abstract class IllustFeedFragment(
         IllustFeedPoolSync(syncViewModel, ::poolableBeansOf)
             .bind(viewLifecycleOwner, feedViewModel.uiState)
         observeMuteRevision()
+        observeSnapshotRevision()
     }
 
     override fun onResume() {
@@ -180,6 +202,11 @@ abstract class IllustFeedFragment(
         val bound = boundHideLikeButton
         if (bound != null && bound != hideLikeButton) {
             rebindAllIllustCards(PAYLOAD_ILLUST_LIKE_VISIBILITY_CHANGED)
+        }
+        val boundFake = boundFakeInvalidWorks
+        if (boundFake != null && boundFake != fakeInvalidWorksEnabled) {
+            // 失效作品模拟开关变了：图、角标、高度全要重算，只能全量重绑（不带 payload）
+            rebindAllIllustCards()
         }
     }
 
@@ -306,6 +333,9 @@ abstract class IllustFeedFragment(
     /** 本页卡片上一次渲染时的 [IllustMuteStore.revision]，见 [observeMuteRevision]。 */
     private var lastMuteRevision = IllustMuteStore.revision
 
+    /** 本页卡片上一次渲染时的 [SnapshotIndex.revision]，见 [observeSnapshotRevision]。 */
+    private var lastSnapshotRevision = SnapshotIndex.revision
+
     /**
      * 开关某条作品的屏蔽：写 [IllustMuteStore]（内存当帧生效、Room 的 `tag_mute_table` 异步落地，
      * 于是「屏蔽记录」页里能看到这一条），再让屏上那张卡当帧换成模糊图 + 粒子（或还原）。
@@ -369,6 +399,24 @@ abstract class IllustFeedFragment(
     }
 
     /**
+     * 订阅快照索引的版本号，变了就给本页所有插画卡补一次「快照标记」重绑。
+     *
+     * 两件事都由它兜住：索引**刚扫完**（首屏那几张卡绑定时 Map 还是空的，标记晚一步出现），
+     * 以及快照被**增删**（详情页刚离线化完退回列表、管理页删掉某个快照）。和屏蔽名单同理，
+     * 短列表 / 已在屏幕上的卡不会自己回收重绑，只能靠这条通知。
+     */
+    private fun observeSnapshotRevision() {
+        // 兜底预热：Shaft 启动时已经排过一次，这里只防「预热还没跑完就滑到首屏」。
+        // ensureLoaded 幂等，扫描跑完自己 bump 版本号，下面的订阅收到就补绑。
+        SnapshotIndex.ensureLoaded(requireContext().applicationContext)
+        SnapshotIndex.revisionLive.observe(viewLifecycleOwner) { revision ->
+            if (revision == lastSnapshotRevision) return@observe
+            lastSnapshotRevision = revision
+            rebindAllIllustCards(PAYLOAD_ILLUST_SNAPSHOT_CHANGED)
+        }
+    }
+
+    /**
      * 给 currentList 里**每一段连续的 [IllustFeedItem]** 发 [payload]（插画卡认得的局部重绑标记）。
      *
      * 逐段发而不是 `notifyItemRangeChanged(0, itemCount)`：混排页里通知到的非插画条目会因为
@@ -376,7 +424,7 @@ abstract class IllustFeedFragment(
      * 这种就要命了——它也是 IllustFeedFragment，条目里混着大图页（重绑即重新发大图 Glide 请求）、
      * ugoira 播放器和评论，全被一条与它们无关的屏蔽通知砸一遍。纯插画列表仍然只发一次区间通知。
      */
-    private fun rebindAllIllustCards(payload: Any) {
+    private fun rebindAllIllustCards(payload: Any? = null) {
         val adapter = feedAdapter ?: return
         val items = adapter.currentList
         var start = -1
@@ -384,12 +432,29 @@ abstract class IllustFeedFragment(
             if (item is IllustFeedItem) {
                 if (start < 0) start = index
             } else if (start >= 0) {
-                adapter.notifyItemRangeChanged(start, index - start, payload)
+                notifyIllustRange(adapter, start, index - start, payload)
                 start = -1
             }
         }
         if (start >= 0) {
-            adapter.notifyItemRangeChanged(start, items.size - start, payload)
+            notifyIllustRange(adapter, start, items.size - start, payload)
+        }
+    }
+
+    /**
+     * [payload] 为 null 走**全量重绑**（画法变了：图 / 角标 / 高度，局部 payload 兜不住），
+     * 非 null 才是「只重算这一类状态」的局部重绑。
+     */
+    private fun notifyIllustRange(
+        adapter: RecyclerView.Adapter<*>,
+        start: Int,
+        count: Int,
+        payload: Any?,
+    ) {
+        if (payload == null) {
+            adapter.notifyItemRangeChanged(start, count)
+        } else {
+            adapter.notifyItemRangeChanged(start, count, payload)
         }
     }
 
@@ -470,6 +535,11 @@ abstract class IllustFeedFragment(
             putExtra(Params.PAGE_UUID, sessionUuid)
             putExtra(Params.ORIGIN_PAGE_UUID, syncViewModel.listPageUuid)
         })
+    }
+
+    /** 打开卡片上那枚快照标记指向的离线详情页；实现见 [ceui.pixiv.snapshot.openSnapshotViewer]（浏览记录卡共用）。 */
+    internal fun openSnapshotViewer(entry: SnapshotIndex.Entry) {
+        ceui.pixiv.snapshot.openSnapshotViewer(requireContext(), viewLifecycleOwner, entry)
     }
 
     /** 返回时列表跟到详情页正在看的那张（延迟一拍等转场结束）。 */
