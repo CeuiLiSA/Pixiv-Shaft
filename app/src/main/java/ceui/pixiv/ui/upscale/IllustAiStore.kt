@@ -65,6 +65,20 @@ class PageAiState(
     val hasAnyResult: Boolean
         get() = hasUpscaleResult || hasRembgResult
 
+    private val resultKey: String get() = "$upscaleResultPath|$rembgResultPath"
+    private var acknowledgedResultKey: String? = null
+
+    /**
+     * 大图页的完成遮罩是全屏的，还会挡住拖动退出，只为用户没看过也没关过的结果显示。
+     * 新结果路径不同，遮罩会重新出现。
+     */
+    val hasUnacknowledgedResult: Boolean
+        get() = hasAnyResult && acknowledgedResultKey != resultKey
+
+    fun acknowledgeResult() {
+        acknowledgedResultKey = resultKey
+    }
+
     val isIndeterminate: Boolean
         get() = if (upscaleStatus == UpscaleStatus.Running) {
             upscaleProgress <= 0f

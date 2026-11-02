@@ -126,11 +126,15 @@ private inline fun <reified T : ArtworkPageItem> ArtworkV3Fragment.pageRenderer(
             }
         },
         bindPayloads = { cell, payloads ->
+            // 这一格必须是当前 adapter 绑的：adapter 换过之后局部刷新会让监听和图片留在旧实例上，
+            // 走全量绑定才能接回。
             val adapter = ensurePageAdapter() as? ArtworkDetailIllustAdapter
-            if (adapter != null && payloads.isNotEmpty() && payloads.all { it === PAYLOAD_EXPAND_OVERLAY_ONLY || it === CollapsibleIllustAdapter.PAYLOAD_AI_UPDATE }) {
-                cell.itemView.setTag(R.id.tag_artwork_page_adapter, adapter)
+            if (adapter != null &&
+                cell.itemView.getTag(R.id.tag_artwork_page_adapter) === adapter &&
+                payloads.isNotEmpty() &&
+                payloads.all { it === PAYLOAD_EXPAND_OVERLAY_ONLY || it === CollapsibleIllustAdapter.PAYLOAD_AI_UPDATE }
+            ) {
                 adapter.bindOverlayOnly(ViewHolder(cell.binding), cell.item.pageIndex)
-                true
             } else {
                 false
             }

@@ -1663,6 +1663,11 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
 
     private fun openAiResult(resultPath: String?, originalPath: String?, isUpscale: Boolean) {
         if (resultPath == null || originalPath == null) return
+        mIllust?.let { illust ->
+            baseBind?.viewPager?.currentItem?.let { page ->
+                ceui.pixiv.ui.upscale.IllustAiStore.get(illust.id, page)?.acknowledgeResult()
+            }
+        }
         startActivity(Intent(this, TemplateActivity::class.java).apply {
             putExtra(TemplateActivity.EXTRA_FRAGMENT,
                 if (isUpscale) TemplateRoute.UPSCALE_COMPARE.key else TemplateRoute.REMBG_HIGHLIGHT.key)
@@ -1728,7 +1733,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
             return
         }
 
-        if (aiState?.hasAnyResult == true) {
+        if (aiState?.hasUnacknowledgedResult == true) {
             overlayRoot.animate().cancel()
             overlayRoot.visibility = View.VISIBLE
             loadingState?.visibility = View.GONE
@@ -1737,23 +1742,16 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
             if (aiState.hasUpscaleResult) {
                 viewCompare?.text = getString(R.string.action_view_comparison)
                 viewCompare?.setOnClickListener {
-                    val intent = Intent(this, TemplateActivity::class.java)
-                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.UPSCALE_COMPARE.key)
-                    intent.putExtra("upscaled_path", aiState.upscaleResultPath)
-                    intent.putExtra("original_path", aiState.upscaleOriginalPath)
-                    startActivity(intent)
+                    openAiResult(aiState.upscaleResultPath, aiState.upscaleOriginalPath, true)
                 }
             } else if (aiState.hasRembgResult) {
                 viewCompare?.text = getString(R.string.string_ai_rembg)
                 viewCompare?.setOnClickListener {
-                    val intent = Intent(this, TemplateActivity::class.java)
-                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.REMBG_HIGHLIGHT.key)
-                    intent.putExtra("rembg_path", aiState.rembgResultPath)
-                    intent.putExtra("original_path", aiState.rembgOriginalPath)
-                    startActivity(intent)
+                    openAiResult(aiState.rembgResultPath, aiState.rembgOriginalPath, false)
                 }
             }
             dismiss?.setOnClickListener {
+                aiState.acknowledgeResult()
                 overlayRoot.visibility = View.GONE
             }
             return
