@@ -426,8 +426,13 @@ public class IllustNovelFilter {
         }
     }
 
-    /** 屏蔽标签变更后调用：下次 {@link #getMutedTags} 重新查库。 */
-    public static void invalidateMutedTags() {
+    /**
+     * 屏蔽标签变更后调用：下次 {@link #getMutedTags} 重新查库。
+     *
+     * 必须和加载走同一把锁：否则「写库前读到旧行的加载」可能在作废之后才把旧名单写回缓存，
+     * 这次变更就一直不生效，直到下一次作废。
+     */
+    public static synchronized void invalidateMutedTags() {
         sMutedTagsCache = null;
     }
 

@@ -26,6 +26,7 @@ import ceui.pixiv.feeds.FeedRenderer
 import ceui.pixiv.feeds.FeedSource
 import ceui.pixiv.feeds.feedRenderer
 import ceui.pixiv.feeds.feedViewModels
+import ceui.pixiv.ui.common.MutedUserStore
 import ceui.pixiv.utils.pinHostGlide
 import ceui.pixiv.utils.playToggleHaptic
 import ceui.pixiv.utils.ppppx
@@ -204,6 +205,8 @@ class MutedUserFeedFragment : FeedFragment(), Toolbar.OnMenuItemClickListener {
         lifecycleScope.launch {
             withContext(Dispatchers.IO) {
                 AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().deleteAllMutedUsers()
+                // 判定读的是内存名单，直接清库后必须整份重读，否则画师在列表里仍被过滤
+                MutedUserStore.invalidate()
             }
             Common.showToast(getString(R.string.string_220))
             // refresh 重查（已清空）→ 框架自动切空态，等价 legacy 的 clear + setEmptyStateVisible。

@@ -3,6 +3,7 @@ package ceui.pixiv.feeds.cache
 import ceui.lisa.activities.Shaft
 import ceui.pixiv.session.SessionManager
 import com.google.gson.Gson
+import com.google.gson.JsonObject
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
@@ -119,15 +120,19 @@ internal class FileFeedCacheBackend(
     }
 
     private fun encode(record: FeedCacheRecord): String {
-        val header = gson.toJson(Header(record.schemaVersion, record.nextCursor, record.savedAt))
-        return header + "\n" + record.payloadJson
+        val header = JsonObject().apply {
+            addProperty("v", record.schemaVersion)
+            addProperty("cursor", record.nextCursor)
+            addProperty("savedAt", record.savedAt)
+        }
+        return gson.toJson(header) + "\n" + record.payloadJson
     }
 
     private fun readRecord(f: File): FeedCacheRecord? {
         val text = f.readText()
         val nl = text.indexOf('\n')
         if (nl <= 0) return null
-        val header = gson.fromJson(text.take(nl), Header::class.java) ?: return null
+        val header = parseHeader(text.take(nl)) ?: return null
         // payload 原样取回：不 trim、不做任何处理，它必须和写进去时逐字节一致。
         return FeedCacheRecord(header.v, text.substring(nl + 1), header.cursor, header.savedAt)
     }
@@ -136,8 +141,17 @@ internal class FileFeedCacheBackend(
     private fun readHeader(f: File): Header? {
         if (!f.isFile) return null
         return f.bufferedReader().use { reader ->
-            reader.readLine()?.let { gson.fromJson(it, Header::class.java) }
+            reader.readLine()?.let(::parseHeader)
         }
+    }
+
+    private fun parseHeader(line: String): Header? {
+        val json = gson.fromJson(line, JsonObject::class.java) ?: return null
+        return Header(
+            v = json.get("v").asInt,
+            cursor = json.get("cursor")?.takeUnless { it.isJsonNull }?.asString,
+            savedAt = json.get("savedAt").asLong,
+        )
     }
 
     /** 只留最新的 [MAX_CACHED_SLOTS] 份。调用方必须持有 [writeMutex]。 */
@@ -176,7 +190,12 @@ internal class FileFeedCacheBackend(
         return File(root, name)
     }
 
-    /** 信封。字段名保持单字符 / 短名，1 份快照的元数据只有几十字节。 */
+    /**
+     * 信封。字段名保持单字符 / 短名，1 份快照的元数据只有几十字节。
+     *
+     * 读写都手动走 [JsonObject]，不让 Gson 反射本类：release 下 R8 会重命名字段，落盘的 key
+     * 就成了当前构建的混淆名，升级后下一个版本的映射不同，整批快照读出来全是错的。
+     */
     private data class Header(
         val v: Int,
         val cursor: String?,

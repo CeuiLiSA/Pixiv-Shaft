@@ -11,6 +11,7 @@ import ceui.lisa.databinding.FragmentArtworkV3Binding
 import ceui.lisa.utils.GlideUtil
 import ceui.pixiv.api.model.Illust
 import ceui.pixiv.ui.common.IllustMuteStore
+import ceui.pixiv.ui.common.MutedUserStore
 import ceui.pixiv.utils.combineLatest
 import ceui.pixiv.utils.setOnClick
 import ceui.pixiv.widget.SpoilerBlurView
@@ -106,7 +107,8 @@ internal class ArtworkMuteMask(
                         owner.lifecycleScope.launch {
                             it.showProgress()
                             delay(600L)
-                            dao.deleteMuteEntity(userEntity)
+                            // 判定读的是内存名单：走 store 才能当帧生效（列表不再每条查库），也不绕开它的写队列
+                            MutedUserStore.setMuted(userEntity.id, false)
                             it.hideProgress()
                         }
                     }

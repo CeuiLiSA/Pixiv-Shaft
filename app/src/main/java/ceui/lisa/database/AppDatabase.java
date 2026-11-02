@@ -13,8 +13,6 @@ import androidx.sqlite.db.SupportSQLiteDatabase;
 import ceui.lisa.feature.FeatureEntity;
 import ceui.pixiv.db.DiscoveryDao;
 import ceui.pixiv.db.DiscoveryEntity;
-import ceui.pixiv.db.FeedCacheDao;
-import ceui.pixiv.db.FeedCacheEntity;
 import ceui.pixiv.db.GeneralDao;
 import ceui.pixiv.db.GeneralEntity;
 import ceui.pixiv.db.RemoteKey;
@@ -54,7 +52,6 @@ import timber.log.Timber;
                 DownloadQueueEntity.class, // 批量下载队列（v33）
                 SynonymTargetEntity.class, // 同义词词典-目标标签（v36 建表 / v37 加 lastUsedAt, issue #904/#910）
                 SynonymTagEntity.class, // 同义词词典-同义词（v36, issue #904）
-                FeedCacheEntity.class, // feeds 框架本地优先首屏快照（v39）
                 BookmarkMirrorEntity.class, // 收藏镜像主表（v42）
                 BookmarkMirrorTagEntity.class, // 收藏镜像标签倒排表（v42）
                 BookmarkMirrorStateEntity.class, // 收藏镜像每书架同步状态（v42）
@@ -64,7 +61,7 @@ import timber.log.Timber;
 )
 public abstract class AppDatabase extends RoomDatabase {
 
-    public static final int VERSION = 44;
+    public static final int VERSION = 45;
     public static final String DATABASE_NAME = "roomDemo-database";
 
     /** 迁移/开库相关日志的 tag。升级出问题时 `adb logcat -s AppDatabase` 一把抓。 */
@@ -372,7 +369,7 @@ public abstract class AppDatabase extends RoomDatabase {
 
     // 迁移 38 -> 39：feeds 框架「本地优先」首屏快照表。一个可缓存 feed 一行、自我覆盖，
     // 只存首屏原始响应 JSON（往后翻页仍走网络）。cacheKey 含账号命名空间；savedAt 建索引
-    // 供 LRU 淘汰 / 过期判定排序。列名 / 类型 / 可空性必须与 FeedCacheEntity 完全一致。
+    // 供 LRU 淘汰 / 过期判定排序。v45 起快照改存文件，这张表已删除。
     private static final Migration MIGRATION_38_39 = new Migration(38, 39) {
         @Override
         public void migrate(@NonNull SupportSQLiteDatabase database) {
@@ -614,6 +611,17 @@ public abstract class AppDatabase extends RoomDatabase {
         Timber.tag(TAG).i("MIGRATION_43_44 %s ok in %d ms", indexName, SystemClock.elapsedRealtime() - t0);
     }
 
+    /**
+     * 迁移 44 -> 45：feeds 首屏快照搬到文件（见 FileFeedCacheBackend），这张表再没有读写方。
+     * 不删的话旧行永远留在库里，账号清除时也不会被碰到。内容可由网络重建，直接丢弃。
+     */
+    private static final Migration MIGRATION_44_45 = new Migration(44, 45) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            database.execSQL("DROP TABLE IF EXISTS feed_cache_table");
+        }
+    };
+
     private static final Migration[] ALL_MIGRATIONS = {
             MIGRATION_23_24,
             MIGRATION_24_25,
@@ -636,6 +644,7 @@ public abstract class AppDatabase extends RoomDatabase {
             MIGRATION_41_42,
             MIGRATION_42_43,
             MIGRATION_43_44,
+            MIGRATION_44_45,
     };
 
     /**
@@ -701,6 +710,5 @@ public abstract class AppDatabase extends RoomDatabase {
 
     public abstract SynonymDao synonymDao();
 
-    public abstract FeedCacheDao feedCacheDao();
 
 }
