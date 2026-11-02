@@ -16,17 +16,17 @@
     app:cardCornerRadius="12dp"
     app:cardElevation="1dp">
 
-    <RelativeLayout
+    <!-- 扁平化：改用水平 LinearLayout 替代 RelativeLayout，消除双重测量与相对布局依赖解析 -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
         android:padding="6dp">
 
         <FrameLayout
-            android:id="@+id/imageWrap"
             android:layout_width="80dp"
-            android:layout_height="80dp"
-            android:layout_alignParentStart="true"
-            android:layout_centerVertical="true">
+            android:layout_height="80dp">
 
             <com.google.android.material.imageview.ShapeableImageView
                 android:id="@+id/thumb"
@@ -51,26 +51,12 @@
                 tools:text="3P" />
         </FrameLayout>
 
-        <ImageView
-            android:id="@+id/deleteBtn"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_alignParentEnd="true"
-            android:layout_centerVertical="true"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@null"
-            android:padding="6dp"
-            android:src="@drawable/ic_delete_black_24dp"
-            app:tint="@color/v3_text_3" />
-
         <LinearLayout
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
-            android:layout_toEndOf="@id/imageWrap"
-            android:layout_toStartOf="@id/deleteBtn"
             android:layout_marginStart="10dp"
             android:layout_marginEnd="2dp"
+            android:layout_weight="1"
             android:orientation="vertical">
 
             <TextView
@@ -109,5 +95,15 @@
                 android:textStyle="bold"
                 tools:text="2 分钟前" />
         </LinearLayout>
-    </RelativeLayout>
+
+        <ImageView
+            android:id="@+id/deleteBtn"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@null"
+            android:padding="6dp"
+            android:src="@drawable/ic_delete_black_24dp"
+            app:tint="@color/v3_text_3" />
+    </LinearLayout>
 </androidx.cardview.widget.CardView>

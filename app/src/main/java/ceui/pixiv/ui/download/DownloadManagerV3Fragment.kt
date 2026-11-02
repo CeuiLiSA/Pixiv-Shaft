@@ -3,8 +3,7 @@ package ceui.pixiv.ui.download
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
-import android.os.SystemClock
-import timber.log.Timber
+
 import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
@@ -27,6 +26,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
 import ceui.lisa.R
+import ceui.lisa.activities.Shaft
 import ceui.lisa.core.DownloadItem
 import ceui.lisa.core.Manager
 import ceui.lisa.core.ManagerReactive
@@ -122,6 +122,16 @@ class DownloadManagerV3Fragment : Fragment() {
             tab.text = baseLabel(pos)
         }.attach()
 
+        // 进入下载管理页时（在主线程空闲帧）按屏幕大小与当前布局模式动态预做首屏可见 Holder 的 XML inflate，避开切页滑行期间阻塞主线程
+        if (!sharedVm.donePrewarmStarted) {
+            sharedVm.donePrewarmStarted = true
+            DoneListV3Fragment.prewarmDoneHolders(
+                context = requireContext(),
+                pool = sharedVm.doneRecycledViewPool,
+                mode = DoneLayoutMode.fromInt(Shaft.sSettings.doneListLayoutMode),
+            )
+        }
+
         // toolbar 右侧 menu —— 2 个 action 按 tab 分发可见性:
         //   - 导出 (action_export):pos 0 (批量队列) / pos 2 (已完成),「正在下载」
         //     是瞬态进度页没稳定快照可导,隐藏避免误点。点击 emit 到 SharedVM,
@@ -214,19 +224,8 @@ class DownloadManagerV3Fragment : Fragment() {
         sharedVm.setSelectedTab(pager.currentItem)
         pageCallback = object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
-                Timber.d("[DonePerf] ViewPager2.onPageSelected pos=$position at t=${SystemClock.elapsedRealtime()}")
                 sharedVm.setSelectedTab(position)
                 applyMenuVisibility(position)
-            }
-
-            override fun onPageScrollStateChanged(state: Int) {
-                val stateName = when (state) {
-                    ViewPager2.SCROLL_STATE_IDLE -> "IDLE"
-                    ViewPager2.SCROLL_STATE_DRAGGING -> "DRAGGING"
-                    ViewPager2.SCROLL_STATE_SETTLING -> "SETTLING"
-                    else -> state.toString()
-                }
-                Timber.d("[DonePerf] ViewPager2.onPageScrollStateChanged state=$stateName at t=${SystemClock.elapsedRealtime()}")
             }
         }.also { pager.registerOnPageChangeCallback(it) }
 

@@ -16,63 +16,58 @@
     app:cardCornerRadius="8dp"
     app:cardElevation="1dp">
 
-    <FrameLayout
-        android:id="@+id/imageWrap"
+    <!-- 扁平化：CardView 本身即为 FrameLayout，直接承载子 View，消除多余嵌套的 FrameLayout -->
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/thumb"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="100dp"
+        android:adjustViewBounds="true"
+        android:background="@color/v3_surface_2"
+        android:contentDescription="@null"
+        android:scaleType="centerCrop"
+        app:shapeAppearanceOverlay="@style/ShapeAppearance.V3DownloadThumb"
+        app:strokeColor="@android:color/transparent" />
 
-        <com.google.android.material.imageview.ShapeableImageView
-            android:id="@+id/thumb"
-            android:layout_width="match_parent"
-            android:layout_height="100dp"
-            android:adjustViewBounds="true"
-            android:background="@color/v3_surface_2"
-            android:contentDescription="@null"
-            android:scaleType="centerCrop"
-            app:shapeAppearanceOverlay="@style/ShapeAppearance.V3DownloadThumb"
-            app:strokeColor="@android:color/transparent" />
+    <TextView
+        android:id="@+id/typeBadge"
+        style="@style/V3StatusBadge"
+        android:layout_gravity="top|start"
+        android:layout_margin="3dp"
+        android:background="@drawable/bg_page_count_overlay"
+        android:textColor="#FFFFFF"
+        android:textSize="8sp"
+        android:paddingHorizontal="4dp"
+        android:paddingVertical="1dp"
+        tools:text="3P" />
 
-        <TextView
-            android:id="@+id/typeBadge"
-            style="@style/V3StatusBadge"
-            android:layout_gravity="top|start"
-            android:layout_margin="3dp"
-            android:background="@drawable/bg_page_count_overlay"
-            android:textColor="#FFFFFF"
-            android:textSize="8sp"
-            android:paddingHorizontal="4dp"
-            android:paddingVertical="1dp"
-            tools:text="3P" />
+    <ImageView
+        android:id="@+id/deleteBtn"
+        android:layout_width="22dp"
+        android:layout_height="22dp"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="3dp"
+        android:background="@drawable/v3_nav_btn_bg"
+        android:contentDescription="@null"
+        android:padding="4dp"
+        android:src="@drawable/ic_delete_black_24dp"
+        app:tint="#CCFFFFFF" />
 
-        <ImageView
-            android:id="@+id/deleteBtn"
-            android:layout_width="22dp"
-            android:layout_height="22dp"
-            android:layout_gravity="bottom|end"
-            android:layout_margin="3dp"
-            android:background="@drawable/v3_nav_btn_bg"
-            android:contentDescription="@null"
-            android:padding="4dp"
-            android:src="@drawable/ic_delete_black_24dp"
-            app:tint="#CCFFFFFF" />
+    <!-- 不显示但保留 ID，让 binding 代码不需要分支判断 -->
+    <TextView
+        android:id="@+id/title"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone" />
 
-        <!-- 不显示但保留 ID，让 binding 代码不需要分支判断 -->
-        <TextView
-            android:id="@+id/title"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:visibility="gone" />
+    <TextView
+        android:id="@+id/author"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone" />
 
-        <TextView
-            android:id="@+id/author"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:visibility="gone" />
-
-        <TextView
-            android:id="@+id/time"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:visibility="gone" />
-    </FrameLayout>
+    <TextView
+        android:id="@+id/time"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone" />
 </androidx.cardview.widget.CardView>
