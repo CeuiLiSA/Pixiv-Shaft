@@ -85,7 +85,7 @@ object SnapshotGenerator {
             writeJson(content.snapshotDir, SNAPSHOT_MANIFEST, manifest)
             // 卡片上的快照标记读的是进程内索引，写完立刻登记：用户从详情页离线化完退回列表，
             // 那张卡不用等下次扫描就该亮起来。
-            SnapshotIndex.onSnapshotWritten(manifest.illustId, manifest.snapshotId, isAuto = false)
+            SnapshotIndex.onSnapshotWritten(manifest.illustId, manifest.snapshotId, isAuto = false, manifest.createdAt)
             manifest
         } catch (e: Exception) {
             content.snapshotDir.deleteRecursively()
@@ -111,7 +111,7 @@ object SnapshotGenerator {
             val manifest = content.toAutoSnapshotManifest(includeOriginal)
             writeJson(content.snapshotDir, AUTO_SNAPSHOT_MANIFEST, manifest)
             // 自动快照同样要算「有快照」：卡片标记不分正式/自动，只是点开时按 isAuto 回读。
-            SnapshotIndex.onSnapshotWritten(manifest.illustId, manifest.snapshotId, isAuto = true)
+            SnapshotIndex.onSnapshotWritten(manifest.illustId, manifest.snapshotId, isAuto = true, manifest.createdAt)
             manifest
         } catch (e: Exception) {
             content.snapshotDir.deleteRecursively()

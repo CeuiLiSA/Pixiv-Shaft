@@ -223,7 +223,7 @@ object SnapshotRepository {
                 }
                 backup.deleteRecursively()
                 SnapshotRuntimeCache.remove(manifest.snapshotId)
-                SnapshotIndex.onSnapshotWritten(manifest.illustId, manifest.snapshotId, isAuto = false)
+                SnapshotIndex.onSnapshotWritten(manifest.illustId, manifest.snapshotId, isAuto = false, manifest.createdAt)
                 manifest
             } catch (e: Exception) {
                 target.deleteRecursively()

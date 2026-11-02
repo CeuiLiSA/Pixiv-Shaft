@@ -192,7 +192,12 @@ internal fun IllustFeedFragment.staggerIllustRenderer():
             cell.binding.spoilerParticles.setParticleAnimationRunning(false)
         },
         changePayload = ::illustLikeChangePayload,
-        bindPayloads = { cell, payloads ->
+        bindPayloads = payloadBind@ { cell, payloads ->
+            // 模拟开关或快照资格改变会同时改变封面、角标、高度和遮罩；必须走同一套全量绘制。
+            // 每个 holder 记住上次开关值，关闭后的局部通知也能逐卡恢复真图。
+            if (fakeInvalidWorksEnabled || cell.binding.snapshotButton.tag == true) {
+                return@payloadBind false
+            }
             // RecyclerView 会把同一帧内的多个 payload 攒在一起给同一个 holder，
             // 所以逐个认领而不是二选一；混进不认识的就整体退回全量绑定
             val known = payloads.all {
@@ -241,6 +246,8 @@ internal fun IllustFeedFragment.staggerIllustRenderer():
         },
     ) { cell ->
         val bean = cell.item.illust
+        boundFakeInvalidWorks = fakeInvalidWorksEnabled
+        cell.binding.snapshotButton.tag = fakeInvalidWorksEnabled
         // 【调试】失效作品模拟（试验性页的 debug 开关，只有两个收藏页认）：把 bean 换成一份
         // 「失效作品形状」的副本（字段照真机抓包，见 [DebugInvalidWorks.asInvalidPlaceholder]），
         // 之后的取图 / 角标 / 高度全走真实路径 —— 封面就是服务端那张 limit_unknown 占位图，
@@ -304,9 +311,6 @@ private fun IllustFeedFragment.applyIllustSpoilerMask(
 ) {
     val hide = hideLikeButton
     boundHideLikeButton = hide
-    // 顺手把「失效作品模拟」的水位记下来：它是 debug 开关，在另一个 Activity 里改完回来，
-    // 屏上已绑好的卡不会自己重绑（同 boundHideLikeButton 的道理，见 IllustFeedFragment.onResume）
-    boundFakeInvalidWorks = fakeInvalidWorksEnabled
     binding.badgeRow.isVisible = !masked
     binding.likeButton.isVisible = !masked && !hide
     // 快照标记和爱心同属「叠在图上的操作层」，屏蔽态一起藏（糊掉的图上还写着「本地有快照」没意义）。

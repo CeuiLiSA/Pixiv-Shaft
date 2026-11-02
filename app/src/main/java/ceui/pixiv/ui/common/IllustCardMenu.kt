@@ -49,9 +49,8 @@ internal fun IllustFeedFragment.showCardMenu(
     // 「复制作品ID」以及能拿到的「复制作品标题」，方便对照本地文件确认是哪一张。
     // 试验性页的「失效作品模拟」只改画法（bean 还是好的），这里一并按失效对待，
     // 免得调试时看到一张灰卡却弹出完整的收藏/下载菜单。
-    val unavailable = bean.isUnavailable ||
-            (fakeInvalidWorksEnabled && DebugInvalidWorks.shouldFakeAsInvalid(bean.id))
-    if (!Shaft.sSettings.isFilterInvalidBookmarks && unavailable) {
+    val fakeInvalid = fakeInvalidWorksEnabled && DebugInvalidWorks.shouldFakeAsInvalid(bean.id)
+    if (fakeInvalid || (!Shaft.sSettings.isFilterInvalidBookmarks && bean.isUnavailable)) {
         showV3Menu("IllustFeedCardMenu") {
             item(getString(R.string.copy_work_id), R.drawable.baseline_content_copy_24) {
                 Common.copy(requireContext(), bean.id.toString())

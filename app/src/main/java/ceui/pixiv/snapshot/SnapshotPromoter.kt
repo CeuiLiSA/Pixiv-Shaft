@@ -26,9 +26,8 @@ object SnapshotPromoter {
 
         File(snapshotDir, SNAPSHOT_MANIFEST).writeText(Shaft.sGson.toJson(formal))
         File(snapshotDir, AUTO_SNAPSHOT_MANIFEST).delete()
-        // 目录与 illustId 都没变，只是来源从自动变成正式：索引里把 isAuto 拨回来，
-        // 卡片标记本身不变（有快照就是有快照），点开时才会按正式库回读。
-        SnapshotIndex.onSnapshotPromoted(autoId)
+        // 用完整清单登记：即使首次索引扫描尚未完成，转正后的来源与创建时间也不会丢。
+        SnapshotIndex.onSnapshotWritten(formal.illustId, autoId, isAuto = false, formal.createdAt)
 
         // 缓存先尝试更新；失败降级为移除，避免继续读到转正前的 auto 数据。
         runCatching {

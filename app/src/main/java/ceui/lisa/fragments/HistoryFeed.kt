@@ -343,6 +343,7 @@ fun FragmentHistoryList.historyIllustRenderer(): FeedRenderer<HistoryIllustFeedI
             // 索引在点击那一刻现读 —— 期间快照可能刚被删掉，读到 null 就当没这个按钮。
             binding.snapshotButton.setOnClickListener {
                 val item = cell.itemOrNull ?: return@setOnClickListener
+                if (item.isSelectionMode) return@setOnClickListener
                 val entry = SnapshotIndex.entryFor(item.illust.id) ?: return@setOnClickListener
                 openHistorySnapshot(entry)
             }
@@ -362,16 +363,21 @@ fun FragmentHistoryList.historyIllustRenderer(): FeedRenderer<HistoryIllustFeedI
         },
         bindPayloads = { cell, payloads ->
             val item = cell.item
-            if (payloads.isNotEmpty() && payloads.all { it === PAYLOAD_HISTORY_SNAPSHOT }) {
-                // 索引扫完了 / 快照被增删：只翻这枚标记的显隐，封面与文字一个字节都不用重算
+            if (payloads.isNotEmpty() && payloads.all {
+                    it === PAYLOAD_HISTORY_SNAPSHOT || it === PAYLOAD_HISTORY_SELECTION
+                }) {
+                if (payloads.any { it === PAYLOAD_HISTORY_SELECTION }) {
+                    HistorySelectBadge.bindSelection(
+                        cell.binding.selectCheck, cell.binding.deleteItem,
+                        item.isSelectionMode, item.isSelected,
+                    )
+                }
+                // 进入/退出多选和索引变化都重算，合并 payload 时也不重发封面请求。
                 cell.binding.snapshotButton.isVisible =
                     !item.isSelectionMode && SnapshotIndex.entryFor(item.illust.id) != null
                 true
             } else {
-                HistorySelectBadge.bindSelectionPayload(
-                    payloads, cell.binding.selectCheck, cell.binding.deleteItem,
-                    item.isSelectionMode, item.isSelected,
-                )
+                false
             }
         },
     ) { cell ->
