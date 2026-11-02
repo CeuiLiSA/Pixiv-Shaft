@@ -2104,7 +2104,6 @@
     <string name="search_filter_v3_section_potential_violation">Karya yang mungkin mengganggu pencarian</string>
     <string name="search_filter_v3_potential_violation_show">Tampilkan</string>
     <string name="search_filter_v3_potential_violation_hide">Sembunyikan</string>
-    <string name="search_filter_v3_potential_violation_hint">Anda dapat memilih apakah akan menampilkan karya yang kemungkinan besar melanggar pedoman situs pixiv.</string>
     <string name="search_filter_v3_other_summary_hide_potential_violation">Sembunyikan karya yang mungkin mengganggu pencarian</string>
     <string name="search_filter_v3_section_r18">Batasan R-18</string>
     <string name="search_filter_v3_r18_all">Semua</string>

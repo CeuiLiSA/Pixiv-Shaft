@@ -325,17 +325,6 @@
                     android:id="@+id/row_potential_violation_hide"
                     layout="@layout/cell_search_filter_check_row" />
             </LinearLayout>
-
-            <!-- 官方说明文案：这一档到底在挡什么，不写清楚用户只会以为是「隐藏搜索结果」。 -->
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingStart="18dp"
-                android:paddingTop="8dp"
-                android:paddingEnd="18dp"
-                android:text="@string/search_filter_v3_potential_violation_hint"
-                android:textColor="@color/v3_text_2"
-                android:textSize="12sp" />
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 </LinearLayout>
