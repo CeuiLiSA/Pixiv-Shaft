@@ -117,6 +117,8 @@ class DoneListV3Fragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         val list = view.findViewById<RecyclerView>(R.id.list)
         list.adapter = adapter
+        // 与 ActiveList / QueueList 及 V3 规范一致：关闭 DefaultItemAnimator，避免卡片与文字在刷新/上屏时整体淡入；仅保留缩略图自身的平滑过渡
+        list.itemAnimator = null
         applyLayoutMode(list, DoneLayoutMode.fromInt(Shaft.sSettings.doneListLayoutMode))
 
         val empty = view.findViewById<View>(R.id.emptyState)
