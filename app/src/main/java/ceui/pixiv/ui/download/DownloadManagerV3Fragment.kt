@@ -3,6 +3,8 @@ package ceui.pixiv.ui.download
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
+import android.os.SystemClock
+import timber.log.Timber
 import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
@@ -66,7 +68,8 @@ class DownloadManagerV3Fragment : Fragment() {
      * 阻塞的 DB 调用返回时 Fragment 可能已 detach,再 requireContext 就崩。
      * 实例是应用级的,拿住没有泄漏问题。
      */
-    @Inject lateinit var queueDownloadManager: QueueDownloadManager
+    @Inject
+    lateinit var queueDownloadManager: QueueDownloadManager
 
     private val sharedVm: DownloadManagerSharedViewModel by activityViewModels()
 
@@ -143,6 +146,7 @@ class DownloadManagerV3Fragment : Fragment() {
         val pauseToggleItem = toolbar.menu.findItem(R.id.action_pause_toggle)
         val searchItem = toolbar.menu.findItem(R.id.action_search)
         val importItem = toolbar.menu.findItem(R.id.action_import)
+
         // 工具栏右侧按钮的动作 —— 图标与点击共用同一个现算值（口径 + 单测见 ActiveToolbarAction.kt /
         // ActivePauseToggle.kt）：只剩失败项时是「重试失败」，否则按 shouldResumeAll 定暂停 / 继续。
         fun currentToolbarAction(): ActiveToolbarAction = resolveActiveToolbarAction(
@@ -163,6 +167,7 @@ class DownloadManagerV3Fragment : Fragment() {
                     sharedVm.requestExport(pager.currentItem)
                     true
                 }
+
                 R.id.action_pause_toggle -> {
                     // 图标与动作同源：都用 currentToolbarAction() 现算（见 ActiveToolbarAction.kt），
                     // 不存第二份 UI 状态 —— 否则会出现「按钮显示继续、点下去却暂停」的错位。
@@ -170,11 +175,13 @@ class DownloadManagerV3Fragment : Fragment() {
                         ActiveToolbarAction.RETRY -> {
                             Manager.get().retryAllFailed()
                         }
+
                         ActiveToolbarAction.RESUME -> {
                             // resumeByUser：用户触发的操作忽略网络状态，不走自动闸门
                             Manager.get().startAll()
                             queueDownloadManager.resumeByUser()
                         }
+
                         ActiveToolbarAction.PAUSE -> {
                             Manager.get().stopAll()
                             queueDownloadManager.pause()
@@ -188,6 +195,7 @@ class DownloadManagerV3Fragment : Fragment() {
                     importFlow.start { intent -> launchImportPicker(intent) }
                     true
                 }
+
                 else -> false
             }
         }
@@ -203,9 +211,22 @@ class DownloadManagerV3Fragment : Fragment() {
             }
         }
         applyMenuVisibility(pager.currentItem)
+        sharedVm.setSelectedTab(pager.currentItem)
         pageCallback = object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
+                Timber.d("[DonePerf] ViewPager2.onPageSelected pos=$position at t=${SystemClock.elapsedRealtime()}")
+                sharedVm.setSelectedTab(position)
                 applyMenuVisibility(position)
+            }
+
+            override fun onPageScrollStateChanged(state: Int) {
+                val stateName = when (state) {
+                    ViewPager2.SCROLL_STATE_IDLE -> "IDLE"
+                    ViewPager2.SCROLL_STATE_DRAGGING -> "DRAGGING"
+                    ViewPager2.SCROLL_STATE_SETTLING -> "SETTLING"
+                    else -> state.toString()
+                }
+                Timber.d("[DonePerf] ViewPager2.onPageScrollStateChanged state=$stateName at t=${SystemClock.elapsedRealtime()}")
             }
         }.also { pager.registerOnPageChangeCallback(it) }
 
@@ -224,7 +245,11 @@ class DownloadManagerV3Fragment : Fragment() {
                     ManagerReactive.contentFlow,
                     queueDownloadManager.ugoiraInFlightFlow,
                 ) { paused, items, ugoiras ->
-                    resolveActiveToolbarAction(items.toPauseToggleItems(), paused, ugoiras.isNotEmpty())
+                    resolveActiveToolbarAction(
+                        items.toPauseToggleItems(),
+                        paused,
+                        ugoiras.isNotEmpty()
+                    )
                 }
                     .conflate()
                     .flowOn(Dispatchers.Default)
@@ -297,20 +322,22 @@ class DownloadManagerV3Fragment : Fragment() {
         }
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, backCallback)
 
-        MenuItemCompat.setOnActionExpandListener(item, object : MenuItemCompat.OnActionExpandListener {
-            override fun onMenuItemActionExpand(menuItem: MenuItem): Boolean {
-                sharedVm.setDoneSearchQuery("")
-                backCallback.isEnabled = true
-                return true
-            }
+        MenuItemCompat.setOnActionExpandListener(
+            item,
+            object : MenuItemCompat.OnActionExpandListener {
+                override fun onMenuItemActionExpand(menuItem: MenuItem): Boolean {
+                    sharedVm.setDoneSearchQuery("")
+                    backCallback.isEnabled = true
+                    return true
+                }
 
-            override fun onMenuItemActionCollapse(menuItem: MenuItem): Boolean {
-                searchDebounceJob?.cancel()
-                sharedVm.setDoneSearchQuery(null)
-                backCallback.isEnabled = false
-                return true
-            }
-        })
+                override fun onMenuItemActionCollapse(menuItem: MenuItem): Boolean {
+                    searchDebounceJob?.cancel()
+                    sharedVm.setDoneSearchQuery(null)
+                    backCallback.isEnabled = false
+                    return true
+                }
+            })
 
         sv.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
@@ -364,7 +391,7 @@ private fun List<DownloadItem>.toPauseToggleItems(): List<PauseToggleItem> {
         val state = item.state
         val illustId = item.illust?.id
         val willDispatch = state == DownloadItem.DownloadState.INIT && illustId != null &&
-            dispatchByIllust.getOrPut(illustId) { manager.willDispatch(illustId) }
+                dispatchByIllust.getOrPut(illustId) { manager.willDispatch(illustId) }
         PauseToggleItem(state, willDispatch)
     }
 }

@@ -161,4 +161,16 @@ class DownloadManagerSharedViewModel @Inject constructor(
     fun setDoneSearchQuery(q: String?) {
         _doneSearchQuery.value = q
     }
+
+    /**
+     * 当前 ViewPager2 选中的 tab 位置（0=批量队列, 1=正在下载, 2=已完成）。
+     * 由 host 在 onPageSelected 时实时写入，用于精准控制各 tab 的数据监听时机：
+     * 让已完成 tab 在用户刚点击切页时（t=0）就利用滑行空窗期预热加载，并在切离后立即暂停重查。
+     */
+    private val _selectedTab = MutableStateFlow(0)
+    val selectedTab: StateFlow<Int> get() = _selectedTab
+
+    fun setSelectedTab(position: Int) {
+        _selectedTab.value = position
+    }
 }

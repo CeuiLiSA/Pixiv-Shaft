@@ -3,6 +3,9 @@ package ceui.pixiv.ui.download
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.os.SystemClock
+import androidx.core.view.doOnPreDraw
+import timber.log.Timber
 import android.util.LruCache
 import android.view.LayoutInflater
 import android.view.View
@@ -47,6 +50,7 @@ import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
@@ -113,8 +117,24 @@ class DoneListV3Fragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View = inflater.inflate(R.layout.fragment_download_list_v3, container, false)
 
+    override fun onStart() {
+        super.onStart()
+        Timber.d("[DonePerf] DoneList.onStart at t=${SystemClock.elapsedRealtime()}")
+    }
+
+    override fun onResume() {
+        super.onResume()
+        Timber.d("[DonePerf] DoneList.onResume at t=${SystemClock.elapsedRealtime()}")
+    }
+
+    override fun onPause() {
+        super.onPause()
+        Timber.d("[DonePerf] DoneList.onPause at t=${SystemClock.elapsedRealtime()}")
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        Timber.d("[DonePerf] DoneList.onViewCreated at t=${SystemClock.elapsedRealtime()}")
         val list = view.findViewById<RecyclerView>(R.id.list)
         list.adapter = adapter
         // 与 ActiveList / QueueList 及 V3 规范一致：关闭 DefaultItemAnimator，避免卡片与文字在刷新/上屏时整体淡入；仅保留缩略图自身的平滑过渡
@@ -173,12 +193,16 @@ class DoneListV3Fragment : Fragment() {
         // sharedVm.doneSearchQuery（null=未进入搜索；""=已展开未输；非空=查询词）。
         // 切到搜索分支时数据源换成 dao.searchDownloads(query)。
         //
-        // RESUMED 而不是 STARTED：ViewPager2 把离屏 tab 停在 STARTED，用 STARTED 的话用户
-        // 只要访问过一次已完成 tab，下载期间它就一直在后台重查。离屏时 tab 上的数字由
-        // DownloadManagerSharedViewModel.refreshDoneCardCount 维护。
+        // 绑定在 STARTED 生命周期，并通过 sharedVm.selectedTab 精确闸门控制：
+        // 1. 用户点击 Tab 2 时（t=0），onPageSelected 立刻置 selectedTab=2，利用 ViewPager2
+        //    滑行的 360ms 黄金空窗期提前跑 DB 查询、聚合与首屏 ViewHolders 构建；
+        // 2. 切离 Tab 2 时（selectedTab != 2），内部 flatMapLatest 自动切换到 emptyFlow()，
+        //    彻底取消对 ManagerReactive.doneTableInvalidations 的收集，杜绝离屏期间被后台下载
+        //    高频无效唤醒。
         viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.RESUMED) {
-                runDoneListFlow(empty)
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                Timber.d("[DonePerf] DoneList.repeatOnLifecycle(STARTED) ENTERED at t=${SystemClock.elapsedRealtime()}")
+                runDoneListFlow(empty, list)
             }
         }
 
@@ -205,27 +229,69 @@ class DoneListV3Fragment : Fragment() {
      * - query!=""   : 过滤列表 → dao.searchDownloads(query)
      */
     @OptIn(ExperimentalCoroutinesApi::class)
-    private suspend fun runDoneListFlow(empty: View) {
-        sharedVm.doneSearchQuery
-            .flatMapLatest { query ->
-                when {
-                    query == null -> ManagerReactive.doneTableInvalidations.map {
-                        val rows = runCatching { dao.getAll(PAGE_SIZE, 0) }
-                            .getOrDefault(emptyList())
-                        groupByIllust(rows)
-                    }
+    private suspend fun runDoneListFlow(empty: View, list: RecyclerView) {
+        sharedVm.selectedTab
+            .flatMapLatest { tab ->
+                if (tab != 2) {
+                    emptyFlow()
+                } else {
+                    sharedVm.doneSearchQuery.flatMapLatest { query ->
+                        when {
+                            query == null -> ManagerReactive.doneTableInvalidations.map {
+                                val t0 = SystemClock.elapsedRealtime()
+                                val rows = runCatching { dao.getAll(PAGE_SIZE, 0) }
+                                    .getOrDefault(emptyList())
+                                val tDb = SystemClock.elapsedRealtime()
+                                val groups = groupByIllust(rows)
+                                val tGroup = SystemClock.elapsedRealtime()
+                                Timber.d(
+                                    "[DonePerf] [IO] dao.getAll: %d rows in %dms | groupByIllust: %d groups in %dms | total IO=%dms",
+                                    rows.size, tDb - t0, groups.size, tGroup - tDb, tGroup - t0
+                                )
+                                groups
+                            }
 
-                    query.isEmpty() -> flow { emit(emptyList<DownloadGroup>()) }
-                    else -> ManagerReactive.doneTableInvalidations.map {
-                        val rows = runCatching { dao.searchDownloads(query) }
-                            .getOrDefault(emptyList())
-                        groupByIllust(rows)
+                            query.isEmpty() -> flow { emit(emptyList<DownloadGroup>()) }
+                            else -> ManagerReactive.doneTableInvalidations.map {
+                                val t0 = SystemClock.elapsedRealtime()
+                                val rows = runCatching { dao.searchDownloads(query) }
+                                    .getOrDefault(emptyList())
+                                val tDb = SystemClock.elapsedRealtime()
+                                val groups = groupByIllust(rows)
+                                val tGroup = SystemClock.elapsedRealtime()
+                                Timber.d(
+                                    "[DonePerf] [IO-Search] dao.search: %d rows in %dms | groupByIllust: %d groups in %dms | total IO=%dms",
+                                    rows.size, tDb - t0, groups.size, tGroup - tDb, tGroup - t0
+                                )
+                                groups
+                            }
+                        }
                     }
                 }
             }
             .flowOn(Dispatchers.IO)
             .collect { groups ->
-                adapter.submitList(groups)
+                val tCollect = SystemClock.elapsedRealtime()
+                Timber.d(
+                    "[DonePerf] [Main] collect groups=%d at t=%d, submitting to adapter",
+                    groups.size,
+                    tCollect
+                )
+                adapter.submitList(groups) {
+                    val tCommitted = SystemClock.elapsedRealtime()
+                    Timber.d(
+                        "[DonePerf] [Main] adapter.submitList COMMITTED in %dms (diff applied to adapter)",
+                        tCommitted - tCollect
+                    )
+                }
+                list.doOnPreDraw {
+                    val tPreDraw = SystemClock.elapsedRealtime()
+                    Timber.d(
+                        "[DonePerf] [Main] list.doOnPreDraw fired at t=%d (elapsed since collect=%dms)",
+                        tPreDraw,
+                        tPreDraw - tCollect
+                    )
+                }
                 empty.visibility = if (groups.isEmpty()) View.VISIBLE else View.GONE
                 // tab 标题数字回填:数字必须 = 实际可见卡片数,否则会出现 "已完成
                 // 1944 / 列表却为空" 这种数据源错位(参考 DownloadManagerSharedViewModel.doneCardCount)。
@@ -411,6 +477,7 @@ internal data class DownloadGroup(
 
 private fun groupByIllust(rows: List<DownloadEntity>): List<DownloadGroup> {
     if (rows.isEmpty()) return emptyList()
+    val t0 = SystemClock.elapsedRealtime()
     val buckets = LinkedHashMap<String, MutableList<DownloadEntity>>()
     for (row in rows) {
         val isNovel = row.fileName?.contains(Params.NOVEL_KEY) == true
@@ -422,6 +489,7 @@ private fun groupByIllust(rows: List<DownloadEntity>): List<DownloadGroup> {
         }
         buckets.getOrPut(key) { mutableListOf() }.add(row)
     }
+    val tBuckets = SystemClock.elapsedRealtime()
     // 每组按页码排序（page 列优先、fileName 自然序兜底，见 DownloadPageOrder），
     // 代表 entity 取 downloadTime 最大的；改为惰性解析，不再在 IO 线程同步解 600 次
     val groups = buckets.entries.map { (k, list) ->
@@ -437,8 +505,15 @@ private fun groupByIllust(rows: List<DownloadEntity>): List<DownloadGroup> {
             isNovel = isNovel,
         )
     }
+    val tGroups = SystemClock.elapsedRealtime()
     // 按代表的 downloadTime 倒序
-    return groups.sortedByDescending { it.latest.downloadTime }
+    val sorted = groups.sortedByDescending { it.latest.downloadTime }
+    val tSorted = SystemClock.elapsedRealtime()
+    Timber.d(
+        "[DonePerf] groupByIllust breakdown: %d rows -> %d buckets in %dms | mapping & sorting in %dms | final sort in %dms (total=%dms)",
+        rows.size, buckets.size, tBuckets - t0, tGroups - tBuckets, tSorted - tGroups, tSorted - t0
+    )
+    return sorted
 }
 
 private enum class DoneAction { OPEN, DELETE, OPEN_AUTHOR }
@@ -477,6 +552,11 @@ private class DoneAdapterV3(
 
     /** 封面 URL → 同一个 GlideUrl 实例，见 [glideUrlOf]。一屏 20 多张，128 够翻好几屏。 */
     private val glideUrls = LruCache<String, GlideUrl>(128)
+    private var createCount = 0
+    private var totalCreateMs = 0L
+    private var bindCount = 0
+    private var totalBindMs = 0L
+    private var totalJsonMs = 0L
 
     fun setMode(m: DoneLayoutMode) {
         if (mode == m) return
@@ -488,19 +568,34 @@ private class DoneAdapterV3(
     override fun getItemViewType(position: Int): Int = mode.ordinal
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
+        val t0 = SystemClock.elapsedRealtime()
         val layoutRes = when (DoneLayoutMode.fromInt(viewType)) {
             DoneLayoutMode.LIST -> R.layout.cell_download_done_v3_list
             DoneLayoutMode.GRID -> R.layout.cell_download_done_v3
             DoneLayoutMode.COMPACT -> R.layout.cell_download_done_v3_compact
         }
         val v = LayoutInflater.from(parent.context).inflate(layoutRes, parent, false)
+        val elapsed = SystemClock.elapsedRealtime() - t0
+        createCount++
+        totalCreateMs += elapsed
+        if (createCount <= 12) {
+            Timber.d(
+                "[DonePerf] onCreateViewHolder #%d (%s) inflate=%dms (accum=%dms)",
+                createCount,
+                DoneLayoutMode.fromInt(viewType),
+                elapsed,
+                totalCreateMs
+            )
+        }
         return VH(v)
     }
 
     override fun onBindViewHolder(h: VH, pos: Int) {
+        val t0 = SystemClock.elapsedRealtime()
         val group = getItem(pos)
         val entity = group.latest
 
+        val tJson0 = SystemClock.elapsedRealtime()
         if (group.isNovel) {
             h.typeBadge.visibility = View.VISIBLE
             h.typeBadge.text = "NOVEL"
@@ -508,6 +603,8 @@ private class DoneAdapterV3(
             // 真正的小说名/作者/封面从 illustGson 解出来的 Novel 里取;老纪录 /
             // 解析失败 fallback 回 fileName + 空封面,至少能看出是哪条记录。
             val novel = group.parsedNovel
+            val jsonMs = SystemClock.elapsedRealtime() - tJson0
+            totalJsonMs += jsonMs
             h.title.text = novel?.title?.takeIf { it.isNotBlank() }
                 ?: entity.fileName.orEmpty()
             h.author.text = novel?.user?.name?.takeIf { it.isNotBlank() }
@@ -522,6 +619,8 @@ private class DoneAdapterV3(
         } else {
             // 惰性解析：这张卡第一次绑定时才 fromJson（主线程，约 1ms），之后同一个 group 不再解析
             val illust: Illust? = group.parsedIllust
+            val jsonMs = SystemClock.elapsedRealtime() - tJson0
+            totalJsonMs += jsonMs
             // 多页 illust：左上角只显示 "Np"（去掉 "MANGA · " 冗余前缀）。
             // 单页 illust：徽章直接隐藏 —— 没有页数信息可言。
             // 之前的渐隐 + 透明背景文字在暗色图上几乎读不出，改为白字 + 70% 黑底。
@@ -566,6 +665,20 @@ private class DoneAdapterV3(
         h.itemView.setOnLongClickListener {
             onAction(group, DoneAction.DELETE)
             true
+        }
+        val elapsed = SystemClock.elapsedRealtime() - t0
+        bindCount++
+        totalBindMs += elapsed
+        if (bindCount <= 12) {
+            Timber.d(
+                "[DonePerf] onBindViewHolder #%d pos=%d bind=%dms (jsonParse=%dms, accumBind=%dms, accumJson=%dms)",
+                bindCount,
+                pos,
+                elapsed,
+                SystemClock.elapsedRealtime() - tJson0,
+                totalBindMs,
+                totalJsonMs
+            )
         }
     }
 
