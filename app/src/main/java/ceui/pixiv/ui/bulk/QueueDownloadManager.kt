@@ -25,6 +25,7 @@ import ceui.pixiv.download.toast.DownloadToastKind
 import ceui.pixiv.download.toast.DownloadToasts
 import ceui.pixiv.download.IllustCaptionExporter
 import ceui.pixiv.download.maintenance.MediaStoreOrphanCleaner
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -37,6 +38,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
@@ -92,17 +94,25 @@ class QueueDownloadManager @Inject constructor(@ApplicationContext app: Context)
     /** 由 Hilt 以 @Singleton 构造并经 ServicesProvider 暴露；构造只存 context，不碰 DB。 */
     private val appContext: Context = app.applicationContext
 
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    /**
+     * **必须自带 [CoroutineExceptionHandler]**：SupervisorJob 只隔离兄弟协程、不吞异常，没有
+     * handler 时主循环或桥的漏网异常会冒到默认处理器上直接崩进程，[onLoopFinished] 的暂停与
+     * 提示根本来不及生效。这个 scope 全进程不 cancel。
+     */
+    private val scope = CoroutineScope(
+        SupervisorJob() + Dispatchers.IO +
+            CoroutineExceptionHandler { _, t -> Timber.tag(TAG).e(t, "[QUEUE-CONSUMER] scope coroutine crashed") }
+    )
 
     /** 外部触发的"队列内容变了，再看一眼"信号；和 ManagerReactive 共同喂给主循环 */
     private val tickle = Channel<Unit>(Channel.CONFLATED)
 
-    private var loopJob: Job? = null
+    @Volatile private var loopJob: Job? = null
 
     /**
      * contentFlow → [tickle] 的桥。与 [loopJob] 互为兄弟（都挂在 [scope] 下），见 [startBridge]。
      */
-    private var bridgeJob: Job? = null
+    @Volatile private var bridgeJob: Job? = null
 
     /**
      * 冷启动的一次性恢复是否已经跑过。泵重启时跳过它 —— 那里面会弹「恢复下载」确认框，
@@ -334,11 +344,16 @@ class QueueDownloadManager @Inject constructor(@ApplicationContext app: Context)
      *
      * 泵意外终止后由 [ensureRunning] 再进来一次 —— 那时 [coldStartDone] 已为 true，
      * 只重启主循环，不重跑冷启动（那里面会弹「恢复下载」确认框，重跑就是重复弹）。
+     *
+     * [ensureRunning] 可能从多个线程同时进来，「检查 + 启动」必须是一个原子操作：两条主循环
+     * 并存会把同一行 PENDING 派发两次。
      */
+    @Synchronized
     fun start() {
+        // 桥放在主循环判活之前：桥单独死掉时也要能被拉起来。
+        startBridge()
         if (loopJob?.isActive == true) return
         // 注意：这里不要触碰 dao；首次 dao 访问发生在下面的 launch 协程（IO 线程）里。
-        startBridge()
         val job = scope.launch {
             if (!coldStartDone) {
                 coldStartDone = true
@@ -411,7 +426,9 @@ class QueueDownloadManager @Inject constructor(@ApplicationContext app: Context)
             ManagerReactive.contentFlow.collect { tickle.trySend(Unit) }
         }
         bridgeJob = job
-        job.invokeOnCompletion { bridgeJob = null }
+        job.invokeOnCompletion {
+            synchronized(this@QueueDownloadManager) { if (bridgeJob === job) bridgeJob = null }
+        }
     }
 
     /**
@@ -425,7 +442,7 @@ class QueueDownloadManager @Inject constructor(@ApplicationContext app: Context)
      * 操作时复活，不需要额外的轮询看门狗。
      */
     private fun ensureRunning() {
-        if (loopJob?.isActive == true) return
+        if (loopJob?.isActive == true && bridgeJob?.isActive == true) return
         Timber.tag(TAG).w("[QUEUE-CONSUMER] consumer not running, restarting")
         start()
     }
@@ -439,10 +456,11 @@ class QueueDownloadManager @Inject constructor(@ApplicationContext app: Context)
      * [ensureRunning] 把泵重新拉起来。
      */
     private fun onLoopFinished(job: Job, cause: Throwable?) {
-        if (loopJob === job) loopJob = null
+        synchronized(this) { if (loopJob === job) loopJob = null }
         // cause == null：正常完成（主循环是 while(true)，实际走不到）。
-        // CancellationException：进程退出 / scope 被取消，不是故障。
-        if (cause == null || cause is kotlinx.coroutines.CancellationException) return
+        // [scope] 全进程不 cancel，所以 CancellationException 也不是正常退出 —— 漏网的取消
+        // 不走 CoroutineExceptionHandler，是唯一能让泵无声死掉的路径，不能放过。
+        if (cause == null || !scope.isActive) return
 
         Timber.tag(TAG).e(cause, "[QUEUE-CONSUMER] main loop died")
         mainHandler.post {
