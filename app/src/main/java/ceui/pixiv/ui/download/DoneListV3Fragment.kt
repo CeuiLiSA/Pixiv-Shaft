@@ -41,6 +41,7 @@ import ceui.loxia.Novel
 import ceui.pixiv.db.queue.QueueStatus
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.model.GlideUrl
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.hjq.toast.Toaster
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
@@ -84,7 +85,8 @@ class DoneListV3Fragment : Fragment() {
      * 阻塞的 DB 调用返回时 Fragment 可能已 detach,再 requireContext 就崩。
      * 实例是应用级的,拿住没有泄漏问题。
      */
-    @Inject lateinit var queueDownloadManager: QueueDownloadManager
+    @Inject
+    lateinit var queueDownloadManager: QueueDownloadManager
 
     private val dao: DownloadDao by lazy {
         AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao()
@@ -102,6 +104,7 @@ class DoneListV3Fragment : Fragment() {
             DoneAction.DELETE -> showDeleteConfirmDialog(R.string.dlmgr_delete_done_title) {
                 deleteOne(group)
             }
+
             DoneAction.OPEN_AUTHOR -> openAuthor(group)
         }
     }
@@ -117,7 +120,8 @@ class DoneListV3Fragment : Fragment() {
         applyLayoutMode(list, DoneLayoutMode.fromInt(Shaft.sSettings.doneListLayoutMode))
 
         val empty = view.findViewById<View>(R.id.emptyState)
-        view.findViewById<TextView>(R.id.emptyTitle).text = getString(R.string.dlmgr_done_empty_title)
+        view.findViewById<TextView>(R.id.emptyTitle).text =
+            getString(R.string.dlmgr_done_empty_title)
         view.findViewById<TextView>(R.id.emptyHint).text = getString(R.string.dlmgr_done_empty_hint)
 
         // btn1 改成"切换布局"按钮 —— 循环 LIST → GRID → COMPACT。
@@ -208,6 +212,7 @@ class DoneListV3Fragment : Fragment() {
                             .getOrDefault(emptyList())
                         groupByIllust(rows)
                     }
+
                     query.isEmpty() -> flow { emit(emptyList<DownloadGroup>()) }
                     else -> ManagerReactive.doneTableInvalidations.map {
                         val rows = runCatching { dao.searchDownloads(query) }
@@ -337,8 +342,8 @@ class DoneListV3Fragment : Fragment() {
     /** 切换布局：换 LayoutManager + 通知 adapter 切 viewType 重 inflate。 */
     private fun applyLayoutMode(list: RecyclerView, mode: DoneLayoutMode) {
         list.layoutManager = when (mode) {
-            DoneLayoutMode.LIST    -> LinearLayoutManager(requireContext())
-            DoneLayoutMode.GRID    -> GridLayoutManager(requireContext(), 2)
+            DoneLayoutMode.LIST -> LinearLayoutManager(requireContext())
+            DoneLayoutMode.GRID -> GridLayoutManager(requireContext(), 2)
             DoneLayoutMode.COMPACT -> GridLayoutManager(requireContext(), 4)
         }
         adapter.setMode(mode)
@@ -355,6 +360,7 @@ class DoneListV3Fragment : Fragment() {
 
     companion object {
         private const val PAGE_SIZE = DONE_LIST_WINDOW   // 一次取多点；分组后实际卡片数会少
+
         /** 导出时一次拉的硬上限 —— 5w 行 ≈ 2MB 文本，正常用户都装不了这么多 */
         private const val EXPORT_HARD_CAP = 50000
     }
@@ -481,8 +487,8 @@ private class DoneAdapterV3(
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
         val layoutRes = when (DoneLayoutMode.fromInt(viewType)) {
-            DoneLayoutMode.LIST    -> R.layout.cell_download_done_v3_list
-            DoneLayoutMode.GRID    -> R.layout.cell_download_done_v3
+            DoneLayoutMode.LIST -> R.layout.cell_download_done_v3_list
+            DoneLayoutMode.GRID -> R.layout.cell_download_done_v3
             DoneLayoutMode.COMPACT -> R.layout.cell_download_done_v3_compact
         }
         val v = LayoutInflater.from(parent.context).inflate(layoutRes, parent, false)
@@ -614,11 +620,14 @@ private class DoneAdapterV3(
         } else {
             Glide.with(view).load(glideUrlOf(networkUrl.orEmpty()))
         }
+        val crossFade = DrawableTransitionOptions.withCrossFade()
         // 本地文件丢了/无权限读时回退网图（与原逻辑一致）
         if (localUri != null && !networkUrl.isNullOrEmpty()) {
-            request = request.error(Glide.with(view).load(glideUrlOf(networkUrl)))
+            request =
+                request.error(Glide.with(view).load(glideUrlOf(networkUrl)).transition(crossFade))
         }
-        request.into(view)
+        // 缩略图淡入过渡：磁盘缓存（本地/外置存储）与网络加载时柔和显现，避免深色模式下亮色图突现引发明暗跳跃；内存缓存命中时 Glide 自动跳过过渡
+        request.transition(crossFade).into(view)
     }
 
     class VH(v: View) : RecyclerView.ViewHolder(v) {
