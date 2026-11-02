@@ -8,6 +8,7 @@ import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.MutableLiveData
+import ceui.lisa.activities.ImageDetailActivity
 import androidx.recyclerview.widget.RecyclerView
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
@@ -35,6 +36,7 @@ import java.io.File
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [24, 35], application = ArtworkPageReuseTest.TestApplication::class)
 class ArtworkAiWorkflowTest {
+    private lateinit var hostController: org.robolectric.android.controller.ActivityController<FragmentActivity>
     private lateinit var host: FragmentActivity
     private lateinit var owner: Fragment
     private val work = Illust(id = 1292L, type = "illust", page_count = 3, width = 600, height = 800)
@@ -46,24 +48,33 @@ class ArtworkAiWorkflowTest {
         Shaft.sSettings = Settings()
         ReflectionHelpers.setStaticField(Shaft::class.java, "sContext", app)
         Glide.init(app, GlideBuilder())
-        host = Robolectric.buildActivity(FragmentActivity::class.java).setup().get()
+        hostController = Robolectric.buildActivity(FragmentActivity::class.java).setup()
+        host = hostController.get()
         host.setTheme(R.style.AppTheme)
         owner = Fragment(R.layout.view_ai_upscale_overlay)
         host.supportFragmentManager.beginTransaction().add(android.R.id.content, owner).commitNow()
     }
 
     @After fun tearDown() {
+        RembgTaskPool.findTasksForIllust(work.id).forEach { RembgTaskPool.removeTask(it.second.taskKey) }
+        UpscaleTaskPool.findTasksForIllust(work.id).forEach { UpscaleTaskPool.removeTask(it.second.taskKey) }
+        hostController.pause().stop().destroy()
         IllustAiStore.clear(work.id)
-        host.finish()
+        // 消费单例 LiveData 的 pending post，避免下一用例重置 Looper 后留下未派发标记。
+        shadowOf(android.os.Looper.getMainLooper()).idle()
         Glide.tearDown()
     }
 
     @Test fun `resuming while original is downloading keeps duplicate guard`() {
+        val old = UpscaleTask(UpscaleTask.illustKey(work.id), host, File("unused"), "unused")
+        (old.status as MutableLiveData).value = UpscaleStatus.Done
+        ReflectionHelpers.getField<MutableMap<String, UpscaleTask>>(UpscaleTaskPool, "_tasks")[old.taskKey] = old
         val state = IllustAiStore.getOrCreate(work.id, 0)
         state.upscaleStatus = UpscaleStatus.Preparing
         state.rembgStatus = UpscaleStatus.Preparing
         val helper = IllustAiHelper(owner, owner.requireView(), onAiStateChanged = {})
         helper.restoreAiTasksIfRunning(work.id)
+        shadowOf(android.os.Looper.getMainLooper()).idle()
         assertEquals(UpscaleStatus.Preparing, state.upscaleStatus)
         assertEquals(UpscaleStatus.Preparing, state.rembgStatus)
     }
@@ -71,6 +82,7 @@ class ArtworkAiWorkflowTest {
     @Test fun `rembg retry after failure observes the replacement task`() {
         val helper = IllustAiHelper(owner, owner.requireView(), onAiStateChanged = {})
         fun observe(task: RembgTask) {
+            ReflectionHelpers.getField<MutableMap<String, RembgTask>>(RembgTaskPool, "_tasks")[task.taskKey] = task
             ReflectionHelpers.callInstanceMethod<Void>(helper, "observeRembgTask",
                 ReflectionHelpers.ClassParameter.from(Long::class.javaPrimitiveType, work.id),
                 ReflectionHelpers.ClassParameter.from(Int::class.javaPrimitiveType, 0),
@@ -84,6 +96,162 @@ class ArtworkAiWorkflowTest {
         (retry.status as MutableLiveData).value = UpscaleStatus.Running
         assertTrue(retry.status.hasActiveObservers())
         assertEquals(UpscaleStatus.Running, IllustAiStore.get(work.id, 0)?.rembgStatus)
+    }
+
+    @Test fun `stopped detail cannot erase a replacement rembg task on resume`() {
+        val tasks = ReflectionHelpers.getField<MutableMap<String, RembgTask>>(RembgTaskPool, "_tasks")
+        val key = RembgTask.illustKey(work.id)
+        val first = RembgTask(key, host, File("unused"), "unused")
+        tasks[key] = first
+        val helper = IllustAiHelper(owner, owner.requireView(), onAiStateChanged = {})
+        try {
+            (first.status as MutableLiveData).value = UpscaleStatus.Running
+            helper.restoreAiTasksIfRunning(work.id)
+            hostController.pause().stop()
+            (first.status as MutableLiveData).value = UpscaleStatus.Failed
+            val retry = RembgTask(key, host, File("unused"), "unused")
+            (retry.status as MutableLiveData).value = UpscaleStatus.Running
+            tasks[key] = retry
+            IllustAiStore.getOrCreate(work.id, 0).rembgStatus = UpscaleStatus.Running
+            hostController.start().resume()
+            assertSame(retry, RembgTaskPool.getTask(key))
+            assertEquals(UpscaleStatus.Running, IllustAiStore.get(work.id, 0)?.rembgStatus)
+            helper.restoreAiTasksIfRunning(work.id)
+            assertTrue(retry.status.hasActiveObservers())
+        } finally {
+            RembgTaskPool.removeTask(key)
+        }
+    }
+
+    @Test fun `stopped detail cannot overwrite replacement upscale state`() {
+        val tasks = ReflectionHelpers.getField<MutableMap<String, UpscaleTask>>(UpscaleTaskPool, "_tasks")
+        val key = UpscaleTask.illustKey(work.id)
+        val first = UpscaleTask(key, host, File("unused"), "unused")
+        tasks[key] = first
+        val helper = IllustAiHelper(owner, owner.requireView(), onAiStateChanged = {})
+        (first.status as MutableLiveData).value = UpscaleStatus.Running
+        helper.restoreAiTasksIfRunning(work.id)
+        hostController.pause().stop()
+        (first.status as MutableLiveData).value = UpscaleStatus.Failed
+        val retry = UpscaleTask(key, host, File("unused"), "unused")
+        (retry.status as MutableLiveData).value = UpscaleStatus.Running
+        tasks[key] = retry
+        IllustAiStore.getOrCreate(work.id, 0).upscaleStatus = UpscaleStatus.Running
+        hostController.start().resume()
+        assertSame(retry, UpscaleTaskPool.getTask(key))
+        assertEquals(UpscaleStatus.Running, IllustAiStore.get(work.id, 0)?.upscaleStatus)
+        helper.restoreAiTasksIfRunning(work.id)
+        assertTrue(retry.status.hasActiveObservers())
+    }
+
+    @Test fun `restoring a pending classic result does not accumulate observers`() {
+        val task = UpscaleTask(UpscaleTask.illustKey(work.id), host, File("unused"), "unused")
+        ReflectionHelpers.getField<MutableMap<String, UpscaleTask>>(UpscaleTaskPool, "_tasks")[task.taskKey] = task
+        val helper = IllustAiHelper(owner, owner.requireView())
+        (task.status as MutableLiveData).value = UpscaleStatus.Running
+        helper.restoreAiTasksIfRunning(work.id)
+        hostController.pause()
+        (task.status as MutableLiveData).value = UpscaleStatus.Done
+        helper.restoreAiTasksIfRunning(work.id)
+        helper.restoreAiTasksIfRunning(work.id)
+        assertEquals(1, ReflectionHelpers.getField<Int>(task.status, "mActiveCount"))
+        hostController.resume()
+    }
+
+    @Test fun `initial null translation status does not hide an existing AI result`() {
+        val controller = Robolectric.buildActivity(ImageDetailActivity::class.java).create()
+        val viewer = controller.get()
+        val result = File.createTempFile("ai-result", ".png", host.cacheDir)
+        try {
+            ReflectionHelpers.setField(viewer, "mIllust", work)
+            val state = IllustAiStore.getOrCreate(work.id, 0)
+            state.upscaleResultPath = result.absolutePath
+            state.upscaleOriginalPath = "original"
+            ReflectionHelpers.callInstanceMethod<Void>(viewer, "syncAiOverlayForPage",
+                ReflectionHelpers.ClassParameter.from(Int::class.javaPrimitiveType, 0))
+            controller.start().resume().visible()
+            shadowOf(android.os.Looper.getMainLooper()).idleFor(java.time.Duration.ofMillis(400))
+            val overlay = viewer.findViewById<View>(R.id.ai_overlay_root)
+            assertEquals(View.VISIBLE, overlay.visibility)
+            assertEquals(1f, overlay.alpha)
+        } finally {
+            controller.pause().stop().destroy()
+            result.delete()
+        }
+    }
+
+    @Test fun `viewer opened during preparation observes the task when it enters the queue`() {
+        val blocker = object : AiQueueItem {
+            override val taskKey = "test-blocker"
+            override val status = MutableLiveData(UpscaleStatus.Running)
+            override fun markQueued() = Unit
+            override fun execute() = Unit
+        }
+        AiTaskQueue.enqueue(blocker)
+        val controller = Robolectric.buildActivity(ImageDetailActivity::class.java).setup()
+        val viewer = controller.get()
+        val key = RembgTask.illustKey(work.id)
+        try {
+            ReflectionHelpers.setField(viewer, "mIllust", work)
+            IllustAiStore.getOrCreate(work.id, 0).rembgStatus = UpscaleStatus.Preparing
+            ReflectionHelpers.callInstanceMethod<Void>(viewer, "syncAiOverlayForPage",
+                ReflectionHelpers.ClassParameter.from(Int::class.javaPrimitiveType, 0))
+            val task = RembgTaskPool.startTask(key, host, File("unused"), "unused")
+            shadowOf(android.os.Looper.getMainLooper()).idle()
+            assertEquals(UpscaleStatus.Queued, task.status.value)
+            assertTrue(task.status.hasActiveObservers())
+            assertEquals(host.getString(R.string.string_ai_task_queued),
+                viewer.findViewById<TextView>(R.id.ai_status_text).text)
+        } finally {
+            RembgTaskPool.removeTask(key)
+            AiTaskQueue.onTaskFinished(blocker)
+            controller.pause().stop().destroy()
+        }
+    }
+
+    @Test fun `preparation failure in another page clears the viewer waiting overlay`() {
+        val controller = Robolectric.buildActivity(ImageDetailActivity::class.java).setup()
+        val viewer = controller.get()
+        try {
+            ReflectionHelpers.setField(viewer, "mIllust", work)
+            val state = IllustAiStore.getOrCreate(work.id, 0)
+            state.rembgStatus = UpscaleStatus.Preparing
+            shadowOf(android.os.Looper.getMainLooper()).idle()
+            assertEquals(View.VISIBLE, viewer.findViewById<View>(R.id.ai_overlay_root).visibility)
+            state.rembgStatus = UpscaleStatus.Idle
+            shadowOf(android.os.Looper.getMainLooper()).idleFor(java.time.Duration.ofMillis(400))
+            assertEquals(View.GONE, viewer.findViewById<View>(R.id.ai_overlay_root).visibility)
+        } finally {
+            controller.pause().stop().destroy()
+        }
+    }
+
+    @Test fun `translation takes over a done overlay and restores it on completion`() {
+        val controller = Robolectric.buildActivity(ImageDetailActivity::class.java).setup()
+        val viewer = controller.get()
+        val result = File.createTempFile("ai-result", ".png", host.cacheDir)
+        try {
+            ReflectionHelpers.setField(viewer, "mIllust", work)
+            val state = IllustAiStore.getOrCreate(work.id, 0)
+            state.upscaleResultPath = result.absolutePath
+            state.upscaleOriginalPath = "original"
+            ReflectionHelpers.callInstanceMethod<Void>(viewer, "syncAiOverlayForPage",
+                ReflectionHelpers.ClassParameter.from(Int::class.javaPrimitiveType, 0))
+            val vm = androidx.lifecycle.ViewModelProvider(viewer)[ceui.lisa.activities.ImageTranslationViewModel::class.java]
+            val running = ReflectionHelpers.getField<MutableLiveData<Boolean>>(vm, "_running")
+            val status = ReflectionHelpers.getField<MutableLiveData<ceui.pixiv.ui.translate.MangaPageTranslatePipeline.Stage?>>(vm, "_status")
+            running.value = true
+            status.value = ceui.pixiv.ui.translate.MangaPageTranslatePipeline.Stage("translating", 50)
+            assertEquals(View.VISIBLE, viewer.findViewById<View>(R.id.ai_loading_state).visibility)
+            assertEquals(View.GONE, viewer.findViewById<View>(R.id.ai_done_state).visibility)
+            status.value = null
+            running.value = false
+            assertEquals(View.GONE, viewer.findViewById<View>(R.id.ai_loading_state).visibility)
+            assertEquals(View.VISIBLE, viewer.findViewById<View>(R.id.ai_done_state).visibility)
+        } finally {
+            controller.pause().stop().destroy()
+            result.delete()
+        }
     }
 
     @Test fun `completed classic result can be opened again without rerunning inference`() {

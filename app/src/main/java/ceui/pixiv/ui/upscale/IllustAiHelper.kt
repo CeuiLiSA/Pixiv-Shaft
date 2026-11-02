@@ -33,7 +33,8 @@ class IllustAiHelper(
     private val onAiTaskCompleted: ((pageIndex: Int, isUpscale: Boolean) -> Unit)? = null,
 ) {
     /** 记录已在观察的任务，避免重复观察 */
-    private val observedTasks = mutableSetOf<String>()
+    private val observedTasks = mutableSetOf<AiQueueItem>()
+    private val observedIllusts = mutableSetOf<Long>()
 
     private val context: Context get() = fragment.requireContext()
     private val lifecycleOwner: LifecycleOwner get() = fragment.viewLifecycleOwner
@@ -111,7 +112,7 @@ class IllustAiHelper(
     }
 
     private fun observeRembgTask(illustId: Long, pageIndex: Int, task: RembgTask) {
-        if (!observedTasks.add(task.taskKey)) return
+        if (!observedTasks.add(task)) return
 
         val state = IllustAiStore.getOrCreate(illustId, pageIndex)
 
@@ -133,18 +134,23 @@ class IllustAiHelper(
             viewCompare.setOnClickListener {
                 if (navigateToHighlight()) {
                     overlayRoot.visibility = View.GONE
-                    RembgTaskPool.removeTask(task.taskKey)
+                    removeTaskIfCurrent(task)
                 }
             }
             dismiss.setOnClickListener {
                 overlayRoot.animate().alpha(0f).setDuration(300).withEndAction {
                     overlayRoot.visibility = View.GONE
                 }.start()
-                RembgTaskPool.removeTask(task.taskKey)
+                removeTaskIfCurrent(task)
             }
         }
 
         task.status.observe(lifecycleOwner) { status ->
+            // 离开页面期间同 key 可能已重试；旧 LiveData 的终态重放不再拥有这页状态。
+            if (RembgTaskPool.getTask(task.taskKey) !== task) {
+                observedTasks.remove(task)
+                return@observe
+            }
             when (status) {
                 UpscaleStatus.Queued -> {
                     state.rembgStatus = UpscaleStatus.Queued
@@ -183,7 +189,6 @@ class IllustAiHelper(
                     }
                 }
                 UpscaleStatus.Done -> {
-                    observedTasks.remove(task.taskKey)
                     state.rembgStatus = UpscaleStatus.Done
                     val result = task.resultFile.value
                     if (result != null) {
@@ -198,14 +203,14 @@ class IllustAiHelper(
                             overlayRoot.animate().alpha(0f).setDuration(300).withEndAction {
                                 overlayRoot.visibility = View.GONE
                             }.start()
-                            RembgTaskPool.removeTask(task.taskKey)
+                            removeTaskIfCurrent(task)
                         } else {
                             showDoneState()
                         }
                     }
                 }
                 UpscaleStatus.Failed -> {
-                    observedTasks.remove(task.taskKey)
+                    observedTasks.remove(task)
                     state.rembgStatus = UpscaleStatus.Failed
                     if (onAiStateChanged != null) {
                         onAiStateChanged.invoke(pageIndex)
@@ -215,13 +220,14 @@ class IllustAiHelper(
                         }.start()
                     }
                     Common.showToast(R.string.string_ai_rembg_failed)
-                    RembgTaskPool.removeTask(task.taskKey)
+                    removeTaskIfCurrent(task)
                 }
                 else -> {}
             }
         }
 
         task.progress.observe(lifecycleOwner) { percent ->
+            if (RembgTaskPool.getTask(task.taskKey) !== task) return@observe
             if (task.status.value != UpscaleStatus.Running && task.status.value != UpscaleStatus.Queued) return@observe
             state.rembgProgress = percent
             if (onAiProgress != null) {
@@ -301,12 +307,24 @@ class IllustAiHelper(
     }
 
     fun restoreAiTasksIfRunning(illustId: Long) {
+        if (observedIllusts.add(illustId)) {
+            IllustAiStore.changes.observe(lifecycleOwner) {
+                restoreAiTasks(illustId)
+                IllustAiStore.allPages(illustId).forEach { onAiStateChanged?.invoke(it.pageIndex) }
+            }
+        }
+        restoreAiTasks(illustId)
+    }
+
+    private fun restoreAiTasks(illustId: Long) {
         val upscaleTasks = UpscaleTaskPool.findTasksForIllust(illustId)
         val rembgTasks = RembgTaskPool.findTasksForIllust(illustId)
 
         for ((pageIndex, task) in upscaleTasks) {
+            // 重新准备原图时池里可能还保留上一轮 Done；不能用它覆盖新准备状态。
+            if (IllustAiStore.get(illustId, pageIndex)?.upscaleStatus == UpscaleStatus.Preparing) continue
             when (task.status.value) {
-                UpscaleStatus.Running, UpscaleStatus.Queued -> observeUpscaleTask(illustId, pageIndex, task)
+                UpscaleStatus.Idle, UpscaleStatus.Running, UpscaleStatus.Queued -> observeUpscaleTask(illustId, pageIndex, task)
                 UpscaleStatus.Done -> {
                     if (onAiStateChanged == null) {
                         observeUpscaleTask(illustId, pageIndex, task)
@@ -329,8 +347,9 @@ class IllustAiHelper(
         }
 
         for ((pageIndex, task) in rembgTasks) {
+            if (IllustAiStore.get(illustId, pageIndex)?.rembgStatus == UpscaleStatus.Preparing) continue
             when (task.status.value) {
-                UpscaleStatus.Running, UpscaleStatus.Queued -> observeRembgTask(illustId, pageIndex, task)
+                UpscaleStatus.Idle, UpscaleStatus.Running, UpscaleStatus.Queued -> observeRembgTask(illustId, pageIndex, task)
                 UpscaleStatus.Done -> {
                     if (onAiStateChanged == null) {
                         observeRembgTask(illustId, pageIndex, task)
@@ -359,7 +378,7 @@ class IllustAiHelper(
     fun restoreUpscaleIfRunning(illustId: Long) = restoreAiTasksIfRunning(illustId)
 
     private fun observeUpscaleTask(illustId: Long, pageIndex: Int, task: UpscaleTask) {
-        if (!observedTasks.add(task.taskKey)) return
+        if (!observedTasks.add(task)) return
 
         val state = IllustAiStore.getOrCreate(illustId, pageIndex)
 
@@ -393,6 +412,10 @@ class IllustAiHelper(
         }
 
         task.status.observe(lifecycleOwner) { status ->
+            if (UpscaleTaskPool.getTask(task.taskKey) !== task) {
+                observedTasks.remove(task)
+                return@observe
+            }
             when (status) {
                 UpscaleStatus.Queued -> {
                     state.upscaleStatus = UpscaleStatus.Queued
@@ -431,7 +454,6 @@ class IllustAiHelper(
                     }
                 }
                 UpscaleStatus.Done -> {
-                    observedTasks.remove(task.taskKey)
                     state.upscaleStatus = UpscaleStatus.Done
                     val result = task.resultFile.value
                     if (result != null) {
@@ -469,6 +491,7 @@ class IllustAiHelper(
         }
 
         task.progress.observe(lifecycleOwner) { percent ->
+            if (UpscaleTaskPool.getTask(task.taskKey) !== task) return@observe
             if (task.status.value != UpscaleStatus.Running && task.status.value != UpscaleStatus.Queued) return@observe
             state.upscaleProgress = percent
             if (onAiProgress != null) {
@@ -483,6 +506,7 @@ class IllustAiHelper(
         }
 
         task.eta.observe(lifecycleOwner) { eta ->
+            if (UpscaleTaskPool.getTask(task.taskKey) !== task) return@observe
             if (task.status.value != UpscaleStatus.Running) return@observe
             state.upscaleEta = eta
             if (onAiProgress != null) {
@@ -517,6 +541,13 @@ class IllustAiHelper(
         if (UpscaleTaskPool.getTask(task.taskKey) === task) {
             UpscaleTaskPool.removeTask(task.taskKey)
         }
-        observedTasks.remove(task.taskKey)
+        observedTasks.remove(task)
+    }
+
+    private fun removeTaskIfCurrent(task: RembgTask) {
+        if (RembgTaskPool.getTask(task.taskKey) === task) {
+            RembgTaskPool.removeTask(task.taskKey)
+        }
+        observedTasks.remove(task)
     }
 }

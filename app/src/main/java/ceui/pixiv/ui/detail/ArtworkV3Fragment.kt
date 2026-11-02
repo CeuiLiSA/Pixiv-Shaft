@@ -380,7 +380,19 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
                 hideFabBar = { immediate -> hideFabBar(immediate) },
                 showFabBar = ::showFabBar,
             )
+        aiHelper = IllustAiHelper(
+            fragment = this,
+            rootView = chromeBind.root,
+            onAiStateChanged = ::onAiPageChanged,
+            onAiProgress = ::onAiPageProgress,
+            onAiTaskCompleted = ::onAiTaskCompleted,
+        )
         if (isSnapshotMode) {
+            // 快照可能晚于 onViewCreated 才入缓存；按真实作品 ID 接回大图页启动的任务。
+            ceui.pixiv.ui.upscale.IllustAiStore.changes.observe(viewLifecycleOwner) {
+                viewerLinkIllustId.takeIf { it > 0L }?.let { aiHelper?.restoreAiTasksIfRunning(it) }
+                refreshAllAiPages()
+            }
             // 快照只读：保留收藏/关注按钮用于展示“那一刻”的状态，但点击一律无动作。
             chromeBind.fabBar.root.isVisible = true
             chromeBind.fabBar.fabDownloadContainer.isVisible = false
@@ -415,20 +427,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
                 onOpenComicReader = ::openComicReader,
                 onForceOriginal = ::applyForceOriginal,
             )
-        aiHelper =
-            IllustAiHelper(
-                fragment = this,
-                rootView = chromeBind.root,
-                onAiStateChanged = { pageIndex ->
-                    onAiPageChanged(pageIndex)
-                },
-                onAiProgress = { pageIndex, progress, eta, statusText ->
-                    onAiPageProgress(pageIndex, progress, eta, statusText)
-                },
-                onAiTaskCompleted = ::onAiTaskCompleted,
-            ).also {
-                it.restoreUpscaleIfRunning(illustId)
-            }
+        aiHelper?.restoreUpscaleIfRunning(illustId)
 
         // 旋转 / 视图重建:feedViewModel 的列表存活(可能是展开态),但 pageAdapter 会重建为
         // 折叠态。二者不一致会出「p0 顶着展开胶囊、p1/p2 却已显示」的矛盾 UI。对齐 legacy(旋转即

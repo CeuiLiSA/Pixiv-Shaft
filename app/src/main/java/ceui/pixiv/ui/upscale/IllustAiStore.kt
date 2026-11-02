@@ -1,6 +1,8 @@
 package ceui.pixiv.ui.upscale
 
 import android.content.Context
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import ceui.lisa.R
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
@@ -8,19 +10,35 @@ import java.util.concurrent.ConcurrentHashMap
 class PageAiState(
     val illustId: Long,
     val pageIndex: Int,
-    var upscaleStatus: UpscaleStatus = UpscaleStatus.Idle,
+    upscaleStatus: UpscaleStatus = UpscaleStatus.Idle,
     var upscaleProgress: Float = 0f,
     var upscaleEta: Float = 0f,
     var upscaleStatusText: String? = null,
     var upscaleResultPath: String? = null,
     var upscaleOriginalPath: String? = null,
 
-    var rembgStatus: UpscaleStatus = UpscaleStatus.Idle,
+    rembgStatus: UpscaleStatus = UpscaleStatus.Idle,
     var rembgProgress: Float = 0f,
     var rembgStatusText: String? = null,
     var rembgResultPath: String? = null,
     var rembgOriginalPath: String? = null,
 ) {
+    internal var onStatusChanged: (() -> Unit)? = null
+
+    var upscaleStatus = upscaleStatus
+        set(value) {
+            if (field == value) return
+            field = value
+            onStatusChanged?.invoke()
+        }
+
+    var rembgStatus = rembgStatus
+        set(value) {
+            if (field == value) return
+            field = value
+            onStatusChanged?.invoke()
+        }
+
     var upscaleRunning: Boolean
         get() = upscaleStatus == UpscaleStatus.Running || upscaleStatus == UpscaleStatus.Preparing
         set(value) {
@@ -79,12 +97,17 @@ class PageAiState(
 
 object IllustAiStore {
     private val states = ConcurrentHashMap<String, PageAiState>()
+    private val _changes = MutableLiveData(Unit)
+    /** 状态切换用于重新发现入池任务；进度仍由任务自身 LiveData 驱动，不逐帧刷新所有页。 */
+    val changes: LiveData<Unit> = _changes
 
     private fun key(illustId: Long, pageIndex: Int): String = "${illustId}_$pageIndex"
 
     fun getOrCreate(illustId: Long, pageIndex: Int): PageAiState {
         return states.computeIfAbsent(key(illustId, pageIndex)) {
-            PageAiState(illustId, pageIndex)
+            PageAiState(illustId, pageIndex).apply {
+                onStatusChanged = { _changes.postValue(Unit) }
+            }
         }
     }
 

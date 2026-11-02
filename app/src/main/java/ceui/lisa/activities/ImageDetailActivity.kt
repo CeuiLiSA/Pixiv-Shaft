@@ -169,6 +169,9 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         // 新的查看器会话：上一次会话回传的「当前页那一格」已失效，见 ViewerPageLink.clearViewport
         ViewerPageLink.clearViewport()
         observeTranslationStatus()
+        ceui.pixiv.ui.upscale.IllustAiStore.changes.observe(this) {
+            baseBind?.viewPager?.currentItem?.let(::syncAiOverlayForPage)
+        }
         val dataType = intent.getStringExtra("dataType")
         baseBind!!.viewPager.setPageTransformer(true, PageTransformerHelper.getCurrentTransformer())
         // issue #724: 个性化「看图时保留状态栏区域」开启时，给 ViewPager 顶部留出状态栏高度，
@@ -1450,25 +1453,20 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
             val progressText = findViewById<TextView>(R.id.ai_progress_text)
 
             if (status == null) {
-                if (overlayRoot.visibility == View.VISIBLE) {
-                    overlayRoot
-                        .animate()
-                        .alpha(0f)
-                        .setDuration(300)
-                        .withEndAction {
-                            overlayRoot.visibility = View.GONE
-                        }
-                        .start()
-                }
+                baseBind?.viewPager?.currentItem?.let(::syncAiOverlayForPage)
                 return@observe
             }
 
+            overlayRoot.animate().cancel()
+            findViewById<View>(R.id.ai_loading_state).visibility = View.VISIBLE
+            findViewById<View>(R.id.ai_done_state).visibility = View.GONE
+            findViewById<TextView>(R.id.ai_eta_text).text = ""
             if (overlayRoot.visibility != View.VISIBLE) {
-                findViewById<View>(R.id.ai_loading_state).visibility = View.VISIBLE
-                findViewById<View>(R.id.ai_done_state).visibility = View.GONE
                 overlayRoot.alpha = 0f
                 overlayRoot.visibility = View.VISIBLE
                 overlayRoot.animate().alpha(1f).setDuration(300).start()
+            } else {
+                overlayRoot.alpha = 1f
             }
             statusText.text = status.text
             val pct = status.progressPercent
@@ -1481,6 +1479,10 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                 progressRing.isIndeterminate = true
                 progressText.visibility = View.GONE
             }
+        }
+        // status=null 在 running=false 之前发布；翻译释放共享遮罩后恢复当前页 AI 状态。
+        translationViewModel.running.observe(this) { running ->
+            if (!running) baseBind?.viewPager?.currentItem?.let(::syncAiOverlayForPage)
         }
     }
 
@@ -1571,7 +1573,9 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         if (!observedAiTasks.add(task)) return
         val page = task.taskKey.substringAfterLast('_').toIntOrNull() ?: return
         fun isCurrent() = baseBind?.viewPager?.currentItem == page &&
-            translationViewModel.running.value != true
+            translationViewModel.running.value != true &&
+            (if (isUpscale) UpscaleTaskPool.getTask(task.taskKey)
+             else ceui.pixiv.ui.upscale.RembgTaskPool.getTask(task.taskKey)) === task
         task.status.observe(this) { status ->
             if (!isCurrent()) return@observe
             syncAiOverlayForPage(page)
@@ -1632,6 +1636,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
 
         if (isWorking) {
             val isFirstShow = overlayRoot.visibility != View.VISIBLE
+            overlayRoot.animate().cancel()
             overlayRoot.visibility = View.VISIBLE
             loadingState?.visibility = View.VISIBLE
             doneState?.visibility = View.GONE
@@ -1639,6 +1644,8 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                 overlayRoot.animate().cancel()
                 overlayRoot.alpha = 0f
                 overlayRoot.animate().alpha(1f).setDuration(260L).start()
+            } else {
+                overlayRoot.alpha = 1f
             }
             statusText?.text = aiState?.currentStatusText(this)
             val progress = aiState?.currentProgress ?: 0f
@@ -1652,14 +1659,16 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
             val etaSec = ((aiState?.currentEta ?: 0f) + 0.5f).toInt()
             etaText?.text = if (etaSec > 0 && progress > 0f) getString(R.string.string_ai_task_eta_seconds, etaSec) else ""
             // 同页的两种任务都订阅，先完成一项后另一项仍能更新。
-            if (upscaleTask?.status?.value == UpscaleStatus.Running ||
-                upscaleTask?.status?.value == UpscaleStatus.Queued) observeUpscaleTask(upscaleTask)
-            if (rembgTask?.status?.value == UpscaleStatus.Running ||
-                rembgTask?.status?.value == UpscaleStatus.Queued) observeRembgTask(rembgTask)
+            // 新任务已入池时 status.postValue 可能还没派发，Idle 也须先接上订阅。
+            if (upscaleTask != null && upscaleTask.status.value != UpscaleStatus.Done &&
+                upscaleTask.status.value != UpscaleStatus.Failed) observeUpscaleTask(upscaleTask)
+            if (rembgTask != null && rembgTask.status.value != UpscaleStatus.Done &&
+                rembgTask.status.value != UpscaleStatus.Failed) observeRembgTask(rembgTask)
             return
         }
 
         if (aiState?.hasAnyResult == true) {
+            overlayRoot.animate().cancel()
             overlayRoot.visibility = View.VISIBLE
             loadingState?.visibility = View.GONE
             doneState?.visibility = View.VISIBLE
@@ -1690,6 +1699,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         }
 
         if (translationViewModel.running.value != true) {
+            overlayRoot.animate().cancel()
             overlayRoot.visibility = View.GONE
         }
     }
