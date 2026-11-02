@@ -98,6 +98,39 @@ class SnapshotIndexTest {
         assertEquals(setOf(2L), state.preferredByIllust().keys)
     }
 
+    @Test fun `stale auto read failure cannot remove a snapshot promoted while reading`() {
+        val state = SnapshotIndexState()
+        val auto = record("same", auto = true)
+        state.finishLoading(mapOf("same" to auto))
+        val formal = record("same")
+        state.write(formal)
+        assertFalse(state.delete("same", expectedEntry = auto.entry))
+        assertEquals(formal.entry, state.preferredByIllust()[42])
+        // A real directory deletion still removes the latest entry unconditionally.
+        assertTrue(state.delete("same"))
+        assertTrue(state.records.isEmpty())
+    }
+
+    @Test fun `stale read failure before startup completes cannot tombstone a promotion`() {
+        val state = SnapshotIndexState()
+        val auto = record("same", auto = true)
+        state.write(auto)
+        val formal = record("same")
+        state.write(formal)
+        assertFalse(state.delete("same", expectedEntry = auto.entry))
+        state.finishLoading(mapOf("same" to auto))
+        assertEquals(formal.entry, state.preferredByIllust()[42])
+    }
+
+    @Test fun `failed unchanged entry is removed and another candidate remains available`() {
+        val state = SnapshotIndexState()
+        val older = record("older", time = 1)
+        val broken = record("broken", time = 2)
+        state.finishLoading(mapOf("older" to older, "broken" to broken))
+        assertTrue(state.delete("broken", expectedEntry = broken.entry))
+        assertEquals(older.entry, state.preferredByIllust()[42])
+    }
+
     @Test fun `cold scan persists all duplicates and stable startup does not parse known manifests`() {
         writeFormal("old", 10)
         writeFormal("new", 20)

@@ -46,7 +46,7 @@ fun openSnapshotViewer(context: Context, owner: LifecycleOwner, entry: SnapshotI
             throw ce
         } catch (e: Exception) {
             Timber.w(e, "[Snapshot] open from card failed, id=%s", entry.snapshotId)
-            SnapshotIndex.onSnapshotDeleted(entry.snapshotId)
+            SnapshotIndex.onSnapshotDeleted(entry.snapshotId, expectedEntry = entry)
             Common.showToast(appContext.getString(R.string.snapshot_open_failed, e.message ?: ""))
             return@launch
         }

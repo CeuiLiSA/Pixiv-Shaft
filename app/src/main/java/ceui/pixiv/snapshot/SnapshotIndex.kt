@@ -1,6 +1,7 @@
 package ceui.pixiv.snapshot
 
 import android.content.Context
+import androidx.annotation.Keep
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import ceui.lisa.activities.Shaft
@@ -34,6 +35,8 @@ object SnapshotIndex {
         val createdAt: Long,
     )
 
+    // Gson 的磁盘字段名必须跨 release 混淆版本保持稳定。
+    @Keep
     private data class PersistedEntry(
         val illustId: Long = 0L,
         val snapshotId: String? = null,
@@ -107,11 +110,14 @@ object SnapshotIndex {
         bumpRevision()
     }
 
-    /** 即使首轮扫描还未读到该 ID，也必须记录删除，防止旧扫描结果将它复活。 */
-    fun onSnapshotDeleted(snapshotId: String) {
+    /**
+     * 真正删除目录时不带 expectedEntry，首轮扫描前也记录删除，防止旧扫描将它复活。
+     * 读取失败的清理必须带上当时的条目，不能删掉读取期间已转正/替换的新记录。
+     */
+    fun onSnapshotDeleted(snapshotId: String, expectedEntry: Entry? = null) {
         if (snapshotId.isEmpty()) return
         val changed = synchronized(this) {
-            val changed = state.delete(snapshotId)
+            val changed = state.delete(snapshotId, expectedEntry)
             if (changed) {
                 byIllust = state.preferredByIllust()
                 persistLocked()
@@ -170,7 +176,8 @@ internal class SnapshotIndexState {
         return true
     }
 
-    fun delete(snapshotId: String): Boolean {
+    fun delete(snapshotId: String, expectedEntry: SnapshotIndex.Entry? = null): Boolean {
+        if (expectedEntry != null && records[snapshotId]?.entry != expectedEntry) return false
         if (!loaded) pending[snapshotId] = null
         if (snapshotId !in records) return false
         records = records - snapshotId
