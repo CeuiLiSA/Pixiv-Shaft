@@ -10,7 +10,6 @@ import ceui.lisa.activities.Shaft
 import ceui.lisa.database.AppDatabase
 import ceui.lisa.database.UserEntity
 import ceui.pixiv.config.RemoteAppConfig
-import ceui.pixiv.db.FeedCacheEntity
 import ceui.pixiv.db.mirror.BookmarkMirrorEntity
 import ceui.pixiv.db.mirror.BookmarkMirrorService
 import ceui.pixiv.db.mirror.BookmarkMirrorStateEntity
@@ -19,8 +18,11 @@ import ceui.pixiv.db.mirror.BookmarkShelf
 import ceui.pixiv.db.mirror.MirrorContentType
 import ceui.pixiv.db.mirror.MirrorPhase
 import ceui.pixiv.db.mirror.MirrorRestrict
+import ceui.pixiv.feeds.cache.FeedCacheRecord
+import ceui.pixiv.feeds.cache.FileFeedCacheBackend
 import ceui.pixiv.services.ServicesProvider
 import com.tencent.mmkv.MMKV
+import java.io.File
 import java.lang.reflect.Proxy
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
@@ -84,6 +86,10 @@ class AccountDataPurgeTest {
     private lateinit var mirror: BookmarkMirrorService
     private lateinit var remoteConfig: RemoteAppConfig
 
+    /** 首屏快照现在住文件（FileFeedCacheBackend），每条用例一个临时目录，互不污染。 */
+    private lateinit var feedCache: FileFeedCacheBackend
+    private lateinit var feedCacheDir: File
+
     /** 要被删掉的账号。 */
     private val target = 111L
 
@@ -101,6 +107,10 @@ class AccountDataPurgeTest {
         context = wrapper(services(remoteConfigProvider = { remoteConfig }))
         mirror = BookmarkMirrorService(context)
         remoteConfig = RemoteAppConfig()
+
+        feedCacheDir = File(app.cacheDir, "feed_cache_test")
+        feedCacheDir.deleteRecursively()
+        feedCache = FileFeedCacheBackend(feedCacheDir)
     }
 
     @After
@@ -109,6 +119,7 @@ class AccountDataPurgeTest {
         ReflectionHelpers.getField<CoroutineScope>(mirror, "scope").cancel()
         AppDatabase.destroyInstance()
         db.close()
+        feedCacheDir.deleteRecursively()
         MemoryMMKV.values.clear()
     }
 
@@ -163,15 +174,17 @@ class AccountDataPurgeTest {
 
     @Test
     fun `清掉目标 uid 的首屏快照 且不碰另一个 uid 与 uid 前缀相同的键`() = runBlocking {
-        val dao = db.feedCacheDao()
         val mine = listOf("home#$target#IllustPage", "dynamic#$target#NovelPage")
         val others = listOf("home#$other#IllustPage", "home#${target}0#IllustPage")
-        (mine + others).forEach { dao.upsert(feed(it)) }
+        for (key in mine + others) feedCache.save(key, feed(key))
 
-        AccountDataPurge.purgeAccountData(context, target, purgeLocalData = true)
+        AccountDataPurge.purgeAccountData(
+            context, target, purgeLocalData = true, feedCacheBackend = feedCache,
+        )
 
-        mine.forEach { assertNull("$it 应被清掉", dao.find(it)) }
-        others.forEach { assertNotNull("$it 不该被动（uid 1110 只是前缀撞上 111）", dao.find(it)) }
+        for (key in mine) assertNull("$key 应被清掉", feedCache.load(key))
+        // uid 1110 只是前缀撞上 111：`#1110#` 里并不含 `#111#`，所以不该被连带删掉。
+        for (key in others) assertNotNull("$key 不该被动", feedCache.load(key))
     }
 
     // ── MMKV：私有配置 + 收藏库引导标记 ────────────────────────────────
@@ -265,12 +278,14 @@ class AccountDataPurgeTest {
         val dao = db.bookmarkMirrorDao()
         val shelf = BookmarkShelf(target, MirrorContentType.ILLUST, MirrorRestrict.PUBLIC)
         seedShelf(shelf, targetId = 1000L)
-        db.feedCacheDao().upsert(feed("home#$target#IllustPage"))
+        feedCache.save("home#$target#IllustPage", feed("home#$target#IllustPage"))
         MemoryMMKV.values["nana7mi_search_enabled_$target"] = true
         MemoryMMKV.values[READY_PREFIX + shelf.key] = true
         db.downloadDao().insertUser(user(target))
 
-        AccountDataPurge.purgeAccountData(context, target, purgeLocalData = false)
+        AccountDataPurge.purgeAccountData(
+            context, target, purgeLocalData = false, feedCacheBackend = feedCache,
+        )
 
         assertTrue(
             "凭证仍要删掉，实际剩下 " + db.downloadDao().allUser.map { it.userID },
@@ -279,7 +294,7 @@ class AccountDataPurgeTest {
         assertEquals("镜像行应原样留着", 1, dao.countOf(shelf.key))
         assertEquals("标签应原样留着", 1, tagCountOf(shelf.key))
         assertNotNull("续传状态应原样留着", dao.findState(shelf.key))
-        assertNotNull("首屏快照应原样留着", db.feedCacheDao().find("home#$target#IllustPage"))
+        assertNotNull("首屏快照应原样留着", feedCache.load("home#$target#IllustPage"))
         assertTrue(
             "私有配置应原样留着",
             MemoryMMKV.values.containsKey("nana7mi_search_enabled_$target"),
@@ -460,10 +475,9 @@ class AccountDataPurgeTest {
         updatedAt = 0L,
     )
 
-    private fun feed(cacheKey: String) = FeedCacheEntity(
-        cacheKey = cacheKey,
+    private fun feed(cacheKey: String) = FeedCacheRecord(
         schemaVersion = 1,
-        payloadJson = "{}",
+        payloadJson = """{"key":"$cacheKey"}""",
         nextCursor = null,
         savedAt = 1L,
     )

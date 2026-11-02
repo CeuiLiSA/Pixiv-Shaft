@@ -71,7 +71,7 @@ interface SearchDao {
      * 「屏蔽记录」页需要，走 [mutedWorks]。
      */
     @Query("SELECT id FROM tag_mute_table WHERE type = :type")
-    fun getMutedWorkIds(type: Int): List<Int>
+    fun getMutedWorkIds(type: Int): List<Long>
 
     @Query("SELECT * FROM tag_mute_table WHERE type = 3 ORDER BY searchTime DESC LIMIT :limit OFFSET :offset")
     fun getMutedUser(limit: Int, offset: Int): List<MuteEntity>

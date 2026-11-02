@@ -144,6 +144,8 @@ class MutedTagsFeedFragment : FeedFragment(), Toolbar.OnMenuItemClickListener {
                                 withContext(Dispatchers.IO) {
                                     AppDatabase.getAppDatabase(Shaft.getContext())
                                         .searchDao().deleteAllMutedTags()
+                                    // 判定读的是进程级缓存，清库后必须作废，否则标签仍在生效
+                                    IllustNovelFilter.invalidateMutedTags()
                                 }
                                 Common.showToast(getString(R.string.string_220))
                                 feedViewModel.refresh()

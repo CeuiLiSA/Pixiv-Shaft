@@ -20,14 +20,23 @@ data class FeedCacheRecord(
 /**
  * 首屏快照的底层字节存取端口。只认「键 → 记录」，序列化 / 过期 / 命名空间都在上层
  * （[FeedFirstPageCache]）。抽出接口一是为了可测（单测注入内存假实现，不碰 Android），
- * 二是为了让本模块不必认识任何数据库——落地实现归宿主（本仓是 :app 的 RoomFeedCacheBackend，
- * 写进 AppDatabase 的 `feed_cache_table`）。
+ * 二是为了让本模块不必认识任何数据库——落地实现归宿主（本仓是 :app 的 FileFeedCacheBackend，
+ * 每份快照一个文件；早先写进 AppDatabase 的 `feed_cache_table`，因与下载表抢同一个连接池已废弃）。
  * 实现自行保证 main-safe（重 IO 自己切线程）。
  */
 interface FeedCacheBackend {
     suspend fun load(key: String): FeedCacheRecord?
     suspend fun save(key: String, record: FeedCacheRecord)
     suspend fun remove(key: String)
+
+    /**
+     * 按账号批量删除（key 的形状是 `slot#uid#载荷类型全名`，见 [FeedFirstPageCache]）。
+     *
+     * 默认空实现：内存替身 / 单测不需要它。只有「多个账号的快照共存于同一份存储」的实现
+     * 才需要覆写 —— 账号从本地移除时由 `AccountDataPurge` 调用，漏删的后果是快照变成
+     * 永远没人认领的孤儿（用户看不见，却实打实占着空间）。
+     */
+    suspend fun removeByAccount(uid: Long) {}
 }
 
 /**

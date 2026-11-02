@@ -67,7 +67,9 @@ import retrofit2.Callback;
 
 import ceui.pixiv.session.SessionManager;
 import ceui.pixiv.actions.PixivActions;
+import ceui.lisa.helper.IllustNovelFilter;
 import ceui.pixiv.ui.common.IllustMuteStore;
+import ceui.pixiv.ui.common.MutedUserStore;
 
 import static com.blankj.utilcode.util.ColorUtils.getColor;
 import static com.blankj.utilcode.util.StringUtils.getString;
@@ -324,6 +326,8 @@ public class PixivOperate {
         muteEntity.setTagJson(Shaft.sGson.toJson(tagsBean));
         muteEntity.setSearchTime(System.currentTimeMillis());
         AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().insertMuteTag(muteEntity);
+        // 标签名单现在是进程级缓存（判定在 mapper 热路径上，不能每条查一次全表）。
+        IllustNovelFilter.invalidateMutedTags();
     }
 
     public static void updateTag(TagsBean tagsBean) {
@@ -339,6 +343,7 @@ public class PixivOperate {
             Shaft.getContext().getResources().getString(R.string.string_357);
         }
         AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().updateMuteTag(muteEntity);
+        IllustNovelFilter.invalidateMutedTags();
     }
 
     public static void muteUser(User user) {
@@ -356,6 +361,8 @@ public class PixivOperate {
         muteEntity.setTagJson(Shaft.sGson.toJson(user));
         muteEntity.setSearchTime(System.currentTimeMillis());
         AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().insertMuteTag(muteEntity);
+        // 画师名单同样走内存：判定在 mapper 里，每条一次查询会把刷新拖住。
+        MutedUserStore.INSTANCE.markInMemory(user.getId(), true);
         if (showToast) {
             Common.showToast(Shaft.getContext().getString(R.string.string_382));
         }
@@ -373,6 +380,7 @@ public class PixivOperate {
         muteEntity.setTagJson(Shaft.sGson.toJson(user));
         muteEntity.setSearchTime(System.currentTimeMillis());
         AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().unMuteTag(muteEntity);
+        MutedUserStore.INSTANCE.markInMemory(user.getId(), false);
         if (showToast) {
             Common.showToast(Shaft.getContext().getString(R.string.string_383));
         }
@@ -408,6 +416,7 @@ public class PixivOperate {
         muteEntity.setTagJson(Shaft.sGson.toJson(tagsBean));
         muteEntity.setSearchTime(System.currentTimeMillis());
         AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().unMuteTag(muteEntity);
+        IllustNovelFilter.invalidateMutedTags();
         if (showToast) {
             Common.showToast(Shaft.getContext().getString(R.string.string_135));
         }

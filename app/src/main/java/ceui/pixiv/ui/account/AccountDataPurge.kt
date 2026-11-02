@@ -5,6 +5,8 @@ import ceui.lisa.core.JavaAsync
 import ceui.lisa.database.AppDatabase
 import ceui.lisa.database.UserEntity
 import ceui.pixiv.db.mirror.BookmarkMirrorReadyBanner
+import ceui.pixiv.feeds.cache.FeedCacheBackend
+import ceui.pixiv.feeds.cache.defaultFeedCacheBackend
 import ceui.pixiv.services.appServices
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -50,7 +52,14 @@ object AccountDataPurge {
      * 情形。注意它跳过的正是「会碰 ServicesProvider 与 MMKV」的那几步，所以不勾时整条链路
      * 只落一次 `deleteUser`，不会顺手把别的账号的缓存也搅一遍。
      */
-    suspend fun purgeAccountData(context: Context, targetUid: Long, purgeLocalData: Boolean) {
+    suspend fun purgeAccountData(
+        context: Context,
+        targetUid: Long,
+        purgeLocalData: Boolean,
+        // 只给测试注入用：生产永远走进程级文件存储。放在参数位而不是全局可变单例，
+        // 是为了让测试各用各的临时目录，互不污染。
+        feedCacheBackend: FeedCacheBackend = defaultFeedCacheBackend,
+    ) {
         if (targetUid <= 0L) return
         val app = context.applicationContext
         withContext(Dispatchers.IO) {
@@ -65,9 +74,11 @@ object AccountDataPurge {
                     BookmarkMirrorReadyBanner.forget(targetUid)
                 }
 
-                // 2. feeds 首屏快照：cacheKey 里含 uid 命名空间，整批删。
+                // 2. feeds 首屏快照：key 里含 uid 命名空间，整批删。
+                // 快照已经不住 SQLite（见 FileFeedCacheBackend），所以走文件存储自己的按账号删，
+                // 文件名就是 key，一次前缀匹配即可。
                 step("清除 feed 首屏快照", targetUid) {
-                    db.feedCacheDao().deleteByUid(targetUid)
+                    feedCacheBackend.removeByAccount(targetUid)
                 }
 
                 // 3. 按 uid 分键的远端配置缓存（灰度搜索 / 云端翻译 / 推荐入口 / 订阅档位）。
