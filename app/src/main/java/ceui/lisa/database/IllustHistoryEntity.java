@@ -1,9 +1,17 @@
 package ceui.lisa.database;
 
 import androidx.room.Entity;
+import androidx.room.Index;
 import androidx.room.PrimaryKey;
 
-@Entity(tableName = "illust_table")
+/**
+ * 老版浏览历史（v44 补了 {@code time} 索引）。
+ *
+ * {@code getAllViewHistory} 是 {@code ORDER BY time DESC LIMIT ? OFFSET ?}，此前无索引 →
+ * 全表扫描 + 临时 B-tree 排序，而每行都带一份完整 Illust JSON。
+ * {@code ProfileManager.buildProfile} 冷启动时要连翻 5 页。
+ */
+@Entity(tableName = "illust_table", indices = {@Index("time")})
 public final class IllustHistoryEntity {
 
     @PrimaryKey()

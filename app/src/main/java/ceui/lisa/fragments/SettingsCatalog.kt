@@ -151,6 +151,7 @@ object SettingsCatalog {
         add(Entry(BROWSING, "scroll_edge_haptic_rela", R.string.settings_scroll_edge_haptic, R.string.settings_scroll_edge_haptic_desc, keywords = "振动 震动 触感 触觉 震感 马达 滑到底 滑到顶 到底 到顶 边缘 边界 回弹 列表 滚动 关掉振动 关闭振动 不要震动 haptic vibration vibrate scroll edge overscroll"))
         add(Entry(BROWSING, "synonym_dict_enable_rela", R.string.synonym_dict_enable, keywords = "同义词 词典 别名 标签翻译 synonym"))
         add(Entry(BROWSING, "synonym_dict_rela", R.string.synonym_dict_title, keywords = "同义词 词典 管理 导入 导出 合并 synonym"))
+        add(Entry(BROWSING, "chrome_custom_tabs_rela", R.string.chrome_custom_tabs_title, R.string.chrome_custom_tabs_desc, keywords = "chrome custom tabs 浏览器 网页 链接 外部链接 打开方式 标签页 登录 注册 cct browser url link"))
 
         // 看图与详情（FAB 顺序行随 V3 开关显隐，紧贴 V3 行）
         add(Entry(VIEWING, "illust_detail_v3_rela", R.string.illust_detail_v3, keywords = "v3 沉浸式 详情页 新版 详情"))
@@ -179,7 +180,7 @@ object SettingsCatalog {
         add(Entry(BOOKMARKS, "hide_star_bar_rela", R.string.string_371, keywords = "隐藏 收藏按钮 我的收藏"))
         // 别名按整串子串匹配，「关闭震动」「收藏按钮震动」这类连写说法各铺一遍
         add(Entry(BOOKMARKS, "like_haptic_rela", R.string.settings_like_haptic, R.string.settings_like_haptic_desc, keywords = "振动 震动 触感 触觉 震感 手感 马达 触感反馈 震动反馈 收藏振动 收藏震动 收藏按钮震动 关注振动 关注震动 爱心 点赞 关掉振动 关掉震动 关闭振动 关闭震动 不要震动 haptic vibration vibrate"))
-        add(Entry(BOOKMARKS, "filter_invalid_bookmarks_rela", R.string.filter_invalid_bookmarks, keywords = "失效 无效 404 收藏夹 已删除作品"))
+        add(Entry(BOOKMARKS, "filter_invalid_bookmarks_rela", R.string.filter_invalid_bookmarks, keywords = "失效 无效 404 收藏夹 已删除作品 非公开 限定 无法显示 表示できません"))
         add(Entry(BOOKMARKS, "select_all_tag_rela", R.string.string_372, keywords = "标签 全选 tag 收藏"))
         add(Entry(BOOKMARKS, "show_related_when_star_rela", R.string.string_396, keywords = "相关作品 关联 推荐 related"))
         add(Entry(BOOKMARKS, "auto_follow_after_star_rela", R.string.string_456, keywords = "自动关注 关注 follow"))

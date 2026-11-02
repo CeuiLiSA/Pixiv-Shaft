@@ -14,6 +14,7 @@ import ceui.pixiv.feeds.FeedSource
 import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.ui.common.IllustFeedFragment
 import ceui.pixiv.ui.common.IllustFeedItem
+import ceui.pixiv.ui.common.withMirroredBookmarks
 import ceui.pixiv.ui.common.setUpToolbar
 import ceui.pixiv.ui.common.viewBinding
 import kotlinx.coroutines.Dispatchers
@@ -56,7 +57,7 @@ class CorpusTagDetailFragment : IllustFeedFragment(R.layout.fragment_toolbar_fee
             val items = withContext(Dispatchers.Default) {
                 page.illusts.mapNotNull { illust -> IllustFeedItem.of(illust) }
             }
-            FeedPage(items, page.next_cursor)
+            FeedPage(items.withMirroredBookmarks(), page.next_cursor)
         }
     }
 

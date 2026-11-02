@@ -10,6 +10,7 @@ import ceui.pixiv.api.model.Comment
 import ceui.pixiv.utils.fetchFullIllustDetail
 import ceui.pixiv.utils.hasTrustedCaption
 import ceui.pixiv.utils.isFullDetail
+import ceui.pixiv.utils.reconcileViewerStateFromMirror
 import ceui.pixiv.imageloader.ImageLoaderV3
 import ceui.pixiv.ui.bulk.UgoiraEngine
 import ceui.pixiv.ui.bulk.UgoiraVideoEncoder
@@ -82,6 +83,9 @@ object SnapshotGenerator {
         try {
             val manifest = content.toSnapshotManifest(includeComments, includeOriginal)
             writeJson(content.snapshotDir, SNAPSHOT_MANIFEST, manifest)
+            // 卡片上的快照标记读的是进程内索引，写完立刻登记：用户从详情页离线化完退回列表，
+            // 那张卡不用等下次扫描就该亮起来。
+            SnapshotIndex.onSnapshotWritten(manifest.illustId, manifest.snapshotId, isAuto = false, manifest.createdAt)
             manifest
         } catch (e: Exception) {
             content.snapshotDir.deleteRecursively()
@@ -106,6 +110,8 @@ object SnapshotGenerator {
         try {
             val manifest = content.toAutoSnapshotManifest(includeOriginal)
             writeJson(content.snapshotDir, AUTO_SNAPSHOT_MANIFEST, manifest)
+            // 自动快照同样要算「有快照」：卡片标记不分正式/自动，只是点开时按 isAuto 回读。
+            SnapshotIndex.onSnapshotWritten(manifest.illustId, manifest.snapshotId, isAuto = true, manifest.createdAt)
             manifest
         } catch (e: Exception) {
             content.snapshotDir.deleteRecursively()
@@ -143,12 +149,16 @@ object SnapshotGenerator {
 
         try {
             progress(R.string.snapshot_progress_metadata)
-            val bean = if (freshDetail || (illust.isFullDetail() && illust.hasTrustedCaption())) {
-                illust
-            } else {
+            // 归档要存「采集那一刻」的真实 viewer 态。调用方刚拉的完整版（freshDetail）与走到 else
+            // 拿到的都是权威 detail，直接用；只有退回传入 bean（自建源 / 借号 / 历史快照来源，收藏与
+            // 关注态可能是别人的）时，才用本地镜像补一次 —— 只读，不写池：快照生成不该改动 ObjectPool。
+            val fetched = when {
+                freshDetail -> illust
+                illust.isFullDetail() && illust.hasTrustedCaption() -> null
                 // toUpdate = false：快照生成只是读取完整元数据，不应改动 ObjectPool。
-                fetchFullIllustDetail(illust.id, false) ?: illust
+                else -> fetchFullIllustDetail(illust.id, false)
             }
+            val bean = fetched ?: reconcileViewerStateFromMirror(illust, writeBack = false)
 
             val assets = linkedMapOf<String, String>()
             val pagePaths = mutableListOf<String>()

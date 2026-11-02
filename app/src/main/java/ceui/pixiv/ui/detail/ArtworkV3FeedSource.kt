@@ -12,6 +12,7 @@ import ceui.pixiv.api.model.Comment
 import ceui.pixiv.api.model.ObjectType
 import ceui.pixiv.cache.ObjectPool
 import ceui.pixiv.utils.fetchFullIllustDetail
+import ceui.pixiv.utils.reconcileViewerStateFromMirror
 import ceui.pixiv.utils.isFullDetail
 import ceui.pixiv.db.RecordType
 import ceui.pixiv.feeds.FeedItem
@@ -52,7 +53,7 @@ class ArtworkV3FeedSource(
         // 请求(用户明明还没往下翻)。等「相关作品」区块真正滚到可见,ArtworkSection.RELATED 才拉
         // 第 1 页并原子追加条目/交接游标，重新开启分页。cursor=null 表示暂无下一页。
         Timber.tag(ARTWORK_LAZY_TAG).d("进页 load(null) 开始 illustId=%d", illustId)
-        val illust = resolveFullIllust()
+        val illust = reconcileViewerStateFromMirror(resolveFullIllust())
         Timber.tag(ARTWORK_LAZY_TAG).d(
             "进页只出「大图 + header」,不拉 related/comments/authorWorks illustId=%d", illustId,
         )
@@ -103,7 +104,8 @@ class ArtworkV3FeedSource(
             }.getOrNull()
             // 顺带覆盖池让 FAB VM 的 observer fire。
             // ObjectPool.update 内部 setValue 抛后台线程异常会自愈成 postValue,IO 线程调用安全。
-            row?.also { ObjectPool.updateIllust(it) }
+            // 历史快照的 viewer 态是浏览当时的:同样清成未知并标记不可信,交给镜像补。
+            row?.also { ObjectPool.seedUntrusted(it) }
         }
         if (cached != null) return cached
         throw transportError ?: IllustDetailUnavailableException()

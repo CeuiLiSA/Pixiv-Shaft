@@ -1003,6 +1003,7 @@
     <string name="download_toast_storage_unavailable">İndirme klasörü kullanılamıyor</string>
     <string name="download_toast_record_restored">İndirme kayıtları geri yüklendi</string>
     <string name="download_toast_low_storage_paused">Yer yetersiz: indirmeler duraklatıldı</string>
+    <string name="download_toast_queue_stopped">İndirme kuyruğu durdu</string>
     <string name="download_toast_bulk_enqueue">Toplu kuyruk ilerlemesi</string>
     <string name="download_toast_bulk_summary">Toplu indirme özeti</string>
     <string name="download_toast_novel_progress">Novel bazında ilerleme</string>
@@ -1912,6 +1913,7 @@
     <string name="dlmgr_active_empty_hint">Kuyruktaki öğeler buraya otomatik geçer\nSayfa bazlı canlı ilerleme gösterilir</string>
     <string name="dlmgr_active_action_resume_all">Tümünü devam ettir</string>
     <string name="download_paused_low_storage">Depolama alanı yetersiz (%1$s kaldı). Tüm indirmeler duraklatıldı. Yer açtıktan sonra İndirmeler’de “Tümünü devam ettir”e dokunun</string>
+    <string name="download_queue_stopped_paused">İndirme kuyruğu beklenmedik şekilde durdu ve duraklatıldı. Devam etmek için «Devam»a dokunun.</string>
     <string name="dlmgr_active_action_pause_all">Tümünü duraklat</string>
     <string name="dlmgr_active_action_clear">Temizle</string>
     <string name="dlmgr_active_status_downloading_n">%1$d indiriliyor</string>
@@ -1991,6 +1993,7 @@
     <string name="dlmgr_clear_active_queue_message">Süren ve sırada bekleyen tüm indirmeler durdurulup temizlenecek.\n(Disk üzerinde kısmen indirilmiş dosyalar korunur.)</string>
     <string name="dlmgr_clear_done_title">Tamamlanan kayıtları temizle?</string>
     <string name="dlmgr_clear_done_message">İndirilen dosyalar diskte kalır; yalnızca buradaki kayıtlar silinir.</string>
+    <string name="dlmgr_delete_done_title">Bu indirme kaydı silinsin mi?</string>
     <string name="setting_max_concurrent_downloads">Eş zamanlı indirmeler</string>
     <string name="setting_max_concurrent_downloads_one">1 (sıralı · varsayılan)</string>
     <string name="setting_max_concurrent_downloads_n">%1$d paralel</string>
@@ -3540,4 +3543,9 @@
     <string name="string_ai_upscale_already_completed">Bu görsel için görüntü kalitesi iyileştirme zaten tamamlandı</string>
     <string name="string_ai_rembg_already_completed">Bu görsel için arka plan kaldırma zaten tamamlandı</string>
     <string name="string_ai_task_already_running">Yapay zeka işleme görevi zaten devam ediyor</string>
+    <!-- Chrome Custom Tabs -->
+    <string name="chrome_custom_tabs_title">Chrome Custom Tabs</string>
+    <string name="chrome_custom_tabs_desc">Chrome mevcut olduğunda web bağlantılarını açmak için Chrome Custom Tabs kullanın</string>
+    <string name="chrome_custom_tabs_not_found">Chrome bulunamadı, otomatik olarak devre dışı bırakıldı</string>
+    <string name="open_with_chrome">Chrome ile aç</string>
 </resources>

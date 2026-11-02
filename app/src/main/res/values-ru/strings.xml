@@ -1003,6 +1003,7 @@
     <string name="download_toast_storage_unavailable">Папка загрузок недоступна</string>
     <string name="download_toast_record_restored">Записи загрузок восстановлены</string>
     <string name="download_toast_low_storage_paused">Загрузки приостановлены: мало места</string>
+    <string name="download_toast_queue_stopped">Очередь загрузок остановлена</string>
     <string name="download_toast_bulk_enqueue">Ход массовой постановки в очередь</string>
     <string name="download_toast_bulk_summary">Итог массовой загрузки</string>
     <string name="download_toast_novel_progress">Прогресс по главам новеллы</string>
@@ -1912,6 +1913,7 @@
     <string name="dlmgr_active_empty_hint">Элементы из очереди появятся здесь автоматически\nПрогресс по страницам показывается в реальном времени</string>
     <string name="dlmgr_active_action_resume_all">Возобновить все</string>
     <string name="download_paused_low_storage">Недостаточно места (осталось %1$s). Все загрузки приостановлены. Освободите место и нажмите «Возобновить все» в менеджере загрузок</string>
+    <string name="download_queue_stopped_paused">Очередь загрузок неожиданно остановилась и была приостановлена. Нажмите «Продолжить», чтобы возобновить.</string>
     <string name="dlmgr_active_action_pause_all">Поставить все на паузу</string>
     <string name="dlmgr_active_action_clear">Очистить</string>
     <string name="dlmgr_active_status_downloading_n">Скачивается: %1$d</string>
@@ -1991,6 +1993,7 @@
     <string name="dlmgr_clear_active_queue_message">Текущие и ожидающие загрузки будут остановлены и удалены.\n(Частично загруженные файлы на диске сохранятся.)</string>
     <string name="dlmgr_clear_done_title">Очистить историю завершённых?</string>
     <string name="dlmgr_clear_done_message">Скачанные файлы останутся на диске; удалятся только записи из этого списка.</string>
+    <string name="dlmgr_delete_done_title">Удалить эту запись о загрузке?</string>
     <string name="setting_max_concurrent_downloads">Одновременные загрузки</string>
     <string name="setting_max_concurrent_downloads_one">1 (последовательно · по умолчанию)</string>
     <string name="setting_max_concurrent_downloads_n">%1$d параллельно</string>
@@ -3556,4 +3559,9 @@
     <string name="string_ai_upscale_already_completed">Улучшение качества для этого изображения уже выполнено</string>
     <string name="string_ai_rembg_already_completed">Удаление фона для этого изображения уже выполнено</string>
     <string name="string_ai_task_already_running">Задача обработки ИИ уже выполняется</string>
+    <!-- Chrome Custom Tabs -->
+    <string name="chrome_custom_tabs_title">Chrome Custom Tabs</string>
+    <string name="chrome_custom_tabs_desc">Использовать Chrome Custom Tabs для открытия веб-ссылок при наличии Chrome</string>
+    <string name="chrome_custom_tabs_not_found">Chrome не найден, автоматически отключено</string>
+    <string name="open_with_chrome">Открыть в Chrome</string>
 </resources>

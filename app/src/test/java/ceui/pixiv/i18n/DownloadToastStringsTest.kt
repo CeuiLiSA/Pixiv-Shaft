@@ -11,12 +11,12 @@ import javax.xml.parsers.DocumentBuilderFactory
 /**
  * 守门测试：「下载相关提示消息」的文案必须在所有已翻译的 locale 里齐。
  *
- * 这 20 条散在设置页入口行 + 弹窗里，漏翻任何一条都不会编译报错，只会让对应语言出现
+ * 这 21 条散在设置页入口行 + 弹窗里，漏翻任何一条都不会编译报错，只会让对应语言出现
  * 「弹窗标题是译文、某几行开关还是中文」的混搭，评审时很难一眼看出来。
  *
  * 判定口径（与 [BookmarkFilterStringsTest] / [DateFormatPatternStringsTest] 一致，不强制每个
  * locale 都翻，但要求**成组**）：
- *  1. 默认 `values/` 必须 20 条全在 —— 防止资源改名后本测试静默空转；
+ *  1. 默认 `values/` 必须 21 条全在 —— 防止资源改名后本测试静默空转；
  *  2. 翻了下载设置块既有 key（[anchor]）的 locale 就必须把这一组新 key 一起翻，不允许半块翻译。
  */
 class DownloadToastStringsTest {
@@ -30,7 +30,7 @@ class DownloadToastStringsTest {
         "download_toast_group_novel",
     )
 
-    /** 15 条消息各自在弹窗里的那一行，顺序与 DownloadToastKind 的声明顺序一致。 */
+    /** 16 条消息各自在弹窗里的那一行，顺序与 DownloadToastKind 的声明顺序一致。 */
     private val messageKeys = listOf(
         "download_toast_enqueued",
         "download_toast_enqueue_failed",
@@ -40,6 +40,7 @@ class DownloadToastStringsTest {
         "download_toast_storage_unavailable",
         "download_toast_record_restored",
         "download_toast_low_storage_paused",
+        "download_toast_queue_stopped",
         "download_toast_bulk_enqueue",
         "download_toast_bulk_summary",
         "download_toast_novel_progress",

@@ -20,6 +20,7 @@ import ceui.pixiv.feeds.FeedSource
 import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.ui.common.IllustFeedFragment
 import ceui.pixiv.ui.common.IllustFeedItem
+import ceui.pixiv.ui.common.withMirroredBookmarks
 import ceui.pixiv.ui.common.setUpToolbar
 import ceui.pixiv.ui.common.viewBinding
 import kotlinx.coroutines.Dispatchers
@@ -69,7 +70,7 @@ class DiscoveryFeedFragment : IllustFeedFragment(R.layout.fragment_toolbar_feed)
             }
             Timber.d("%s page=%d: %d entities -> %d illusts", TAG, page, poolSize, items.size)
             FeedPage(
-                items = items,
+                items = items.withMirroredBookmarks(),
                 // 池子掏空 = 到底；否则继续翻（legacy 靠 markShown + recentlyReturnedIds 防重复，
                 // 不需要 offset，游标只用来记页号）。
                 nextCursor = if (poolSize == 0) null else (page + 1).toString(),

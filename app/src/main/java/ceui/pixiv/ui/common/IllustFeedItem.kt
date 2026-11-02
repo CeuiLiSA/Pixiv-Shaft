@@ -113,14 +113,16 @@ class IllustFeedItem(
          * [skipAiFilter]：同理，给「AI 专属榜单」用——用户主动点进 AI 榜,全局「屏蔽 AI 作品」
          * 就不该把它清空（那是用户设的「我平时不想看到 AI」，不是「我点开 AI 榜也不想看」）。
          * 只让步 AI 这一条：屏蔽画师/标签、R18 过滤在 AI 榜里照常生效。
-         * [skipVisibleFilter]：收藏夹「过滤无效收藏」关闭时让步——不把 visible != true 的作品
-         * 当失效滤掉；仅收藏页按开关传入，其余列表默认 false 保持恒过滤。
+         * [skipVisibleFilter]：收藏夹「过滤无效收藏」关闭时让步——不把 [Illust.isUnavailable]
+         * 的作品（非公开 / 限定 / 无法显示）当失效滤掉；仅收藏页按开关传入，其余列表默认 false
+         * 保持恒过滤。
          *
          * [onRejected] 决定「短路」还是「跑全」：
          * - 不传（所有列表页的热路径）：命中一条就返回，后面的判定连同它的同步 Room 查询一起省掉；
          * - 传了（作者作品页要写空态说明）：跑完**每一条**判定，把命中过的过滤都回调出去。
          *   一件作品可能同时踩中多条（既是 R18 又是 AI），只报第一条会让空态漏项。
-         *   例外：visible != true 只报 [ContentFilterReason.INVISIBLE] 就返回，不再跑后面的用户过滤。
+         *   例外：失效作品（[Illust.isUnavailable]）只报 [ContentFilterReason.INVISIBLE] 就返回，
+         *   不再跑后面的用户过滤。
          *
          * ⚠️ 这里面 judgeTag/judgeUserID 各是一次**同步 Room 查询**，调用方必须在后台线程
          * 跑（各 mapper 已由 PixivFeedSource 派到 Dispatchers.Default；详情回传链见
@@ -134,9 +136,10 @@ class IllustFeedItem(
             skipVisibleFilter: Boolean = false,
             onRejected: ((ContentFilterReason) -> Unit)? = null,
         ): Boolean {
-            // 不可见作品恒短路：它是 pixiv 侧不给看（占位图），关掉哪条本地过滤都放不出来。
-            // 跑全的话它顺带踩中的 R18/AI/标签会被列进空态清单，用户照着去关只会白关。
-            if (!skipVisibleFilter && illust.visible != true) {
+            // 失效作品（非公开 / 限定 / 无法显示，见 [Illust.isUnavailable]）恒短路：服务端就是
+            // 不给看（占位图 + 空字段），关掉哪条本地过滤都放不出来。跑全的话它顺带踩中的
+            // R18/AI/标签会被列进空态清单，用户照着去关只会白关。
+            if (!skipVisibleFilter && illust.isUnavailable) {
                 onRejected?.invoke(ContentFilterReason.INVISIBLE)
                 return false
             }

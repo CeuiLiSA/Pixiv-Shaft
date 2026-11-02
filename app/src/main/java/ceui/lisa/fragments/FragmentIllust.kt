@@ -5,6 +5,7 @@ import android.content.IntentFilter
 import android.net.Uri
 import androidx.lifecycle.lifecycleScope
 import ceui.pixiv.utils.playToggleHaptic
+import ceui.pixiv.utils.reconcileViewerStateFromMirror
 import kotlinx.coroutines.launch
 import android.os.Bundle
 import android.os.Handler
@@ -34,6 +35,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import ceui.lisa.helper.replaceWithCustomTabSpans
 import ceui.lisa.R
 import ceui.lisa.activities.BaseActivity
 import ceui.lisa.activities.SearchActivity
@@ -274,6 +276,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
         val illustLiveData = ObjectPool.get<Illust>(safeArgs.illustId)
         illustLiveData.observe(viewLifecycleOwner) { illust ->
             updateIllust(illust)
+            reconcileViewerStateOnce(illust)
         }
         vm.downloadState.collectIn(
             viewLifecycleOwner,
@@ -507,6 +510,26 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
         }
     }
 
+    /** 镜像校正只做一次：写回池会再触发上面的 Illust / User 观察者，不能跟着递归。 */
+    private var viewerStateReconciled = false
+
+    /**
+     * 池里这条的 viewer 态不可信时（自建源上报快照 / 借号 / 历史快照喂进来的），按本地收藏 /
+     * 关注镜像校正一次 —— 只升不降，见 [reconcileViewerStateFromMirror]。写回池之后，上面的
+     * Illust 观察者与 User 观察者会各自重绘爱心和作者栏，这里不需要再动 View。
+     *
+     * 快照模式不走池（[setupSnapshotView] 直接渲染 snapshotBean），在 initView 里已经提前返回。
+     */
+    private fun reconcileViewerStateOnce(illust: Illust) {
+        if (viewerStateReconciled) return
+        viewerStateReconciled = true
+        viewLifecycleOwner.lifecycleScope.launch {
+            // 「该不该问镜像」由它自己逐字段判定（可信 + 非空才跳过），这里不再预判：
+            // 池里那条可能因为用户刚点过红心而被标成可信，但关注态还是未知。
+            reconcileViewerStateFromMirror(illust)
+        }
+    }
+
     private fun updateUser(user: User) {
         val userId = user.id
         if (user.is_followed == true) {
@@ -591,7 +614,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
         // 快照是「当时那一刻」的存档，在线可见性判断不该作用在它上面：Gson 默认丢弃 null 字段，
         // 精简来源的 bean 存进 illust.json 后 visible 会缺失 → 反序列化成 null → 一打开就
         // 提示「作品不存在」并自动关页。id 那条仍然保留(存档本身坏了才会命中)。
-        if (illust.id == 0L || (!isSnapshotMode && illust.visible != true)) {
+        if (illust.id == 0L || (!isSnapshotMode && illust.isUnavailable)) {
             Common.showToast(R.string.string_206)
             Handler().postDelayed({ finish() }, 1000)
             return
@@ -1286,7 +1309,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
         // 换成 androidx HtmlCompat.fromHtml + LinkMovementMethod，文本和可点链接都能正常渲染。
         descriptionView.text = androidx.core.text.HtmlCompat.fromHtml(
             caption, androidx.core.text.HtmlCompat.FROM_HTML_MODE_COMPACT
-        )
+        ).replaceWithCustomTabSpans()
         descriptionView.movementMethod = LinkMovementMethod.getInstance()
     }
 

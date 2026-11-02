@@ -39,6 +39,8 @@ public class FragmentSettingsExperimental extends SettingsPageFragment<FragmentS
         bindLogFileRow();
         bindTriggerCrashRow();
         bindDebugMirrorBannerRow();
+        bindDebugUpdateSheetRow();
+        bindDebugFakeInvalidRow();
 
         // 自动快照是本地离线能力，不涉及站外 UGC，所有渠道都显示。
         baseBind.autoSnapshotOnBookmark.setChecked(Shaft.sSettings.isAutoSnapshotOnBookmark());
@@ -162,6 +164,37 @@ public class FragmentSettingsExperimental extends SettingsPageFragment<FragmentS
         }
         baseBind.debugMirrorBannerRela.setOnClickListener(v ->
                 ceui.pixiv.ui.debug.DebugMirrorBannerTrigger.show(mContext));
+    }
+
+    /**
+     * 【临时·调试】手动弹出更新弹窗，支持验证无 APK 资产形态（Chrome/浏览器打开）与有 APK 资产形态。
+     * 只在 debug 包出现。
+     */
+    private void bindDebugUpdateSheetRow() {
+        if (!ceui.lisa.BuildConfig.DEBUG) {
+            baseBind.debugUpdateSheetRela.setVisibility(View.GONE);
+            return;
+        }
+        baseBind.debugUpdateSheetRela.setOnClickListener(v ->
+                ceui.pixiv.ui.debug.DebugUpdateSheetTrigger.show(this));
+    }
+
+    /**
+     * 【调试】失效作品模拟：打开后两个收藏页会把「有离线快照的作品」画成失效作品卡
+     * （灰底、无角标），用来验「失效卡仍显示快照标记」这条路径。只改画法，不动任何数据。
+     * 只在 debug 包出现。
+     */
+    private void bindDebugFakeInvalidRow() {
+        if (!ceui.lisa.BuildConfig.DEBUG) {
+            baseBind.debugFakeInvalidRela.setVisibility(View.GONE);
+            return;
+        }
+        baseBind.debugFakeInvalidSwitch.setChecked(
+                ceui.pixiv.ui.debug.DebugInvalidWorks.INSTANCE.getEnabled());
+        baseBind.debugFakeInvalidSwitch.setOnCheckedChangeListener((buttonView, isChecked) ->
+                ceui.pixiv.ui.debug.DebugInvalidWorks.INSTANCE.setEnabled(isChecked));
+        baseBind.debugFakeInvalidRela.setOnClickListener(v ->
+                baseBind.debugFakeInvalidSwitch.performClick());
     }
 
     private void bindFirebaseRow() {

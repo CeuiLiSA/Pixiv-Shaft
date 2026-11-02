@@ -56,11 +56,7 @@ fun TextView.bindOpenLinkChip(labelRes: Int, url: String) {
     text = context.getString(labelRes)
     isVisible = true
     setOnClick {
-        try {
-            CustomTabsIntent.Builder().build().launchUrl(context, Uri.parse(url))
-        } catch (_: ActivityNotFoundException) {
-            Common.showToast("未找到浏览器")
-        }
+        ceui.lisa.helper.WebLinkHelper.openInCustomTab(context, url)
     }
 }
 

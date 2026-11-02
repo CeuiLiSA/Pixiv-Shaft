@@ -19,8 +19,8 @@ class SearchRiskFeedSourceTest {
         }
 
         val pages = listOf(
-            SearchIllustFeedSource(model) { error("blocked page must not build a repo") }.load(null),
-            SearchNovelFeedSource(model) { error("blocked page must not build a repo") }.load(null),
+            SearchIllustFeedSource(model, LoadedSearchSpec()) { error("blocked page must not build a repo") }.load(null),
+            SearchNovelFeedSource(model, LoadedSearchSpec()) { error("blocked page must not build a repo") }.load(null),
             SearchUserFeedSource(model).load(null),
         )
 

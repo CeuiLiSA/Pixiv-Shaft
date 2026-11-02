@@ -15,6 +15,8 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import androidx.lifecycle.lifecycleScope
 import ceui.lisa.BuildConfig
+import ceui.lisa.helper.WebLinkHelper
+import ceui.pixiv.ui.settings.ChromeTabsPrefs
 import ceui.lisa.R
 import ceui.lisa.utils.Common
 import ceui.pixiv.services.appServices
@@ -129,18 +131,27 @@ class UpdateBottomSheet : BottomSheetDialogFragment() {
 
     private fun render(state: ApkDownloadManager.State, rel: GitHubRelease) {
         val sheet = sheet ?: return
+        val apk = AppUpdateChecker.findApkAsset(rel)
 
         // 记录属于别的版本（或者根本没有记录）：这一版就是「还没下」。
         if (state.tag != rel.tagName) {
             sheet.hideProgress()
-            setPrimary("download") { beginDownload(rel) }
+            if (apk == null) {
+                renderOpenInBrowserPrimary(rel)
+            } else {
+                setPrimary("download") { beginDownload(rel) }
+            }
             return
         }
 
         when (state.phase) {
             ApkDownloadManager.Phase.IDLE -> {
                 sheet.hideProgress()
-                setPrimary("download") { beginDownload(rel) }
+                if (apk == null) {
+                    renderOpenInBrowserPrimary(rel)
+                } else {
+                    setPrimary("download") { beginDownload(rel) }
+                }
             }
 
             ApkDownloadManager.Phase.RUNNING -> {
@@ -180,6 +191,23 @@ class UpdateBottomSheet : BottomSheetDialogFragment() {
                     icon = R.drawable.ic_file_download_done_24dp,
                 ) { installApk() }
             }
+        }
+    }
+
+    private fun renderOpenInBrowserPrimary(rel: GitHubRelease) {
+        val useCct = ChromeTabsPrefs.shouldUseChromeCustomTabs(context)
+        val textRes = if (useCct) {
+            R.string.open_with_chrome
+        } else {
+            R.string.webview_handler_open_in_browser
+        }
+        val key = if (useCct) "open_chrome" else "open_browser"
+        setPrimary(
+            key = key,
+            text = textRes,
+            icon = R.drawable.ic_baseline_launch_24,
+        ) {
+            openInBrowser(rel.htmlUrl ?: releasesUrl())
         }
     }
 
@@ -292,12 +320,7 @@ class UpdateBottomSheet : BottomSheetDialogFragment() {
         "https://github.com/${GitHubApi.OWNER}/${GitHubApi.REPO}/releases/latest"
 
     private fun openInBrowser(url: String) {
-        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-        try {
-            startActivity(intent)
-        } catch (_: ActivityNotFoundException) {
-            Common.showToast(getString(R.string.msg_no_browser))
-        }
+        WebLinkHelper.openUrl(context, url)
     }
 
     override fun onDestroyView() {

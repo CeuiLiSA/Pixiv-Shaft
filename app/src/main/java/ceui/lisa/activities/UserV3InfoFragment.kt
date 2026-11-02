@@ -518,10 +518,6 @@ class UserV3InfoFragment : Fragment() {
 
     private fun openUrl(url: String?) {
         if (url.isNullOrEmpty()) return
-        try {
-            startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url)))
-        } catch (e: Exception) {
-            ceui.lisa.utils.Common.showToast(url)
-        }
+        ceui.lisa.helper.WebLinkHelper.openUrl(requireContext(), url)
     }
 }

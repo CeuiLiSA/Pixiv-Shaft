@@ -10,6 +10,7 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.annotation.StringRes
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
@@ -97,7 +98,10 @@ class DoneListV3Fragment : Fragment() {
     ) { group, action ->
         when (action) {
             DoneAction.OPEN -> openDetail(group)
-            DoneAction.DELETE -> deleteOne(group)
+            // 垃圾桶紧贴卡片点击区，缩图布局下尤其容易误触（#1287），单条删除同样先确认
+            DoneAction.DELETE -> showDeleteConfirmDialog(R.string.dlmgr_delete_done_title) {
+                deleteOne(group)
+            }
             DoneAction.OPEN_AUTHOR -> openAuthor(group)
         }
     }
@@ -138,7 +142,7 @@ class DoneListV3Fragment : Fragment() {
             setOnClickListener {
                 // destructive 操作前必须确认。文案明确告知"文件不会被删除"，避免
                 // 用户因恐慌而不敢清理记录。
-                showClearDoneConfirmDialog {
+                showDeleteConfirmDialog(R.string.dlmgr_clear_done_title) {
                     viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
                         runCatching { dao.deleteAllDownload() }
                         ManagerReactive.pokeDoneTable()
@@ -312,11 +316,11 @@ class DoneListV3Fragment : Fragment() {
         )
     }
 
-    private fun showClearDoneConfirmDialog(onConfirm: () -> Unit) {
+    private fun showDeleteConfirmDialog(@StringRes titleRes: Int, onConfirm: () -> Unit) {
         val act = activity ?: return
         if (act.isFinishing || act.isDestroyed) return
         WitDialog.MessageDialogBuilder(act)
-            .setTitle(R.string.dlmgr_clear_done_title)
+            .setTitle(titleRes)
             .setMessage(R.string.dlmgr_clear_done_message)
             .addAction(R.string.cancel) { d, _ -> d.dismiss() }
             .addAction(0, R.string.sure, WitDialogAction.ACTION_PROP_NEGATIVE) { d, _ ->
@@ -376,14 +380,22 @@ internal data class DownloadGroup(
     val pageCount: Int,
     val allFilePaths: List<String>,
     val allEntities: List<DownloadEntity>,
-    /** 预解析的 Illust —— 在 IO 线程做完 Gson；UI 绑卡时直接用，不再 fromJson 卡帧 */
-    val parsedIllust: Illust? = null,
-    /** 预解析的 Novel —— 同 [parsedIllust]，仅小说行有值。issue #876:
-     *  DB 里 fileName 是 PK（NOVEL_KEY+id），不带标题；下载记录卡片要从这里
-     *  取真正的小说名 + 作者展示。 */
-    val parsedNovel: Novel? = null,
     val isNovel: Boolean = false,
-)
+) {
+    /** 惰性解析的 Illust —— 避免全量 fromJson 占用 CPU 并在首屏触发连续 GC */
+    val parsedIllust: Illust? by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
+        if (isNovel) null else runCatching {
+            Shaft.sGson.fromJson(latest.illustGson, Illust::class.java)
+        }.getOrNull()
+    }
+
+    /** 惰性解析的 Novel —— 同 [parsedIllust]，仅小说行需要 */
+    val parsedNovel: Novel? by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
+        if (isNovel) runCatching {
+            Shaft.sGson.fromJson(latest.illustGson, Novel::class.java)
+        }.getOrNull() else null
+    }
+}
 
 private fun groupByIllust(rows: List<DownloadEntity>): List<DownloadGroup> {
     if (rows.isEmpty()) return emptyList()
@@ -393,31 +405,23 @@ private fun groupByIllust(rows: List<DownloadEntity>): List<DownloadGroup> {
         val key = if (isNovel) {
             "novel:${row.fileName.orEmpty()}"
         } else {
-            val id = extractIllustId(row.illustGson)
+            val id = if (row.illustId > 0) row.illustId else extractIllustId(row.illustGson)
             if (id > 0) "illust:$id" else "anon:${row.fileName.orEmpty()}"
         }
         buckets.getOrPut(key) { mutableListOf() }.add(row)
     }
     // 每组按页码排序（page 列优先、fileName 自然序兜底，见 DownloadPageOrder），
-    // 代表 entity 取 downloadTime 最大的；Gson.fromJson 在这里（IO 线程）就解掉，绑卡时不再 parse
+    // 代表 entity 取 downloadTime 最大的；改为惰性解析，不再在 IO 线程同步解 600 次
     val groups = buckets.entries.map { (k, list) ->
         val sortedByName = list.sortedWith(DownloadPageOrder)
         val latest = list.maxByOrNull { it.downloadTime } ?: list.first()
         val isNovel = latest.fileName?.contains(Params.NOVEL_KEY) == true
-        val parsedIllust = if (isNovel) null else runCatching {
-            Shaft.sGson.fromJson(latest.illustGson, Illust::class.java)
-        }.getOrNull()
-        val parsedNovel = if (isNovel) runCatching {
-            Shaft.sGson.fromJson(latest.illustGson, Novel::class.java)
-        }.getOrNull() else null
         DownloadGroup(
             key = k,
             latest = latest,
             pageCount = list.size,
             allFilePaths = sortedByName.map { it.filePath.orEmpty() },
             allEntities = sortedByName,
-            parsedIllust = parsedIllust,
-            parsedNovel = parsedNovel,
             isNovel = isNovel,
         )
     }
@@ -504,7 +508,7 @@ private class DoneAdapterV3(
             // 的「同 URL 复用 GlideUrl + 同 key 短路 + 当前图当占位」。
             bindThumb(h.thumb, null, coverUrl)
         } else {
-            // 用预解析的 illust（reload 时 IO 线程已 fromJson 完）—— 绑卡 0 解析
+            // 惰性解析：这张卡第一次绑定时才 fromJson（主线程，约 1ms），之后同一个 group 不再解析
             val illust: Illust? = group.parsedIllust
             // 多页 illust：左上角只显示 "Np"（去掉 "MANGA · " 冗余前缀）。
             // 单页 illust：徽章直接隐藏 —— 没有页数信息可言。
@@ -547,6 +551,10 @@ private class DoneAdapterV3(
         // 点作者名单独跳作者主页(消费掉点击,不冒泡到卡片的打开作品)
         h.author.setOnClickListener { onAction(group, DoneAction.OPEN_AUTHOR) }
         h.deleteBtn.setOnClickListener { onAction(group, DoneAction.DELETE) }
+        h.itemView.setOnLongClickListener {
+            onAction(group, DoneAction.DELETE)
+            true
+        }
     }
 
     /**

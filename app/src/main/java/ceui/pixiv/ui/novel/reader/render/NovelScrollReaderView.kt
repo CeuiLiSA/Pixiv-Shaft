@@ -823,15 +823,7 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
                     spannable.setSpan(
                         object : ClickableSpan() {
                             override fun onClick(widget: View) {
-                                try {
-                                    val intent = android.content.Intent(
-                                        android.content.Intent.ACTION_VIEW,
-                                        android.net.Uri.parse(tag.url),
-                                    )
-                                    widget.context.startActivity(intent)
-                                } catch (_: Exception) {
-                                    Toaster.showShort(tag.url)
-                                }
+                                ceui.lisa.helper.WebLinkHelper.openUrl(widget.context, tag.url)
                             }
                             override fun updateDrawState(ds: android.text.TextPaint) {
                                 ds.color = linkColor

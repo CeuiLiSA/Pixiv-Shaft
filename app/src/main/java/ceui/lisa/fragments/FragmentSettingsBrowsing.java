@@ -31,6 +31,8 @@ import ceui.pixiv.ui.settings.FilterBookmarkedDialog;
 import ceui.pixiv.ui.history.CloudHistoryConsent;
 import ceui.pixiv.session.SessionManager;
 import ceui.pixiv.ui.home.HomeR18Prefs;
+import ceui.pixiv.ui.settings.ChromeTabsPrefs;
+
 import ceui.pixiv.ui.navigation.TemplateRoute;
 
 /** 设置 · 浏览与搜索 */
@@ -345,6 +347,8 @@ public class FragmentSettingsBrowsing extends SettingsPageFragment<FragmentSetti
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.SYNONYM_DICT.key);
             startActivity(intent);
         });
+
+        bindChromeCustomTabsRow();
     }
 
     /** 弹窗「确定」后回调：先弹一次设置成功提示，再刷新入口行摘要（与同页其它开关一致）。 */
@@ -506,5 +510,46 @@ public class FragmentSettingsBrowsing extends SettingsPageFragment<FragmentSetti
             HomeR18Prefs.setEnabled(false);
             baseBind.includeR18InHomeFeed.setChecked(false);
         }
+        updateChromeCustomTabsRow();
     }
+
+    private boolean syncingChromeSwitch = false;
+
+    private void bindChromeCustomTabsRow() {
+        baseBind.chromeCustomTabs.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (syncingChromeSwitch) {
+                return;
+            }
+            if (!ChromeTabsPrefs.isChromeInstalled(mActivity)) {
+                return;
+            }
+            ChromeTabsPrefs.setUserDisabled(!isChecked);
+            Common.showToast(getString(R.string.string_428), 2);
+        });
+        baseBind.chromeCustomTabsRela.setOnClickListener(v -> {
+            if (baseBind.chromeCustomTabs.isEnabled()) {
+                baseBind.chromeCustomTabs.performClick();
+            }
+        });
+        updateChromeCustomTabsRow();
+    }
+
+    private void updateChromeCustomTabsRow() {
+        boolean chromeInstalled = ChromeTabsPrefs.isChromeInstalled(mActivity);
+        syncingChromeSwitch = true;
+        if (!chromeInstalled) {
+            baseBind.chromeCustomTabs.setChecked(false);
+            baseBind.chromeCustomTabs.setEnabled(false);
+            baseBind.chromeCustomTabsRela.setEnabled(false);
+            baseBind.chromeCustomTabsDesc.setText(R.string.chrome_custom_tabs_not_found);
+        } else {
+            baseBind.chromeCustomTabs.setEnabled(true);
+            baseBind.chromeCustomTabsRela.setEnabled(true);
+            boolean userDisabled = ChromeTabsPrefs.isUserDisabled();
+            baseBind.chromeCustomTabs.setChecked(!userDisabled);
+            baseBind.chromeCustomTabsDesc.setText(R.string.chrome_custom_tabs_desc);
+        }
+        syncingChromeSwitch = false;
+    }
+
 }

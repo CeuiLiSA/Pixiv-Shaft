@@ -151,7 +151,7 @@ class SnapshotBackfillFragment : Fragment(R.layout.fragment_snapshot_backfill) {
         val header = LinearLayout(ctx).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
-            addView(ctx.iconTile(R.drawable.ic_baseline_get_app_20, size = 44), LinearLayout.LayoutParams(ctx.dp(44), ctx.dp(44)))
+            addView(ctx.iconTile(R.drawable.ic_snapshot_24, size = 44), LinearLayout.LayoutParams(ctx.dp(44), ctx.dp(44)))
             addView(
                 LinearLayout(ctx).apply {
                     orientation = LinearLayout.VERTICAL

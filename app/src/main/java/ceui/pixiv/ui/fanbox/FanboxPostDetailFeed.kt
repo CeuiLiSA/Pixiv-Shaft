@@ -320,7 +320,7 @@ class FanboxPostDetailFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
             openFanboxWeb(url)
             return
         }
-        runCatching { startActivity(Intent(Intent.ACTION_VIEW, url.toUri())) }
+        ceui.lisa.helper.WebLinkHelper.openUrl(context, url)
     }
 
     /**

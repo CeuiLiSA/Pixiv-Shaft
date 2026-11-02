@@ -175,7 +175,7 @@ class RequestPlanDetailFragment : Fragment(R.layout.fragment_request_plan_detail
     /** CTA「前往约稿」→ 官网约稿方案页下单(详情信息站内看,真正委托仍走官网)。 */
     private fun openCommission() {
         val url = "https://www.pixiv.net/request/plans/${plan.id}"
-        runCatching { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }
+        ceui.lisa.helper.WebLinkHelper.openUrl(requireContext(), url)
     }
 
     // 卡底(主题 tint 圆角 + hairline)、分节标签/原文标签强调色、分隔线、返回键底衬

@@ -43,7 +43,7 @@ fun Context.routeNotificationTargetUrl(targetUrl: String?) {
         else -> runCatching {
             val uri = Uri.parse(targetUrl)
             if (uri.scheme?.startsWith("http") == true) {
-                startActivity(Intent(Intent.ACTION_VIEW, uri))
+                ceui.lisa.helper.WebLinkHelper.openUrl(this, uri)
             } else {
                 Timber.w("notification target_url not handled: $targetUrl")
             }

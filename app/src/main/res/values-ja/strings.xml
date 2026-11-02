@@ -1003,6 +1003,7 @@
     <string name="download_toast_storage_unavailable">保存先フォルダを利用できません</string>
     <string name="download_toast_record_restored">ダウンロード記録の復元</string>
     <string name="download_toast_low_storage_paused">容量不足でダウンロードを一時停止</string>
+    <string name="download_toast_queue_stopped">ダウンロードキューが停止しました</string>
     <string name="download_toast_bulk_enqueue">一括追加の進捗</string>
     <string name="download_toast_bulk_summary">一括ダウンロードの集計</string>
     <string name="download_toast_novel_progress">小説の1話ごとの進捗</string>
@@ -1912,6 +1913,7 @@
     <string name="dlmgr_active_empty_hint">キューの項目は自動的にここへ移動し\nページ単位の進捗を表示します</string>
     <string name="dlmgr_active_action_resume_all">すべて再開</string>
     <string name="download_paused_low_storage">ストレージの空き容量が不足しています（残り %1$s）。すべてのダウンロードを一時停止しました。空き容量を確保してから、ダウンロード管理で「すべて再開」をタップしてください</string>
+    <string name="download_queue_stopped_paused">ダウンロードキューが予期せず停止したため、一時停止しました。「再開」をタップすると続きから再開します。</string>
     <string name="dlmgr_active_action_pause_all">すべて一時停止</string>
     <string name="dlmgr_active_action_clear">クリア</string>
     <string name="dlmgr_active_status_downloading_n">%1$d 件ダウンロード中</string>
@@ -1991,6 +1993,7 @@
     <string name="dlmgr_clear_active_queue_message">ダウンロード中と待機中の項目はすべて停止・削除されます。\n(ディスクに途中までダウンロードされたファイルは残ります。)</string>
     <string name="dlmgr_clear_done_title">完了履歴をクリア？</string>
     <string name="dlmgr_clear_done_message">ダウンロード済みファイルはディスクに残ります。ここの記録のみが削除されます。</string>
+    <string name="dlmgr_delete_done_title">このダウンロード記録を削除しますか？</string>
     <string name="setting_max_concurrent_downloads">同時ダウンロード数</string>
     <string name="setting_max_concurrent_downloads_one">1（直列 · デフォルト）</string>
     <string name="setting_max_concurrent_downloads_n">%1$d 並列</string>
@@ -3532,4 +3535,9 @@
     <string name="string_ai_upscale_already_completed">この画像の画質向上は完了しています</string>
     <string name="string_ai_rembg_already_completed">この画像の背景削除は完了しています</string>
     <string name="string_ai_task_already_running">AI処理タスクは既に進行中です</string>
+    <!-- Chrome Custom Tabs -->
+    <string name="chrome_custom_tabs_title">Chrome Custom Tabs</string>
+    <string name="chrome_custom_tabs_desc">Chrome がインストールされている場合、Chrome Custom Tabs でリンクを開きます</string>
+    <string name="chrome_custom_tabs_not_found">Chrome が見つからないため、自動的に無効化されました</string>
+    <string name="open_with_chrome">Chromeで開く</string>
 </resources>

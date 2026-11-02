@@ -98,7 +98,7 @@ class SearchIllustRepo @JvmOverloads constructor(
         // 两者来自 V3 sheet 的两个独立维度（bookmarkRange / keywordUsersBucket），用户可同时设置。
         val keywordSuffix = if (TextUtils.isEmpty(starSize)) "" else " $starSize"
         // R18 三档不再拼 -R-18 / R-18 关键字（hack 匹配字面标签会让全年龄/R 混在一起）；
-        // 改由 FilterMapper.setSearchR18Restriction 按真实 x_restrict 客户端过滤（见 update()）。
+        // 改由搜索页按真实 x_restrict 客户端打隐藏标记（ceui.pixiv.ui.search.shouldHideSearchIllust）。
         val assembledKeyword: String = (keyword + keywordSuffix).trim()
 
         // 路由 sort：
@@ -551,7 +551,7 @@ class SearchIllustRepo @JvmOverloads constructor(
         heightMax = searchModel.heightMax.value
         durationBucket = searchModel.durationBucket.value
         // AI：屏蔽走 search_ai_type=1；「仅看 AI」会话态（issue #909）→ 服务端全返(search_ai_type=0)，
-        // 再由 FilterMapper 客户端按 illust_ai_type==2 筛。
+        // 再由搜索页客户端打隐藏标记（ceui.pixiv.ui.search.shouldHideSearchIllust）。
         // 「屏蔽 AI」的有效档位优先取搜索页「其他条件」的会话临时值（单击改、不写设置），
         // 没设过才回退全局 isDeleteAIIllust。
         val onlyAi = searchModel.onlyAi.value == true
@@ -564,14 +564,12 @@ class SearchIllustRepo @JvmOverloads constructor(
         // 区间上限只有官方 query 一条来源（starSize 关键字桶没有上限语义）；
         // popular-preview 忽略 bookmark 参数，客户端兜底让区间在非会员路径上也成立
         this.filterMapper.updateStarSizeMaxLimit(bookmarkMax ?: 0)
-        // R18 三档（0=不限/1=仅安全/2=仅R-18）→ 客户端按 x_restrict 过滤
-        this.filterMapper.setSearchR18Restriction(r18Restriction ?: 0)
-        // 「仅 R-18」是用户在这一页显式要 R-18，全局「R-18 过滤」必须让路：它现在也认 x_restrict，
-        // 两条一起生效会把整页清空（只剩「有分级、没打标签」的漏网作品）。同 R-18 榜的 enableSkipR18Filter。
-        this.filterMapper.setSkipR18Filter((r18Restriction ?: 0) == 2)
-        this.filterMapper.setSearchOnlyAi(onlyAi)
-        // 客户端兜底剔除也按「有效档位」走——临时「屏蔽 AI」不写全局设置同样能滤掉
-        this.filterMapper.setSearchExcludeAi(excludeAi)
+        // 搜索页 R-18 与 AI 过滤改由 feeds 侧「只打标记、不丢条目」（支持零请求就地上下屏），
+        // 故 filterMapper 统一放行 R-18 与 AI，不在映射期做丢弃式剔除。
+        this.filterMapper.setSearchR18Restriction(0)
+        this.filterMapper.setSkipR18Filter(true)
+        this.filterMapper.setSearchOnlyAi(false)
+        this.filterMapper.setSearchExcludeAi(false)
         this.filterMapper.setKeepAiForBlur(true)
     }
 

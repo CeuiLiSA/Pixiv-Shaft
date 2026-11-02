@@ -11,6 +11,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import ceui.lisa.BuildConfig
+import ceui.lisa.helper.WebLinkHelper
 import ceui.lisa.R
 import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.databinding.FragmentAboutBinding
@@ -97,29 +98,24 @@ class FragmentAboutApp : BaseLazyFragment<FragmentAboutBinding>() {
             }
             baseBind.applicationId.text = requireContext().applicationInfo.packageName
             baseBind.goWeibo.setOnClickListener {
-                val intent = Intent(Intent.ACTION_VIEW)
-                intent.addCategory(Intent.CATEGORY_DEFAULT)
-                intent.addCategory(Intent.CATEGORY_BROWSABLE)
                 val weiboInstalled = PackageUtils.isSinaWeiboInstalled(context)
                 if (weiboInstalled) {
-                    intent.data = Uri.parse("sinaweibo://userinfo?uid=7062240999")
+                    val intent = Intent(Intent.ACTION_VIEW).apply {
+                        addCategory(Intent.CATEGORY_DEFAULT)
+                        addCategory(Intent.CATEGORY_BROWSABLE)
+                        data = Uri.parse("sinaweibo://userinfo?uid=7062240999")
+                    }
+                    try {
+                        startActivity(intent)
+                    } catch (e: ActivityNotFoundException) {
+                        WebLinkHelper.openUrl(requireContext(), "https://weibo.com/u/7062240999")
+                    }
                 } else {
-                    intent.data = Uri.parse("https://weibo.com/u/7062240999")
-                }
-                try {
-                    startActivity(intent)
-                } catch (e: ActivityNotFoundException) {
-                    Common.showToast(getString(R.string.msg_no_browser))
+                    WebLinkHelper.openUrl(requireContext(), "https://weibo.com/u/7062240999")
                 }
             }
             baseBind.goTelegram.setOnClickListener {
-                val uri = Uri.parse("https://t.me/joinchat/QBTiWBvo-jda7SEl4VgK-Q")
-                val myAppLinkToMarket = Intent(Intent.ACTION_VIEW, uri)
-                try {
-                    startActivity(myAppLinkToMarket)
-                } catch (e: ActivityNotFoundException) {
-                    Common.showToast("unable to find market app")
-                }
+                WebLinkHelper.openUrl(requireContext(), "https://t.me/joinchat/QBTiWBvo-jda7SEl4VgK-Q")
             }
             baseBind.goQq.setOnClickListener {
                 // 最新的群在最上面，旧群基本已满；新群在列表头部插一行即可
@@ -188,15 +184,7 @@ class FragmentAboutApp : BaseLazyFragment<FragmentAboutBinding>() {
 
         run {
             baseBind.projectWebsite.setOnClickListener {
-                val intent = Intent(Intent.ACTION_VIEW)
-                intent.addCategory(Intent.CATEGORY_DEFAULT)
-                intent.addCategory(Intent.CATEGORY_BROWSABLE)
-                intent.data = Uri.parse("https://github.com/CeuiLiSA/Pixiv-Shaft")
-                try {
-                    startActivity(intent)
-                } catch (e: ActivityNotFoundException) {
-                    Common.showToast(getString(R.string.msg_no_browser))
-                }
+                WebLinkHelper.openUrl(requireContext(), "https://github.com/CeuiLiSA/Pixiv-Shaft")
             }
         }
     }

@@ -215,7 +215,9 @@ class IllustFeedPoolSync(
                                     staged[id] = bean
                                     return@forEach
                                 }
-                                ObjectPool.updateIllust(bean)
+                                // 列表 bean 已过 source 清洗：写进来的是当前用户视角或未知，
+                                // 标成可信，免得详情页的镜像校正把这份真值抹回 null。
+                                ObjectPool.updateIllustTrusted(bean)
                                 freshBeans.add(bean)
                                 staged[id] = bean
                             }
