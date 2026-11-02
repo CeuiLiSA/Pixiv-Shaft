@@ -85,6 +85,7 @@ class SearchNovelSeriesWebSource(private val searchModel: SearchModel) : FeedSou
             workLang = params.workLang,
             replaceableOnly = params.replaceableOnly,
             aiType = params.aiType,
+            potentialViolationWorks = params.potentialViolationWorks,
         )
         // 网页 ajax 的业务错误是 HTTP 200 + error:true + body:null（同 UserNovelByTagFeedSource）：
         // 抛出去交给 feeds 的错误态，别渲染成「搜出来 0 件」。
@@ -236,6 +237,8 @@ internal data class WebNovelSearchParams(
     val workLang: String?,
     val replaceableOnly: Int?,
     val aiType: Int?,
+    /** 「可能妨碍搜索的作品」的 `dgw`：1 = 显示，null = 不传（网页默认隐藏）。 */
+    val potentialViolationWorks: Int?,
     val r18Mode: R18Mode,
     val onlyAi: Boolean,
     val bookmarkFilter: Boolean = false,
@@ -258,6 +261,7 @@ internal data class WebNovelSearchParams(
  * | text_length_* 等 3 组   | tlt/tgt·wlt/wgt·rlt/rgt | |
  * | lang                   | work_lang       | |
  * | search_ai_type=1       | ai_type=1       | 同义（实测 aiType==2 被剔除） |
+ * | include_potential_violation_works | dgw | 默认值相反：app-api 不传 = 显示，网页不传 = 隐藏 |
  *
  * 「Xusers入り」关键字后缀（[ceui.pixiv.ui.search.v3.KeywordUsersBucket]）照旧拼进 word，
  * 与 [ceui.lisa.repo.SearchNovelRepo.initApi] 一致。
@@ -351,6 +355,9 @@ internal fun buildWebNovelSearchParams(
         // 「仅看 AI」官方无参数，服务端全返后在 toFeedItem 里按 aiType==2 客户端筛——此时绝不能
         // 同时发 ai_type=1，否则两边对夹清空。
         aiType = if (!onlyAi && excludeAi) 1 else null,
+        // 网页前端 systemDefault 是 Hide、隐藏时不带 dgw，所以这里和 app-api 路径反过来：
+        // 「显示」要显式发 dgw=1，否则开着系列归纳时这个开关恒等于「不显示」。
+        potentialViolationWorks = if (searchModel.includePotentialViolationWorks.value == false) null else 1,
         r18Mode = r18Mode,
         onlyAi = onlyAi,
         // 有效请求 = 服务端剔 + 客户端兜底；toFeedItem 据此做客户端剔除、并跳过全局 AI 判定

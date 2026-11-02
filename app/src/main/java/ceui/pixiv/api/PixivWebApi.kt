@@ -215,6 +215,8 @@ interface PixivWebApi {
         @Query("work_lang") workLang: String? = null,
         @Query("replaceable_only") replaceableOnly: Int? = null,
         @Query("ai_type") aiType: Int? = null,
+        // 「可能妨碍搜索的作品」：网页默认隐藏，1 才显示——与 app-api 的「不传 = 显示」相反。
+        @Query("dgw") potentialViolationWorks: Int? = null,
         @Query("lang") lang: String = "zh",
     ): WebResponse<WebNovelSearchBody>
 

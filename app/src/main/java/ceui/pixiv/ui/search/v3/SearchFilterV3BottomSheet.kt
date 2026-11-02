@@ -79,18 +79,22 @@ class SearchFilterV3BottomSheet : V3BottomSheetBase() {
         val store = if (isNovel) searchViewModel.novelFilter else searchViewModel.illustFilter
         val next = transform(currentFilter())
         store.value = next
-        // 「AI 作品」与「过滤已收藏」是**搜索页级**条件（两个 tab 共用同一份 SearchModel 会话态），
-        // 这里镜像给另一份 filter，保证两个 tab 的 sheet 显示与实际搜索一致。
+        // 「AI 作品」「过滤已收藏」「可能妨碍搜索的作品」是**搜索页级**条件（两个 tab 共用同一份
+        // SearchModel 会话态），这里镜像给另一份 filter，保证两个 tab 的 sheet 显示与实际搜索一致。
         val other = if (isNovel) searchViewModel.illustFilter else searchViewModel.novelFilter
         other.value?.let { o ->
             if (o.aiMode != next.aiMode || o.aiModePersist != next.aiModePersist
                 || o.bookmarkFilter != next.bookmarkFilter
-                || o.bookmarkFilterPersist != next.bookmarkFilterPersist) {
+                || o.bookmarkFilterPersist != next.bookmarkFilterPersist
+                || o.includePotentialViolationWorks != next.includePotentialViolationWorks
+                || o.potentialViolationPersist != next.potentialViolationPersist) {
                 other.value = o.copy(
                     aiMode = next.aiMode,
                     aiModePersist = next.aiModePersist,
                     bookmarkFilter = next.bookmarkFilter,
                     bookmarkFilterPersist = next.bookmarkFilterPersist,
+                    includePotentialViolationWorks = next.includePotentialViolationWorks,
+                    potentialViolationPersist = next.potentialViolationPersist,
                 )
             }
         }

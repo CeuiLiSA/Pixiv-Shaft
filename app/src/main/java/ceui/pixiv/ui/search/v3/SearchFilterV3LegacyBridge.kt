@@ -153,6 +153,10 @@ object SearchFilterV3LegacyBridge {
             else -> null
         }
         val r18 = sessionR18 ?: baseline.r18Mode
+        // 「可能妨碍搜索的作品」：SearchModel 为 null 时回 baseline（它带着页记），不能写死「显示」——
+        // 新开的 SearchActivity 这里恒为 null，写死的话「仅这里记住：不显示」在首搜前就被冲掉了。
+        val includePotentialViolation =
+            searchModel.includePotentialViolationWorks.value ?: baseline.includePotentialViolationWorks
         val ratio = if (isNovel) null
             else RatioPattern.entries.firstOrNull { it.apiValue == searchModel.ratioPattern.value }
                 ?: baseline.ratioPattern
@@ -216,12 +220,9 @@ object SearchFilterV3LegacyBridge {
             endDate = searchModel.endDate.value ?: baseline.endDate,
             r18Mode = r18,
             r18ModePersist = tierOfSession(r18, rememberedR18, R18Mode.All),
-            // 「可能妨碍搜索的作品」：SearchModel 里 null = 没显式关过 → 显示（内置默认）。
-            includePotentialViolationWorks = searchModel.includePotentialViolationWorks.value ?: true,
+            includePotentialViolationWorks = includePotentialViolation,
             potentialViolationPersist = tierOfSession(
-                searchModel.includePotentialViolationWorks.value ?: true,
-                rememberedPotentialViolation,
-                true,
+                includePotentialViolation, rememberedPotentialViolation, true,
             ),
             // AI 三档：「仅看AI」是会话态，从 SearchModel.onlyAi 读回还原（activity 重建后 VM 为空时
             // 也不丢）；「屏蔽AI / 全部」优先用会话值（sessionExcludeAi），没设过才回 baseline。

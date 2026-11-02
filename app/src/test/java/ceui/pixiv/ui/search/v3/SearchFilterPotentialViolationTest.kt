@@ -138,6 +138,19 @@ class SearchFilterPotentialViolationTest {
     }
 
     @Test
+    fun `新开搜索页时页记不被空的 SearchModel 冲掉`() {
+        Shaft.sSettings.searchRememberedPotentialViolation = "false"
+
+        val seeded = seedFromLegacy(SearchModel(), isNovel = false)
+        assertEquals(false, seeded.includePotentialViolationWorks)
+        assertEquals(FilterPersist.RememberHere, seeded.potentialViolationPersist)
+
+        val searchModel = SearchModel()
+        applyToLegacy(seeded, searchModel)
+        assertEquals(false, searchModel.includePotentialViolationWorks.value)
+    }
+
+    @Test
     fun `全局默认读页记`() {
         assertEquals(true, SearchFilterV3.fromGlobalDefaults().includePotentialViolationWorks)
         assertEquals(
