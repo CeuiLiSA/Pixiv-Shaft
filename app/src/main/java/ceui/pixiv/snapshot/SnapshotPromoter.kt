@@ -26,6 +26,8 @@ object SnapshotPromoter {
 
         File(snapshotDir, SNAPSHOT_MANIFEST).writeText(Shaft.sGson.toJson(formal))
         File(snapshotDir, AUTO_SNAPSHOT_MANIFEST).delete()
+        // 用完整清单登记：即使首次索引扫描尚未完成，转正后的来源与创建时间也不会丢。
+        SnapshotIndex.onSnapshotWritten(formal.illustId, autoId, isAuto = false, formal.createdAt)
 
         // 缓存先尝试更新；失败降级为移除，避免继续读到转正前的 auto 数据。
         runCatching {

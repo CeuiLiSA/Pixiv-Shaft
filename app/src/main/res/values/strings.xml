@@ -1031,6 +1031,7 @@
     <string name="download_toast_storage_unavailable">下载目录不可用</string>
     <string name="download_toast_record_restored">下载记录恢复</string>
     <string name="download_toast_low_storage_paused">空间不足暂停下载</string>
+    <string name="download_toast_queue_stopped">下载队列意外停止</string>
     <string name="download_toast_bulk_enqueue">批量入队进度</string>
     <string name="download_toast_bulk_summary">批量下载汇总</string>
     <string name="download_toast_novel_progress">小说逐篇下载进度</string>
@@ -2103,6 +2104,7 @@
     <string name="dlmgr_active_empty_hint">队列里的任务会自动转到这里\n显示 page 级实时进度</string>
     <string name="dlmgr_active_action_resume_all">全部继续</string>
     <string name="download_paused_low_storage">存储空间不足（剩余 %1$s），已暂停全部下载。清理空间后在下载管理点「全部继续」即可接着下</string>
+    <string name="download_queue_stopped_paused">下载队列意外停止了，已自动暂停。点「继续」即可接着下</string>
     <string name="dlmgr_active_action_pause_all">全部暂停</string>
     <string name="dlmgr_active_action_clear">清空</string>
     <!-- "正在下载"前面不挂数字 —— tab 标题已经有"正在下载 N"。getString 多传一个 int
@@ -3839,4 +3841,6 @@
     <string name="open_with_chrome">使用Chrome打开</string>
     <string name="debug_update_sheet_title" translatable="false">调试更新弹窗</string>
     <string name="debug_update_sheet_desc" translatable="false">调试用：弹出更新弹窗（支持测试无安装包时的外部打开）</string>
+    <string name="debug_fake_invalid_title" translatable="false">失效作品模拟</string>
+    <string name="debug_fake_invalid_desc" translatable="false">把收藏页里「有离线快照的作品」画成失效作品卡（非公开／限定／无法显示，占位图封面、无角标），只改显示不动数据</string>
 </resources>

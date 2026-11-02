@@ -180,7 +180,7 @@ object SettingsCatalog {
         add(Entry(BOOKMARKS, "hide_star_bar_rela", R.string.string_371, keywords = "隐藏 收藏按钮 我的收藏"))
         // 别名按整串子串匹配，「关闭震动」「收藏按钮震动」这类连写说法各铺一遍
         add(Entry(BOOKMARKS, "like_haptic_rela", R.string.settings_like_haptic, R.string.settings_like_haptic_desc, keywords = "振动 震动 触感 触觉 震感 手感 马达 触感反馈 震动反馈 收藏振动 收藏震动 收藏按钮震动 关注振动 关注震动 爱心 点赞 关掉振动 关掉震动 关闭振动 关闭震动 不要震动 haptic vibration vibrate"))
-        add(Entry(BOOKMARKS, "filter_invalid_bookmarks_rela", R.string.filter_invalid_bookmarks, keywords = "失效 无效 404 收藏夹 已删除作品"))
+        add(Entry(BOOKMARKS, "filter_invalid_bookmarks_rela", R.string.filter_invalid_bookmarks, keywords = "失效 无效 404 收藏夹 已删除作品 非公开 限定 无法显示 表示できません"))
         add(Entry(BOOKMARKS, "select_all_tag_rela", R.string.string_372, keywords = "标签 全选 tag 收藏"))
         add(Entry(BOOKMARKS, "show_related_when_star_rela", R.string.string_396, keywords = "相关作品 关联 推荐 related"))
         add(Entry(BOOKMARKS, "auto_follow_after_star_rela", R.string.string_456, keywords = "自动关注 关注 follow"))
