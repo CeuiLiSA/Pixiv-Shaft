@@ -1,6 +1,7 @@
 package ceui.pixiv.download.model
 
-import ceui.lisa.activities.Shaft
+import ceui.lisa.activities.Shaft
+
 import ceui.lisa.utils.Params
 import ceui.loxia.ImageUrls
 import ceui.loxia.Novel
@@ -23,6 +24,12 @@ import timber.log.Timber
  *    - p1..pN 仅保留最后一个“/”后的相对文件名，消除长路径重复；
  *    - 无论文件名规则如何变化，均可基于真实上级目录完整还原；
  * 3. 仅保留列表卡片展示、作者主页跳转、动图/类型判定、下载文件改名模板及搜索所必需的核心属性。
+ *
+ * 瘦身不可逆，删字段前要确认没有读取方依赖它。下面几个字段看着可有可无，其实都有人读：
+ * - `visible`：VActivity 严格判 true，丢了动图从已完成页打开会落到静态查看器（黑屏，issue #920）；
+ * - `sanity_level`：[Illust.isSensitive] 的判定来源；
+ * - `total_view` / `total_bookmarks`：ProfileManager 用它们算收藏率、挑种子作品；
+ * - 标签的 `translated_name`：已完成页搜索是对这份 JSON 做 LIKE，丢了译名就搜不到。
  */
 object DownloadRecordSlim {
 
@@ -104,16 +111,20 @@ object DownloadRecordSlim {
             },
             meta_single_page = p0Original?.let { MetaSinglePage(original_image_url = it) },
             meta_pages = slimPages,
-            tags = illust.tags?.mapNotNull { it.name }?.map { Tag(name = it) },
+            tags = slimTags(illust.tags),
             caption = null,
             tools = null,
             series = null,
             restrict = null,
-            sanity_level = null,
-            total_bookmarks = null,
-            total_view = null,
+            sanity_level = illust.sanity_level,
+            total_bookmarks = illust.total_bookmarks,
+            total_view = illust.total_view,
+            visible = illust.visible,
         )
     }
+
+    private fun slimTags(tags: List<Tag>?): List<Tag>? =
+        tags?.filter { it.name != null }?.map { Tag(name = it.name, translated_name = it.translated_name) }
 
     /**
      * 解析作品的所有原图直链（自动处理公共目录前缀的还原）。
@@ -155,7 +166,7 @@ object DownloadRecordSlim {
             create_date = novel.create_date,
             x_restrict = novel.x_restrict,
             novel_ai_type = novel.novel_ai_type,
-            tags = novel.tags?.mapNotNull { it.name }?.map { Tag(name = it) },
+            tags = slimTags(novel.tags),
             caption = null,
             series = novel.series?.let { Series(id = it.id, title = it.title) },
         )

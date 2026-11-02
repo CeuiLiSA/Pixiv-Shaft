@@ -47,7 +47,9 @@ object BulkDownloadCacheCleaner {
         val rowsProcessed: Int = 0,
         val rowsSlimmed: Int = 0,
         val queuePayloadsCleared: Int = 0,
-        val bytesSaved: Long = 0L
+        val bytesSaved: Long = 0L,
+        /** 各步骤是否全部成功。没有真正执行（单飞闸挡回）时也是 false。 */
+        val complete: Boolean = false,
     )
 
     /**
@@ -190,11 +192,15 @@ object BulkDownloadCacheCleaner {
             var rowsProcessed = 0
             var rowsSlimmed = 0
             var bytesSaved = 0L
+            var complete = true
 
             // 1. 清理 taskGson 废弃字段
             runCatching {
                 raw.execSQL("UPDATE illust_download_table SET taskGson = NULL WHERE taskGson IS NOT NULL")
-            }.onFailure { Timber.tag(TAG).w(it, "Clear taskGson failed") }
+            }.onFailure {
+                complete = false
+                Timber.tag(TAG).w(it, "Clear taskGson failed")
+            }
 
             // 2. 清理已完成任务在队列中的残余载荷
             var queueRowsCleared = 0
@@ -205,7 +211,10 @@ object BulkDownloadCacheCleaner {
                     }
                 }
                 raw.execSQL("UPDATE download_queue SET illustGson = NULL, errorMsg = NULL WHERE status = '${QueueStatus.SUCCESS}' AND (illustGson IS NOT NULL OR errorMsg IS NOT NULL)")
-            }.onFailure { Timber.tag(TAG).w(it, "Clear download_queue payload failed") }
+            }.onFailure {
+                complete = false
+                Timber.tag(TAG).w(it, "Clear download_queue payload failed")
+            }
 
             // 3. 按主键索引流式逐批瘦身历史记录
             runCatching {
@@ -259,7 +268,10 @@ object BulkDownloadCacheCleaner {
 
                     lastFileName = batch.last().first
                 }
-            }.onFailure { Timber.tag(TAG).w(it, "Batch slimming illust_download_table failed") }
+            }.onFailure {
+                complete = false
+                Timber.tag(TAG).w(it, "Batch slimming illust_download_table failed")
+            }
 
             // 4. 清除临时 stage 文件夹
             runCatching {
@@ -267,19 +279,26 @@ object BulkDownloadCacheCleaner {
                 if (stage.exists()) stage.deleteRecursively()
             }.onFailure { Timber.tag(TAG).w(it, "staging_dl wipe failed") }
 
-            // 5. 整理数据库并回收物理存储空间
+            // 5. 整理数据库并回收物理存储空间。
+            //    这里的 VACUUM 与 wipe 不同，不能省：auto_vacuum=FULL 只归还整页空闲页，wipe 的
+            //    DELETE 留下的正是整页；瘦身是原地改小，留下的是半空的叶子页，它合并不了。实测
+            //    398MB 的表瘦身后只做 checkpoint 剩 53MB，再 VACUUM 剩 20MB。它跑在瘦身之后，
+            //    此时库已经缩小，耗时和临时空间都按缩小后的体积算；同时受 busy 单飞闸保护。
             runCatching {
                 raw.query("PRAGMA wal_checkpoint(TRUNCATE)").use { it.moveToFirst() }
                 raw.execSQL("VACUUM")
                 raw.query("PRAGMA wal_checkpoint(TRUNCATE)").use { it.moveToFirst() }
-            }.onFailure { Timber.tag(TAG).w(it, "VACUUM failed") }
+            }.onFailure {
+                complete = false
+                Timber.tag(TAG).w(it, "VACUUM failed")
+            }
 
             // 6. 通知 UI 刷新
             runCatching { ManagerReactive.pokeDoneTable() }
             runCatching { queue.queueListInvalidations.tryEmit(Unit) }
 
             Timber.tag(TAG).i("deepSlim() done: processed=$rowsProcessed, slimmed=$rowsSlimmed, queueCleared=$queueRowsCleared, bytesSaved=$bytesSaved")
-            return SlimResult(rowsProcessed, rowsSlimmed, queueRowsCleared, bytesSaved)
+            return SlimResult(rowsProcessed, rowsSlimmed, queueRowsCleared, bytesSaved, complete)
         } finally {
             DbCallTracker.endLongOperation()
             busy.set(false)

@@ -622,7 +622,7 @@ public class FragmentSettingsData extends SettingsPageFragment<FragmentSettingsD
                 bulkWipeRunning = false;
                 try { progress.dismiss(); } catch (Throwable ignored) {}
                 if (isAdded() && baseBind != null) {
-                    if (finalResult != null) {
+                    if (finalResult != null && finalResult.getComplete()) {
                         String savedStr = android.text.format.Formatter.formatShortFileSize(mContext, finalResult.getBytesSaved());
                         Common.showToast(getString(R.string.download_cache_slim_success, finalResult.getRowsSlimmed(), savedStr));
                     } else {

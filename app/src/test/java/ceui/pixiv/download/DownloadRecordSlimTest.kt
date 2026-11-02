@@ -14,7 +14,8 @@ import com.google.gson.Gson
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
-import org.junit.Assert.assertFalse
+import org.junit.Assert.assertFalse
+
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -186,6 +187,36 @@ class DownloadRecordSlimTest {
         val stub = "{\"id\":123,\"shaft_imported\":true}"
         val result = DownloadRecordSlim.slimIllustJson(stub)
         assertEquals(stub, result)
+    }
+
+    @Test
+    fun testSlimKeepsFieldsOtherReadersDependOn() {
+        val illust = Illust(
+            id = 100L,
+            type = "ugoira",
+            visible = true,
+            sanity_level = 4,
+            total_view = 1000,
+            total_bookmarks = 80,
+            caption = "dropped",
+            tags = listOf(Tag(name = "オリジナル", translated_name = "原创")),
+        )
+
+        val parsed = Gson().fromJson(DownloadRecordSlim.createIllustJson(illust), Illust::class.java)
+
+        assertEquals(true, parsed.visible)
+        assertTrue(parsed.isSensitive())
+        assertEquals(1000, parsed.total_view)
+        assertEquals(80, parsed.total_bookmarks)
+        assertEquals("原创", parsed.tags?.single()?.translated_name)
+        assertNull(parsed.caption)
+    }
+
+    @Test
+    fun testSlimDropsTagsWithoutName() {
+        val illust = Illust(id = 100L, tags = listOf(Tag(name = null), Tag(name = "a")))
+
+        assertEquals(listOf("a"), DownloadRecordSlim.toSlim(illust).tags?.map { it.name })
     }
 
     @Test
