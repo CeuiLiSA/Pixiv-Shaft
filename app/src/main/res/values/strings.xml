@@ -3839,4 +3839,6 @@
     <string name="open_with_chrome">使用Chrome打开</string>
     <string name="debug_update_sheet_title" translatable="false">调试更新弹窗</string>
     <string name="debug_update_sheet_desc" translatable="false">调试用：弹出更新弹窗（支持测试无安装包时的外部打开）</string>
+    <string name="debug_fake_invalid_title" translatable="false">失效作品模拟</string>
+    <string name="debug_fake_invalid_desc" translatable="false">把收藏页里「有离线快照的作品」画成失效作品卡（非公开／限定／无法显示，占位图封面、无角标），只改显示不动数据</string>
 </resources>

@@ -18,4 +18,9 @@
          整份排除，换机 / 还原后读到的就是默认状态。 -->
     <exclude domain="file" path="mmkv/chrome_tabs_prefs_v1" />
     <exclude domain="file" path="mmkv/chrome_tabs_prefs_v1.crc" />
+    <!-- 离线快照索引(SnapshotIndex 的 MMKV 表)：只是「UUID → 作品 ID」的本机缓存，
+         指向的目录在别的设备上并不存在，带过去只会得到一堆点开就报错的条目。
+         整份排除；换机 / 还原后首次启动会自己扫一遍重建（不影响任何用户数据）。 -->
+    <exclude domain="file" path="mmkv/snapshot_index_v1" />
+    <exclude domain="file" path="mmkv/snapshot_index_v1.crc" />
 </full-backup-content>

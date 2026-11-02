@@ -178,6 +178,40 @@ data class Illust(
     /** 屏蔽判定用的标签串，格式 `*#name,`（与 Novel.getTagString 同款）。 */
     val tagString: String get() = tags?.joinToString(separator = "") { "*#${it.name}," } ?: ""
 
+    /**
+     * 「失效作品」：服务端明确不给看的三种状态。它们在列表里都看不到作品图（灰底或占位图）：
+     * - **非公开**（非公開）：作者把作品转成私有 / 撤下；
+     * - **限定**（限定公開）：只有满足条件的账号能看，当前账号不在范围内；
+     * - **无法显示**（表示できません）：已删除、地区或年龄限制等，服务端干脆不给内容。
+     *
+     * 判据只认 `visible != true`，其余字段随失效原因和接口而变，**别照着「字段全空」去猜**。
+     * `/v1/user/bookmarks/illust` 真机抓包里的一条失效作品是这样的：
+     * ```
+     * {"title":"","caption":"","visible":false,"page_count":1,"width":100,"height":100,
+     *  "x_restrict":0,"illust_ai_type":0,"tags":[],"total_view":0,"total_bookmarks":0,
+     *  "image_urls":{"square_medium":"…/limit_unknown_360.png","medium":"…","large":"…"},
+     *  "user":{"id":0,"name":"","account":"","profile_image_urls":{"medium":"…/no_profile.png"}}}
+     * ```
+     * 即：封面是 `limit_unknown_360.png` 占位图（三档尺寸都指它）、宽高 100×100、`page_count`=1、
+     * `title` / `caption` 是空串、`user` 存在但 id=0。所以卡片上是**占位图 + 1:1 + 无角标**
+     * （占位图取不到时才退成灰底），不是「一块灰底 + 空字段」。字段缺失同样按不可看处理 ——
+     * 精简来源的 bean 可能压根没这个字段，经典详情页对这种情况也提示「作品は非公開です」
+     * （见 [ceui.lisa.fragments.FragmentIllust.updateIllust]）。
+     *
+     * ⚠️ 「列表里看不到」不等于「作品真的没了」：app-api 还会按移动端商店政策把部分作品藏成
+     * `visible=false` 的空壳（占位图 `limit_unviewable`），网页接口不受此限，详情链路会再兜底拉
+     * 一份（见 [ceui.pixiv.utils.fetchFullIllustDetail]）。所以这个判据只管**卡片画成什么样、
+     * 能不能就地操作**，不能拿来断定作品已删除。
+     *
+     * 别和这几件事混：
+     * - 「屏蔽此作品」是**本地**名单，作品本身有效、只是画成遮罩，不走这里（见
+     *   [ceui.pixiv.ui.common.IllustMuteStore]）；
+     * - 收藏库镜像表的 `isVisible` 列用 `visible != false`（null 当可见），那是 SQL 侧口径，见
+     *   [ceui.pixiv.db.mirror.BookmarkMirrorMapper]；
+     * - 小说侧 `Novel.visible` 是非空 Boolean，判据是 `== false`（见 LikeNovelFeedFragment）。
+     */
+    val isUnavailable: Boolean get() = visible != true
+
     fun withBookmarked(liked: Boolean): Illust = if (is_bookmarked == liked) this else copy(is_bookmarked = liked)
 
     fun withMuted(muted: Boolean): Illust = if (is_muted == muted) this else copy(is_muted = muted)
