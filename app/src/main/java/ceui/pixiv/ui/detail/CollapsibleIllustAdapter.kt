@@ -310,7 +310,8 @@ open class ArtworkDetailIllustAdapter(
         }
 
         val views = ensureWorkingOverlayInflated(holder) ?: return
-        val isFirstShow = views.root.visibility != View.VISIBLE || views.root.alpha < 1f
+        val isFirstShow = views.root.visibility != View.VISIBLE
+        views.root.animate().cancel()
         views.root.visibility = View.VISIBLE
         views.loadingState.visibility = View.VISIBLE
         views.doneState.visibility = View.GONE
@@ -318,6 +319,8 @@ open class ArtworkDetailIllustAdapter(
             views.root.animate().cancel()
             views.root.alpha = 0f
             views.root.animate().alpha(1f).setDuration(260L).setInterpolator(DecelerateInterpolator()).start()
+        } else {
+            views.root.alpha = 1f
         }
 
         views.statusText.text = aiState.currentStatusText(holder.itemView.context)
@@ -342,6 +345,11 @@ open class ArtworkDetailIllustAdapter(
         eta: Float,
         statusText: String?,
     ) {
+        val state = IllustAiStore.get(illust.id, position) ?: return
+        if (!state.isWorking) return
+        val progress = state.currentProgress
+        val eta = state.currentEta
+        val statusText = state.currentStatusText(holder.itemView.context)
         val views = workingOverlayOf(holder) ?: ensureWorkingOverlayInflated(holder) ?: return
         views.root.visibility = View.VISIBLE
         views.loadingState.visibility = View.VISIBLE
@@ -401,7 +409,7 @@ open class NonCollapsibleIllustAdapter(
 ) : ArtworkDetailIllustAdapter(activity, fragment, illust, maxHeight, isForceOriginal) {
     override fun onBindViewHolder(holder: ViewHolder<RecyIllustDetailBinding>, position: Int) {
         super.onBindViewHolder(holder, position)
-        if ("manga" == illust.type && illust.page_count > 1) {
+        if ("manga" == illust.type && illust.page_count > 1 && onComicReaderClick != null) {
             holder.itemView.setOnClickListener { onComicReaderClick?.invoke() }
         }
     }

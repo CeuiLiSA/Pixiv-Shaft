@@ -324,6 +324,11 @@ internal class ArtworkTabletStage(
     }
 
     fun updateAiProgress(pageIndex: Int, progress: Float, eta: Float, statusText: String?) {
+        val state = illust?.let { IllustAiStore.get(it.id, pageIndex) } ?: return
+        if (!state.isWorking) return
+        val progress = state.currentProgress
+        val eta = state.currentEta
+        val statusText = state.currentStatusText(ctx)
         val rv = pager.getChildAt(0) as? RecyclerView ?: return
         val vh = rv.findViewHolderForAdapterPosition(pageIndex) as? PageAdapter.Holder ?: return
         val workingView = vh.frame.findViewById<View>(R.id.ai_overlay_root) ?: run {
@@ -437,7 +442,7 @@ internal class ArtworkTabletStage(
         private val count: Int,
     ) : RecyclerView.Adapter<PageAdapter.Holder>() {
 
-        inner class Holder(val frame: RatioFitFrame, val image: ImageView) : RecyclerView.ViewHolder(frame)
+        inner class Holder(val frame: RatioFitFrame, val image: ImageView, val layers: FrameLayout) : RecyclerView.ViewHolder(frame)
 
         override fun getItemCount(): Int = count
 
@@ -447,13 +452,16 @@ internal class ArtworkTabletStage(
                 isClickable = true
                 isFocusable = true
             }
+            val layers = FrameLayout(ctx).apply {
+                addView(image, FrameLayout.LayoutParams(MATCH, MATCH))
+            }
             val frame = RatioFitFrame(ctx).apply {
                 layoutParams = ViewGroup.LayoutParams(MATCH, MATCH)
                 clipChildren = false
                 clipToPadding = false
-                addView(image)
+                addView(layers)
             }
-            return Holder(frame, image)
+            return Holder(frame, image, layers)
         }
 
         override fun onBindViewHolder(holder: Holder, position: Int, payloads: MutableList<Any>) {
@@ -513,14 +521,17 @@ internal class ArtworkTabletStage(
                 val isNew = workingView == null
                 if (workingView == null) {
                     workingView = View.inflate(ctx, R.layout.view_ai_upscale_overlay, null)
-                    holder.frame.addView(workingView, FrameLayout.LayoutParams(MATCH, MATCH))
+                    holder.layers.addView(workingView, FrameLayout.LayoutParams(MATCH, MATCH))
                 }
-                val shouldFadeIn = isNew || workingView.visibility != View.VISIBLE || workingView.alpha < 1f
+                val shouldFadeIn = isNew || workingView.visibility != View.VISIBLE
+                workingView.animate().cancel()
                 workingView.visibility = View.VISIBLE
                 if (shouldFadeIn) {
                     workingView.animate().cancel()
                     workingView.alpha = 0f
                     workingView.animate().alpha(1f).setDuration(260L).start()
+                } else {
+                    workingView.alpha = 1f
                 }
                 workingView.findViewById<View>(R.id.ai_loading_state)?.visibility = View.VISIBLE
                 workingView.findViewById<View>(R.id.ai_done_state)?.visibility = View.GONE
@@ -560,9 +571,12 @@ internal class ArtworkTabletStage(
                 if (expandOverlay == null) {
                     expandOverlay =
                         View.inflate(ctx, R.layout.view_illust_expand_overlay, null) as FrameLayout
-                    holder.frame.addView(
+                    holder.layers.addView(
                         expandOverlay,
-                        FrameLayout.LayoutParams(MATCH, ctx.dp(88), Gravity.BOTTOM)
+                        FrameLayout.LayoutParams(MATCH, ctx.dp(88), Gravity.BOTTOM).apply {
+                            // 舞台外层的阅读器入口也在底部，结果行须让出它的触控区域。
+                            if (CollapsibleIllustAdapter.shouldCollapse(count)) bottomMargin = ctx.dp(60)
+                        }
                     )
                 }
                 expandOverlay.visibility = View.VISIBLE

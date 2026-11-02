@@ -22,20 +22,21 @@ class PageAiState(
     var rembgOriginalPath: String? = null,
 ) {
     var upscaleRunning: Boolean
-        get() = upscaleStatus == UpscaleStatus.Running
+        get() = upscaleStatus == UpscaleStatus.Running || upscaleStatus == UpscaleStatus.Preparing
         set(value) {
             upscaleStatus = if (value) UpscaleStatus.Running else if (upscaleStatus == UpscaleStatus.Running) UpscaleStatus.Idle else upscaleStatus
         }
 
     var rembgRunning: Boolean
-        get() = rembgStatus == UpscaleStatus.Running
+        get() = rembgStatus == UpscaleStatus.Running || rembgStatus == UpscaleStatus.Preparing
         set(value) {
             rembgStatus = if (value) UpscaleStatus.Running else if (rembgStatus == UpscaleStatus.Running) UpscaleStatus.Idle else rembgStatus
         }
 
     val isRunning: Boolean get() = upscaleStatus == UpscaleStatus.Running || rembgStatus == UpscaleStatus.Running
     val isQueued: Boolean get() = (upscaleStatus == UpscaleStatus.Queued && !isRunning) || (rembgStatus == UpscaleStatus.Queued && !isRunning)
-    val isWorking: Boolean get() = isRunning || upscaleStatus == UpscaleStatus.Queued || rembgStatus == UpscaleStatus.Queued
+    val isWorking: Boolean get() = isRunning || upscaleStatus == UpscaleStatus.Queued || rembgStatus == UpscaleStatus.Queued ||
+        upscaleStatus == UpscaleStatus.Preparing || rembgStatus == UpscaleStatus.Preparing
 
     val hasUpscaleResult: Boolean
         get() = upscaleResultPath?.let { File(it).exists() } == true
@@ -47,29 +48,29 @@ class PageAiState(
         get() = hasUpscaleResult || hasRembgResult
 
     val isIndeterminate: Boolean
-        get() = if (isQueued) {
-            true
-        } else if (rembgRunning) {
-            rembgProgress <= 0f
-        } else if (upscaleRunning) {
+        get() = if (upscaleStatus == UpscaleStatus.Running) {
             upscaleProgress <= 0f
+        } else if (rembgStatus == UpscaleStatus.Running) {
+            rembgProgress <= 0f
         } else {
-            false
+            isWorking
         }
 
     val currentProgress: Float
-        get() = if (upscaleRunning) upscaleProgress else if (rembgRunning) rembgProgress else 0f
+        get() = if (upscaleStatus == UpscaleStatus.Running) upscaleProgress else if (rembgStatus == UpscaleStatus.Running) rembgProgress else 0f
 
     val currentEta: Float
-        get() = if (upscaleRunning) upscaleEta else 0f
+        get() = if (upscaleStatus == UpscaleStatus.Running) upscaleEta else 0f
 
     fun currentStatusText(context: Context): String {
         return if (isQueued) {
             context.getString(R.string.string_ai_task_queued)
-        } else if (upscaleRunning) {
+        } else if (upscaleStatus == UpscaleStatus.Running) {
             upscaleStatusText ?: context.getString(R.string.ai_upscaling_in_progress)
-        } else if (rembgRunning) {
+        } else if (rembgStatus == UpscaleStatus.Running) {
             rembgStatusText ?: context.getString(R.string.string_ai_rembg_running)
+        } else if (isWorking) {
+            context.getString(R.string.string_ai_waiting_for_original_image)
         } else {
             ""
         }

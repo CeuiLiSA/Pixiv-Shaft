@@ -52,7 +52,11 @@ class IllustAiHelper(
     fun performRembg(illust: Illust, model: RembgModel, pageIndex: Int = 0) {
         val state = IllustAiStore.getOrCreate(illust.id, pageIndex)
         if (state.hasRembgResult) {
-            Common.showToast(R.string.string_ai_rembg_already_completed)
+            if (onAiStateChanged == null) {
+                openRembgHighlight(state.rembgResultPath, state.rembgOriginalPath)
+            } else {
+                Common.showToast(R.string.string_ai_rembg_already_completed)
+            }
             return
         }
         if (state.rembgRunning || state.rembgStatus == UpscaleStatus.Queued) {
@@ -61,7 +65,7 @@ class IllustAiHelper(
         }
         val imageUrl = IllustDownload.getUrl(illust, pageIndex, Params.IMAGE_RESOLUTION_ORIGINAL)
             ?: IllustDownload.getUrl(illust, pageIndex, Params.IMAGE_RESOLUTION_LARGE) ?: return
-        state.rembgStatus = UpscaleStatus.Running
+        state.rembgStatus = UpscaleStatus.Preparing
         state.rembgProgress = 0f
         state.rembgStatusText = context.getString(R.string.string_ai_waiting_for_original_image)
 
@@ -201,6 +205,7 @@ class IllustAiHelper(
                     }
                 }
                 UpscaleStatus.Failed -> {
+                    observedTasks.remove(task.taskKey)
                     state.rembgStatus = UpscaleStatus.Failed
                     if (onAiStateChanged != null) {
                         onAiStateChanged.invoke(pageIndex)
@@ -217,11 +222,14 @@ class IllustAiHelper(
         }
 
         task.progress.observe(lifecycleOwner) { percent ->
+            if (task.status.value != UpscaleStatus.Running && task.status.value != UpscaleStatus.Queued) return@observe
             state.rembgProgress = percent
             if (onAiProgress != null) {
                 onAiProgress.invoke(pageIndex, percent, 0f, state.rembgStatusText)
             } else {
                 val p = (percent * 100).toInt()
+                progressRing.isIndeterminate = percent <= 0f
+                progressText.visibility = if (percent > 0f) View.VISIBLE else View.GONE
                 progressRing.setProgressCompat(p, true)
                 progressText.text = context.getString(R.string.string_ai_task_percent, p)
             }
@@ -231,7 +239,11 @@ class IllustAiHelper(
     fun performUpscale(illust: Illust, model: UpscaleModel = UpscaleModel.REAL_ESRGAN, pageIndex: Int = 0) {
         val state = IllustAiStore.getOrCreate(illust.id, pageIndex)
         if (state.hasUpscaleResult) {
-            Common.showToast(R.string.string_ai_upscale_already_completed)
+            if (onAiStateChanged == null) {
+                openUpscaleComparison(state.upscaleResultPath, state.upscaleOriginalPath)
+            } else {
+                Common.showToast(R.string.string_ai_upscale_already_completed)
+            }
             return
         }
         if (state.upscaleRunning || state.upscaleStatus == UpscaleStatus.Queued) {
@@ -240,7 +252,7 @@ class IllustAiHelper(
         }
         val imageUrl = IllustDownload.getUrl(illust, pageIndex, Params.IMAGE_RESOLUTION_ORIGINAL)
             ?: IllustDownload.getUrl(illust, pageIndex, Params.IMAGE_RESOLUTION_LARGE) ?: return
-        state.upscaleStatus = UpscaleStatus.Running
+        state.upscaleStatus = UpscaleStatus.Preparing
         state.upscaleProgress = 0f
         state.upscaleEta = 0f
         state.upscaleStatusText = context.getString(R.string.string_ai_waiting_for_original_image)
@@ -296,6 +308,10 @@ class IllustAiHelper(
             when (task.status.value) {
                 UpscaleStatus.Running, UpscaleStatus.Queued -> observeUpscaleTask(illustId, pageIndex, task)
                 UpscaleStatus.Done -> {
+                    if (onAiStateChanged == null) {
+                        observeUpscaleTask(illustId, pageIndex, task)
+                        continue
+                    }
                     val state = IllustAiStore.getOrCreate(illustId, pageIndex)
                     state.upscaleStatus = UpscaleStatus.Done
                     val result = task.resultFile.value
@@ -316,6 +332,10 @@ class IllustAiHelper(
             when (task.status.value) {
                 UpscaleStatus.Running, UpscaleStatus.Queued -> observeRembgTask(illustId, pageIndex, task)
                 UpscaleStatus.Done -> {
+                    if (onAiStateChanged == null) {
+                        observeRembgTask(illustId, pageIndex, task)
+                        continue
+                    }
                     val state = IllustAiStore.getOrCreate(illustId, pageIndex)
                     state.rembgStatus = UpscaleStatus.Done
                     val result = task.resultFile.value
@@ -332,23 +352,8 @@ class IllustAiHelper(
             }
         }
 
-        // 兜底清理已死任务状态（若状态显示 running 或 queued 但任务池中已无该任务，置 status = Idle）
-        IllustAiStore.allPages(illustId).forEach { pageState ->
-            if (pageState.upscaleRunning || pageState.upscaleStatus == UpscaleStatus.Queued) {
-                val task = UpscaleTaskPool.getTask(UpscaleTask.illustKey(illustId, pageState.pageIndex))
-                if (task == null || (task.status.value != UpscaleStatus.Running && task.status.value != UpscaleStatus.Queued)) {
-                    pageState.upscaleStatus = UpscaleStatus.Idle
-                    onAiStateChanged?.invoke(pageState.pageIndex)
-                }
-            }
-            if (pageState.rembgRunning || pageState.rembgStatus == UpscaleStatus.Queued) {
-                val task = RembgTaskPool.getTask(RembgTask.illustKey(illustId, pageState.pageIndex))
-                if (task == null || (task.status.value != UpscaleStatus.Running && task.status.value != UpscaleStatus.Queued)) {
-                    pageState.rembgStatus = UpscaleStatus.Idle
-                    onAiStateChanged?.invoke(pageState.pageIndex)
-                }
-            }
-        }
+        // 原图准备处于 Preparing，此时尚未入池。由准备协程自己的失败/取消路径清理，
+        // 不能在 onResume 根据“池中没有任务”判死，否则尚在下载的任务可被重复启动。
     }
 
     fun restoreUpscaleIfRunning(illustId: Long) = restoreAiTasksIfRunning(illustId)
@@ -464,17 +469,21 @@ class IllustAiHelper(
         }
 
         task.progress.observe(lifecycleOwner) { percent ->
+            if (task.status.value != UpscaleStatus.Running && task.status.value != UpscaleStatus.Queued) return@observe
             state.upscaleProgress = percent
             if (onAiProgress != null) {
                 onAiProgress.invoke(pageIndex, percent, task.eta.value ?: 0f, state.upscaleStatusText)
             } else {
                 val p = (percent * 100).toInt()
+                progressRing.isIndeterminate = percent <= 0f
+                progressText.visibility = if (percent > 0f) View.VISIBLE else View.GONE
                 progressRing.setProgressCompat(p, true)
                 progressText.text = context.getString(R.string.string_ai_task_percent, p)
             }
         }
 
         task.eta.observe(lifecycleOwner) { eta ->
+            if (task.status.value != UpscaleStatus.Running) return@observe
             state.upscaleEta = eta
             if (onAiProgress != null) {
                 onAiProgress.invoke(pageIndex, task.progress.value ?: 0f, eta, state.upscaleStatusText)

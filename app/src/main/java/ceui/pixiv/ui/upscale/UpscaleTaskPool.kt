@@ -11,7 +11,7 @@ import java.io.File
 import java.util.ArrayDeque
 import java.util.concurrent.ConcurrentHashMap
 
-enum class UpscaleStatus { Idle, Queued, Running, Done, Failed }
+enum class UpscaleStatus { Idle, Preparing, Queued, Running, Done, Failed }
 
 private fun parseIllustPageKey(key: String): Pair<Long, Int>? {
     val parts = key.split('_')

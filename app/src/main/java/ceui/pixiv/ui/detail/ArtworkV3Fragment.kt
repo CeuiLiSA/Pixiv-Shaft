@@ -750,10 +750,12 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
                 onExpandPillLongClick = { openPagesPreview() },
             ).apply {
                 onUpscalePillClick = { pos, state ->
-                    aiHelper?.openUpscaleComparison(state.upscaleResultPath, state.upscaleOriginalPath)
+                    (aiHelper ?: IllustAiHelper(this@ArtworkV3Fragment, chromeBind.root))
+                        .openUpscaleComparison(state.upscaleResultPath, state.upscaleOriginalPath)
                 }
                 onRembgPillClick = { pos, state ->
-                    aiHelper?.openRembgHighlight(state.rembgResultPath, state.rembgOriginalPath)
+                    (aiHelper ?: IllustAiHelper(this@ArtworkV3Fragment, chromeBind.root))
+                        .openRembgHighlight(state.rembgResultPath, state.rembgOriginalPath)
                 }
             }
         // 悬浮「收起」胶囊点击 → 折叠(collapse() 触发 onExpandedChanged(false) → 收回页 + 回顶 + 藏胶囊)
@@ -779,10 +781,12 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
             onComicReaderClick = onComicReaderClick,
         ).apply {
             onUpscalePillClick = { pos, state ->
-                aiHelper?.openUpscaleComparison(state.upscaleResultPath, state.upscaleOriginalPath)
+                (aiHelper ?: IllustAiHelper(this@ArtworkV3Fragment, chromeBind.root))
+                    .openUpscaleComparison(state.upscaleResultPath, state.upscaleOriginalPath)
             }
             onRembgPillClick = { pos, state ->
-                aiHelper?.openRembgHighlight(state.rembgResultPath, state.rembgOriginalPath)
+                (aiHelper ?: IllustAiHelper(this@ArtworkV3Fragment, chromeBind.root))
+                    .openRembgHighlight(state.rembgResultPath, state.rembgOriginalPath)
             }
         }
     }

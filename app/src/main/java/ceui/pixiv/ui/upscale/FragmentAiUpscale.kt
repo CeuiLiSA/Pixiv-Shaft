@@ -250,7 +250,20 @@ class FragmentAiUpscale : Fragment() {
 
         task.status.observe(viewLifecycleOwner) { status ->
             when (status) {
+                UpscaleStatus.Queued -> {
+                    overlayRoot.animate().cancel()
+                    overlayRoot.alpha = 1f
+                    overlayRoot.visibility = View.VISIBLE
+                    loadingState.visibility = View.VISIBLE
+                    doneState.visibility = View.GONE
+                    statusText.setText(R.string.string_ai_task_queued)
+                    progressRing.isIndeterminate = true
+                    progressText.visibility = View.GONE
+                    etaText.text = ""
+                }
                 UpscaleStatus.Running -> {
+                    progressRing.isIndeterminate = false
+                    progressText.visibility = View.VISIBLE
                     overlayRoot.visibility = View.VISIBLE
                     loadingState.visibility = View.VISIBLE
                     doneState.visibility = View.GONE
@@ -317,7 +330,7 @@ class FragmentAiUpscale : Fragment() {
         val key = currentTaskKey ?: return
         val task = UpscaleTaskPool.getTask(key) ?: return
         when (task.status.value) {
-            UpscaleStatus.Running, UpscaleStatus.Done -> {
+            UpscaleStatus.Queued, UpscaleStatus.Running, UpscaleStatus.Done -> {
                 observeTask(task, rootView)
             }
             UpscaleStatus.Failed -> {

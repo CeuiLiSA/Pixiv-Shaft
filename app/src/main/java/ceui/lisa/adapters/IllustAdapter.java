@@ -458,6 +458,16 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
     public void onBindViewHolder(@NonNull ViewHolder<RecyIllustDetailBinding> holder, int position) {
         super.onBindViewHolder(holder, position);
         holder.itemView.setTag(R.id.tag_kept_page_index, null);
+        // 在更新绑定归属前检查；更新后再查会把换页/换 adapter 误认成同页重绑。
+        boolean samePage = boundBindings.get(position) == holder.baseBind
+                && holder.baseBind.illust.getTag(R.id.tag_image_url) != null
+                && Objects.equals(localPageUris.get(position), boundLocalPageUris.get(holder.baseBind));
+        if (!samePage) {
+            fragmentRequestManager.clear(holder.baseBind.illustHd);
+            holder.baseBind.illustHd.setImageDrawable(null);
+            holder.baseBind.illustHd.setVisibility(View.GONE);
+            cachedOriginalShownPages.remove(position);
+        }
         boundBindings.entrySet().removeIf(e -> e.getValue() == holder.baseBind);
         boundBindings.put(position, holder.baseBind);
         // 快照只读：长按下载会拿 shaftsnap:// 当远程地址去下,还可能顺带触发「下载即收藏」
@@ -721,18 +731,6 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
         // Drop observers left over from a previous bind of this recycled holder before
         // registering new ones. Prevents unbounded observer accumulation across rebinds. #912
         detachTaskObservers(holder);
-
-        // 复用前重置「顶层原图」overlay，避免上一条的原图盖在这次的图上。底层 large 由各渲染路径自行覆盖。
-        // 走构造期就兑现好的 fragmentRequestManager，别在这里 Glide.with(mFragment)：那条重载会
-        // requireNonNull(fragment.getContext())，绑卡若赶在 fragment 已 detach 时打进来就是 NPE。
-        Object oldTag = holder.baseBind.illust.getTag(R.id.tag_image_url);
-        boolean isSamePageRebind = boundBindings.get(position) == holder.baseBind && oldTag != null;
-        if (!isSamePageRebind) {
-            fragmentRequestManager.clear(holder.baseBind.illustHd);
-            holder.baseBind.illustHd.setImageDrawable(null);
-            holder.baseBind.illustHd.setVisibility(View.GONE);
-            cachedOriginalShownPages.remove(position);
-        }
 
         // 命中已下载的本地文件就直读，跳过网络 LoadTask —— 详情页展开多图复用下载结果。
         Uri localUri = localPageUris.get(position);
