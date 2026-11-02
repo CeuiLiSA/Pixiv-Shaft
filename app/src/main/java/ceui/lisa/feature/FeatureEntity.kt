@@ -3,12 +3,17 @@ package ceui.lisa.feature
 import androidx.annotation.NonNull
 import androidx.room.Entity
 import androidx.room.Ignore
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import ceui.pixiv.api.model.Illust
 import ceui.lisa.models.MangaSeriesItem
 import java.io.Serializable
 
-@Entity(tableName = "feature_table")
+/**
+ * v44 补了 `dateTime` 索引：`getFeatureList` 是 `ORDER BY dateTime DESC LIMIT ? OFFSET ?`，
+ * 此前无索引 → 全表扫描 + 临时 B-tree 排序，每行还带一份 illustJson。
+ */
+@Entity(tableName = "feature_table", indices = [Index(value = ["dateTime"])])
 class FeatureEntity : Serializable {
 
     @PrimaryKey
