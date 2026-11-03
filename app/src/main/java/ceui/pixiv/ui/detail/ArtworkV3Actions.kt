@@ -215,11 +215,6 @@ internal class ArtworkV3Actions(
     fun showMoreMenu() {
         val illust = currentIllust() ?: return
         fragment.showV3Menu {
-            if (!illust.isGif()) {
-                item(context.getString(R.string.page_download_title), R.drawable.ic_file_download_black_24dp) {
-                    PageDownloadSheet.show(fragment.requireActivity(), illust, currentPageIndex())
-                }
-            }
             if (illust.isGif()) {
                 item(context.getString(R.string.ugoira_frames_menu), R.drawable.ic_ugoira_frames_24) {
                     openUgoiraFrames(context, illust)
@@ -309,6 +304,9 @@ internal class ArtworkV3Actions(
                     RembgModelPickerDialog.pickOrUseDefault(fragment.childFragmentManager) { model ->
                         aiHelper()?.performRembg(illust, model, pageIndex)
                     }
+                }
+                item(context.getString(R.string.page_download_title), R.drawable.ic_file_download_black_24dp) {
+                    PageDownloadSheet.show(fragment.requireActivity(), illust, currentPageIndex())
                 }
                 item(context.getString(R.string.image_filter), R.drawable.ic_photo_filter_24) {
                     // 多图作品按页码浮标当前指向的那一页；已经滑进简介区时回退首图（同海报）。

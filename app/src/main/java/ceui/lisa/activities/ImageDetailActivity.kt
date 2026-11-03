@@ -247,11 +247,6 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                 val illust = mIllust ?: return@setOnClickListener
                 // 动图只保留作品分享；画质增强、翻译和静态壁纸都需要可处理的静图原图。
                 val actions = mutableListOf<Pair<CharSequence, () -> Unit>>()
-                if (!illust.isGif()) {
-                    actions += getString(R.string.page_download_title) to {
-                        PageDownloadSheet.show(this, illust, baseBind!!.viewPager.currentItem)
-                    }
-                }
                 if (illust.isGif()) {
                     actions += getString(R.string.ugoira_frames_menu) to { openUgoiraFrames(this, illust) }
                 }
@@ -323,6 +318,9 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                             {
                                 performAiMangaTranslateManual(illust, baseBind!!.viewPager.currentItem)
                             }
+                    actions += getString(R.string.page_download_title) to {
+                        PageDownloadSheet.show(this, illust, baseBind!!.viewPager.currentItem)
+                    }
                     actions +=
                         getString(R.string.string_set_wallpaper) to
                             {

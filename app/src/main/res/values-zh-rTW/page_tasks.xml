@@ -14,7 +14,7 @@
     <string name="page_save_writing">正在儲存，暫不可取消</string>
     <string name="page_save_waiting">等待其他下載完成寫入</string>
     <string name="page_save_loading">等待圖片就緒 · %1$d%%</string>
-    <string name="page_download_title">選擇頁面下載</string>
+    <string name="page_download_title">選擇多頁下載</string>
     <string name="page_download_hint">所選頁面依設定中的預設解析度下載，交給下載管理；不會新增未選頁面的任務。</string>
     <string name="page_download_current">僅目前頁</string>
     <string name="page_download_all">全選</string>

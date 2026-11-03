@@ -691,21 +691,15 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
         baseBind.toolbar.setNavigationOnClickListener { mActivity.finish() }
 
         // 菜单「形状」（快照 / 动图 / 页数）没变就不重建。
-        // 菜单有 11 项，而 updateIllust 每次 ObjectPool 发射都会重跑（收藏回流最常见）。
+        // updateIllust 每次 ObjectPool 发射都会重跑（收藏回流最常见）。
         val shape = "${isSnapshotMode}|${illust.isGif()}|${illust.page_count}"
         if (shape == renderedMenuShape) return
         renderedMenuShape = shape
 
         baseBind.toolbar.menu?.clear()
         baseBind.toolbar.inflateMenu(R.menu.share)
-        if (!isSnapshotMode && !illust.isGif()) {
-            baseBind.toolbar.menu.add(R.string.page_download_title).setOnMenuItemClickListener {
-                (currentIllust() ?: menuIllust)?.let { current ->
-                    PageDownloadSheet.show(requireActivity(), current, pageProgressIndex.coerceAtLeast(0))
-                }
-                true
-            }
-        }
+        baseBind.toolbar.menu?.findItem(R.id.action_download_selected_pages)?.isVisible =
+            !isSnapshotMode && !illust.isGif()
         if (!isSnapshotMode && !illust.isGif() && illust.page_count == 1) {
             baseBind.toolbar.menu.add(R.string.comic_reader_enter_illust).setOnMenuItemClickListener {
                 startActivity(Intent(requireContext(), TemplateActivity::class.java).apply {
@@ -741,11 +735,15 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
     /**
      * 溢出菜单的点击处理。
      *
-     * 单独拆出来，是为了让 [setupToolbarMenu] 不必为了「换 bean」而重建整个菜单 —— 菜单有
-     * 11 项，`inflateMenu` 不便宜，而 `updateIllust` 在**每次 ObjectPool 发射**时都会重跑
+     * 单独拆出来，是为了让 [setupToolbarMenu] 不必为了「换 bean」而重建整个菜单。
+     * `inflateMenu` 不便宜，而 `updateIllust` 在**每次 ObjectPool 发射**时都会重跑
      * （收藏回流最常见）。这也正是 [setupTags] 里那句「收藏回流只更新菜单闭包」想要的形态。
      */
     private fun handleMenuItem(itemId: Int, illust: Illust): Boolean = when (itemId) {
+        R.id.action_download_selected_pages -> {
+            PageDownloadSheet.show(requireActivity(), illust, pageProgressIndex.coerceAtLeast(0))
+            true
+        }
         R.id.action_share -> {
             object : ShareIllust(mContext, illust) {
                 override fun onPrepare() {}
