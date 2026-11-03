@@ -2833,6 +2833,9 @@
     <string name="ugoira_interpolating">Kare doldurma</string>
     <string name="ugoira_auto_play">Ugoira otomatik oynatma</string>
     <string name="ugoira_start_play_button">Oynatmayı başlat (indir)</string>
+    <string name="ugoira_play_button_position">Oynat düğmesi konumu</string>
+    <string name="ugoira_play_button_position_center">Ortada</string>
+    <string name="ugoira_play_button_position_bottom">Aşağıda</string>
     <string name="string_rife_model">Kare doldurma modeli</string>
     <string name="string_rife_download_title">RIFE modelini indir</string>
     <string name="string_rife_download_subtitle">Kare doldurma için %1$s indirilmelidir</string>

@@ -19,6 +19,7 @@ import ceui.lisa.activities.Shaft
 import ceui.lisa.utils.Settings
 import ceui.loxia.ImageUrls
 import ceui.pixiv.api.model.Illust
+import ceui.pixiv.utils.ppppx
 import com.blankj.utilcode.util.Utils
 import com.bumptech.glide.Glide
 import com.bumptech.glide.GlideBuilder
@@ -293,6 +294,78 @@ class UgoiraPlayerZoomTest {
             it.recycle()
         }
         idle()
+    }
+
+    @Test
+    fun playButtonLayoutParamsRespondToPositionSetting() {
+        Shaft.sSettings.ugoiraPlayButtonPosition = Settings.UGOIRA_PLAY_BUTTON_POSITION_CENTER
+        player.applyPlayButtonPosition()
+        val centerLp = player.playButton.layoutParams as FrameLayout.LayoutParams
+        assertEquals(android.view.Gravity.CENTER, centerLp.gravity)
+        assertEquals(0f, player.playButton.translationY, 0.01f)
+
+        // 靠下模式：优先落在预览图片下沿上（400x600 布局，800x400 动图，图片底边在 y = 400）
+        Shaft.sSettings.ugoiraPlayButtonPosition = Settings.UGOIRA_PLAY_BUTTON_POSITION_BOTTOM
+        player.applyPlayButtonPosition()
+        val bottomLp = player.playButton.layoutParams as FrameLayout.LayoutParams
+        assertEquals(android.view.Gravity.BOTTOM or android.view.Gravity.CENTER_HORIZONTAL, bottomLp.gravity)
+        val margin = 16.ppppx.toFloat()
+        val expectedTargetBottom = 400f - margin
+        assertEquals(expectedTargetBottom - 600f, player.playButton.translationY, 1f)
+
+        // 胶囊避让：当胶囊进入画面并会遮挡按钮时，继续向上规避到胶囊上方
+        val dummyCapsule = addCapsule(left = 100, right = 300)
+        player.applyPlayButtonPosition()
+        val expectedAvoidCapsuleBottom = 350f - margin
+        assertEquals(expectedAvoidCapsuleBottom - 600f, player.playButton.translationY, 1f)
+        parent.removeView(dummyCapsule)
+    }
+
+    @Test
+    fun `bottom play button ignores a capsule that does not overlap it horizontally`() {
+        // 平板左右分栏：胶囊在右侧信息栏，与舞台上居中的按钮横向错开，不该把按钮往上推。
+        Shaft.sSettings.ugoiraPlayButtonPosition = Settings.UGOIRA_PLAY_BUTTON_POSITION_BOTTOM
+        addCapsule(left = 0, right = 40)
+        player.applyPlayButtonPosition()
+        assertEquals(400f - 16.ppppx - 600f, player.playButton.translationY, 1f)
+    }
+
+    @Test
+    fun `bottom play button keeps clear of a capsule hidden by immersive mode`() {
+        // 大图页默认沉浸时工具条先是 INVISIBLE，点一下淡入后仍落在原位，按钮要提前让开。
+        Shaft.sSettings.ugoiraPlayButtonPosition = Settings.UGOIRA_PLAY_BUTTON_POSITION_BOTTOM
+        addCapsule(left = 100, right = 300).visibility = View.INVISIBLE
+        player.applyPlayButtonPosition()
+        assertEquals(350f - 16.ppppx - 600f, player.playButton.translationY, 1f)
+    }
+
+    @Test
+    fun `bottom play button ignores a gone capsule`() {
+        Shaft.sSettings.ugoiraPlayButtonPosition = Settings.UGOIRA_PLAY_BUTTON_POSITION_BOTTOM
+        addCapsule(left = 100, right = 300).visibility = View.GONE
+        player.applyPlayButtonPosition()
+        assertEquals(400f - 16.ppppx - 600f, player.playButton.translationY, 1f)
+    }
+
+    @Test
+    fun `bottom play button falls back to center when the player is shorter than the button`() {
+        // 超宽横幅动图（如 468x60）在手机详情页只有约 50dp 高，放不下「按钮 + 16dp 底边距」。
+        Shaft.sSettings.ugoiraPlayButtonPosition = Settings.UGOIRA_PLAY_BUTTON_POSITION_BOTTOM
+        val height = player.playButton.height + 16.ppppx - 1
+        layout(400, height) // onLayout 里就会走一遍按钮定位
+        val btnH = player.playButton.height
+        assertTrue(btnH > 0)
+        assertEquals((height + btnH) / 2f - height, player.playButton.translationY, 1f)
+    }
+
+    /**
+     * 播放器 400x600 的 y∈[350, 400] 处放一颗悬浮胶囊。先 attach 再 layout，和真实页面一致
+     * （attach 会清掉 isLaidOut）；之后不 idle，避免父布局把它重新排到左上角。
+     */
+    private fun addCapsule(left: Int, right: Int) = View(host).apply {
+        id = R.id.fab_bar
+        this@UgoiraPlayerZoomTest.parent.addView(this)
+        layout(left, 350, right, 400)
     }
 
     private fun idle(ms: Long = 0) = shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(ms))

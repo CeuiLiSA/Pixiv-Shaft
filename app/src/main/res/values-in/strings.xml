@@ -2864,6 +2864,9 @@
     <string name="ugoira_interpolating">Menginterpolasi frame</string>
     <string name="ugoira_auto_play">Putar ugoira otomatis</string>
     <string name="ugoira_start_play_button">Mulai putar (unduh)</string>
+    <string name="ugoira_play_button_position">Posisi tombol putar</string>
+    <string name="ugoira_play_button_position_center">Tengah</string>
+    <string name="ugoira_play_button_position_bottom">Bawah</string>
     <string name="string_rife_model">Model interpolasi frame</string>
     <string name="string_rife_download_title">Unduh model interpolasi RIFE</string>
     <string name="string_rife_download_subtitle">%1$s perlu diunduh untuk mengaktifkan interpolasi frame AI ugoira</string>

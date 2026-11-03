@@ -31,6 +31,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import ceui.lisa.activities.Shaft
+import ceui.lisa.utils.Settings
 import ceui.lisa.activities.ImageDetailActivity
 import ceui.lisa.R
 import ceui.pixiv.api.model.Illust
@@ -183,9 +184,9 @@ class UgoiraPlayerView @JvmOverloads constructor(
         )
     }
 
-    // 「开始播放（下载）」按钮：关闭「动图自动播放」时显示在图片中间，点击才拉数据 →
+    // 「开始播放（下载）」按钮：关闭「动图自动播放」时显示在图片中间或靠下，点击才拉数据 →
     // 下载 → 解压 → 编码 → 播放。样式与「重试」按钮同一套视觉语言。
-    private val playButton = LinearLayout(context).apply {
+    internal val playButton = LinearLayout(context).apply {
         orientation = LinearLayout.HORIZONTAL
         gravity = Gravity.CENTER_VERTICAL
         setPadding(18.ppppx, 9.ppppx, 20.ppppx, 9.ppppx)
@@ -282,8 +283,134 @@ class UgoiraPlayerView @JvmOverloads constructor(
         }
     }
 
+    private var capsuleObserved: View? = null
+    private val capsuleLayoutListener = OnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
+        if (playButton.isVisible && Shaft.sSettings.ugoiraPlayButtonPosition == Settings.UGOIRA_PLAY_BUTTON_POSITION_BOTTOM) {
+            applyPlayButtonPosition()
+        }
+    }
+
+    /**
+     * 找本页的悬浮胶囊：从近到远逐级向上找，命中的第一个就是本页那颗 —— VActivity 左右翻页时
+     * 同一 Activity 里有多个详情页、各带一个 fab_bar，Activity 级 findViewById 可能拿到相邻页的。
+     *
+     * 胶囊只要没被 GONE 就当作在场：大图页沉浸模式把工具条切成 INVISIBLE / 淡出，再点一下又淡入，
+     * 但它始终占着那块位置。按「此刻是否可见」判断的话，默认沉浸进页时不避让，工具条淡入后就盖住按钮。
+     */
+    private fun findCapsuleView(): View? {
+        if (!isAttachedToWindow) return null // 未 attach 时注册的监听等不到 onDetachedFromWindow 来解绑
+        var p = parent
+        while (p is ViewGroup) {
+            val capsule = p.findViewById<View>(R.id.fab_bar)
+            if (capsule != null) {
+                // GONE 时也挂监听：重新显示会触发一次 layout，按钮跟着重算。
+                observeCapsule(capsule)
+                return capsule.takeIf { it.isPlacedInLayout() }
+            }
+            p = p.parent
+        }
+        return null
+    }
+
+    private fun View.isPlacedInLayout(): Boolean {
+        if (!isLaidOut) return false
+        var v: View? = this
+        while (v != null) {
+            if (v.visibility == View.GONE) return false
+            v = v.parent as? View
+        }
+        return true
+    }
+
+    private fun observeCapsule(capsule: View) {
+        if (capsuleObserved !== capsule) {
+            capsuleObserved?.removeOnLayoutChangeListener(capsuleLayoutListener)
+            capsuleObserved = capsule
+            capsule.addOnLayoutChangeListener(capsuleLayoutListener)
+        }
+    }
+
+    internal fun applyPlayButtonPosition() {
+        val isBottom = Shaft.sSettings.ugoiraPlayButtonPosition == Settings.UGOIRA_PLAY_BUTTON_POSITION_BOTTOM
+        val lp = playButton.layoutParams as? LayoutParams ?: return
+        if (!isBottom) {
+            if (lp.gravity != Gravity.CENTER || lp.bottomMargin != 0) {
+                lp.gravity = Gravity.CENTER
+                lp.bottomMargin = 0
+                playButton.layoutParams = lp
+            }
+            playButton.translationY = 0f
+            return
+        }
+
+        if (lp.gravity != (Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL) || lp.bottomMargin != 0) {
+            lp.gravity = Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL
+            lp.bottomMargin = 0
+            playButton.layoutParams = lp
+        }
+
+        val w = width
+        val h = height
+        if (w <= 0 || h <= 0) {
+            post { applyPlayButtonPosition() }
+            return
+        }
+
+        val illust = boundIllust
+        val vw = illust?.width ?: 0
+        val vh = illust?.height ?: 0
+
+        // 预览图片实际渲染范围的下沿 Y 坐标（基于 FIT_CENTER 缩放计算）
+        val imageBottom = if (vw > 0 && vh > 0) {
+            val scale = minOf(w.toFloat() / vw, h.toFloat() / vh)
+            val imageH = vh * scale
+            (h + imageH) / 2f
+        } else {
+            h.toFloat()
+        }
+
+        val margin = 16.ppppx.toFloat()
+        // 优先在预览图片下沿上
+        var targetBottom = imageBottom - margin
+
+        // 如会被胶囊盖着，应继续向上规避胶囊
+        findCapsuleView()?.let { capsule ->
+            val capsuleLoc = IntArray(2)
+            capsule.getLocationInWindow(capsuleLoc)
+            val playerLoc = IntArray(2)
+            getLocationInWindow(playerLoc)
+
+            val capsuleTopInPlayer = (capsuleLoc[1] - playerLoc[1]).toFloat()
+            val capsuleLeftInPlayer = capsuleLoc[0] - playerLoc[0]
+            // 按钮水平居中；还没量过宽度时按占满整行保守处理，onLayout 里会再算一次。
+            val btnW = playButton.width.takeIf { it > 0 } ?: w
+            val btnLeft = (w - btnW) / 2
+            // 横向和按钮错开就不必避让：平板左右分栏时胶囊在右侧信息栏，胶囊设为靠左/靠右时也可能错开。
+            val overlapsHorizontally = capsuleLeftInPlayer < btnLeft + btnW &&
+                capsuleLeftInPlayer + capsule.width > btnLeft
+            // 胶囊在当前播放器可视高度范围内且按钮落点会触及/被盖住时，向上推到胶囊上沿留白处
+            if (overlapsHorizontally && capsuleTopInPlayer in 0f..h.toFloat()) {
+                val maxAllowedBottom = capsuleTopInPlayer - margin
+                if (targetBottom > maxAllowedBottom) {
+                    targetBottom = maxAllowedBottom
+                }
+            }
+        }
+
+        val btnH = playButton.height.takeIf { it > 0 } ?: 40.ppppx
+        // 超宽横幅动图（如 468x60）在详情页只有几十 dp 高，放不下「按钮 + 底边距」：退回垂直居中，
+        // 与居中档一致。不能直接 coerceIn —— 区间为空会抛 IllegalArgumentException，而这里在 onLayout 里跑。
+        targetBottom = if (h - margin >= btnH) {
+            targetBottom.coerceIn(btnH.toFloat(), h - margin)
+        } else {
+            (h + btnH) / 2f
+        }
+        playButton.translationY = targetBottom - h
+    }
+
     /** 关闭自动播放时按钮直接显隐，不做淡入——左右切入不会出现动画闪烁。 */
     private fun showPlayButton() {
+        applyPlayButtonPosition()
         playButton.isVisible = true
     }
 
@@ -364,9 +491,14 @@ class UgoiraPlayerView @JvmOverloads constructor(
             retryButton,
             LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT, Gravity.CENTER),
         )
+        val isBottom = Shaft.sSettings.ugoiraPlayButtonPosition == Settings.UGOIRA_PLAY_BUTTON_POSITION_BOTTOM
         addView(
             playButton,
-            LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT, Gravity.CENTER),
+            LayoutParams(
+                LayoutParams.WRAP_CONTENT,
+                LayoutParams.WRAP_CONTENT,
+                if (isBottom) Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL else Gravity.CENTER,
+            ),
         )
     }
 
@@ -710,6 +842,19 @@ class UgoiraPlayerView @JvmOverloads constructor(
             textureView.layoutParams.height = height
         }
         super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+    }
+
+    override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
+        super.onLayout(changed, left, top, right, bottom)
+        if (playButton.isVisible) {
+            applyPlayButtonPosition()
+        }
+    }
+
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
+        capsuleObserved?.removeOnLayoutChangeListener(capsuleLayoutListener)
+        capsuleObserved = null
     }
 
     /**
