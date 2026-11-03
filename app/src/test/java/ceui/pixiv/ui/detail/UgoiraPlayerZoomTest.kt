@@ -19,6 +19,7 @@ import ceui.lisa.activities.Shaft
 import ceui.lisa.utils.Settings
 import ceui.loxia.ImageUrls
 import ceui.pixiv.api.model.Illust
+import ceui.pixiv.utils.ppppx
 import com.blankj.utilcode.util.Utils
 import com.bumptech.glide.Glide
 import com.bumptech.glide.GlideBuilder
@@ -293,6 +294,36 @@ class UgoiraPlayerZoomTest {
             it.recycle()
         }
         idle()
+    }
+
+    @Test
+    fun playButtonLayoutParamsRespondToPositionSetting() {
+        Shaft.sSettings.ugoiraPlayButtonPosition = Settings.UGOIRA_PLAY_BUTTON_POSITION_CENTER
+        player.applyPlayButtonPosition()
+        val centerLp = player.playButton.layoutParams as FrameLayout.LayoutParams
+        assertEquals(android.view.Gravity.CENTER, centerLp.gravity)
+        assertEquals(0f, player.playButton.translationY, 0.01f)
+
+        // 靠下模式：优先落在预览图片下沿上（400x600 布局，800x400 动图，图片底边在 y = 400）
+        Shaft.sSettings.ugoiraPlayButtonPosition = Settings.UGOIRA_PLAY_BUTTON_POSITION_BOTTOM
+        player.applyPlayButtonPosition()
+        val bottomLp = player.playButton.layoutParams as FrameLayout.LayoutParams
+        assertEquals(android.view.Gravity.BOTTOM or android.view.Gravity.CENTER_HORIZONTAL, bottomLp.gravity)
+        val margin = 16.ppppx.toFloat()
+        val expectedTargetBottom = 400f - margin
+        assertEquals(expectedTargetBottom - 600f, player.playButton.translationY, 1f)
+
+        // 胶囊避让：当胶囊进入画面并会遮挡按钮时，继续向上规避到胶囊上方
+        val dummyCapsule = View(host).apply {
+            id = R.id.fab_bar
+            layout(100, 350, 300, 400)
+            visibility = View.VISIBLE
+        }
+        parent.addView(dummyCapsule)
+        player.applyPlayButtonPosition()
+        val expectedAvoidCapsuleBottom = 350f - margin
+        assertEquals(expectedAvoidCapsuleBottom - 600f, player.playButton.translationY, 1f)
+        parent.removeView(dummyCapsule)
     }
 
     private fun idle(ms: Long = 0) = shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(ms))

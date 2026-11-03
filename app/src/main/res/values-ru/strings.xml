@@ -2833,6 +2833,9 @@
     <string name="ugoira_interpolating">Интерполяция</string>
     <string name="ugoira_auto_play">Автовоспроизведение угоира</string>
     <string name="ugoira_start_play_button">Начать воспроизведение (загрузка)</string>
+    <string name="ugoira_play_button_position">Положение кнопки воспроизведения</string>
+    <string name="ugoira_play_button_position_center">По центру</string>
+    <string name="ugoira_play_button_position_bottom">Снизу</string>
     <string name="string_rife_model">Модель интерполяции кадров</string>
     <string name="string_rife_download_title">Загрузить модель RIFE</string>
     <string name="string_rife_download_subtitle">Для интерполяции кадров необходимо загрузить %1$s</string>

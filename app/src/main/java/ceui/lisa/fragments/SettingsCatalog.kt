@@ -164,6 +164,7 @@ object SettingsCatalog {
         add(Entry(VIEWING, "transform_type_rela", R.string.string_393, keywords = "翻页 动画 切页 过渡 特效 transformer"))
         add(Entry(VIEWING, "ugoira_rife_enable_rela", R.string.ugoira_rife_enable, R.string.ugoira_rife_enable_desc, keywords = "动图 补帧 插帧 rife 帧率 60fps 顺滑 丝滑 ugoira interpolation"))
         add(Entry(VIEWING, "ugoira_auto_play_rela", R.string.ugoira_auto_play, keywords = "动图 自动播放 自动下载 播放 gif ugoira auto play download"))
+        add(Entry(VIEWING, "ugoira_play_button_position_rela", R.string.ugoira_play_button_position, keywords = "动图 播放 按钮 位置 居中 靠下 底部 ugoira play button position center bottom"))
         add(Entry(VIEWING, "keep_status_bar_when_view_image_rela", R.string.keep_status_bar_when_view_image, keywords = "状态栏 刘海 挖孔 全屏 沉浸 notch"))
         add(Entry(VIEWING, "immersive_when_view_image_rela", R.string.immersive_when_view_image, keywords = "沉浸 沉浸式 全屏 默认全屏 隐藏状态栏 隐藏工具栏 大图 二级详情 看图 immersive fullscreen hide status bar"))
         add(Entry(VIEWING, "illust_detail_keep_screen_on_rela", R.string.string_451, keywords = "常亮 息屏 熄屏 屏幕 keep screen on"))

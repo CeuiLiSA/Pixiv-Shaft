@@ -235,15 +235,44 @@ public class FragmentSettingsViewing extends SettingsPageFragment<FragmentSettin
 
         //动画(ugoira) 自动播放，默认开启。关闭后详情页不自动下载/播放，在图片中间显示「开始播放（下载）」按钮。
         baseBind.ugoiraAutoPlay.setChecked(Shaft.sSettings.isAutoPlayUgoira());
+        applyUgoiraPlayButtonPositionVisibility(!Shaft.sSettings.isAutoPlayUgoira(), false);
         baseBind.ugoiraAutoPlay.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 Shaft.sSettings.setAutoPlayUgoira(isChecked);
                 Common.showToast(getString(R.string.string_428));
                 Local.setSettings(Shaft.sSettings);
+                applyUgoiraPlayButtonPositionVisibility(!isChecked, true);
             }
         });
         baseBind.ugoiraAutoPlayRela.setOnClickListener(v -> baseBind.ugoiraAutoPlay.performClick());
+
+        // 关闭动图自动播放时「开始播放（下载）」按钮位置：居中 / 靠下
+        updateUgoiraPlayButtonPositionLabel();
+        baseBind.ugoiraPlayButtonPositionSelect.setOnClickListener(v -> {
+            final int index = Shaft.sSettings.getUgoiraPlayButtonPosition();
+            String[] items = new String[]{
+                    getString(R.string.ugoira_play_button_position_center),
+                    getString(R.string.ugoira_play_button_position_bottom),
+            };
+            new WitDialog.CheckableDialogBuilder(mActivity)
+                    .setTitle(R.string.ugoira_play_button_position)
+                    .setCheckedIndex(index)
+                    .addItems(items, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            if (which != index) {
+                                Shaft.sSettings.setUgoiraPlayButtonPosition(which);
+                                Local.setSettings(Shaft.sSettings);
+                                updateUgoiraPlayButtonPositionLabel();
+                            }
+                            dialog.dismiss();
+                        }
+                    })
+                    .show();
+        });
+        baseBind.ugoiraPlayButtonPositionRela.setOnClickListener(v ->
+                baseBind.ugoiraPlayButtonPositionSelect.performClick());
 
         // 看图时保留状态栏(刘海/挖孔)区域（issue #724），默认关闭。
         baseBind.keepStatusBarWhenViewImage.setChecked(Shaft.sSettings.isKeepStatusBarWhenViewImage());
@@ -444,6 +473,31 @@ public class FragmentSettingsViewing extends SettingsPageFragment<FragmentSettin
         baseBind.artworkV3CommentJumpRela.setVisibility(
                 v3Enabled && Shaft.sSettings.isArtworkV3ShowComments() ? View.VISIBLE : View.GONE);
         baseBind.artworkV3AutoExpandRela.setVisibility(visibility);
+    }
+
+    private void updateUgoiraPlayButtonPositionLabel() {
+        int labelRes;
+        switch (Shaft.sSettings.getUgoiraPlayButtonPosition()) {
+            case Settings.UGOIRA_PLAY_BUTTON_POSITION_BOTTOM:
+                labelRes = R.string.ugoira_play_button_position_bottom;
+                break;
+            default:
+                labelRes = R.string.ugoira_play_button_position_center;
+                break;
+        }
+        baseBind.ugoiraPlayButtonPositionSelect.setText(labelRes);
+    }
+
+    private void applyUgoiraPlayButtonPositionVisibility(boolean show, boolean animate) {
+        if (animate) {
+            View parent = (View) baseBind.ugoiraPlayButtonPositionRela.getParent();
+            if (parent instanceof ViewGroup) {
+                AutoTransition transition = new AutoTransition();
+                transition.setDuration(220);
+                TransitionManager.beginDelayedTransition((ViewGroup) parent, transition);
+            }
+        }
+        baseBind.ugoiraPlayButtonPositionRela.setVisibility(show ? View.VISIBLE : View.GONE);
     }
 
     private void updateDoubleTapZoomModeLabel() {

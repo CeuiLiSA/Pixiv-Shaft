@@ -2833,6 +2833,9 @@
     <string name="ugoira_interpolating">프레임 보간 중</string>
     <string name="ugoira_auto_play">움직이는 일러스트 자동 재생</string>
     <string name="ugoira_start_play_button">재생 시작(다운로드)</string>
+    <string name="ugoira_play_button_position">재생 버튼 위치</string>
+    <string name="ugoira_play_button_position_center">가운데</string>
+    <string name="ugoira_play_button_position_bottom">하단</string>
     <string name="string_rife_model">프레임 보간 모델</string>
     <string name="string_rife_download_title">RIFE 모델 다운로드</string>
     <string name="string_rife_download_subtitle">프레임 보간을 사용하려면 %1$s 다운로드가 필요합니다</string>

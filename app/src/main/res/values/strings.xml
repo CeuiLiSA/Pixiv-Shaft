@@ -3132,6 +3132,9 @@
     <string name="ugoira_interpolating">补帧中</string>
     <string name="ugoira_auto_play">动图自动播放</string>
     <string name="ugoira_start_play_button">开始播放（下载）</string>
+    <string name="ugoira_play_button_position">播放按钮位置</string>
+    <string name="ugoira_play_button_position_center">居中</string>
+    <string name="ugoira_play_button_position_bottom">靠下</string>
     <string name="string_rife_model">补帧模型</string>
     <string name="string_rife_download_title">下载 RIFE 补帧模型</string>
     <string name="string_rife_download_subtitle">%1$s 需要额外下载以启用动图 AI 补帧</string>

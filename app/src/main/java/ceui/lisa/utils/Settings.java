@@ -575,6 +575,14 @@ public class Settings {
     // 图片中间显示「开始播放(下载)」按钮;已缓存或左右切回也不自动播,点按钮才开始。
     private boolean autoPlayUgoira = true;
 
+    /** 关闭动图自动播放时「开始播放（下载）」按钮位置：居中（默认）。 */
+    public static final int UGOIRA_PLAY_BUTTON_POSITION_CENTER = 0;
+    /** 关闭动图自动播放时「开始播放（下载）」按钮位置：靠下。 */
+    public static final int UGOIRA_PLAY_BUTTON_POSITION_BOTTOM = 1;
+
+    // 关闭动图自动播放时「开始播放（下载）」按钮的位置：0 = 居中（默认），1 = 靠下。
+    private int ugoiraPlayButtonPosition = UGOIRA_PLAY_BUTTON_POSITION_CENTER;
+
     /** 二级大图 ↔ 一级详情页视口联动：不跟随（默认）。 */
     public static final int VIEWER_VIEWPORT_LINK_NONE = 0;
     /** 仅详情页已展开时跟随。 */
@@ -1823,6 +1831,18 @@ public class Settings {
 
     public void setAutoPlayUgoira(boolean autoPlayUgoira) {
         this.autoPlayUgoira = autoPlayUgoira;
+    }
+
+    public int getUgoiraPlayButtonPosition() {
+        if (ugoiraPlayButtonPosition < UGOIRA_PLAY_BUTTON_POSITION_CENTER ||
+                ugoiraPlayButtonPosition > UGOIRA_PLAY_BUTTON_POSITION_BOTTOM) {
+            return UGOIRA_PLAY_BUTTON_POSITION_CENTER;
+        }
+        return ugoiraPlayButtonPosition;
+    }
+
+    public void setUgoiraPlayButtonPosition(int ugoiraPlayButtonPosition) {
+        this.ugoiraPlayButtonPosition = ugoiraPlayButtonPosition;
     }
 
     public int getViewerViewportLinkMode() {

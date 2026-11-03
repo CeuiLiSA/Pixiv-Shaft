@@ -1,5 +1,7 @@
 package ceui.pixiv.ui.detail
 
+import android.app.Activity
+import android.content.ContextWrapper
 import android.content.Context
 import android.content.Intent
 import android.content.res.ColorStateList
@@ -31,6 +33,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import ceui.lisa.activities.Shaft
+import ceui.lisa.utils.Settings
 import ceui.lisa.activities.ImageDetailActivity
 import ceui.lisa.R
 import ceui.pixiv.api.model.Illust
@@ -183,9 +186,9 @@ class UgoiraPlayerView @JvmOverloads constructor(
         )
     }
 
-    // 「开始播放（下载）」按钮：关闭「动图自动播放」时显示在图片中间，点击才拉数据 →
+    // 「开始播放（下载）」按钮：关闭「动图自动播放」时显示在图片中间或靠下，点击才拉数据 →
     // 下载 → 解压 → 编码 → 播放。样式与「重试」按钮同一套视觉语言。
-    private val playButton = LinearLayout(context).apply {
+    internal val playButton = LinearLayout(context).apply {
         orientation = LinearLayout.HORIZONTAL
         gravity = Gravity.CENTER_VERTICAL
         setPadding(18.ppppx, 9.ppppx, 20.ppppx, 9.ppppx)
@@ -282,8 +285,106 @@ class UgoiraPlayerView @JvmOverloads constructor(
         }
     }
 
+    private var capsuleObserved: View? = null
+    private val capsuleLayoutListener = OnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
+        if (playButton.isVisible && Shaft.sSettings.ugoiraPlayButtonPosition == Settings.UGOIRA_PLAY_BUTTON_POSITION_BOTTOM) {
+            applyPlayButtonPosition()
+        }
+    }
+
+    private fun findActivity(): Activity? {
+        var ctx = context
+        while (ctx is ContextWrapper) {
+            if (ctx is Activity) return ctx
+            ctx = ctx.baseContext
+        }
+        return null
+    }
+
+    private fun findCapsuleView(): View? {
+        val act = findActivity()
+        val capsule = act?.findViewById<View>(R.id.fab_bar)
+            ?: (parent as? View)?.findViewById<View>(R.id.fab_bar)
+            ?: rootView?.findViewById<View>(R.id.fab_bar)
+        return capsule?.takeIf { it.isShown }?.also { observeCapsule(it) }
+    }
+
+    private fun observeCapsule(capsule: View) {
+        if (capsuleObserved !== capsule) {
+            capsuleObserved?.removeOnLayoutChangeListener(capsuleLayoutListener)
+            capsuleObserved = capsule
+            capsule.addOnLayoutChangeListener(capsuleLayoutListener)
+        }
+    }
+
+    internal fun applyPlayButtonPosition() {
+        val isBottom = Shaft.sSettings.ugoiraPlayButtonPosition == Settings.UGOIRA_PLAY_BUTTON_POSITION_BOTTOM
+        val lp = playButton.layoutParams as? LayoutParams ?: return
+        if (!isBottom) {
+            if (lp.gravity != Gravity.CENTER || lp.bottomMargin != 0) {
+                lp.gravity = Gravity.CENTER
+                lp.bottomMargin = 0
+                playButton.layoutParams = lp
+            }
+            playButton.translationY = 0f
+            return
+        }
+
+        if (lp.gravity != (Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL) || lp.bottomMargin != 0) {
+            lp.gravity = Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL
+            lp.bottomMargin = 0
+            playButton.layoutParams = lp
+        }
+
+        val w = width
+        val h = height
+        if (w <= 0 || h <= 0) {
+            post { applyPlayButtonPosition() }
+            return
+        }
+
+        val illust = boundIllust
+        val vw = illust?.width ?: 0
+        val vh = illust?.height ?: 0
+
+        // 预览图片实际渲染范围的下沿 Y 坐标（基于 FIT_CENTER 缩放计算）
+        val imageBottom = if (vw > 0 && vh > 0) {
+            val scale = minOf(w.toFloat() / vw, h.toFloat() / vh)
+            val imageH = vh * scale
+            (h + imageH) / 2f
+        } else {
+            h.toFloat()
+        }
+
+        val margin = 16.ppppx.toFloat()
+        // 优先在预览图片下沿上
+        var targetBottom = imageBottom - margin
+
+        // 如会被胶囊盖着，应继续向上规避胶囊
+        findCapsuleView()?.let { capsule ->
+            val capsuleLoc = IntArray(2)
+            capsule.getLocationInWindow(capsuleLoc)
+            val playerLoc = IntArray(2)
+            getLocationInWindow(playerLoc)
+
+            val capsuleTopInPlayer = (capsuleLoc[1] - playerLoc[1]).toFloat()
+            // 胶囊在当前播放器可视高度范围内且按钮落点会触及/被盖住时，向上推到胶囊上沿留白处
+            if (capsuleTopInPlayer in 0f..h.toFloat()) {
+                val maxAllowedBottom = capsuleTopInPlayer - margin
+                if (targetBottom > maxAllowedBottom) {
+                    targetBottom = maxAllowedBottom
+                }
+            }
+        }
+
+        val btnH = playButton.height.takeIf { it > 0 } ?: 40.ppppx
+        targetBottom = targetBottom.coerceIn(btnH.toFloat(), h - margin)
+        playButton.translationY = targetBottom - h
+    }
+
     /** 关闭自动播放时按钮直接显隐，不做淡入——左右切入不会出现动画闪烁。 */
     private fun showPlayButton() {
+        applyPlayButtonPosition()
         playButton.isVisible = true
     }
 
@@ -364,9 +465,14 @@ class UgoiraPlayerView @JvmOverloads constructor(
             retryButton,
             LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT, Gravity.CENTER),
         )
+        val isBottom = Shaft.sSettings.ugoiraPlayButtonPosition == Settings.UGOIRA_PLAY_BUTTON_POSITION_BOTTOM
         addView(
             playButton,
-            LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT, Gravity.CENTER),
+            LayoutParams(
+                LayoutParams.WRAP_CONTENT,
+                LayoutParams.WRAP_CONTENT,
+                if (isBottom) Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL else Gravity.CENTER,
+            ),
         )
     }
 
@@ -710,6 +816,19 @@ class UgoiraPlayerView @JvmOverloads constructor(
             textureView.layoutParams.height = height
         }
         super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+    }
+
+    override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
+        super.onLayout(changed, left, top, right, bottom)
+        if (playButton.isVisible) {
+            applyPlayButtonPosition()
+        }
+    }
+
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
+        capsuleObserved?.removeOnLayoutChangeListener(capsuleLayoutListener)
+        capsuleObserved = null
     }
 
     /**

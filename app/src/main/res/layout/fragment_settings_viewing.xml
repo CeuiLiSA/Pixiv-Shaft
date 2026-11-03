@@ -294,6 +294,26 @@
                 </RelativeLayout>
 
                 <RelativeLayout
+                    android:id="@+id/ugoira_play_button_position_rela"
+                    style="@style/M3SetRow"
+                    android:background="@drawable/wit_row_mid">
+
+                    <LinearLayout
+                        style="@style/M3SetTexts"
+                        android:layout_marginEnd="130dp">
+
+                        <TextView
+                            style="@style/M3SetTitle"
+                            android:text="@string/ugoira_play_button_position" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/ugoira_play_button_position_select"
+                        style="@style/M3SetValue" />
+
+                </RelativeLayout>
+
+                <RelativeLayout
                     android:id="@+id/keep_status_bar_when_view_image_rela"
                     style="@style/M3SetRow"
                     android:background="@drawable/wit_row_mid">
