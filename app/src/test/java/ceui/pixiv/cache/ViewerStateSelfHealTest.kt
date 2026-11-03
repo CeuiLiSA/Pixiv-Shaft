@@ -115,7 +115,8 @@ class ViewerStateSelfHealTest {
         val followedInMirror = setOf(authorId)
         val shown = runBlocking {
             reconcileViewerStateFromMirror(poolIllust(illustId)) { type, ids ->
-                val hits = if (type == MirrorContentType.USER) followedInMirror else bookmarkedInMirror
+                val hits =
+                    if (type == MirrorContentType.USER) followedInMirror else bookmarkedInMirror
                 ids.filterTo(mutableSetOf()) { it in hits }
             }
         }
@@ -164,7 +165,14 @@ class ViewerStateSelfHealTest {
         assertNull(poolIllust(illustId).is_bookmarked)
 
         // 官方列表页合池（IllustFeedPoolSync 的写法）
-        ObjectPool.updateIllustTrusted(illust(illustId, authorId, bookmarked = true, followed = true))
+        ObjectPool.updateIllustTrusted(
+            illust(
+                illustId,
+                authorId,
+                bookmarked = true,
+                followed = true
+            )
+        )
         assertTrue(ObjectPool.isIllustViewerStateTrusted(illustId))
 
         val shown = runBlocking {
@@ -239,6 +247,29 @@ class ViewerStateSelfHealTest {
         }
         assertTrue(shown.isBookmarked)
         assertNull(shown.user?.is_followed)
+    }
+
+    @Test
+    fun `官方列表合池_同作者多作品可去重不重复更新用户条目`() {
+        val illustId1 = 7_010L
+        val illustId2 = 7_011L
+        val authorId = 9_010L
+
+        val illust1 = illust(illustId1, authorId, bookmarked = true, followed = true)
+        val illust2 = illust(illustId2, authorId, bookmarked = false, followed = false)
+
+        // 第一张作品：更新作品与作者
+        ObjectPool.updateIllustTrusted(illust1, updateUser = true)
+        assertTrue(ObjectPool.isIllustViewerStateTrusted(illustId1))
+        assertTrue(ObjectPool.isViewerStateTrusted(authorId, ceui.lisa.models.ObjectSpec.KUser))
+        assertEquals(true, ObjectPool.get<User>(authorId).value?.is_followed)
+
+        // 第二张作品（同作者）：作品入池，但跳过作者更新（模拟批次内去重）
+        ObjectPool.updateIllustTrusted(illust2, updateUser = false)
+        assertTrue(ObjectPool.isIllustViewerStateTrusted(illustId2))
+        assertEquals(illustId2, poolIllust(illustId2).id)
+        // 作者的关注态保持第一次写入的权威值，未被第二张作品的 user 盖掉
+        assertEquals(true, ObjectPool.get<User>(authorId).value?.is_followed)
     }
 
     private fun illust(

@@ -86,11 +86,13 @@ object ObjectPool {
     fun invalidatePlaza(viewerUid: Long, revision: Long) {
         val entries = synchronized(lock) {
             store.values.mapNotNull { live ->
-                (live.value as? PlazaPostCacheEntry)?.takeIf { it.viewerUid == viewerUid }?.let { live to it }
+                (live.value as? PlazaPostCacheEntry)?.takeIf { it.viewerUid == viewerUid }
+                    ?.let { live to it }
             }
         }
         entries.forEach { (live, entry) ->
-            live.value = PlazaPostCacheEntry(entry.id, viewerUid, null, System.currentTimeMillis(), revision)
+            live.value =
+                PlazaPostCacheEntry(entry.id, viewerUid, null, System.currentTimeMillis(), revision)
         }
     }
 
@@ -104,10 +106,13 @@ object ObjectPool {
         }
     }
 
-    fun updateIllust(illust: Illust) {
+    @JvmOverloads
+    fun updateIllust(illust: Illust, updateUser: Boolean = true) {
         update(illust)
-        illust.user?.let { user ->
-            update(user)
+        if (updateUser) {
+            illust.user?.let { user ->
+                update(user)
+            }
         }
     }
 
@@ -163,7 +168,10 @@ object ObjectPool {
         } as LiveData<ObjectT>
     }
 
-    inline fun <reified ObjectT : ModelObject> update(obj: ObjectT, isFullVersion: Boolean = false) {
+    inline fun <reified ObjectT : ModelObject> update(
+        obj: ObjectT,
+        isFullVersion: Boolean = false
+    ) {
         return updateObjectPool(obj, isFullVersion)
     }
 
@@ -180,7 +188,8 @@ object ObjectPool {
             }
             val existing = store[key]
             created = existing == null
-            storedObject = existing ?: MutableLiveData<Any>(obj).also { store[key] = it; trimLocked() }
+            storedObject =
+                existing ?: MutableLiveData<Any>(obj).also { store[key] = it; trimLocked() }
         }
         if (!created) {
             // setValue 放在锁外：observer 回调里可能再 get/update，锁内回调会重入同一把锁
@@ -273,11 +282,15 @@ object ObjectPool {
      * 要么是未知，两种都不该再被镜像的「不知道」覆盖。少了这一下，官方列表刚补进来的真值会被
      * 详情页的镜像校正抹回 null（镜像没就绪时就是「明明收藏了却一直灰心」）。
      */
-    fun updateIllustTrusted(illust: Illust) {
-        updateIllust(illust)
+    @JvmOverloads
+    fun updateIllustTrusted(illust: Illust, updateUser: Boolean = true) {
+        updateIllust(illust, updateUser = updateUser)
         markViewerStateTrusted(illust.id, ObjectSpec.Illust)
-        // 作者条目跟着一起写了，同理：别让 seedUntrusted 早先留下的标记把这份关注态再交给镜像降级。
-        illust.user?.id?.takeIf { it > 0L }?.let { markViewerStateTrusted(it, ObjectSpec.KUser) }
+        if (updateUser) {
+            // 作者条目跟着一起写了，同理：别让 seedUntrusted 早先留下的标记把这份关注态再交给镜像降级。
+            illust.user?.id?.takeIf { it > 0L }
+                ?.let { markViewerStateTrusted(it, ObjectSpec.KUser) }
+        }
     }
 
     /**
@@ -290,7 +303,8 @@ object ObjectPool {
      * 主线程调用（内部 `setValue`，见类注释「线程」）。
      */
     fun applyMirroredViewerState(illustId: Long, bookmarked: Boolean?, followed: Boolean?) {
-        val illustLive = synchronized(lock) { store[ObjectKey(illustId, ObjectSpec.Illust)] } ?: return
+        val illustLive =
+            synchronized(lock) { store[ObjectKey(illustId, ObjectSpec.Illust)] } ?: return
         val current = illustLive.value as? Illust ?: return
         val author = current.user
         // 值没变就别发（LiveData 不看相等性，每次都全量通知观察者）。
@@ -306,7 +320,8 @@ object ObjectPool {
             }
         }
         if (author == null) return
-        val userLive = synchronized(lock) { store[ObjectKey(author.id, ObjectSpec.KUser)] } ?: return
+        val userLive =
+            synchronized(lock) { store[ObjectKey(author.id, ObjectSpec.KUser)] } ?: return
         val currentUser = userLive.value as? User ?: return
         if (currentUser.is_followed == followed) return
         val nextUser = currentUser.copy(is_followed = followed)
@@ -333,8 +348,8 @@ object ObjectPool {
                 if (oldValue == null || oldValue.isJsonNull) continue
                 val freshValue = freshJson.get(key)
                 val freshIsBlank = freshValue == null || freshValue.isJsonNull ||
-                    (freshValue.isJsonPrimitive && freshValue.asJsonPrimitive.isString && freshValue.asString.isEmpty()) ||
-                    (freshValue.isJsonArray && freshValue.asJsonArray.size() == 0)
+                        (freshValue.isJsonPrimitive && freshValue.asJsonPrimitive.isString && freshValue.asString.isEmpty()) ||
+                        (freshValue.isJsonArray && freshValue.asJsonArray.size() == 0)
                 if (freshIsBlank) {
                     freshJson.add(key, oldValue)
                 }
@@ -356,24 +371,31 @@ object ObjectPool {
                 // get<Novel> 取到 Illust 直接 ClassCastException。
                 ObjectSpec.KNovel
             }
+
             Illust::class -> {
                 ObjectSpec.Illust
             }
+
             User::class -> {
                 ObjectSpec.KUser
             }
+
             Article::class -> {
                 ObjectSpec.ARTICLE
             }
+
             GifInfoResponse::class -> {
                 ObjectSpec.GIF_INFO
             }
+
             UserResponse::class -> {
                 ObjectSpec.UserProfile
             }
+
             PlazaPostCacheEntry::class -> {
                 ObjectSpec.PLAZA_POST
             }
+
             else -> {
                 ObjectSpec.UNKNOWN
             }
