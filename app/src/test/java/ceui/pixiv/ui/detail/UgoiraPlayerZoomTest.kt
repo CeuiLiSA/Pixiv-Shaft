@@ -347,6 +347,17 @@ class UgoiraPlayerZoomTest {
         assertEquals(400f - 16.ppppx - 600f, player.playButton.translationY, 1f)
     }
 
+    @Test
+    fun `bottom play button falls back to center when the player is shorter than the button`() {
+        // 超宽横幅动图（如 468x60）在手机详情页只有约 50dp 高，放不下「按钮 + 16dp 底边距」。
+        Shaft.sSettings.ugoiraPlayButtonPosition = Settings.UGOIRA_PLAY_BUTTON_POSITION_BOTTOM
+        val height = player.playButton.height + 16.ppppx - 1
+        layout(400, height) // onLayout 里就会走一遍按钮定位
+        val btnH = player.playButton.height
+        assertTrue(btnH > 0)
+        assertEquals((height + btnH) / 2f - height, player.playButton.translationY, 1f)
+    }
+
     /**
      * 播放器 400x600 的 y∈[350, 400] 处放一颗悬浮胶囊。先 attach 再 layout，和真实页面一致
      * （attach 会清掉 isLaidOut）；之后不 idle，避免父布局把它重新排到左上角。

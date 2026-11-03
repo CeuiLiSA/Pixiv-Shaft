@@ -398,7 +398,13 @@ class UgoiraPlayerView @JvmOverloads constructor(
         }
 
         val btnH = playButton.height.takeIf { it > 0 } ?: 40.ppppx
-        targetBottom = targetBottom.coerceIn(btnH.toFloat(), h - margin)
+        // 超宽横幅动图（如 468x60）在详情页只有几十 dp 高，放不下「按钮 + 底边距」：退回垂直居中，
+        // 与居中档一致。不能直接 coerceIn —— 区间为空会抛 IllegalArgumentException，而这里在 onLayout 里跑。
+        targetBottom = if (h - margin >= btnH) {
+            targetBottom.coerceIn(btnH.toFloat(), h - margin)
+        } else {
+            (h + btnH) / 2f
+        }
         playButton.translationY = targetBottom - h
     }
 
