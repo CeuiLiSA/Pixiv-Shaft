@@ -18,8 +18,7 @@ android {
     }
 
     // 本模块自带布局（dialog / popup / menu row），全部走 viewBinding —— 本仓第一个开
-    // viewBinding 的 library 模块。刻意不开 dataBinding：库里没有一处需要 <layout> 表达式
-    // 绑定，开了只是让每次构建多跑一遍注解处理。:app 的 dataBinding 与本模块无关。
+    // viewBinding 的 library 模块。
     buildFeatures {
         viewBinding = true
     }
