@@ -20,6 +20,7 @@ import androidx.fragment.app.FragmentPagerAdapter
 import androidx.lifecycle.lifecycleScope
 import androidx.viewpager.widget.ViewPager
 import ceui.lisa.R
+import ceui.lisa.core.Manager
 import ceui.lisa.core.ManagerReactive
 import ceui.lisa.core.JavaAsync
 import ceui.lisa.database.AppDatabase
@@ -97,6 +98,7 @@ import java.net.URLDecoder
 import java.util.Locale
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import dagger.hilt.android.AndroidEntryPoint
@@ -125,7 +127,6 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
     private var downloadSingle: TextView? = null
     internal var plazaImageSource: ceui.pixiv.plaza.ui.PlazaImageSource? = null
         private set
-    private val savingPages = ConcurrentHashMap.newKeySet<Int>()
 
     private val observedAiTasks = mutableSetOf<ceui.pixiv.ui.upscale.AiQueueItem>()
 
@@ -851,6 +852,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         fabBind.fabDownloadContainer.setOnClick {
             val illust = likeTargetIllust() ?: return@setOnClick
             val page = baseBind!!.viewPager.currentItem
+            val saveKey = illust.id to page
             if (illust.isGif()) {
                 // ugoira/gif 要 zip→帧→gif 渲染,简单文件拷贝救不了,保留原下载链路(它做 unzipAndPlay)。
                 IllustDownload.downloadIllustCertainPage(illust, page, mContext as BaseActivity<*>)
@@ -860,7 +862,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
             // 这一页正显示译图:保存的就是看到的那张(原分辨率译图),不是底下的原图
             val translated = translatedFileOf(page)
             if (translated != null) {
-                if (!savingPages.add(page)) return@setOnClick
+                if (!savingPages.add(saveKey)) return@setOnClick
                 fabBar.renderDownload(DownloadFab.Downloading(0))
                 JavaAsync.appScope.launch {
                     try {
@@ -876,7 +878,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                             }
                         }
                     } finally {
-                        savingPages.remove(page)
+                        savingPages.remove(saveKey)
                     }
                 }
                 return@setOnClick
@@ -885,7 +887,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                 IllustDownload.getUrl(illust, page, Params.IMAGE_RESOLUTION_ORIGINAL)
                     ?: IllustDownload.getUrl(illust, page, Params.IMAGE_RESOLUTION_LARGE)
                     ?: return@setOnClick
-            if (!savingPages.add(page)) return@setOnClick
+            if (!savingPages.add(saveKey)) return@setOnClick
             fabBar.renderDownload(DownloadFab.Downloading(0))
             JavaAsync.appScope.launch {
                 try {
@@ -903,7 +905,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                         }
                     }
                 } finally {
-                    savingPages.remove(page)
+                    savingPages.remove(saveKey)
                 }
             }
         }
@@ -1055,79 +1057,89 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                 return@withContext false
             }
 
-            // 这一页已下载时,本地来源可能正是这次要写的目标本身(同模板同路径)。替换策略下后端会先删 /
-            // 截断目标再写,边读边写就把用户的原图抹成 0 字节。私有目录之外的来源先落一份副本再写。
-            val staged =
-                if (file.isInsideAppPrivateDir()) null
-                else runCatching {
-                    File.createTempFile("save_src", null, appContext.cacheDir).also { file.copyTo(it, overwrite = true) }
-                }.getOrElse {
-                    if (it is CancellationException) throw it
-                    Timber.w(it, "[ImageDetail] save: stage local source failed page=%d", page)
-                    withContext(Dispatchers.Main) {
-                        Common.showToast(
-                            appContext.getString(R.string.save_image_failed, it.message ?: it.javaClass.simpleName)
-                        )
-                    }
-                    return@withContext false
-                }
-            val source = staged ?: file
-
-            runCatching {
-                // open() 返回 null = Skip 策略且文件已存在 → 视为已保存,无需重写。
-                val handle =
-                    DownloadsRegistry.downloads.open(DownloadItems.illustPage(illust, page))
-                        ?: return@runCatching true
-                try {
-                    handle.stream.use { out -> FileInputStream(source).use { it.copyTo(out) } }
-                    handle.onFinish()
-                } catch (t: Throwable) {
-                    handle.onAbort()
-                    throw t
-                }
-                // 可选:标签写进 JPEG XMP 关键词(issue #938)。放在 commit 之后、onAbort 作用域之外,
-                // 免得写元数据抛错误删掉已成功的文件。整段再包一层 runCatching:即便标签取值意外抛错,
-                // 也不能连累下面「已下载」写库(否则文件在盘上却不记账)。开关默认关时直接跳过,零开销。
-                if (Shaft.sSettings.isWriteTagsToImageExif()) {
-                    runCatching {
-                        ExifKeywordWriter.writeIfEnabled(
-                            appContext,
-                            handle.uri,
-                            FileCreator.customFileName(illust, page),
-                            illust.tags.orEmpty().mapNotNull { it?.name },
-                        )
-                    }
-                }
-                // 与 Manager 成功分支一致地写库(fileName 用 FileCreator=模板命名,filePath 用写盘 uri)。
-                val entity =
-                    DownloadEntity().apply {
-                        illustGson = ceui.pixiv.download.model.DownloadRecordSlim.createIllustJson(illust)
-                        fileName = FileCreator.customFileName(illust, page)
-                        downloadTime = System.currentTimeMillis()
-                        filePath = handle.uri.toString()
-                        // v41 的 page 列 —— 与 Manager 成功分支一致，让按 (illustId, page) 的
-                        // 查询也能命中「保存这一张」写下的记录。
-                        this.page = page
-                    }
-                // insertDownload 会从 illustGson 顶层 id 补上 illustId（走 v38 索引）。
-                AppDatabase.getAppDatabase(appContext).downloadDao().insertDownload(entity)
-                ManagerReactive.pokeDoneTable()
-                true
-            }
-                .getOrElse { ex ->
-                    if (ex is CancellationException) throw ex
-                    Timber.e(ex, "[ImageDetail] saveLoadedIllustPage failed page=%d", page)
-                    withContext(Dispatchers.Main) {
-                        Common.showToast(
-                            appContext.getString(
-                                R.string.save_image_failed,
-                                ex.message ?: ex.javaClass.simpleName,
+            // 批量下载正在写同一张图时先等它收尾(#1312):两边写的是同一个模板目标,替换策略下同时写会
+            // 多出 " (1)" 副本,或一方补写完标签后被另一方剩下的字节改坏。借 Manager 的同 url 单主锁,
+            // 我们占着时队列派到这张图会按「stage key busy」失败、由队列重试。要在下面落副本之前拿到:
+            // 本地来源可能正是队列在写的那个目标文件。
+            val manager = Manager.get()
+            while (!manager.tryAcquireUrlWrite(imageUrl)) delay(URL_WRITE_POLL_MS)
+            try {
+                // 这一页已下载时,本地来源可能正是这次要写的目标本身(同模板同路径)。替换策略下后端会先删 /
+                // 截断目标再写,边读边写就把用户的原图抹成 0 字节。私有目录之外的来源先落一份副本再写。
+                val staged =
+                    if (file.isInsideAppPrivateDir()) null
+                    else runCatching {
+                        File.createTempFile("save_src", null, appContext.cacheDir).also { file.copyTo(it, overwrite = true) }
+                    }.getOrElse {
+                        if (it is CancellationException) throw it
+                        Timber.w(it, "[ImageDetail] save: stage local source failed page=%d", page)
+                        withContext(Dispatchers.Main) {
+                            Common.showToast(
+                                appContext.getString(R.string.save_image_failed, it.message ?: it.javaClass.simpleName)
                             )
-                        )
+                        }
+                        return@withContext false
                     }
-                    false
+                val source = staged ?: file
+
+                runCatching {
+                    // open() 返回 null = Skip 策略且文件已存在 → 视为已保存,无需重写。
+                    val handle =
+                        DownloadsRegistry.downloads.open(DownloadItems.illustPage(illust, page))
+                            ?: return@runCatching true
+                    try {
+                        handle.stream.use { out -> FileInputStream(source).use { it.copyTo(out) } }
+                        handle.onFinish()
+                    } catch (t: Throwable) {
+                        handle.onAbort()
+                        throw t
+                    }
+                    // 可选:标签写进 JPEG XMP 关键词(issue #938)。放在 commit 之后、onAbort 作用域之外,
+                    // 免得写元数据抛错误删掉已成功的文件。整段再包一层 runCatching:即便标签取值意外抛错,
+                    // 也不能连累下面「已下载」写库(否则文件在盘上却不记账)。开关默认关时直接跳过,零开销。
+                    if (Shaft.sSettings.isWriteTagsToImageExif()) {
+                        runCatching {
+                            ExifKeywordWriter.writeIfEnabled(
+                                appContext,
+                                handle.uri,
+                                FileCreator.customFileName(illust, page),
+                                illust.tags.orEmpty().mapNotNull { it?.name },
+                            )
+                        }
+                    }
+                    // 与 Manager 成功分支一致地写库(fileName 用 FileCreator=模板命名,filePath 用写盘 uri)。
+                    val entity =
+                        DownloadEntity().apply {
+                            illustGson = ceui.pixiv.download.model.DownloadRecordSlim.createIllustJson(illust)
+                            fileName = FileCreator.customFileName(illust, page)
+                            downloadTime = System.currentTimeMillis()
+                            filePath = handle.uri.toString()
+                            // v41 的 page 列 —— 与 Manager 成功分支一致，让按 (illustId, page) 的
+                            // 查询也能命中「保存这一张」写下的记录。
+                            this.page = page
+                        }
+                    // insertDownload 会从 illustGson 顶层 id 补上 illustId（走 v38 索引）。
+                    AppDatabase.getAppDatabase(appContext).downloadDao().insertDownload(entity)
+                    ManagerReactive.pokeDoneTable()
+                    true
                 }
-                .also { staged?.delete() }
+                    .getOrElse { ex ->
+                        if (ex is CancellationException) throw ex
+                        Timber.e(ex, "[ImageDetail] saveLoadedIllustPage failed page=%d", page)
+                        withContext(Dispatchers.Main) {
+                            Common.showToast(
+                                appContext.getString(
+                                    R.string.save_image_failed,
+                                    ex.message ?: ex.javaClass.simpleName,
+                                )
+                            )
+                        }
+                        false
+                    }
+                    .also { staged?.delete() }
+            } finally {
+                manager.releaseUrlWrite(imageUrl)
+            }
         }
 
     /** 查看器缓存 / 快照存档都在私有目录里,不可能是下载后端的写入目标,无需另拷一份。 */
@@ -1776,5 +1788,14 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
 
         /** 译图文件名后缀,插在用户模板文件名与扩展名之间,避免覆盖原图。 */
         private const val TRANSLATED_FILENAME_SUFFIX = "_translated"
+
+        /**
+         * 正在保存的 (作品 id, 页)。进程级:保存跑在 appScope,退出大图再进同一作品时上一份可能还在写,
+         * 按页面实例去重挡不住第二份并发写同一个目标(#1312)。
+         */
+        private val savingPages = ConcurrentHashMap.newKeySet<Pair<Long, Int>>()
+
+        /** 批量下载正占着同一张图时,保存隔多久再问一次能不能写。 */
+        private const val URL_WRITE_POLL_MS = 250L
     }
 }

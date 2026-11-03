@@ -1963,4 +1963,17 @@ public class Manager {
     public boolean isRunningHandle(String uuid) {
         return handles.containsKey(uuid) || dispatching.contains(uuid);
     }
+
+    /**
+     * 队列外写同一张图的入口（大图页「保存这一张」）借用 {@link #activeStageKeys} 的同 url
+     * 单主锁，免得和这里的传输同时写同一个模板目标（#1312）。抢到返回 true，用完必须
+     * {@link #releaseUrlWrite}；占着期间队列派到这条 url 会走「stage key busy」失败、由队列重试。
+     */
+    public boolean tryAcquireUrlWrite(String url) {
+        return activeStageKeys.add(StageStore.keyForUrl(url));
+    }
+
+    public void releaseUrlWrite(String url) {
+        activeStageKeys.remove(StageStore.keyForUrl(url));
+    }
 }
