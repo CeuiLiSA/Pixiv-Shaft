@@ -73,6 +73,7 @@ import ceui.pixiv.cache.ObjectPool
 import ceui.pixiv.communication.StateEntry
 import ceui.pixiv.communication.android.collectIn
 import ceui.pixiv.download.DownloadRecordStateSource
+import ceui.pixiv.ui.download.PageDownloadSheet
 import ceui.pixiv.ui.synonym.SynonymMatchView
 import ceui.pixiv.widget.SpoilerBlurView
 import ceui.pixiv.widgets.ProgressTextButton
@@ -697,6 +698,14 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
 
         baseBind.toolbar.menu?.clear()
         baseBind.toolbar.inflateMenu(R.menu.share)
+        if (!isSnapshotMode && !illust.isGif()) {
+            baseBind.toolbar.menu.add(R.string.page_download_title).setOnMenuItemClickListener {
+                (currentIllust() ?: menuIllust)?.let { current ->
+                    PageDownloadSheet.show(requireActivity(), current, pageProgressIndex.coerceAtLeast(0))
+                }
+                true
+            }
+        }
         if (!isSnapshotMode && !illust.isGif() && illust.page_count == 1) {
             baseBind.toolbar.menu.add(R.string.comic_reader_enter_illust).setOnMenuItemClickListener {
                 startActivity(Intent(requireContext(), TemplateActivity::class.java).apply {
@@ -1346,12 +1355,14 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
             }
         }
         baseBind.download.setOnLongClickListener {
-            val IMG_RESOLUTION_TITLE = arrayOf(
+            val IMG_RESOLUTION_TITLE = mutableListOf(
                 getString(R.string.string_280),
                 getString(R.string.string_281),
                 getString(R.string.string_282),
                 getString(R.string.string_283)
-            )
+            ).apply {
+                if (!illust.isGif()) add(getString(R.string.page_download_title))
+            }.toTypedArray()
             val IMG_RESOLUTION = arrayOf(
                 Params.IMAGE_RESOLUTION_ORIGINAL,
                 Params.IMAGE_RESOLUTION_LARGE,
@@ -1360,6 +1371,11 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
             )
             CheckableDialogBuilder(mContext)
                 .addItems(IMG_RESOLUTION_TITLE) { dialog, which ->
+                    if (which == IMG_RESOLUTION.size) {
+                        dialog.dismiss()
+                        PageDownloadSheet.show(requireActivity(), illust, pageProgressIndex.coerceAtLeast(0))
+                        return@addItems
+                    }
                     Timber.tag(DownloadRecordStateSource.LOG_TAG).d(
                         "click_resolution illustId=%d pages=%d resolution=%s",
                         illust.id, illust.page_count, IMG_RESOLUTION[which],
