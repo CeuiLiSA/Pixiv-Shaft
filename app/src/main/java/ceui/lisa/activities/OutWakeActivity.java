@@ -20,6 +20,8 @@ import ceui.pixiv.session.SessionManager;
 import ceui.pixiv.witstudio.dialog.WitDialog;
 import ceui.pixiv.witstudio.dialog.WitDialogAction;
 import ceui.lisa.core.JavaAsync;
+import ceui.pixiv.analytics.Analytics;
+import ceui.pixiv.services.ServiceProviderKt;
 import ceui.pixiv.ui.navigation.TemplateRoute;
 import ceui.pixiv.ui.referral.ReferralPlanFragment;
 
@@ -289,7 +291,15 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
         Common.showToast(getString(R.string.trying_login));
         // 换 token 是进程级动作，不能随 Activity 取消：深色模式/语言切换等不在 configChanges 里的
         // 配置变更会重建本页，结果由 sLoginWaiter 里活着的那个实例接手跑完整的 handleLoginResult。
+        Analytics analytics = ServiceProviderKt.appServices(this).getAnalytics();
         JavaAsync.runDetached(() -> PixivLogin.INSTANCE.handleCallback(uri), result -> {
+            // 在宿主判空之前记：用户中途离开本页时登录照样会落库，结果也照样要算进转化。
+            // 登录 / 注册两个入口共用这条回调，分不出来，统一记 oauth。
+            if (result instanceof PixivOAuthResult.Failure) {
+                analytics.loginFailed(Analytics.LoginMethod.OAUTH, (PixivOAuthResult.Failure) result);
+            } else {
+                analytics.login(Analytics.LoginMethod.OAUTH);
+            }
             OutWakeActivity host = takeLoginWaiter();
             if (host == null) {
                 // 没有活着的宿主（用户已退出本页）：只把登录态落库，不导航不弹窗。
@@ -301,6 +311,7 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
             }
             host.handleLoginResult(result);
         }, throwable -> {
+            analytics.loginError(Analytics.LoginMethod.OAUTH, throwable);
             OutWakeActivity host = takeLoginWaiter();
             if (host == null) return;
             Common.showToast("登录失败");

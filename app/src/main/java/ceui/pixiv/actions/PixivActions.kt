@@ -15,6 +15,7 @@ import ceui.loxia.Novel
 import ceui.pixiv.cache.ObjectPool
 import ceui.pixiv.cache.withoutViewerState
 import ceui.pixiv.actionqueue.ActionRequest
+import ceui.pixiv.analytics.Analytics
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.task.NovelAutoDownload
 import ceui.pixiv.ui.novel.reader.export.ExportFormat
@@ -38,7 +39,8 @@ import timber.log.Timber
  * 下次启动继续发。成功之后由队列补埋点，终态失败时由队列回滚这里做的乐观更新并提示用户。
  *
  * 埋点刻意**不**在这里发：这一刻请求还没出去，之后可能因为限流打满重试或作品已删除
- * 而终态失败并被回滚，而埋点发出去就撤不回来。
+ * 而终态失败并被回滚，而埋点发出去就撤不回来。这里只把 GA4 要的「从哪个页面、怎么触发」
+ * 拍进 payload（[AnalyticsOrigin]），由队列确认后一并带出去。
  *
  * 同理**不弹「收藏成功」**：那一刻请求还没发出去，报成功就是骗用户，而失败时队列几分钟后
  * 还会补一个「收藏失败」的 toast 自相矛盾。反馈由爱心本身承担，失败时队列会把它拨回去。
@@ -60,6 +62,13 @@ object PixivActions {
     /** 队列是进程级服务（见 [ceui.pixiv.services.ServicesProvider]），这个门面自己无状态，按需取。 */
     private val actionQueue: PixivActionQueue
         get() = Shaft.getContext().appServices().pixivActionQueue
+
+    /**
+     * 拍下这次点击的埋点上下文，随 payload 落库，服务端确认后由队列带着它记 GA4（见 [AnalyticsOrigin]）。
+     * 批量入口在循环外拍一次：几千项要分好几帧才入完队，期间页面不该被记成别的。
+     */
+    private fun origin(method: String): AnalyticsOrigin =
+        AnalyticsOrigin(method, Shaft.getContext().appServices().analytics.currentSurface)
 
     /**
      * 收藏的默认可见性。
@@ -98,7 +107,11 @@ object PixivActions {
         bookmark: Boolean,
         restrict: String = defaultBookmarkRestrict(),
     ) {
-        setIllustBookmark(illust, bookmark, restrict, autoSnapshot = true)
+        setIllustBookmark(
+            illust, bookmark, restrict,
+            autoSnapshot = true,
+            origin = origin(Analytics.BookmarkMethod.SINGLE.wire),
+        )
     }
 
     private fun setIllustBookmark(
@@ -106,6 +119,7 @@ object PixivActions {
         bookmark: Boolean,
         restrict: String,
         autoSnapshot: Boolean,
+        origin: AnalyticsOrigin,
     ) {
         if (illust.isBookmarked == bookmark) return
         applyIllustBookmark(
@@ -116,6 +130,7 @@ object PixivActions {
             authorId = illust.user?.id,
             authorFollowed = illust.user?.is_followed,
             autoSnapshot = autoSnapshot,
+            origin = origin,
         )
         // 自动快照不再在点击时触发，改为 ActionQueue Succeeded 事件后触发，
         // 避免与收藏/关注写操作“竞争”ObjectPool 数据。
@@ -176,12 +191,13 @@ object PixivActions {
     ): Int {
         val todo = illusts.filter { it.isBookmarked != bookmark }
         if (todo.isEmpty()) return 0
+        val origin = origin(Analytics.BookmarkMethod.BULK.wire)
         bulkScope.launch {
             var failed = 0
             todo.chunked(BULK_CHUNK).forEach { chunk ->
                 chunk.forEach { illust ->
                     try {
-                        setIllustBookmark(illust, bookmark, restrict, autoSnapshot = false)
+                        setIllustBookmark(illust, bookmark, restrict, autoSnapshot = false, origin = origin)
                     } catch (ce: CancellationException) {
                         throw ce
                     } catch (t: Throwable) {
@@ -221,12 +237,13 @@ object PixivActions {
     ): Int {
         val todo = novels.filter { it.is_bookmarked != bookmark }
         if (todo.isEmpty()) return 0
+        val origin = origin(Analytics.BookmarkMethod.BULK.wire)
         bulkScope.launch {
             var failed = 0
             todo.chunked(BULK_CHUNK).forEach { chunk ->
                 chunk.forEach { novel ->
                     try {
-                        applyNovelBookmark(novel, bookmark, restrict)
+                        applyNovelBookmark(novel, bookmark, restrict, origin)
                     } catch (ce: CancellationException) {
                         throw ce
                     } catch (t: Throwable) {
@@ -250,6 +267,7 @@ object PixivActions {
         authorId: Long?,
         authorFollowed: Boolean?,
         autoSnapshot: Boolean,
+        origin: AnalyticsOrigin,
     ) {
         writeIllustBookmarkLocally(illustId, bookmark, illust)
         if (bookmark) RateAppManager.onUserEngaged()
@@ -259,7 +277,7 @@ object PixivActions {
                 type = PixivActionTypes.ILLUST_BOOKMARK,
                 dedupeKey = "${PixivActionTypes.ILLUST_BOOKMARK}:$illustId",
                 payload = Shaft.sGson.toJson(
-                    BookmarkPayload(illustId, bookmark, restrict, autoSnapshot = autoSnapshot)
+                    BookmarkPayload(illustId, bookmark, restrict, autoSnapshot = autoSnapshot, origin = origin)
                 ),
             )
         )
@@ -282,7 +300,10 @@ object PixivActions {
         if (authorId == null || authorId <= 0L) return
         if (!Shaft.sSettings.isAutoFollowAfterStar) return
         if (authorFollowed == true || isFollowed(authorId)) return
-        setUserFollow(authorId, follow = true)
+        enqueueUserFollow(
+            authorId, follow = true, defaultFollowRestrict(),
+            origin(Analytics.FollowMethod.AUTO_AFTER_BOOKMARK.wire),
+        )
     }
 
     // ── 按标签收藏 ──────────────────────────────────────────────────────────
@@ -306,7 +327,10 @@ object PixivActions {
                 type = PixivActionTypes.ILLUST_BOOKMARK,
                 dedupeKey = "${PixivActionTypes.ILLUST_BOOKMARK}:$illustId",
                 payload = Shaft.sGson.toJson(
-                    BookmarkPayload(illustId, true, restrict, tags.ifEmpty { null }, autoSnapshot = true)
+                    BookmarkPayload(
+                        illustId, true, restrict, tags.ifEmpty { null }, autoSnapshot = true,
+                        origin = origin(Analytics.BookmarkMethod.WITH_TAGS.wire),
+                    )
                 ),
             )
         )
@@ -346,7 +370,10 @@ object PixivActions {
                 type = PixivActionTypes.NOVEL_BOOKMARK,
                 dedupeKey = "${PixivActionTypes.NOVEL_BOOKMARK}:$novelId",
                 payload = Shaft.sGson.toJson(
-                    BookmarkPayload(novelId, true, restrict, tags.ifEmpty { null })
+                    BookmarkPayload(
+                        novelId, true, restrict, tags.ifEmpty { null },
+                        origin = origin(Analytics.BookmarkMethod.WITH_TAGS.wire),
+                    )
                 ),
             )
         )
@@ -369,13 +396,13 @@ object PixivActions {
         restrict: String = defaultBookmarkRestrict(),
     ) {
         if (novel.is_bookmarked == bookmark) return
-        applyNovelBookmark(novel, bookmark, restrict)
+        applyNovelBookmark(novel, bookmark, restrict, origin(Analytics.BookmarkMethod.SINGLE.wire))
         // 收藏后自动下载只在主动收藏（非取消）时触发，同插画那支（#880）。
         if (bookmark) autoDownloadNovel(novel)
     }
 
     /** 收藏一部小说的三件事：写本地、埋 RateApp、入队。批量入口复用它绕开单点的副作用。 */
-    private fun applyNovelBookmark(novel: Novel, bookmark: Boolean, restrict: String) {
+    private fun applyNovelBookmark(novel: Novel, bookmark: Boolean, restrict: String, origin: AnalyticsOrigin) {
         writeNovelBookmarkLocally(novel.id, bookmark, novel)
         if (bookmark) RateAppManager.onUserEngaged()
 
@@ -383,7 +410,7 @@ object PixivActions {
             ActionRequest(
                 type = PixivActionTypes.NOVEL_BOOKMARK,
                 dedupeKey = "${PixivActionTypes.NOVEL_BOOKMARK}:${novel.id}",
-                payload = Shaft.sGson.toJson(BookmarkPayload(novel.id, bookmark, restrict)),
+                payload = Shaft.sGson.toJson(BookmarkPayload(novel.id, bookmark, restrict, origin = origin)),
             )
         )
     }
@@ -401,6 +428,7 @@ object PixivActions {
     private fun autoDownloadNovel(novel: Novel) {
         if (!Shaft.sSettings.isAutoDownloadAfterStar) return
         NovelAutoDownload.enqueue(novel)
+        Shaft.getContext().appServices().analytics.novelDownload(1, Analytics.DownloadMethod.AUTO_AFTER_BOOKMARK)
     }
 
     // ── 小说下载 ────────────────────────────────────────────────────────────
@@ -423,6 +451,11 @@ object PixivActions {
         if (novels.isEmpty()) return
         novelDownloadRequests(novels, format, seriesPositions, seriesTotal)
             .forEach(actionQueue::enqueueDownload)
+        // 一篇 = 卡片 / 详情上点的；多篇只可能来自多选（批量选择页、系列页勾选），和插画批量同口径。
+        Shaft.getContext().appServices().analytics.novelDownload(
+            novels.size,
+            if (novels.size == 1) Analytics.DownloadMethod.DIRECT else Analytics.DownloadMethod.BULK,
+        )
         showDownloadEnqueued()
     }
 
@@ -430,6 +463,8 @@ object PixivActions {
     @JvmStatic
     fun downloadNovelSeries(seriesId: Long, format: ExportFormat) {
         actionQueue.enqueueDownload(novelSeriesDownloadRequest(seriesId, format))
+        // 篇数要等队列里拉完章节列表才知道，这里按「一个系列」记。
+        Shaft.getContext().appServices().analytics.novelDownload(1, Analytics.DownloadMethod.SERIES)
         showDownloadEnqueued()
     }
 
@@ -448,6 +483,10 @@ object PixivActions {
         follow: Boolean,
         restrict: String = defaultFollowRestrict(),
     ) {
+        enqueueUserFollow(userId, follow, restrict, origin(Analytics.FollowMethod.MANUAL.wire))
+    }
+
+    private fun enqueueUserFollow(userId: Long, follow: Boolean, restrict: String, origin: AnalyticsOrigin) {
         // 先落可见性，再落关注态 —— 后者会同步通知 UI 重绘，那时前者必须已经就位。
         FollowVisibility.writeLocal(userId, restrict.takeIf { follow })
         writeUserFollowLocally(userId, follow, restrict)
@@ -458,7 +497,7 @@ object PixivActions {
                 type = PixivActionTypes.USER_FOLLOW,
                 // 合并键只带 userId：同一个人的关注/取关反复横跳只留最后一次。
                 dedupeKey = "${PixivActionTypes.USER_FOLLOW}:$userId",
-                payload = Shaft.sGson.toJson(FollowPayload(userId, follow, restrict)),
+                payload = Shaft.sGson.toJson(FollowPayload(userId, follow, restrict, origin = origin)),
             )
         )
     }

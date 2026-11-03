@@ -32,6 +32,7 @@ import ceui.lisa.interfaces.Callback;
 import ceui.lisa.interfaces.FeedBack;
 import ceui.lisa.core.JavaAsync;
 import ceui.lisa.models.GifResponse;
+import ceui.pixiv.analytics.Analytics;
 import ceui.pixiv.api.model.Illust;
 import ceui.loxia.ImageUrls;
 import ceui.pixiv.api.model.MetaPage;
@@ -53,6 +54,16 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class IllustDownload {
+
+    /**
+     * GA4 下载请求埋点。每条入队路径在**自己真正 addTask 的地方**记一次（单页 1、整部按页数、动图 1），
+     * 互相转调的入口（整部里的单图、单页里的单图作品）因此不会重复计。「收藏后自动下载」也走这些
+     * 入口，在埋点上和手点下载不分开。
+     */
+    private static void trackDownload(Illust illust, int pages) {
+        ceui.pixiv.services.ServiceProviderKt.appServices(Shaft.getContext()).getAnalytics()
+                .illustDownload(illust.getType(), pages, Analytics.DownloadMethod.DIRECT);
+    }
 
     private static DownloadItem buildDownloadItem(Illust illust, int index) {
         return buildDownloadItem(illust, index, Params.IMAGE_RESOLUTION_ORIGINAL);
@@ -93,6 +104,7 @@ public class IllustDownload {
                 DownloadToasts.show(DownloadToastKind.ENQUEUED,
                         '1' + Shaft.getContext().getString(R.string.has_been_added));
                 Manager.get().addTask(item);
+                trackDownload(illust, 1);
             }
         });
     }
@@ -113,6 +125,7 @@ public class IllustDownload {
             DownloadToasts.show(DownloadToastKind.ENQUEUED,
                     '1' + Shaft.getContext().getString(R.string.has_been_added));
             Manager.get().addTask(item);
+            trackDownload(illust, 1);
         }
     }
 
@@ -127,6 +140,7 @@ public class IllustDownload {
                 DownloadToasts.show(DownloadToastKind.ENQUEUED,
                         '1' + Shaft.getContext().getString(R.string.has_been_added));
                 Manager.get().addTask(item);
+                trackDownload(illust, 1);
             }
         });
     }
@@ -187,6 +201,7 @@ public class IllustDownload {
             DownloadToasts.show(DownloadToastKind.ENQUEUED,
                     tempList.size() + Shaft.getContext().getString(R.string.has_been_added));
             Manager.get().addTasks(tempList);
+            trackDownload(illust, tempList.size());
         }
     }
 
@@ -244,6 +259,7 @@ public class IllustDownload {
         if(!illustsBean.isGif()){
             return;
         }
+        trackDownload(illustsBean, 1);
         // 播放引擎可能已把这张 ugoira 的帧序列落盘(用户在详情页看过)。命中就直接由帧出片
         // 拷进用户存储,跳过重下 zip / 重解压 / 重补帧 —— 也避开与引擎抢写同一批缓存文件的
         // 无锁竞争。格式随「动图保存格式」设置:mp4 时播放缓存里那份直接就能用(纯拷贝),

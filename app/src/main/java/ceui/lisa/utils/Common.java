@@ -142,6 +142,8 @@ public class Common {
     public static void logOut(Context context, boolean deleteAccountInfo, boolean purgeLocalData,
                               @Nullable Runnable onPurged) {
         if (!SessionManager.INSTANCE.isLoggedIn()) return;
+        ceui.pixiv.services.ServiceProviderKt.appServices(context).getAnalytics()
+                .logout(ceui.pixiv.analytics.Analytics.LogoutReason.USER);
         long uid = SessionManager.INSTANCE.getLoggedInUid();
         if (deleteAccountInfo && uid > 0L) {
             AccountDataPurge.purgeAccountDataDetached(

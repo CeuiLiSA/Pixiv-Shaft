@@ -39,6 +39,8 @@ internal data class BookmarkPayload(
     val tags: List<String>? = null,
     /** 是否在收藏成功确认后触发自动快照（单点收藏/按标签收藏为 true，批量收藏为 false）。 */
     val autoSnapshot: Boolean = false,
+    /** 埋点上下文，见 [AnalyticsOrigin]。 */
+    val origin: AnalyticsOrigin? = null,
 )
 
 /** @param follow true = 关注，false = 取关 */
@@ -48,6 +50,24 @@ internal data class FollowPayload(
     val restrict: String,
     /** 已关注的人只改公开 / 悄悄可见性（#1166）：不是一次新关注，成功不埋点，失败只退可见性。 */
     val visibilityOnly: Boolean = false,
+    /** 埋点上下文，见 [AnalyticsOrigin]。 */
+    val origin: AnalyticsOrigin? = null,
+)
+
+/**
+ * GA4 埋点要在**服务端确认后**才记（与 EventReporter 同一时机，见
+ * [ceui.pixiv.analytics.Analytics]），但「从哪个页面点的、怎么触发的」只在点击那一刻知道：
+ * 确认可能在几分钟后、甚至下一个进程里。所以入队时把它们拍下来跟着 payload 一起落库。
+ *
+ * 和 [BookmarkPayload.tags] 一样是追加字段：旧版本写下的行读出来为 null（那条埋点就不带这两项），
+ * 新版写的行被旧版读到时多出的字段被 gson 忽略。两个值都是埋点枚举的 wire 字面量，不含用户数据。
+ *
+ * @param method  [ceui.pixiv.analytics.Analytics.BookmarkMethod] / [ceui.pixiv.analytics.Analytics.FollowMethod] 的 wire。
+ * @param surface 点击时的浏览页（[ceui.pixiv.analytics.Analytics.currentSurface]）。
+ */
+internal data class AnalyticsOrigin(
+    val method: String? = null,
+    val surface: String? = null,
 )
 
 /**

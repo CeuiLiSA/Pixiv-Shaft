@@ -66,6 +66,7 @@ import ceui.lisa.view.DrawerLayoutViewPager;
 import ceui.pixiv.config.RemoteAppConfig;
 import ceui.pixiv.push.InAppPushCenter;
 import ceui.pixiv.services.ServicesProvider;
+import ceui.pixiv.analytics.AnalyticsScreen;
 import ceui.pixiv.session.SessionManager;
 import ceui.pixiv.shaftapi.Nana7miPlan;
 import ceui.pixiv.ui.me.MeFragment;
@@ -81,7 +82,7 @@ import com.bumptech.glide.Glide;
 
 /** 主页 */
 public class MainActivity extends BaseActivity<ActivityCoverBinding>
-        implements ColdStartSplashHost, HomeShellHost {
+        implements ColdStartSplashHost, HomeShellHost, AnalyticsScreen {
 
     public static final String[] ALL_SELECT_WAY = new String[] {"图库选图", "文件管理器选图"};
     private long mExitTime;
@@ -348,6 +349,8 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                         bottomBarAutoHide.reveal();
                         // 即时持久化当前 tab：进程在任意时刻被杀，下次冷启动都能恢复。
                         persistNavigationPosition(position);
+                        ceui.pixiv.services.ServiceProviderKt.appServices(MainActivity.this)
+                                .getAnalytics().screenChanged(MainActivity.this);
                     }
 
                     @Override
@@ -438,6 +441,25 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                         }
                     }
                 });
+    }
+
+    /**
+     * GA4 页面名按底栏 tab 记（五个 tab 都在这一个 Activity 里）。按 menu id 认 tab 而不是按位置：
+     * 前三个 tab 的顺序是用户可调的（设置里六种排列），R18 / 「我」两个 tab 也可能不存在。
+     */
+    @Nullable
+    @Override
+    public String analyticsScreenName() {
+        if (tabMenuIds == null || baseBind == null) return "home";
+        int position = baseBind.viewPager.getCurrentItem();
+        if (position < 0 || position >= tabMenuIds.length) return "home";
+        int menuId = tabMenuIds[position];
+        if (menuId == R.id.action_1) return "home_recommend";
+        if (menuId == R.id.action_2) return "home_discover";
+        if (menuId == R.id.action_3) return "home_following";
+        if (menuId == R.id.action_4) return "home_r18";
+        if (menuId == R.id.action_5) return "home_me";
+        return "home";
     }
 
     /** 底栏 / 侧栏点了某个 tab：切到它对应的页。 */

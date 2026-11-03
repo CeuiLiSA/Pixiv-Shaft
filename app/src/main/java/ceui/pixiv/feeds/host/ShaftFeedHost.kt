@@ -7,6 +7,7 @@ import ceui.lisa.R
 import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.pixiv.ui.common.getHumanReadableMessage
 import ceui.pixiv.ui.debug.openNetworkTestPage
+import ceui.pixiv.services.appServices
 import ceui.pixiv.services.requireNetworkStateManager
 import ceui.pixiv.chat.base.isNetworkClassError
 import ceui.pixiv.feeds.FeedFramework
@@ -54,9 +55,16 @@ object ShaftFeedHost : FeedHost {
     /**
      * 复用全 app 统一的映射（[getHumanReadableMessage]：服务端 user_message 优先，
      * 断网 / 超时 / SSL / 反序列化按 AppError 分档取本地化文案）。
+     *
+     * 列表加载失败要给用户看文案的地方（整屏错误态、有内容时刷新失败的轻提示）都经过这里，
+     * 顺带记一条 load_error。先算文案再埋点：埋点只按异常类型分类，不读错误体，不会抢走
+     * 文案映射要用的 HttpException body。
      */
-    override fun humanReadableError(context: Context, throwable: Throwable): String? =
-        throwable.getHumanReadableMessage(context)
+    override fun humanReadableError(context: Context, throwable: Throwable): String? {
+        val message = throwable.getHumanReadableMessage(context)
+        context.appServices().analytics.loadError(throwable)
+        return message
+    }
 
     override fun showMessage(context: Context, message: CharSequence) {
         Toaster.showShort(message)

@@ -36,7 +36,9 @@ import ceui.lisa.activities.Shaft
 import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.databinding.ActivityLoginBinding
 import ceui.lisa.databinding.ItemLanguageRowBinding
+import ceui.pixiv.analytics.Analytics
 import ceui.pixiv.api.model.AccountResponse
+import ceui.pixiv.services.appServices
 import ceui.lisa.utils.ClipBoardUtils
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.Local
@@ -95,14 +97,21 @@ class LandingViewModel : ViewModel() {
      */
     fun startRefreshTokenLogin(refreshToken: String) {
         if (refreshTokenLoginJob?.isActive == true) return
+        val analytics = Shaft.getContext().appServices().analytics
+        val method = Analytics.LoginMethod.REFRESH_TOKEN
+        analytics.loginBegin(method)
         refreshTokenLoginJob = viewModelScope.launch {
             val outcome = when (val result = PixivLogin.refreshTokenForLogin(refreshToken)) {
                 is PixivOAuthResult.Failure -> {
                     Timber.w("Credential login failed")
+                    analytics.loginFailed(method, result)
                     RefreshTokenLoginOutcome.Failed(refreshTokenFailureToast(result))
                 }
 
-                is PixivOAuthResult.Success -> persistRefreshTokenLogin(result.rawBody)
+                is PixivOAuthResult.Success -> persistRefreshTokenLogin(result.rawBody).also {
+                    if (it is RefreshTokenLoginOutcome.Succeeded) analytics.login(method)
+                    else analytics.loginPersistFailed(method)
+                }
             }
             _refreshTokenLoginEvent.value = Event(outcome)
         }
@@ -281,11 +290,13 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
                 }
 
                 R.id.action_browser_login -> {
+                    trackLoginBegin(Analytics.LoginMethod.OAUTH)
                     showBrowserPicker(PixivLogin.startLoginUrl())
                     true
                 }
 
                 R.id.action_browser_signup -> {
+                    trackLoginBegin(Analytics.LoginMethod.SIGNUP)
                     showBrowserPicker(PixivLogin.startSignUrl())
                     true
                 }
@@ -584,12 +595,18 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
 
         page.loginButton.setOnClickListener {
             checkAndNext {
-                openProxyHint { openOAuthTab(ceui.pixiv.login.PixivLogin.startLoginUrl()) }
+                openProxyHint {
+                    trackLoginBegin(Analytics.LoginMethod.OAUTH)
+                    openOAuthTab(ceui.pixiv.login.PixivLogin.startLoginUrl())
+                }
             }
         }
         page.signButton.setOnClickListener {
             checkAndNext {
-                openProxyHint { openOAuthTab(ceui.pixiv.login.PixivLogin.startSignUrl()) }
+                openProxyHint {
+                    trackLoginBegin(Analytics.LoginMethod.SIGNUP)
+                    openOAuthTab(ceui.pixiv.login.PixivLogin.startSignUrl())
+                }
             }
         }
 
@@ -692,17 +709,26 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
     }
 
     private fun performLogin(userJson: String) {
+        val analytics = mContext.appServices().analytics
+        analytics.loginBegin(Analytics.LoginMethod.IMPORT)
         val exportUser = runCatching {
             Shaft.sGson.fromJson(userJson, AccountResponse::class.java)
         }.getOrNull()
         if (exportUser?.user == null) {
+            analytics.loginPersistFailed(Analytics.LoginMethod.IMPORT)
             Common.showToast("账号信息格式不正确，导入失败", 3)
             return
         }
         Local.persistLoggedInUser(exportUser)
+        analytics.login(Analytics.LoginMethod.IMPORT)
         Common.showToast("导入成功", 2)
         startActivity(Intent(mContext, MainActivity::class.java))
         mActivity.finish()
+    }
+
+    /** 浏览器 OAuth 真正要打开了才记，结果在 OutWakeActivity 的回调里记。 */
+    private fun trackLoginBegin(method: Analytics.LoginMethod) {
+        mContext.appServices().analytics.loginBegin(method)
     }
 
     private fun openOAuthTab(url: String) {

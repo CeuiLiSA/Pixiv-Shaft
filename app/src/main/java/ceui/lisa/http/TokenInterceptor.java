@@ -5,6 +5,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 
 import ceui.lisa.R;
+import ceui.lisa.activities.Shaft;
 import ceui.lisa.utils.Common;
 import ceui.pixiv.session.SessionManager;
 import okhttp3.Interceptor;
@@ -93,6 +94,8 @@ public class TokenInterceptor implements Interceptor {
     }
 
     private static void logoutAndRestart() {
+        ceui.pixiv.services.ServiceProviderKt.appServices(Shaft.getContext()).getAnalytics()
+                .logout(ceui.pixiv.analytics.Analytics.LogoutReason.TOKEN_INVALID);
         SessionManager.INSTANCE.postUpdateSession(null);
         Common.showToast(R.string.string_340);
         Common.restart();

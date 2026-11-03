@@ -56,6 +56,11 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         tools:ignore="UnusedAttribute">
+        <!-- GA4 页面浏览由 ceui.pixiv.analytics.ScreenTracker 按逻辑页面名手动上报；
+             SDK 的自动上报只认 Activity 类名，开着会重复计数。 -->
+        <meta-data
+            android:name="google_analytics_automatic_screen_reporting_enabled"
+            android:value="false" />
         <!-- AppCompat per-app locale backport (Android 12-) -->
         <service
             android:name="androidx.appcompat.app.AppLocalesMetadataHolderService"

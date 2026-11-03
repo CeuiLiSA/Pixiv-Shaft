@@ -175,8 +175,14 @@ fun bulkEnqueueIllusts(
         source = source,
         taskName = taskName,
         onPage = { collector, items -> enqueueIllustPage(collector, items, source.sourceTag, dao) },
-        // 任何"已入队过东西"的终态（成功 / 部分失败）都唤醒消费者，避免活儿白干
-        onTerminal = { _, total -> if (total > 0) queue.resume() },
+        // 任何"已入队过东西"的终态（成功 / 部分失败）都唤醒消费者，避免活儿白干。
+        // 作品数只有拉完才知道，所以下载请求的埋点也在这里记。
+        onTerminal = { _, total ->
+            if (total > 0) {
+                queue.resume()
+                app.appServices().analytics.bulkDownload(total)
+            }
+        },
     ).fetch()
 }
 

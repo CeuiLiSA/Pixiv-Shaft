@@ -102,6 +102,7 @@ public class Shaft extends Application implements ServicesProvider {
     @Inject ceui.pixiv.db.mirror.BookmarkMirrorService bookmarkMirror;
     @Inject ceui.pixiv.ui.novel.reader.settings.ReaderFontRepository readerFontRepository;
     @Inject ceui.lisa.update.ApkDownloadManager apkDownloadManager;
+    @Inject ceui.pixiv.analytics.Analytics analytics;
 
     private EntityWrapper entityWrapper;
 
@@ -558,6 +559,11 @@ public class Shaft extends Application implements ServicesProvider {
         // Activity 会直接读这个 static，必须在第一个 Activity 之前就位。三个空
         // ConcurrentHashMap，成本可忽略。
 
+        // GA4 页面浏览改为手动上报（manifest 关了 SDK 的自动 screen_view，好按逻辑页面名记），
+        // lifecycle callback 必须在第一个 Activity resume 之前挂上，否则丢冷启动首屏。只注册回调，
+        // 不碰 FirebaseAnalytics（它在延迟批里 attach，之前的事件先攒着）。
+        analytics.install();
+
         // 应用锁(issue #1197,默认关闭):冷启动 / 从后台回来时盖上锁屏页。必须在第一个 Activity
         // resume 之前注册;依赖 attachBaseContext 里的 MMKV.initialize。锁屏页跟随用户主题色。
         ceui.pixiv.applock.AppLock.install(this, AppThemeStyle::applyTo);
@@ -784,6 +790,8 @@ public class Shaft extends Application implements ServicesProvider {
         } catch (Exception e) {
             Timber.w(e, "Failed to initialize Firebase Analytics");
         }
+        // 接上 SDK、补发首帧前攒下的事件、同步用户属性。必须在上面的 setAnalyticsCollectionEnabled 之后。
+        step("Analytics", analytics::attach);
 
         // 动态快捷方式：getDynamicShortcuts 是一次 binder IPC，O+ 还要现画一张
         // adaptive icon 位图。只有用户长按启动图标才看得到，没有任何理由抢首帧。
@@ -1101,5 +1109,10 @@ public class Shaft extends Application implements ServicesProvider {
     @Override
     public @NotNull ceui.lisa.update.ApkDownloadManager getApkDownloadManager() {
         return apkDownloadManager;
+    }
+
+    @Override
+    public @NotNull ceui.pixiv.analytics.Analytics getAnalytics() {
+        return analytics;
     }
 }

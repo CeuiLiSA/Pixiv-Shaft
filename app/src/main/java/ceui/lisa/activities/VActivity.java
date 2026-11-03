@@ -46,6 +46,8 @@ public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
     /** 分帧队列（见 {@link FrameQueue}）：相邻页的逐帧放行排在这里。 */
     private FrameQueue mFrameQueue;
     private LazyFragmentStatePagerAdapter mLazyAdapter;
+    /** 本页是否已经展示过一幅作品：GA4 illust_view 据此区分「从列表点进来」和「在详情里滑到」。 */
+    private boolean viewedFirstIllust = false;
 
     @Override
     protected void initBundle(Bundle bundle) {
@@ -161,8 +163,14 @@ public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
                         return;
                     }
 
+                    Illust viewed = pageData.getList().get(position);
                     if (Shaft.sSettings.isSaveViewHistory()) {
-                        PixivOperate.insertIllustViewHistory(pageData.getList().get(position));
+                        PixivOperate.insertIllustViewHistory(viewed);
+                    }
+                    if (viewed.getId() > 0) {
+                        ceui.pixiv.services.ServiceProviderKt.appServices(VActivity.this)
+                                .getAnalytics().illustView(viewed.getType(), viewedFirstIllust);
+                        viewedFirstIllust = true;
                     }
 
                     if (position == (pageData.getList().size() - 1) || position == (pageData.getList().size() - 2)) {

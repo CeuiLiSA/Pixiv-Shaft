@@ -7,8 +7,11 @@ package ceui.pixiv.ui.navigation
  * 一份线上契约：
  *  - `feature_table.dataType`（精华列）把它落进了 Room，老库里的行靠它重建页面；
  *  - 外部 deep link / 通知 PendingIntent / 桌面快捷方式可能带着旧值进来。
- * 所以枚举常量可以随便改名，[key] 一个字都不能动；新增页面只加常量、不复用旧 key。
+ * 所以 [key] 一个字都不能动；新增页面只加常量、不复用旧 key。
  * `TemplateRouteTest` 用一份 golden list 锁住全部 key，改错会在单测里炸。
+ *
+ * 枚举常量名也是一份（软）契约：小写后就是 GA4 里这一页的 `screen_name`
+ * （[ceui.pixiv.analytics.screenName]）。改名不会坏功能，但这一页在报表里的历史会断开。
  *
  * 建 Fragment 的逻辑在 [TemplateRouteFactory]——穷举 `when`，漏了哪个常量编译直接报错，
  * 比 `Map<Route, Factory>` 多一层编译期保证。

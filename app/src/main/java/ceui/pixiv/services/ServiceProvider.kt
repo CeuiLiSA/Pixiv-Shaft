@@ -101,6 +101,9 @@ interface ServicesProvider {
 
     /** 应用更新包下载：关掉更新 sheet 后下载继续，跑完回前台发 banner，所以是进程级。 */
     val apkDownloadManager: ceui.lisa.update.ApkDownloadManager
+
+    /** Firebase Analytics（GA4）产品埋点，口径见 docs/analytics-tracking-plan.md。 */
+    val analytics: ceui.pixiv.analytics.Analytics
 }
 
 fun Context.appServices(): ServicesProvider = applicationContext as ServicesProvider

@@ -322,6 +322,11 @@ public class Manager {
         return Manager.SingletonHolder.INSTANCE;
     }
 
+    /** GA4 下载失败埋点（按页、带进程级配额，见 Analytics）。 */
+    private static ceui.pixiv.analytics.Analytics analytics() {
+        return ceui.pixiv.services.ServiceProviderKt.appServices(Shaft.getContext()).getAnalytics();
+    }
+
     private static class SingletonHolder {
         private static final Manager INSTANCE = new Manager();
     }
@@ -987,6 +992,7 @@ public class Manager {
                 postMain(() -> {
                     DownloadToasts.show(DownloadToastKind.STORAGE_UNAVAILABLE,
                             mContext.getString(R.string.string_365));
+                    analytics().illustDownloadStorageFailed();
                     complete(downloadItem, false);
                     // 单条失败不再 stopAll —— 并发模式下其它正在传的 page 不应受牵连。
                     pumpAvailableSlots();
@@ -1064,6 +1070,7 @@ public class Manager {
                     postMain(() -> {
                         DownloadToasts.show(DownloadToastKind.STORAGE_UNAVAILABLE,
                                 mContext.getString(R.string.string_365));
+                        analytics().illustDownloadStorageFailed();
                         complete(downloadItem, false);
                         pumpAvailableSlots();
                     });
@@ -1075,6 +1082,7 @@ public class Manager {
                     postMain(() -> {
                         DownloadToasts.show(DownloadToastKind.STORAGE_UNAVAILABLE,
                                 mContext.getString(R.string.string_365));
+                        analytics().illustDownloadStorageFailed();
                         complete(downloadItem, false);
                         pumpAvailableSlots();
                     });
@@ -1413,6 +1421,7 @@ public class Manager {
             // MediaStore 行做 delete、对 SAF 文件做 delete、对 legacy 文件做 delete
             // （只删自己刚创建的那条；pre-existing 文件不动）。
             try { factory.abandonWrite(); } catch (Exception ignored) {}
+            analytics().illustDownloadFailed(throwable);
             complete(downloadItem, false);
             // 写到一半盘满了：剩下的任务照样会一条条失败，不如整体停下等用户清理（pixez#1361）。
             // 不只认 ENOSPC 原文——有的 provider 把它包成别的 IOException，所以再按余量复查一次。

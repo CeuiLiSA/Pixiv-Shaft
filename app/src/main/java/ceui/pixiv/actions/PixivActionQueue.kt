@@ -13,6 +13,8 @@ import ceui.pixiv.actionqueue.ActionQueue
 import ceui.pixiv.actionqueue.ActionRequest
 import ceui.pixiv.actionqueue.PendingAction
 import ceui.pixiv.actionqueue.QueuePolicy
+import ceui.pixiv.analytics.Analytics
+import ceui.pixiv.analytics.AnalyticsClassifiers
 import ceui.pixiv.db.mirror.MirrorContentType
 import ceui.pixiv.db.mirror.MirrorRestrict
 import ceui.pixiv.events.EventReporter
@@ -58,6 +60,7 @@ class PixivActionQueue @Inject constructor(
     private val profileManager: ProfileManager,
     private val eventReporter: EventReporter,
     private val bookmarkMirror: BookmarkMirrorService,
+    private val analytics: Analytics,
 ) {
 
     private val app: Context = app.applicationContext
@@ -283,6 +286,7 @@ class PixivActionQueue @Inject constructor(
             instance.events.collect { event ->
                 try {
                     try {
+                        if (event is ActionEvent.Failed) analytics.novelDownloadFailed(event.cause)
                         withContext(Dispatchers.Main) { feedback.onEvent(event) }
                     } finally {
                         if (event is ActionEvent.Failed) instance.forget(event.action.id)
@@ -322,6 +326,13 @@ class PixivActionQueue @Inject constructor(
                 } else null
                 // pixiv 把漫画存成 type == "manga" 的 illust，按语义目标分开埋点。
                 val type = illust?.type ?: fetched?.type
+                analytics.bookmarkConfirmed(
+                    AnalyticsClassifiers.contentTypeOf(type),
+                    add = payload.bookmark,
+                    restrict = payload.restrict,
+                    method = payload.origin?.method,
+                    surface = payload.origin?.surface,
+                )
                 val target = if (type == "manga") {
                     EventReporter.Target.MANGA
                 } else {
@@ -370,6 +381,13 @@ class PixivActionQueue @Inject constructor(
                     ?: withContext(Dispatchers.IO) {
                         runCatching { Client.appApi.getNovel(payload.id).novel }.getOrNull()
                     }
+                analytics.bookmarkConfirmed(
+                    Analytics.ContentType.NOVEL,
+                    add = payload.bookmark,
+                    restrict = payload.restrict,
+                    method = payload.origin?.method,
+                    surface = payload.origin?.surface,
+                )
                 eventReporter.report(
                     if (payload.bookmark) EventReporter.Type.BOOKMARK else EventReporter.Type.UNBOOKMARK,
                     EventReporter.Target.NOVEL,
@@ -395,6 +413,12 @@ class PixivActionQueue @Inject constructor(
                 // 调用方不用先把 User 取到手 —— 省掉了 UActivity 里那次「等 profile 回来
                 // 才敢关注」的等待，那期间页面被销毁的话意图就丢了。
                 eventReporter.reportFollowUser(payload.userId, payload.follow)
+                analytics.followConfirmed(
+                    payload.follow,
+                    payload.restrict,
+                    method = payload.origin?.method,
+                    surface = payload.origin?.surface,
+                )
                 if (payload.follow) {
                     profileManager.onFollowUser(payload.userId)
                 } else {
@@ -462,7 +486,21 @@ class PixivActionQueue @Inject constructor(
             Timber.tag(TAG).i("skip rollback, superseded: %s", event.action.dedupeKey)
             return
         }
+        reportFailure(event)
         rollback(event)
+    }
+
+    /** 终态失败的 GA4 埋点。原因按 cause 分档；reason 是给用户看的本地化文案，不进埋点。 */
+    private fun reportFailure(event: ActionEvent.Failed) {
+        val action = event.action
+        val origin = when (action.type) {
+            PixivActionTypes.ILLUST_BOOKMARK, PixivActionTypes.NOVEL_BOOKMARK ->
+                action.parsePayload<BookmarkPayload>()?.origin
+            PixivActionTypes.USER_FOLLOW -> action.parsePayload<FollowPayload>()?.origin
+            // user_online 只是兼容老版本留下的行，不是用户动作。
+            else -> return
+        }
+        analytics.actionFailed(action.type, event.cause, origin?.surface)
     }
 
     /**

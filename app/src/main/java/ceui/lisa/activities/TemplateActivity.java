@@ -17,6 +17,8 @@ import com.jaredrummler.android.colorpicker.ColorPickerDialogListener;
 import ceui.lisa.BuildConfig;
 import ceui.lisa.R;
 import ceui.lisa.databinding.ActivityFragmentBinding;
+import ceui.pixiv.analytics.AnalyticsScreen;
+import ceui.pixiv.analytics.ScreenTrackerKt;
 import ceui.pixiv.ui.comic.reader.ComicReaderV3Fragment;
 import ceui.pixiv.ui.navigation.TemplateRoute;
 import ceui.pixiv.ui.navigation.TemplateRouteFactory;
@@ -25,7 +27,8 @@ import dagger.hilt.android.AndroidEntryPoint;
 import timber.log.Timber;
 
 @AndroidEntryPoint
-public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> implements ColorPickerDialogListener {
+public class TemplateActivity extends BaseActivity<ActivityFragmentBinding>
+        implements ColorPickerDialogListener, AnalyticsScreen {
 
     public static final String EXTRA_FRAGMENT = "dataType";
     public static final String EXTRA_KEYWORD = "keyword";
@@ -109,6 +112,14 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
     @Override
     protected int initLayout() {
         return R.layout.activity_fragment;
+    }
+
+    /** GA4 页面名按路由记：一百多个页面都开在这一个 Activity 里，类名区分不出任何东西。 */
+    @Nullable
+    @Override
+    public String analyticsScreenName() {
+        TemplateRoute route = TemplateRoute.fromKey(dataType);
+        return route != null ? ScreenTrackerKt.getScreenName(route) : null;
     }
 
     @Override

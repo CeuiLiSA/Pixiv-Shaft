@@ -56,6 +56,7 @@ object LegacyBatchEnqueue {
                 appCtx.getString(R.string.bulk_enqueue_truncated, HARD_CAP),
             )
         }
+        appCtx.appServices().analytics.bulkDownload(minOf(incomingSize, HARD_CAP))
         // Toast 是同步、瞬时的，OK 在主线程；后面的 filter/插入全部 IO。
         DownloadToasts.showShort(
             DownloadToastKind.BULK_ENQUEUE,

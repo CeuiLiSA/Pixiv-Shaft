@@ -13,6 +13,7 @@ import ceui.pixiv.witstudio.dialog.WitDialogAction
 import androidx.lifecycle.MutableLiveData
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
+import ceui.pixiv.services.appServices
 import ceui.lisa.repo.freshMembershipOf
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.Local
@@ -572,6 +573,8 @@ object SessionManager {
                 }
                 Timber.tag("TokenRefresh")
                     .e(ex, "refresh rejected as INVALID refresh token → signing out + restart")
+                Shaft.getContext().appServices().analytics
+                    .logout(ceui.pixiv.analytics.Analytics.LogoutReason.TOKEN_INVALID)
                 postUpdateSession(null)
                 Common.showToast(R.string.string_340)
                 Common.restart()

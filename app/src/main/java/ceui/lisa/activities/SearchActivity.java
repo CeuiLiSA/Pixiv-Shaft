@@ -53,6 +53,8 @@ import ceui.pixiv.ui.search.v3.SearchFilterV3BottomSheet;
 import ceui.pixiv.ui.search.v3.SearchFilterV3LegacyBridge;
 import ceui.pixiv.widgets.FeedBackToTopFab;
 import ceui.lisa.core.JavaAsync;
+import ceui.pixiv.analytics.Analytics;
+import ceui.pixiv.services.ServiceProviderKt;
 
 public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
 
@@ -97,7 +99,7 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
 
         // 首搜写历史：无论从哪儿带关键字进来（输入框搜索/提示词/热标签/详情页标签/发现/深链…），
         // 都在这唯一入口收口一次。首搜走 ensureLoaded 不发 nowGo，所以和下面的重搜 observer 不重复。
-        recordKeywordHistory(keyWord);
+        recordKeywordHistory(keyWord, searchTypeAt(index), Analytics.SearchTrigger.NAVIGATION);
     }
 
     /**
@@ -106,11 +108,14 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
      * 原先写入寄生在 {@code SearchIllustRepo.initApi}，会被 trending_builtin 提前 return 跳过、
      * 且只有插画 tab 触发；上移到这里后所有入口、所有 tab、所有排序都稳定写一条。
      */
-    private void recordKeywordHistory(String keyword) {
+    private void recordKeywordHistory(String keyword, Analytics.SearchType type,
+                                      Analytics.SearchTrigger trigger) {
         if (keyword == null) return;
         final String trimmed = keyword.trim();
         if (trimmed.isEmpty()) return;
         lastSearchedKeyword = trimmed;
+        // 和历史共用这个收口：每次真正发起的关键词搜索恰好一条。只记形状（几个词），不记词本身。
+        trackSearch(type, Analytics.QueryKind.KEYWORD, trigger, trimmed.split("\\s+").length);
         // 写库甩到 IO 线程：insertSearchHistory 是主键读 + 单条插入，search_table 极小虽轻，
         // 政策判断也留在这里，首次进搜索页即使后台预热尚未完成也不阻塞主线程。
         // initModel / nowGo 都跑在主线程，统一挪开不碰主线程 Room（对齐本仓
@@ -122,6 +127,18 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
                 PixivOperate.insertSearchHistory(trimmed, SearchTypeUtil.SEARCH_TYPE_DB_KEYWORD);
             }
         });
+    }
+
+    /** 结果页三个 tab 的位置 → GA4 search_type。 */
+    private static Analytics.SearchType searchTypeAt(int position) {
+        if (position == 1) return Analytics.SearchType.NOVEL;
+        if (position == 2) return Analytics.SearchType.USER;
+        return Analytics.SearchType.ILLUST;
+    }
+
+    private void trackSearch(Analytics.SearchType type, Analytics.QueryKind kind,
+                             Analytics.SearchTrigger trigger, int termCount) {
+        ServiceProviderKt.appServices(this).getAnalytics().search(type, kind, trigger, termCount);
     }
 
     @Override
@@ -343,6 +360,8 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
                 }
 
                 if (URLUtil.isValidUrl(trimmedKeyword)) {
+                    trackSearch(searchTypeAt(mPosition), Analytics.QueryKind.URL,
+                            Analytics.SearchTrigger.IN_PAGE, 1);
                     try {
                         PixivOperate.insertSearchHistory(trimmedKeyword, SearchTypeUtil.SEARCH_TYPE_DB_URL);
                         Intent intent = new Intent(mContext, OutWakeActivity.class);
@@ -355,6 +374,8 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
                     }
                 }
                 else if(Common.isNumeric(trimmedKeyword)){
+                    trackSearch(searchTypeAt(mPosition), Analytics.QueryKind.NUMERIC_ID,
+                            Analytics.SearchTrigger.IN_PAGE, 1);
                     WitTipDialog tipDialog = new WitTipDialog.Builder(mContext)
                             .setTipWord(getString(R.string.string_429))
                             .create();
@@ -447,7 +468,8 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
         // 都会给 nowGo 一脚，这里统一收口写一条（去重）。首搜不发 nowGo（走 ensureLoaded），
         // 已在 initModel 写过，故两者不重复。读 keyword 而非 chip：nowGo 一定在 keyword 落定后才发。
         searchModel.getNowGo().observe(this, ignored ->
-                recordKeywordHistory(searchModel.getKeyword().getValue()));
+                recordKeywordHistory(searchModel.getKeyword().getValue(),
+                        searchTypeAt(mPosition), Analytics.SearchTrigger.IN_PAGE));
 
         // V3 filter sheet 替代老 FragmentFilter 抽屉。bridge 启动后会持续把
         // V3 SearchViewModel 的 illustFilter / novelFilter 翻译到 SearchModel，
