@@ -206,6 +206,8 @@ cd Pixiv-Shaft
 
 **Requirements:** JDK 17+, Android SDK 36 · Min SDK 24 (Android 7.0), Target SDK 36 (Android 16)
 
+> **Windows build tip:** If cloning to a non-system drive (e.g. `D:\`, `R:\`), KSP may fail with `different roots`. See [Windows KSP Cross-Drive Troubleshooting](docs/windows-ksp-cross-drive-troubleshooting.md).
+
 ## 💎 Plans
 
 Shaft itself is free, open source and ad-free forever, with every feature unlocked — including AI upscaling, cut-out, manga translation and ugoira interpolation. The one thing with a quota is **"sort any keyword by popularity"**, because it uses shared search resources. Subscribing only multiplies that quota; it never unlocks exclusive features.
