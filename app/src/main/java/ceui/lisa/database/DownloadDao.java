@@ -1,6 +1,7 @@
 package ceui.lisa.database;
 
 import android.database.Cursor;
+import androidx.annotation.NonNull;
 import androidx.room.Dao;
 import androidx.room.Delete;
 import androidx.room.Insert;
@@ -13,8 +14,10 @@ import ceui.lisa.feature.FeatureEntity;
 import kotlinx.coroutines.flow.Flow;
 
 //保存下载历史记录
+// 抽象类而不是接口：Room 2.7 的 KSP 处理器会把 Java 接口里的 default 方法误当成 Kotlin 接口的
+// DefaultImpls，生成 DownloadDao.DefaultImpls.xxx(...) 调用而编译失败。抽象类里的具体方法 Room 不碰。
 @Dao
-public interface DownloadDao {
+public abstract class DownloadDao {
 
     /**
      * 添加一个下载记录
@@ -22,7 +25,7 @@ public interface DownloadDao {
      * @param illustTask
      */
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    void insert(DownloadEntity illustTask);
+    public abstract void insert(DownloadEntity illustTask);
 
     /**
      * 统一的下载记录写入口：插入前若 illustId 未定（<=0），先由 illustGson 顶层 "id" 算出，
@@ -31,7 +34,7 @@ public interface DownloadDao {
      * 跳过解析（Manager 下载完成分支就直接传 illust.id）。所有往 illust_download_table 写
      * DownloadEntity 的地方都必须走这个而不是裸 {@link #insert(DownloadEntity)}。
      */
-    default void insertDownload(DownloadEntity entity) {
+    public void insertDownload(DownloadEntity entity) {
         if (entity.getIllustId() <= 0L) {
             entity.setIllustId(DownloadIdExtractor.extractIllustId(entity.getIllustGson()));
         }
@@ -48,14 +51,14 @@ public interface DownloadDao {
      * 导入是纯增量的，重复扫同一个目录也是幂等的。
      */
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    void insertIgnoreAll(List<DownloadEntity> entities);
+    public abstract void insertIgnoreAll(List<DownloadEntity> entities);
 
     /**
      * 这批 fileName 里哪些已经在库里 —— 导入前算"将跳过多少"用，让用户在真正写库
      * 之前就看到准确的数字。调用方需按 SQLite 变量上限（999）分片。
      */
     @Query("SELECT fileName FROM illust_download_table WHERE fileName IN (:fileNames)")
-    List<String> filterExistingFileNames(List<String> fileNames);
+    public abstract List<String> filterExistingFileNames(List<String> fileNames);
 
     /**
      * 把某个作品所有下载行的 illustGson 换成完整版。导入时先写的是
@@ -63,13 +66,13 @@ public interface DownloadDao {
      * v1/illust/detail 拉到真数据后用这个覆盖，卡片上就有标题 / 作者 / 封面了。
      */
     @Query("UPDATE illust_download_table SET illustGson = :illustGson WHERE illustId = :illustId")
-    void updateIllustGsonByIllustId(long illustId, String illustGson);
+    public abstract void updateIllustGsonByIllustId(long illustId, String illustGson);
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    void insertDownloading(DownloadingEntity entity);
+    public abstract void insertDownloading(DownloadingEntity entity);
 
     @Delete
-    void deleteDownloading(DownloadingEntity entity);
+    public abstract void deleteDownloading(DownloadingEntity entity);
 
     /**
      * 删除一条下载记录
@@ -77,7 +80,7 @@ public interface DownloadDao {
      * @param userEntity
      */
     @Delete
-    void delete(DownloadEntity userEntity);
+    public abstract void delete(DownloadEntity userEntity);
 
     /**
      * 获取全部下载记录
@@ -87,7 +90,7 @@ public interface DownloadDao {
      * @return
      */
     @Query("SELECT * FROM illust_download_table ORDER BY downloadTime DESC LIMIT :limit OFFSET :offset")
-    List<DownloadEntity> getAll(int limit, int offset);
+    public abstract List<DownloadEntity> getAll(int limit, int offset);
 
     /**
      * 前 [limit] 行能折成多少张卡片 —— 已完成 tab 标题上的数字，分组键与
@@ -100,7 +103,7 @@ public interface DownloadDao {
             "ELSE 'a:' || fileName END) " +
             "FROM (SELECT fileName, illustId FROM illust_download_table " +
             "ORDER BY downloadTime DESC LIMIT :limit)")
-    int countDoneCardsInWindow(String novelKey, int limit);
+    public abstract int countDoneCardsInWindow(String novelKey, int limit);
 
     /**
      * 模糊搜索已下载记录。在 fileName 和 illustGson（含 title / user.name 等
@@ -111,7 +114,7 @@ public interface DownloadDao {
             "fileName LIKE '%' || :keyword || '%' OR " +
             "illustGson LIKE '%' || :keyword || '%' " +
             "ORDER BY downloadTime DESC LIMIT 600")
-    List<DownloadEntity> searchDownloads(String keyword);
+    public abstract List<DownloadEntity> searchDownloads(String keyword);
 
     /**
      * Reactive 列表：Room InvalidationTracker 在 illust_download_table 任意
@@ -119,7 +122,7 @@ public interface DownloadDao {
      * 广播兜底 —— Manager 写 DownloadEntity 时 Room 自己就会通知 collector。
      */
     @Query("SELECT * FROM illust_download_table ORDER BY downloadTime DESC LIMIT :limit")
-    Flow<List<DownloadEntity>> flowAll(int limit);
+    public abstract Flow<List<DownloadEntity>> flowAll(int limit);
 
     /**
      * 判断是否存在指定插画 id 的下载记录（通过 illustGson 中的 "id":xxx 片段匹配）。
@@ -128,7 +131,7 @@ public interface DownloadDao {
     @Query("SELECT COUNT(*) > 0 FROM illust_download_table WHERE " +
             "illustGson LIKE '%\"id\":' || :illustId || ',%' OR " +
             "illustGson LIKE '%\"id\":' || :illustId || '}%'")
-    boolean hasDownloadRecordByIllustId(long illustId);
+    public abstract boolean hasDownloadRecordByIllustId(long illustId);
 
     /**
      * illustId 走索引的 O(log n) 版本，取代 {@link #hasDownloadRecordByIllustId} 对 illustGson
@@ -137,21 +140,21 @@ public interface DownloadDao {
      * 期间仍需 LIKE 版兜底，统一入口见 {@code DownloadStateProbeKt.hasDownloadRecord}。
      */
     @Query("SELECT COUNT(*) > 0 FROM illust_download_table WHERE illustId = :illustId")
-    boolean hasDownloadRecordByIllustIdIndexed(long illustId);
+    public abstract boolean hasDownloadRecordByIllustIdIndexed(long illustId);
 
     // ---- v38 illustId 索引列的存量回填（DownloadIdBackfill 用）----
 
     /** 还有多少行没回填（illustId 仍是初始的 0）。 */
     @Query("SELECT COUNT(*) FROM illust_download_table WHERE illustId = 0")
-    int countDownloadsNeedingIdBackfill();
+    public abstract int countDownloadsNeedingIdBackfill();
 
     /** 取一批未回填的行（只带回填要用的 fileName + illustGson）。WHERE illustId=0 走索引，不全表扫。 */
     @Query("SELECT fileName, illustGson FROM illust_download_table WHERE illustId = 0 LIMIT :limit")
-    List<DownloadIdRow> getDownloadsNeedingIdBackfill(int limit);
+    public abstract List<DownloadIdRow> getDownloadsNeedingIdBackfill(int limit);
 
     /** 回填单行的 illustId（按主键 fileName 定位）。 */
     @Query("UPDATE illust_download_table SET illustId = :illustId WHERE fileName = :fileName")
-    void setDownloadIllustId(String fileName, long illustId);
+    public abstract void setDownloadIllustId(String fileName, long illustId);
 
     /**
      * 按 fileName(主键)精确取一条下载记录。详情页把每页用 FileCreator.customFileName
@@ -159,14 +162,14 @@ public interface DownloadDao {
      * 30000+ 条下载库下也是 O(log n),不像 illustGson LIKE 那样全表扫 blob。
      */
     @Query("SELECT * FROM illust_download_table WHERE fileName = :fileName LIMIT 1")
-    DownloadEntity getDownloadByFileName(String fileName);
+    public abstract DownloadEntity getDownloadByFileName(String fileName);
 
     /**
      * 详情页一次取回本作品所有候选页。fileName 是主键，IN 查询仍走主键索引；相比逐页调用
      * {@link #getDownloadByFileName}，多 P 作品从 N 次 Room/SQLite 往返降为 1 次。
      */
     @Query("SELECT * FROM illust_download_table WHERE fileName IN (:fileNames)")
-    List<DownloadEntity> getDownloadsByFileNames(List<String> fileNames);
+    public abstract List<DownloadEntity> getDownloadsByFileNames(List<String> fileNames);
 
     /**
      * 按 (作品, 页码) 取这个作品已下载的页。v41 的 {@code (illustId, page)} 复合索引，O(log n)。
@@ -182,7 +185,7 @@ public interface DownloadDao {
      */
     @Query("SELECT fileName, filePath, page FROM illust_download_table " +
             "WHERE illustId = :illustId AND page >= 0 ORDER BY downloadTime DESC")
-    List<DownloadedPage> getDownloadedPages(long illustId);
+    public abstract List<DownloadedPage> getDownloadedPages(long illustId);
 
     /**
      * 同一页的全部候选，新的记录优先。不能 {@code LIMIT 1}：用户换模板、重复下载或导入
@@ -192,7 +195,7 @@ public interface DownloadDao {
      */
     @Query("SELECT fileName, filePath, page FROM illust_download_table " +
             "WHERE illustId = :illustId AND page = :page ORDER BY downloadTime DESC")
-    List<DownloadedPage> getDownloadedPageCandidates(long illustId, int page);
+    public abstract List<DownloadedPage> getDownloadedPageCandidates(long illustId, int page);
 
     /**
      * {@code since} 及之后写下的页记录。批量队列重试补页用：只认这一行入队之后落盘的页，
@@ -201,7 +204,7 @@ public interface DownloadDao {
     @Query("SELECT fileName, filePath, page FROM illust_download_table " +
             "WHERE illustId = :illustId AND page >= 0 AND downloadTime >= :since " +
             "ORDER BY downloadTime DESC")
-    List<DownloadedPage> getDownloadedPagesSince(long illustId, long since);
+    public abstract List<DownloadedPage> getDownloadedPagesSince(long illustId, long since);
 
     // ---- v41 page 列的存量回填（DownloadPageBackfill 用）----
 
@@ -217,15 +220,15 @@ public interface DownloadDao {
      * 在躲的事）。{@code (illustId, page)} 复合索引覆盖了整个查询。
      */
     @Query("SELECT DISTINCT illustId FROM illust_download_table WHERE page = -1 AND illustId > 0 LIMIT :limit")
-    List<Long> getIllustIdsNeedingPageBackfill(int limit);
+    public abstract List<Long> getIllustIdsNeedingPageBackfill(int limit);
 
     /** 某个作品还没回填 page 的全部文件名。走 {@code (illustId, page)} 索引。 */
     @Query("SELECT fileName FROM illust_download_table WHERE illustId = :illustId AND page = -1")
-    List<String> getFileNamesNeedingPageBackfill(long illustId);
+    public abstract List<String> getFileNamesNeedingPageBackfill(long illustId);
 
     /** 回填单行的 page（按主键 fileName 定位）。 */
     @Query("UPDATE illust_download_table SET page = :page WHERE fileName = :fileName")
-    void setDownloadPage(String fileName, int page);
+    public abstract void setDownloadPage(String fileName, int page);
 
     /**
      * 重命名一条下载记录（issue #567 的批量重命名）：文件在磁盘上改名成功后，把主键
@@ -234,15 +237,21 @@ public interface DownloadDao {
      * 去重，仍冲突则捕获并把磁盘文件名改回去，保持记录与磁盘一致。
      */
     @Query("UPDATE illust_download_table SET fileName = :newFileName, filePath = :newFilePath WHERE fileName = :oldFileName")
-    void renameDownload(String oldFileName, String newFileName, String newFilePath);
+    public abstract void renameDownload(String oldFileName, String newFileName, String newFilePath);
 
     @Query("SELECT IFNULL(MAX(rowid), 0) FROM illust_downloading_table")
-    long getDownloadingHighWaterMark();
+    public abstract long getDownloadingHighWaterMark();
 
-    /** Keyset paging keeps enqueue order when earlier rows are deleted during recovery. */
+    /**
+     * Keyset paging keeps enqueue order when earlier rows are deleted during recovery.
+     *
+     * <p>{@code @NonNull} 不能省：Room 的 KSP 处理器只把「非空的 Cursor」认作原生游标返回，
+     * 未标注的 Java 返回类型在 KSP 里是可空平台类型，会被当成实体去解析而编译失败。
+     */
+    @NonNull
     @Query("SELECT rowid, taskGson FROM illust_downloading_table "
             + "WHERE rowid > :after AND rowid <= :through ORDER BY rowid ASC LIMIT :limit")
-    Cursor getDownloadingBatch(long after, long through, int limit);
+    public abstract Cursor getDownloadingBatch(long after, long through, int limit);
 
     /**
      * 整表删除拆成小事务逐批提交，每批 {@link #DELETE_BATCH} 行。
@@ -251,31 +260,31 @@ public interface DownloadDao {
      * 1.3GB（库是 auto_vacuum=FULL），COMMIT 跑几十秒到几分钟，期间独占写连接；这段时间进程一被杀（等不及 / ANR / 没电）整批回滚，数据原样回来（#1192）。
      * 分批后每批几 MB、几百毫秒提交，被杀也只丢最后一批，再点一次就接着删。
      */
-    default void deleteAllDownload() {
+    public void deleteAllDownload() {
         while (deleteDownloadBatch(DELETE_BATCH) > 0) { }
     }
 
-    int DELETE_BATCH = 200;
+    public static final int DELETE_BATCH = 200;
 
     @Query("DELETE FROM illust_download_table WHERE rowid IN " +
             "(SELECT rowid FROM illust_download_table LIMIT :limit)")
-    int deleteDownloadBatch(int limit);
+    public abstract int deleteDownloadBatch(int limit);
 
     /**
      * 给 BulkDownloadCacheCleaner 估"清出来多少字节"用 —— 单 illustGson 列就是占用大头,
      * 元数据/index 不算在用户感知的"瘦身额度"里。
      */
     @Query("SELECT IFNULL(SUM(LENGTH(CAST(illustGson AS BLOB))), 0) FROM illust_download_table")
-    long sumIllustGsonBytes();
+    public abstract long sumIllustGsonBytes();
 
     /** 分批删，理由同 {@link #deleteAllDownload()}（taskGson 单行 ~80KB）。 */
-    default void deleteAllDownloading() {
+    public void deleteAllDownloading() {
         while (deleteDownloadingBatch(DELETE_BATCH) > 0) { }
     }
 
     @Query("DELETE FROM illust_downloading_table WHERE rowid IN " +
             "(SELECT rowid FROM illust_downloading_table LIMIT :limit)")
-    int deleteDownloadingBatch(int limit);
+    public abstract int deleteDownloadingBatch(int limit);
 
 
     /**
@@ -284,14 +293,14 @@ public interface DownloadDao {
      * @param illustHistoryEntity
      */
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    void insert(IllustHistoryEntity illustHistoryEntity);
+    public abstract void insert(IllustHistoryEntity illustHistoryEntity);
 
     /**
      * 批量写入浏览历史。备份还原走这里:一批一个事务,几千上万行逐条 insert
      * (每条一个事务)在低端机上要跑几十秒(#981)。
      */
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    void insertHistories(List<IllustHistoryEntity> illustHistoryEntities);
+    public abstract void insertHistories(List<IllustHistoryEntity> illustHistoryEntities);
 
     /**
      * 删除一个浏览历史
@@ -299,13 +308,13 @@ public interface DownloadDao {
      * @param userEntity
      */
     @Delete
-    void delete(IllustHistoryEntity userEntity);
+    public abstract void delete(IllustHistoryEntity userEntity);
 
     /**
      *
      */
     @Query("DELETE FROM illust_table")
-    void deleteAllHistory();
+    public abstract void deleteAllHistory();
 
     /**
      * 分页查询所有浏览历史
@@ -315,29 +324,29 @@ public interface DownloadDao {
      * @return
      */
     @Query("SELECT * FROM illust_table ORDER BY time DESC LIMIT :limit OFFSET :offset")
-    List<IllustHistoryEntity> getAllViewHistory(int limit, int offset);
+    public abstract List<IllustHistoryEntity> getAllViewHistory(int limit, int offset);
 
     /**
      * 只取 illustID 列,给 DiscoveryPool 之类只需要 id 集合的调用方用。
      * 全表 SELECT * 会把每行 illustJson 一起塞进 CursorWindow,历史攒多了就 OOM。
      */
     @Query("SELECT illustID FROM illust_table")
-    List<Long> getAllViewHistoryIds();
+    public abstract List<Long> getAllViewHistoryIds();
 
     /**
      * 浏览历史总条数
      */
     @Query("SELECT COUNT(*) FROM illust_table")
-    int getViewHistoryCount();
+    public abstract int getViewHistoryCount();
 
     /**
      * 按 type 分页查询浏览历史（0=插画/漫画, 1=小说）
      */
     @Query("SELECT * FROM illust_table WHERE type = :type ORDER BY time DESC LIMIT :limit OFFSET :offset")
-    List<IllustHistoryEntity> getViewHistoryByType(int type, int limit, int offset);
+    public abstract List<IllustHistoryEntity> getViewHistoryByType(int type, int limit, int offset);
 
     @Query("SELECT COUNT(*) FROM illust_table WHERE type = :type")
-    int getViewHistoryCountByType(int type);
+    public abstract int getViewHistoryCountByType(int type);
 
     /**
      * 按 id 批量取 (illustID, time, type) 投影,云端历史物化回写(#989)用来做 LWW 比较。
@@ -345,7 +354,7 @@ public interface DownloadDao {
      * 调用方一次最多传一页(≤100 个 id),不会撞 SQLite 999 变量上限。
      */
     @Query("SELECT illustID, time, type FROM illust_table WHERE illustID IN (:ids)")
-    List<HistoryIdTime> getViewHistoryTimes(List<Long> ids);
+    public abstract List<HistoryIdTime> getViewHistoryTimes(List<Long> ids);
 
     /**
      * 云端回填(#989)用的 keyset 分页:严格按 time 递减往老走。不能用 LIMIT/OFFSET——
@@ -353,10 +362,10 @@ public interface DownloadDao {
      * 而回填按 uid 只跑一次,漏了就永远漏了。同一毫秒的并列行会被 &lt; 略过,可忽略。
      */
     @Query("SELECT * FROM illust_table WHERE type = :type AND time < :beforeTime ORDER BY time DESC LIMIT :limit")
-    List<IllustHistoryEntity> getViewHistoryByTypeBefore(int type, long beforeTime, int limit);
+    public abstract List<IllustHistoryEntity> getViewHistoryByTypeBefore(int type, long beforeTime, int limit);
 
     @Query("DELETE FROM illust_table WHERE type = :type")
-    void deleteAllHistoryByType(int type);
+    public abstract void deleteAllHistoryByType(int type);
 
     /**
      * 全库模糊搜索浏览历史。LIKE 命中 illustJson 字段 —— Pixiv 的 title /
@@ -364,14 +373,14 @@ public interface DownloadDao {
      * 子串即返回。限 200 条，避免内存爆。
      */
     @Query("SELECT * FROM illust_table WHERE illustJson LIKE '%' || :keyword || '%' ORDER BY time DESC LIMIT 200")
-    List<IllustHistoryEntity> searchViewHistory(String keyword);
+    public abstract List<IllustHistoryEntity> searchViewHistory(String keyword);
 
     /**
      * type-aware 全库模糊搜索：浏览历史 tabs 的「插画」「小说」分 tab 各自要
      * 按 type 单独过滤。LIKE illustJson 命中 title/user.name 等子串。
      */
     @Query("SELECT * FROM illust_table WHERE type = :type AND illustJson LIKE '%' || :keyword || '%' ORDER BY time DESC LIMIT 200")
-    List<IllustHistoryEntity> searchViewHistoryByType(String keyword, int type);
+    public abstract List<IllustHistoryEntity> searchViewHistoryByType(String keyword, int type);
 
 
     /**
@@ -380,7 +389,7 @@ public interface DownloadDao {
      * @param userEntity
      */
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    void insertUser(UserEntity userEntity);
+    public abstract void insertUser(UserEntity userEntity);
 
 
     /**
@@ -389,36 +398,36 @@ public interface DownloadDao {
      * @param userEntity
      */
     @Delete
-    void deleteUser(UserEntity userEntity);
+    public abstract void deleteUser(UserEntity userEntity);
 
     @Query("SELECT * FROM user_table ORDER BY loginTime DESC")
-    List<UserEntity> getAllUser();
+    public abstract List<UserEntity> getAllUser();
 
     @Query("SELECT * FROM user_table limit 1")
-    UserEntity getCurrentUser();
+    public abstract UserEntity getCurrentUser();
 
     /** 按 uid 取账号表里的一行；没有就返回 null（调用方据此判断「这个号没在本机登录过」）。 */
     @Query("SELECT * FROM user_table WHERE userID = :uid limit 1")
-    UserEntity getUserByUid(long uid);
+    public abstract UserEntity getUserByUid(long uid);
 
     @Query("SELECT * FROM upload_image_table ORDER BY uploadTime DESC")
-    List<ImageEntity> getUploadedImage();
+    public abstract List<ImageEntity> getUploadedImage();
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    void insertUploadedImage(ImageEntity imageEntity);
+    public abstract void insertUploadedImage(ImageEntity imageEntity);
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    void insertFeature(FeatureEntity holder);
+    public abstract void insertFeature(FeatureEntity holder);
 
     @Query("SELECT * FROM feature_table ORDER BY dateTime DESC LIMIT :limit OFFSET :offset")
-    List<FeatureEntity> getFeatureList(int limit, int offset);
+    public abstract List<FeatureEntity> getFeatureList(int limit, int offset);
 
     @Delete
-    void deleteFeature(FeatureEntity userEntity);
+    public abstract void deleteFeature(FeatureEntity userEntity);
 
     @Query("DELETE FROM feature_table")
-    void deleteAllFeature();
+    public abstract void deleteAllFeature();
 
     @Query("SELECT * FROM feature_table")
-    List<FeatureEntity> getAllFeatureEntities();
+    public abstract List<FeatureEntity> getAllFeatureEntities();
 }

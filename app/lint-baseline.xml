@@ -5657,28 +5657,6 @@
     </issue>
 
     <issue
-        id="KaptUsageInsteadOfKsp"
-        message="This library supports using KSP instead of kapt, which greatly improves performance. Learn more: https://developer.android.com/studio/build/migrate-to-ksp"
-        errorLine1="    kapt &apos;com.github.bumptech.glide:compiler:4.16.0&apos;"
-        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="build.gradle"
-            line="303"
-            column="5"/>
-    </issue>
-
-    <issue
-        id="KaptUsageInsteadOfKsp"
-        message="This library supports using KSP instead of kapt, which greatly improves performance. Learn more: https://developer.android.com/studio/build/migrate-to-ksp"
-        errorLine1="    kapt &apos;androidx.room:room-compiler:2.7.2&apos;"
-        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="build.gradle"
-            line="311"
-            column="5"/>
-    </issue>
-
-    <issue
         id="DisableBaselineAlignment"
         message="Set `android:baselineAligned=&quot;false&quot;` on this element for better performance"
         errorLine1="    &lt;LinearLayout"

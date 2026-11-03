@@ -26,7 +26,8 @@ glideTransformations = "4.3.0"
 gson = "2.11.0"
 # Dagger/Hilt 2.59+ 的 Hilt Gradle 插件要求 AGP 9；插件与运行时共用这一个版本号。
 # 先停在 2.59.x：2.60 起 hilt-android 传递依赖 kotlin-stdlib 2.3.x，而本仓编译器是 Kotlin 2.2，
-# Room 2.7 的 kapt 读不了 2.3 元数据（kaptGithubDebugKotlin 直接失败）。升 Kotlin 2.3 时一并升。
+# 当时 Room 2.7 还在 kapt，读不了 2.3 元数据（kaptGithubDebugKotlin 直接失败）。Room 已改走 KSP，
+# 这条限制是否还在没有重新验证；升 Hilt 前先实测，或升 Kotlin 2.3 时一并升。
 hilt = "2.59.2"
 hdImageView = "3.0.2"
 htmlTextView = "3.9"
@@ -112,7 +113,7 @@ firebaseCrashlytics = { module = "com.google.firebase:firebase-crashlytics", ver
 flexbox = { module = "com.google.android.flexbox:flexbox", version.ref = "flexbox" }
 flowingDrawer = { module = "com.mxn.soul:flowingdrawer-core", version.ref = "flowingDrawer" }
 glide = { module = "com.github.bumptech.glide:glide", version.ref = "glide" }
-glideCompiler = { module = "com.github.bumptech.glide:compiler", version.ref = "glide" }
+glideKsp = { module = "com.github.bumptech.glide:ksp", version.ref = "glide" }
 glideOkhttp = { module = "com.github.bumptech.glide:okhttp3-integration", version.ref = "glide" }
 glideTransformations = { module = "jp.wasabeef:glide-transformations", version.ref = "glideTransformations" }
 googleReview = { module = "com.google.android.play:review", version.ref = "playReview" }

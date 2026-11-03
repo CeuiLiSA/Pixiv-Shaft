@@ -29,7 +29,6 @@
 
 | 惯例 | 本模块 | 原因 |
 |---|---|---|
-| kapt | **KSP** | kapt 在 Kotlin 2.x 已进入维护模式；`:app` 还留着 kapt 只因 Glide 编译器没有 KSP 版 |
 | `object` 单例 + `init(context)` | 可注入的普通 class | `object` 的全局可变状态跨用例泄漏，时间和存储都换不掉，等于没法单测 |
 | `allowMainThreadQueries()` | 不开 | 开了只会掩盖「不小心在主线程读库」 |
 | DAO 阻塞式 | 全 suspend | 所有访问都在协程里 |

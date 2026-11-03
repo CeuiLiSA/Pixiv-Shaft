@@ -1,10 +1,8 @@
 import java.security.SecureRandom
 
 apply plugin: 'com.android.application'
-// AGP 9 内置 Kotlin 不再兼容 kotlin-kapt；Glide 编译器只有 kapt 版，走 AGP 自带的 legacy-kapt。
-apply plugin: 'com.android.legacy-kapt'
 apply plugin: 'kotlin-parcelize'
-// Hilt 处理器走 KSP（Glide/Room 仍在 kapt，两者在同一模块并存互不干扰）。
+// 注解处理器（Glide / Room / Hilt）全部走 KSP，本仓已不再使用 kapt。
 apply plugin: 'com.google.devtools.ksp'
 apply plugin: 'com.google.dagger.hilt.android'
 apply plugin: 'com.google.gms.google-services'
@@ -207,6 +205,8 @@ android {
     }
 
     buildFeatures {
+        // 没有 kapt，DataBinding 处理器跑在 javac 上、看不到 Kotlin 里的 @BindingAdapter；
+        // 自定义布局属性一律登记在 ceui.pixiv.utils.DataBindingAdapters（Java）。
         dataBinding = true
         viewBinding = true
         buildConfig = true // 启用 BuildConfig
@@ -251,13 +251,14 @@ androidComponents {
     }
 }
 
-kapt {
+ksp {
     // schema 是迁移测试的输入，也用于 code review；必须随版本一并提交。
-    // 不用 androidx.room 插件：它（截至 2.8.5）只认 KGP 的 kotlin-kapt，挂不上 AGP 9 内置 kapt，
-    // 参数静默丢失、schema 停止导出。同 :actionqueue 的 ksp arg 写法。
-    arguments {
-        arg('room.schemaLocation', "$projectDir/schemas")
-    }
+    // 同 :actionqueue 的写法，直接传 ksp arg，不额外引 androidx.room Gradle 插件。
+    arg('room.schemaLocation', "$projectDir/schemas")
+    // Room 在 KSP 下默认生成 Kotlin，这里固定生成 Java，让产物与原先 kapt 的保持一致（差异只剩
+    // KSP 读得到 Kotlin / @NonNull 可空性后省掉的 null 分支）。本模块 DAO/Entity 多是 Java，
+    // 切 Kotlin codegen 后未标注类型的可空性要逐个审，判错就是运行时崩溃、编译期查不出来，要切就单独做。
+    arg('room.generateKotlin', 'false')
 }
 
 // CMake compilation must never race the generated secret header, especially when Gradle
@@ -318,13 +319,14 @@ dependencies {
 
     implementation libs.glide
     implementation libs.glideOkhttp
-    kapt libs.glideCompiler
+    // Glide 的 KSP 处理器不支持 Generated API（GlideApp / @GlideExtension），本仓也没用。
+    ksp libs.glideKsp
 
     implementation libs.glideTransformations
     implementation libs.circleImageView
     implementation libs.androidxRoomRuntime
     implementation libs.androidxRoomKtx
-    kapt libs.androidxRoomCompiler
+    ksp libs.androidxRoomCompiler
     implementation libs.hiltAndroid
     ksp libs.hiltCompiler
     implementation libs.agentwebCore
