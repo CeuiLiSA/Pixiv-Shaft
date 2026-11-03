@@ -1,6 +1,7 @@
 package ceui.pixiv.cache
 
-import android.util.Log
+import android.os.Looper
+import timber.log.Timber
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import ceui.lisa.models.ModelObject
@@ -49,6 +50,8 @@ data class ObjectKey(
  */
 object ObjectPool {
 
+    const val TAG = "updateObjectPool"
+
     /** 见类注释「有界 + LRU」。 */
     private const val MAX_ENTRIES = 2048
 
@@ -86,11 +89,13 @@ object ObjectPool {
     fun invalidatePlaza(viewerUid: Long, revision: Long) {
         val entries = synchronized(lock) {
             store.values.mapNotNull { live ->
-                (live.value as? PlazaPostCacheEntry)?.takeIf { it.viewerUid == viewerUid }?.let { live to it }
+                (live.value as? PlazaPostCacheEntry)?.takeIf { it.viewerUid == viewerUid }
+                    ?.let { live to it }
             }
         }
         entries.forEach { (live, entry) ->
-            live.value = PlazaPostCacheEntry(entry.id, viewerUid, null, System.currentTimeMillis(), revision)
+            live.value =
+                PlazaPostCacheEntry(entry.id, viewerUid, null, System.currentTimeMillis(), revision)
         }
     }
 
@@ -109,6 +114,40 @@ object ObjectPool {
         illust.user?.let { user ->
             update(user)
         }
+    }
+
+    /**
+     * 作品列表批量合池。
+     *
+     * 内部自动处理：
+     *  - 批次内作者去重（同画师多张作品只合入一次 User 条目，避免同画师连发作品时反复 merge 与打池）；
+     *  - 统一调用 [updateObjects] 走单次加锁事务。
+     */
+    @JvmOverloads
+    fun updateIllusts(illusts: Collection<Illust>, isTrusted: Boolean = false) {
+        if (illusts.isEmpty()) return
+        if (illusts.size == 1) {
+            val single = illusts.first()
+            if (isTrusted) updateIllustTrusted(single) else updateIllust(single)
+            return
+        }
+        val items = ArrayList<ModelObject>(illusts.size * 2)
+        val seenAuthors = HashSet<Long>()
+        for (illust in illusts) {
+            items.add(illust)
+            val user = illust.user
+            if (user != null && user.id > 0L && seenAuthors.add(user.id)) {
+                items.add(user)
+            }
+        }
+        updateObjects(items, isFullVersion = false, isTrusted = isTrusted)
+    }
+
+    /**
+     * 官方作品列表批量合池，并将作品与作者条目的 viewer 态重置为可信。
+     */
+    fun updateIllustsTrusted(illusts: Collection<Illust>) {
+        updateIllusts(illusts, isTrusted = true)
     }
 
     /**
@@ -163,7 +202,10 @@ object ObjectPool {
         } as LiveData<ObjectT>
     }
 
-    inline fun <reified ObjectT : ModelObject> update(obj: ObjectT, isFullVersion: Boolean = false) {
+    inline fun <reified ObjectT : ModelObject> update(
+        obj: ObjectT,
+        isFullVersion: Boolean = false
+    ) {
         return updateObjectPool(obj, isFullVersion)
     }
 
@@ -180,25 +222,109 @@ object ObjectPool {
             }
             val existing = store[key]
             created = existing == null
-            storedObject = existing ?: MutableLiveData<Any>(obj).also { store[key] = it; trimLocked() }
+            storedObject =
+                existing ?: MutableLiveData<Any>(obj).also { store[key] = it; trimLocked() }
         }
         if (!created) {
             // setValue 放在锁外：observer 回调里可能再 get/update，锁内回调会重入同一把锁
             // (synchronized 可重入不死锁，但没必要把 UI 回调关在锁里)。
-            try {
-                val lastValue = storedObject.value
-                // lastValue === obj:同一实例(典型 followUser 原地改字段后再 update),
-                // merge 自己跟自己无意义,直接赋值以保留 observer 通知,省掉 Gson 开销。
-                storedObject.value = if (isFullVersion || lastValue == null || lastValue === obj) {
-                    obj
-                } else {
-                    mergeKeepingExisting(obj.javaClass, lastValue, obj)
-                }
-            } catch (ex: Exception) {
-                storedObject.postValue(obj)
+            val lastValue = storedObject.value
+            // lastValue === obj:同一实例(典型 followUser 原地改字段后再 update),
+            // merge 自己跟自己无意义,直接赋值以保留 observer 通知,省掉 Gson 开销。
+            val toSet = if (isFullVersion || lastValue == null || lastValue === obj) {
+                obj
+            } else {
+                mergeKeepingExisting(obj.javaClass, lastValue, obj)
             }
+            dispatchValue(storedObject, toSet, isMainThread())
         }
-        Log.d("updateObjectPool", "对象池大小：$size")
+        Timber.tag(TAG).d("对象池大小：%d", size)
+    }
+
+    /**
+     * 判断当前调用线程是否为主线程。
+     * 在无 Looper 的纯单元测试环境下回退为 true，保证 InstantTaskExecutorRule 直接同步分发。
+     */
+    private fun isMainThread(): Boolean {
+        val mainLooper = runCatching { Looper.getMainLooper() }.getOrNull() ?: return true
+        return Looper.myLooper() == mainLooper
+    }
+
+    /**
+     * 分发 LiveData 值：主线程优先使用同步 setValue，后台线程直接走异步 postValue，
+     * 避免后台线程触发 IllegalStateException 产生高频异常调用栈开销。
+     */
+    private fun dispatchValue(storedObject: MutableLiveData<Any>, value: Any, isMain: Boolean) {
+        if (isMain) {
+            try {
+                storedObject.value = value
+            } catch (_: Exception) {
+                storedObject.postValue(value)
+            }
+        } else {
+            storedObject.postValue(value)
+        }
+    }
+
+    /**
+     * 批量合池通用事务接口。
+     *
+     * 一次性加锁：
+     *  - 计算并写入新对象的 MutableLiveData；
+     *  - 收集已存在对象的 LiveData 引用（更新与 merge 留到锁外做，避免 observer 回调死锁）；
+     *  - 若 isTrusted / isFullVersion 为真，同步维护权威/可信度标记；
+     *  - 整个批次只在最后调用一次 [trimLocked]；
+     *  - 统一打印单条聚合日志，避免整页列表打池时产生几十条高频 Logcat。
+     */
+    @JvmOverloads
+    fun updateObjects(
+        objects: Collection<ModelObject>,
+        isFullVersion: Boolean = false,
+        isTrusted: Boolean = false
+    ) {
+        if (objects.isEmpty()) return
+        if (objects.size == 1) {
+            val single = objects.first()
+            updateObjectPool(single, isFullVersion = isFullVersion)
+            if (isTrusted) {
+                markViewerStateTrusted(single.objectUniqueId, single.objectType)
+            }
+            return
+        }
+        val toUpdateOutsideLock = ArrayList<Pair<MutableLiveData<Any>, ModelObject>>()
+        synchronized(lock) {
+            for (obj in objects) {
+                val key = ObjectKey(obj.objectUniqueId, obj.objectType)
+                if (isFullVersion) {
+                    fullVersionKeys.add(key)
+                    untrustedViewerKeys.remove(key)
+                } else if (isTrusted) {
+                    untrustedViewerKeys.remove(key)
+                }
+                val existing = store[key]
+                if (existing == null) {
+                    store[key] = MutableLiveData<Any>(obj)
+                } else {
+                    toUpdateOutsideLock.add(existing to obj)
+                }
+            }
+            trimLocked()
+        }
+        val isMain = isMainThread()
+        for ((storedObject, obj) in toUpdateOutsideLock) {
+            val lastValue = storedObject.value
+            val toSet = if (isFullVersion || lastValue == null || lastValue === obj) {
+                obj
+            } else {
+                mergeKeepingExisting(obj.javaClass, lastValue, obj)
+            }
+            dispatchValue(storedObject, toSet, isMain)
+        }
+        Timber.tag(TAG).d(
+            "批量事务合池完成：合入 %d 个条目，当前对象池大小：%d",
+            objects.size,
+            size
+        )
     }
 
     /**
@@ -290,7 +416,8 @@ object ObjectPool {
      * 主线程调用（内部 `setValue`，见类注释「线程」）。
      */
     fun applyMirroredViewerState(illustId: Long, bookmarked: Boolean?, followed: Boolean?) {
-        val illustLive = synchronized(lock) { store[ObjectKey(illustId, ObjectSpec.Illust)] } ?: return
+        val illustLive =
+            synchronized(lock) { store[ObjectKey(illustId, ObjectSpec.Illust)] } ?: return
         val current = illustLive.value as? Illust ?: return
         val author = current.user
         // 值没变就别发（LiveData 不看相等性，每次都全量通知观察者）。
@@ -306,7 +433,8 @@ object ObjectPool {
             }
         }
         if (author == null) return
-        val userLive = synchronized(lock) { store[ObjectKey(author.id, ObjectSpec.KUser)] } ?: return
+        val userLive =
+            synchronized(lock) { store[ObjectKey(author.id, ObjectSpec.KUser)] } ?: return
         val currentUser = userLive.value as? User ?: return
         if (currentUser.is_followed == followed) return
         val nextUser = currentUser.copy(is_followed = followed)
@@ -333,8 +461,8 @@ object ObjectPool {
                 if (oldValue == null || oldValue.isJsonNull) continue
                 val freshValue = freshJson.get(key)
                 val freshIsBlank = freshValue == null || freshValue.isJsonNull ||
-                    (freshValue.isJsonPrimitive && freshValue.asJsonPrimitive.isString && freshValue.asString.isEmpty()) ||
-                    (freshValue.isJsonArray && freshValue.asJsonArray.size() == 0)
+                        (freshValue.isJsonPrimitive && freshValue.asJsonPrimitive.isString && freshValue.asString.isEmpty()) ||
+                        (freshValue.isJsonArray && freshValue.asJsonArray.size() == 0)
                 if (freshIsBlank) {
                     freshJson.add(key, oldValue)
                 }
@@ -356,24 +484,31 @@ object ObjectPool {
                 // get<Novel> 取到 Illust 直接 ClassCastException。
                 ObjectSpec.KNovel
             }
+
             Illust::class -> {
                 ObjectSpec.Illust
             }
+
             User::class -> {
                 ObjectSpec.KUser
             }
+
             Article::class -> {
                 ObjectSpec.ARTICLE
             }
+
             GifInfoResponse::class -> {
                 ObjectSpec.GIF_INFO
             }
+
             UserResponse::class -> {
                 ObjectSpec.UserProfile
             }
+
             PlazaPostCacheEntry::class -> {
                 ObjectSpec.PLAZA_POST
             }
+
             else -> {
                 ObjectSpec.UNKNOWN
             }

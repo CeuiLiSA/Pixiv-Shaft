@@ -195,6 +195,7 @@ class IllustFeedPoolSync(
                     // 下面 catch 里承诺的「下次数据变化重扫」根本补不回来（尤其 fill 在循环外，
                     // 它一抛错，整批 bean 就再也不会 fill）。全部成功之后才统一记账。
                     val staged = HashMap<Long, Illust>()
+                    val bookmarkOnlyBeans = mutableListOf<Illust>()
                     try {
                         itemsToScan.forEach { item ->
                             poolableBeansOf(item).forEach { bean ->
@@ -211,18 +212,29 @@ class IllustFeedPoolSync(
                                     // 「已关注」（false 不是空值，mergeKeepingExisting 不会替它挡；
                                     // NORMAL 方法也只在传入 FOLLOWED 时早退）。只同步作品本身
                                     //（幂等；顺带兜住刷新时服务端只变了收藏态的情况），不碰 user。
-                                    ObjectPool.update(bean)
+                                    bookmarkOnlyBeans.add(bean)
                                     staged[id] = bean
                                     return@forEach
                                 }
-                                // 列表 bean 已过 source 清洗：写进来的是当前用户视角或未知，
-                                // 标成可信，免得详情页的镜像校正把这份真值抹回 null。
-                                ObjectPool.updateIllustTrusted(bean)
                                 freshBeans.add(bean)
                                 staged[id] = bean
                             }
                         }
+                        if (bookmarkOnlyBeans.isNotEmpty()) {
+                            if (bookmarkOnlyBeans.size == 1) {
+                                ObjectPool.update(bookmarkOnlyBeans.first())
+                            } else {
+                                ObjectPool.updateObjects(bookmarkOnlyBeans)
+                            }
+                        }
                         if (freshBeans.isNotEmpty()) {
+                            if (freshBeans.size == 1) {
+                                ObjectPool.updateIllustTrusted(freshBeans.first())
+                            } else {
+                                // 列表 bean 已过 source 清洗：写进来的是当前用户视角或未知，标成可信；
+                                // 走批量事务单次加锁合池，并在批次内自动对作者去重，避免重复合入画师条目。
+                                ObjectPool.updateIllustsTrusted(freshBeans)
+                            }
                             AppLevelStateHelper.fill(freshBeans)
                         }
                     } catch (ce: CancellationException) {
