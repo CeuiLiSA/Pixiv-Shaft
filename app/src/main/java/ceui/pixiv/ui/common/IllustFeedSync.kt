@@ -221,12 +221,20 @@ class IllustFeedPoolSync(
                             }
                         }
                         if (bookmarkOnlyBeans.isNotEmpty()) {
-                            ObjectPool.updateObjects(bookmarkOnlyBeans)
+                            if (bookmarkOnlyBeans.size == 1) {
+                                ObjectPool.update(bookmarkOnlyBeans.first())
+                            } else {
+                                ObjectPool.updateObjects(bookmarkOnlyBeans)
+                            }
                         }
                         if (freshBeans.isNotEmpty()) {
-                            // 列表 bean 已过 source 清洗：写进来的是当前用户视角或未知，标成可信；
-                            // 走批量事务单次加锁合池，并在批次内自动对作者去重，避免重复合入画师条目。
-                            ObjectPool.updateIllustsTrusted(freshBeans)
+                            if (freshBeans.size == 1) {
+                                ObjectPool.updateIllustTrusted(freshBeans.first())
+                            } else {
+                                // 列表 bean 已过 source 清洗：写进来的是当前用户视角或未知，标成可信；
+                                // 走批量事务单次加锁合池，并在批次内自动对作者去重，避免重复合入画师条目。
+                                ObjectPool.updateIllustsTrusted(freshBeans)
+                            }
                             AppLevelStateHelper.fill(freshBeans)
                         }
                     } catch (ce: CancellationException) {

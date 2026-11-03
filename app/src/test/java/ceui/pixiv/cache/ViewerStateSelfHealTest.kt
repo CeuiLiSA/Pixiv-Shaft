@@ -303,6 +303,20 @@ class ViewerStateSelfHealTest {
         assertEquals(false, ObjectPool.get<User>(authorId2).value?.is_followed)
     }
 
+    @Test
+    fun `批量合池接口传入单条条目时_降级走单条写入且保证可信度`() {
+        val illustId = 8_030L
+        val authorId = 9_030L
+
+        val singleIllust = illust(illustId, authorId, bookmarked = true, followed = true)
+        ObjectPool.updateIllustsTrusted(listOf(singleIllust))
+
+        assertTrue(ObjectPool.isIllustViewerStateTrusted(illustId))
+        assertTrue(ObjectPool.isViewerStateTrusted(authorId, ceui.lisa.models.ObjectSpec.KUser))
+        assertEquals(illustId, poolIllust(illustId).id)
+        assertEquals(true, ObjectPool.get<User>(authorId).value?.is_followed)
+    }
+
     private fun illust(
         id: Long,
         authorId: Long,

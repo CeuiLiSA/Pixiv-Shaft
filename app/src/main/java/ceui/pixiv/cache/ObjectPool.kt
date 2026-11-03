@@ -130,6 +130,15 @@ object ObjectPool {
         isTrusted: Boolean = false
     ) {
         if (illusts.isEmpty()) return
+        if (illusts.size == 1) {
+            val single = illusts.first()
+            if (isTrusted) {
+                updateIllustTrusted(single, updateUser = updateUser)
+            } else {
+                updateIllust(single, updateUser = updateUser)
+            }
+            return
+        }
         val items = ArrayList<ModelObject>(if (updateUser) illusts.size * 2 else illusts.size)
         val seenAuthors = if (updateUser) HashSet<Long>() else null
         for (illust in illusts) {
@@ -266,6 +275,14 @@ object ObjectPool {
         isTrusted: Boolean = false
     ) {
         if (objects.isEmpty()) return
+        if (objects.size == 1) {
+            val single = objects.first()
+            updateObjectPool(single, isFullVersion = isFullVersion)
+            if (isTrusted) {
+                markViewerStateTrusted(single.objectUniqueId, single.objectType)
+            }
+            return
+        }
         val toUpdateOutsideLock = ArrayList<Pair<MutableLiveData<Any>, ModelObject>>()
         synchronized(lock) {
             for (obj in objects) {
