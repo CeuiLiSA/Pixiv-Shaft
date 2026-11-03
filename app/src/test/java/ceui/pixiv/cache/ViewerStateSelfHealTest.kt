@@ -250,29 +250,6 @@ class ViewerStateSelfHealTest {
     }
 
     @Test
-    fun `官方列表合池_同作者多作品可去重不重复更新用户条目`() {
-        val illustId1 = 7_010L
-        val illustId2 = 7_011L
-        val authorId = 9_010L
-
-        val illust1 = illust(illustId1, authorId, bookmarked = true, followed = true)
-        val illust2 = illust(illustId2, authorId, bookmarked = false, followed = false)
-
-        // 第一张作品：更新作品与作者
-        ObjectPool.updateIllustTrusted(illust1, updateUser = true)
-        assertTrue(ObjectPool.isIllustViewerStateTrusted(illustId1))
-        assertTrue(ObjectPool.isViewerStateTrusted(authorId, ceui.lisa.models.ObjectSpec.KUser))
-        assertEquals(true, ObjectPool.get<User>(authorId).value?.is_followed)
-
-        // 第二张作品（同作者）：作品入池，但跳过作者更新（模拟批次内去重）
-        ObjectPool.updateIllustTrusted(illust2, updateUser = false)
-        assertTrue(ObjectPool.isIllustViewerStateTrusted(illustId2))
-        assertEquals(illustId2, poolIllust(illustId2).id)
-        // 作者的关注态保持第一次写入的权威值，未被第二张作品的 user 盖掉
-        assertEquals(true, ObjectPool.get<User>(authorId).value?.is_followed)
-    }
-
-    @Test
     fun `批量合池事务_多作品同批合入且同画师自动去重`() {
         val illustId1 = 8_010L
         val illustId2 = 8_011L

@@ -109,13 +109,10 @@ object ObjectPool {
         }
     }
 
-    @JvmOverloads
-    fun updateIllust(illust: Illust, updateUser: Boolean = true) {
+    fun updateIllust(illust: Illust) {
         update(illust)
-        if (updateUser) {
-            illust.user?.let { user ->
-                update(user)
-            }
+        illust.user?.let { user ->
+            update(user)
         }
     }
 
@@ -127,30 +124,20 @@ object ObjectPool {
      *  - 统一调用 [updateObjects] 走单次加锁事务。
      */
     @JvmOverloads
-    fun updateIllusts(
-        illusts: Collection<Illust>,
-        updateUser: Boolean = true,
-        isTrusted: Boolean = false
-    ) {
+    fun updateIllusts(illusts: Collection<Illust>, isTrusted: Boolean = false) {
         if (illusts.isEmpty()) return
         if (illusts.size == 1) {
             val single = illusts.first()
-            if (isTrusted) {
-                updateIllustTrusted(single, updateUser = updateUser)
-            } else {
-                updateIllust(single, updateUser = updateUser)
-            }
+            if (isTrusted) updateIllustTrusted(single) else updateIllust(single)
             return
         }
-        val items = ArrayList<ModelObject>(if (updateUser) illusts.size * 2 else illusts.size)
-        val seenAuthors = if (updateUser) HashSet<Long>() else null
+        val items = ArrayList<ModelObject>(illusts.size * 2)
+        val seenAuthors = HashSet<Long>()
         for (illust in illusts) {
             items.add(illust)
-            if (updateUser) {
-                val user = illust.user
-                if (user != null && user.id > 0L && seenAuthors!!.add(user.id)) {
-                    items.add(user)
-                }
+            val user = illust.user
+            if (user != null && user.id > 0L && seenAuthors.add(user.id)) {
+                items.add(user)
             }
         }
         updateObjects(items, isFullVersion = false, isTrusted = isTrusted)
@@ -159,12 +146,8 @@ object ObjectPool {
     /**
      * 官方作品列表批量合池，并将作品与作者条目的 viewer 态重置为可信。
      */
-    @JvmOverloads
-    fun updateIllustsTrusted(
-        illusts: Collection<Illust>,
-        updateUser: Boolean = true
-    ) {
-        updateIllusts(illusts, updateUser = updateUser, isTrusted = true)
+    fun updateIllustsTrusted(illusts: Collection<Illust>) {
+        updateIllusts(illusts, isTrusted = true)
     }
 
     /**
@@ -416,15 +399,11 @@ object ObjectPool {
      * 要么是未知，两种都不该再被镜像的「不知道」覆盖。少了这一下，官方列表刚补进来的真值会被
      * 详情页的镜像校正抹回 null（镜像没就绪时就是「明明收藏了却一直灰心」）。
      */
-    @JvmOverloads
-    fun updateIllustTrusted(illust: Illust, updateUser: Boolean = true) {
-        updateIllust(illust, updateUser = updateUser)
+    fun updateIllustTrusted(illust: Illust) {
+        updateIllust(illust)
         markViewerStateTrusted(illust.id, ObjectSpec.Illust)
-        if (updateUser) {
-            // 作者条目跟着一起写了，同理：别让 seedUntrusted 早先留下的标记把这份关注态再交给镜像降级。
-            illust.user?.id?.takeIf { it > 0L }
-                ?.let { markViewerStateTrusted(it, ObjectSpec.KUser) }
-        }
+        // 作者条目跟着一起写了，同理：别让 seedUntrusted 早先留下的标记把这份关注态再交给镜像降级。
+        illust.user?.id?.takeIf { it > 0L }?.let { markViewerStateTrusted(it, ObjectSpec.KUser) }
     }
 
     /**
