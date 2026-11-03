@@ -23,10 +23,13 @@ import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -35,6 +38,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 
@@ -48,17 +53,33 @@ import timber.log.Timber
  *   失败一直留着(按钮显示重试,点一下 [save] 重来),存成功或取消才消失
  * - **取消**:[cancel] 只在等原图加载 / 等批量下载让出这张图期间有效;开始写盘后不认取消,
  *   免得留下半截文件,或文件写好了却没记进「已下载」
+ * - **恢复**:原图保存意图和失败原因落在私有持久目录,Application 启动时恢复;进度按实际来源重算。
  *
  * 与批量下载的互斥:写盘前拿 [Manager] 的同 url 单主锁(见 [saveOriginal])。
  */
 @Singleton
-class ImagePageSaver @Inject constructor(@ApplicationContext context: Context) {
+class ImagePageSaver internal constructor(
+    context: Context,
+    private val ioDispatcher: CoroutineDispatcher,
+    private val scope: CoroutineScope,
+) {
+    @Inject
+    constructor(@ApplicationContext context: Context) : this(
+        context,
+        Dispatchers.IO,
+        CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate),
+    )
 
     private val app: Context = context.applicationContext
 
     data class PageKey(val illustId: Long, val page: Int)
 
-    data class Request(val illust: Illust, val page: Int, val target: Target)
+    data class Request(
+        val illust: Illust,
+        val page: Int,
+        val target: Target,
+        val queuedAt: Long = System.currentTimeMillis(),
+    )
 
     enum class Phase { LOADING, WAITING_TO_WRITE, WRITING }
 
@@ -82,14 +103,123 @@ class ImagePageSaver @Inject constructor(@ApplicationContext context: Context) {
         data class Failed(override val target: Target, val error: String = "") : PageState
     }
 
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
-
     private val _states = MutableStateFlow<Map<PageKey, PageState>>(emptyMap())
     val states: StateFlow<Map<PageKey, PageState>> = _states.asStateFlow()
 
     // Only model data is retained: never keep an Activity, View, or callback for a retry.
     private val requests = ConcurrentHashMap<PageKey, Request>()
     private val errors = ConcurrentHashMap<PageKey, String>()
+
+    // Constructed on IO, after Application settings/storage are ready. Never persist in cacheDir.
+    private val journal by lazy {
+        ImagePageSaveJournal(File(app.noBackupFilesDir, "image-page-saves.properties"))
+    }
+    private val journalMutex = Mutex()
+    private val restored = CompletableDeferred<Unit>()
+    private val touchedWhileRestoring = mutableSetOf<PageKey>()
+    private val removing = mutableSetOf<PageKey>()
+    private var started = false
+
+    /** Application startup calls this even if the user never opens the download screen. */
+    @MainThread
+    fun start() {
+        if (started) return
+        started = true
+        scope.launch {
+            try {
+                val entries = withContext(ioDispatcher) {
+                    journal.read().map { entry ->
+                        val illust = Shaft.sGson.fromJson(entry.illustJson, Illust::class.java)
+                        require(illust != null && illust.id > 0 && !illust.isGif() &&
+                            entry.page in 0 until illust.page_count.coerceAtLeast(1)) {
+                            "Invalid saved artwork/page"
+                        }
+                        Request(illust, entry.page, Target.Original(entry.imageUrl), entry.queuedAt) to entry.error
+                    }
+                }
+                for ((request, error) in entries) {
+                    val key = PageKey(request.illust.id, request.page)
+                    // A fresh click while the journal was loading wins over its older snapshot.
+                    if (key in touchedWhileRestoring || requests.containsKey(key)) continue
+                    if (error != null) {
+                        requests[key] = request
+                        _states.update { it + (key to PageState.Failed(request.target, error)) }
+                    } else {
+                        enqueue(request, recovering = true)
+                    }
+                }
+                touchedWhileRestoring.clear()
+                restored.complete(Unit)
+            } catch (ex: Exception) {
+                if (ex is CancellationException) {
+                    restored.cancel(ex)
+                    throw ex
+                }
+                // Keep the file for diagnosis/recovery; never overwrite an unreadable journal.
+                Timber.e(ex, "[ImagePageSaver] restore failed")
+                restored.completeExceptionally(ex)
+                Common.showToast(app.getString(R.string.save_image_failed, ex.message.orEmpty()))
+            }
+        }
+    }
+
+    /** Snapshot only task transitions, not every progress tick. All writers serialize here. */
+    private suspend fun persistRequests(
+        changes: Map<PageKey, PageState?> = emptyMap(),
+        afterCommit: () -> Unit = {},
+    ) = journalMutex.withLock {
+        val snapshot = withContext(Dispatchers.Main.immediate) {
+            requests.mapNotNull { (key, request) ->
+                val target = request.target as? Target.Original ?: return@mapNotNull null
+                val state = (if (key in changes) changes[key] else _states.value[key])
+                    ?: return@mapNotNull null
+                Triple(request, target.imageUrl, (state as? PageState.Failed)?.error)
+            }
+        }
+        withContext(ioDispatcher) {
+            journal.write(snapshot.map { (request, url, error) ->
+                ImagePageSaveJournal.Entry(Shaft.sGson.toJson(request.illust), request.page,
+                    url, request.queuedAt, error)
+            })
+        }
+        // Update memory before releasing the lock, so the next writer cannot resurrect this key.
+        withContext(Dispatchers.Main.immediate) { afterCommit() }
+    }
+
+    private suspend fun finish(key: PageKey, target: Target, failed: Boolean, error: String) =
+        withContext(NonCancellable) {
+            val finalState = if (failed) PageState.Failed(target, error) else null
+            try {
+                restored.await()
+                persistRequests(mapOf(key to finalState)) {
+                    if (!failed) requests.remove(key)
+                    _states.update { if (finalState != null) it + (key to finalState) else it - key }
+                }
+                true
+            } catch (ex: Exception) {
+                Timber.e(ex, "[ImagePageSaver] persist completion failed")
+                // Do not acknowledge a cancellation/removal that was not saved to disk.
+                _states.update { it + (key to PageState.Failed(target, ex.message.orEmpty())) }
+                Common.showToast(app.getString(R.string.save_image_failed, ex.message.orEmpty()))
+                false
+            }
+        }
+
+    private suspend fun removeFailure(key: PageKey) = withContext(NonCancellable) {
+        try {
+            restored.await()
+            persistRequests(mapOf(key to null)) {
+                requests.remove(key)
+                errors.remove(key)
+                _states.update { it - key }
+            }
+        } catch (ex: Exception) {
+            Timber.e(ex, "[ImagePageSaver] persist removal failed")
+            Common.showToast(app.getString(R.string.save_image_failed, ex.message.orEmpty()))
+        } finally {
+            removing.remove(key)
+        }
+    }
 
     fun request(key: PageKey): Request? = requests[key]
 
@@ -102,10 +232,8 @@ class ImagePageSaver @Inject constructor(@ApplicationContext context: Context) {
 
     @MainThread
     fun dismissFailure(key: PageKey): Boolean {
-        if (_states.value[key] !is PageState.Failed) return false
-        requests.remove(key)
-        errors.remove(key)
-        _states.update { it - key }
+        if (_states.value[key] !is PageState.Failed || !removing.add(key)) return false
+        scope.launch { removeFailure(key) }
         return true
     }
 
@@ -126,9 +254,17 @@ class ImagePageSaver @Inject constructor(@ApplicationContext context: Context) {
      */
     @MainThread
     fun save(illust: Illust, page: Int, target: Target): Boolean {
+        start()
+        return enqueue(Request(illust, page, target), recovering = false)
+    }
+
+    @MainThread
+    private fun enqueue(request: Request, recovering: Boolean): Boolean {
+        val (illust, page, target) = request
         val key = PageKey(illust.id, page)
-        if (_states.value[key] is PageState.Saving) return false
-        requests[key] = Request(illust, page, target)
+        if (_states.value[key] is PageState.Saving || key in removing) return false
+        if (!recovering && !restored.isCompleted) touchedWhileRestoring += key
+        requests[key] = request
         errors.remove(key)
         _states.update { it + (key to PageState.Saving(target, 0)) }
         // LAZY:先登记再开跑。Main.immediate 会当场执行到第一个挂起点,登记晚了取消就找不到它。
@@ -137,14 +273,22 @@ class ImagePageSaver @Inject constructor(@ApplicationContext context: Context) {
                 // 收尾放 finally:意料之外的异常(照旧抛出去)也要把「保存中」解掉记成失败,
                 // 否则按钮一直转圈、点了也取消不掉。
                 var failed = true
+                var cancelled = false
                 try {
+                    restored.await()
+                    // No fetch or target write starts before the intent is durably recorded.
+                    persistRequests()
+                    val alreadySaved = recovering && target is Target.Original &&
+                        withContext(ioDispatcher) {
+                            page in RecordedPageProbe.usablePagesSince(app, illust.id, request.queuedAt)
+                        }
                     val ok =
-                        when (target) {
+                        alreadySaved || when (target) {
                             is Target.Original -> saveOriginal(key, illust, page, target.imageUrl)
                             is Target.Translated -> saveTranslated(key, illust, page, target.file)
                         }
                     failed = !ok
-                    if (ok) {
+                    if (ok && !alreadySaved) {
                         // 先记再解「保存中」:解掉那一刻大图页就按它判断译图页的绿勾
                         if (target is Target.Translated) savedTranslations.add(target.file.path)
                         Common.showToast(R.string.string_181)
@@ -154,7 +298,7 @@ class ImagePageSaver @Inject constructor(@ApplicationContext context: Context) {
                     }
                 } catch (e: CancellationException) {
                     failed = false
-                    Common.showToast(R.string.save_image_cancelled)
+                    cancelled = true
                     throw e
                 } catch (e: Exception) {
                     Timber.e(e, "[ImagePageSaver] unexpected save failure")
@@ -162,8 +306,9 @@ class ImagePageSaver @Inject constructor(@ApplicationContext context: Context) {
                 } finally {
                     cancellable.remove(key, coroutineContext.job)
                     val error = errors.remove(key).orEmpty()
-                    if (!failed) requests.remove(key)
-                    _states.update { if (failed) it + (key to PageState.Failed(target, error)) else it - key }
+                    if (finish(key, target, failed, error) && cancelled) {
+                        Common.showToast(R.string.save_image_cancelled)
+                    }
                 }
             }
         cancellable[key] = job
@@ -214,7 +359,7 @@ class ImagePageSaver @Inject constructor(@ApplicationContext context: Context) {
      * 译图是派生图片,不写「已下载」库 —— 那张表的记录会被详情页当原图本地副本复用。
      */
     private suspend fun saveTranslated(key: PageKey, illust: Illust, page: Int, file: File): Boolean =
-        withContext(Dispatchers.IO) {
+        withContext(ioDispatcher) {
             claimWrite(key)
             runCatching {
                 // open 返回 null = Skip 策略且同名译图已存在 → 视为已保存
@@ -246,7 +391,7 @@ class ImagePageSaver @Inject constructor(@ApplicationContext context: Context) {
      * (findDownloadedPageUri 仍查 DB)保持一致。
      */
     private suspend fun saveOriginal(key: PageKey, illust: Illust, page: Int, imageUrl: String): Boolean =
-        withContext(Dispatchers.IO) {
+        withContext(ioDispatcher) {
             IllustCaptionExporter.export(illust)
             var resolveError: Throwable? = null
             val file =

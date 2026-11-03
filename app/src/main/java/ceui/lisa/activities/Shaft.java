@@ -88,6 +88,7 @@ public class Shaft extends Application implements ServicesProvider {
     @Inject ceui.pixiv.ui.translate.MangaBatchTranslateCenter mangaBatchTranslateCenter;
     @Inject ceui.pixiv.ui.fanbox.FanboxWebBridge fanboxWebBridge;
     @Inject ceui.pixiv.ui.bulk.QueueDownloadManager queueDownloadManager;
+    @Inject ceui.pixiv.download.ImagePageSaver imagePageSaver;
     @Inject ceui.pixiv.actions.PixivActionQueue pixivActionQueue;
     private final ceui.pixiv.communication.CommunicationScope communicationScope =
             new ceui.pixiv.communication.CommunicationScope();
@@ -549,6 +550,10 @@ public class Shaft extends Application implements ServicesProvider {
         Toaster.init(this);
         int bottomOffset = BarUtils.getNavBarHeight() + (int) (48 * getResources().getDisplayMetrics().density);
         Toaster.setGravity(Gravity.BOTTOM, 0, bottomOffset);
+
+        // 单张原图保存：IO 读取持久化意图，恢复被回收进程留下的任务；不依赖打开下载页。
+        // 排在设置、登录态与 Toast 就绪之后；构造器不读盘，start() 幂等。
+        imagePageSaver.start();
 
         // :feeds 列表框架的宿主装配（主题配色 / 空态插画 / 错误文案 / Toast / 网络恢复）。
         // 必须在第一个列表页创建之前——晚了的话先建出来的页面会拿框架的 AOSP 默认配色。
@@ -1116,3 +1121,4 @@ public class Shaft extends Application implements ServicesProvider {
         return analytics;
     }
 }
+
