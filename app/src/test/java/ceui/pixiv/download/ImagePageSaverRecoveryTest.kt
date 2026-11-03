@@ -38,7 +38,7 @@ import org.robolectric.util.ReflectionHelpers
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [28], application = Application::class)
 class ImagePageSaverRecoveryTest {
-    private val app get() = RuntimeEnvironment.getApplication<Application>()
+    private val app get() = RuntimeEnvironment.getApplication()
     private val scheduler = TestCoroutineScheduler()
     private val main = UnconfinedTestDispatcher(scheduler)
     private val io = GateDispatcher()
