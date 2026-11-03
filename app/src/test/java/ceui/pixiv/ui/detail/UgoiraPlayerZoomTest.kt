@@ -314,16 +314,47 @@ class UgoiraPlayerZoomTest {
         assertEquals(expectedTargetBottom - 600f, player.playButton.translationY, 1f)
 
         // 胶囊避让：当胶囊进入画面并会遮挡按钮时，继续向上规避到胶囊上方
-        val dummyCapsule = View(host).apply {
-            id = R.id.fab_bar
-            layout(100, 350, 300, 400)
-            visibility = View.VISIBLE
-        }
-        parent.addView(dummyCapsule)
+        val dummyCapsule = addCapsule(left = 100, right = 300)
         player.applyPlayButtonPosition()
         val expectedAvoidCapsuleBottom = 350f - margin
         assertEquals(expectedAvoidCapsuleBottom - 600f, player.playButton.translationY, 1f)
         parent.removeView(dummyCapsule)
+    }
+
+    @Test
+    fun `bottom play button ignores a capsule that does not overlap it horizontally`() {
+        // 平板左右分栏：胶囊在右侧信息栏，与舞台上居中的按钮横向错开，不该把按钮往上推。
+        Shaft.sSettings.ugoiraPlayButtonPosition = Settings.UGOIRA_PLAY_BUTTON_POSITION_BOTTOM
+        addCapsule(left = 0, right = 40)
+        player.applyPlayButtonPosition()
+        assertEquals(400f - 16.ppppx - 600f, player.playButton.translationY, 1f)
+    }
+
+    @Test
+    fun `bottom play button keeps clear of a capsule hidden by immersive mode`() {
+        // 大图页默认沉浸时工具条先是 INVISIBLE，点一下淡入后仍落在原位，按钮要提前让开。
+        Shaft.sSettings.ugoiraPlayButtonPosition = Settings.UGOIRA_PLAY_BUTTON_POSITION_BOTTOM
+        addCapsule(left = 100, right = 300).visibility = View.INVISIBLE
+        player.applyPlayButtonPosition()
+        assertEquals(350f - 16.ppppx - 600f, player.playButton.translationY, 1f)
+    }
+
+    @Test
+    fun `bottom play button ignores a gone capsule`() {
+        Shaft.sSettings.ugoiraPlayButtonPosition = Settings.UGOIRA_PLAY_BUTTON_POSITION_BOTTOM
+        addCapsule(left = 100, right = 300).visibility = View.GONE
+        player.applyPlayButtonPosition()
+        assertEquals(400f - 16.ppppx - 600f, player.playButton.translationY, 1f)
+    }
+
+    /**
+     * 播放器 400x600 的 y∈[350, 400] 处放一颗悬浮胶囊。先 attach 再 layout，和真实页面一致
+     * （attach 会清掉 isLaidOut）；之后不 idle，避免父布局把它重新排到左上角。
+     */
+    private fun addCapsule(left: Int, right: Int) = View(host).apply {
+        id = R.id.fab_bar
+        this@UgoiraPlayerZoomTest.parent.addView(this)
+        layout(left, 350, right, 400)
     }
 
     private fun idle(ms: Long = 0) = shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(ms))

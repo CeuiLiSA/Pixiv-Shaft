@@ -1,7 +1,5 @@
 package ceui.pixiv.ui.detail
 
-import android.app.Activity
-import android.content.ContextWrapper
 import android.content.Context
 import android.content.Intent
 import android.content.res.ColorStateList
@@ -292,21 +290,36 @@ class UgoiraPlayerView @JvmOverloads constructor(
         }
     }
 
-    private fun findActivity(): Activity? {
-        var ctx = context
-        while (ctx is ContextWrapper) {
-            if (ctx is Activity) return ctx
-            ctx = ctx.baseContext
+    /**
+     * 找本页的悬浮胶囊：从近到远逐级向上找，命中的第一个就是本页那颗 —— VActivity 左右翻页时
+     * 同一 Activity 里有多个详情页、各带一个 fab_bar，Activity 级 findViewById 可能拿到相邻页的。
+     *
+     * 胶囊只要没被 GONE 就当作在场：大图页沉浸模式把工具条切成 INVISIBLE / 淡出，再点一下又淡入，
+     * 但它始终占着那块位置。按「此刻是否可见」判断的话，默认沉浸进页时不避让，工具条淡入后就盖住按钮。
+     */
+    private fun findCapsuleView(): View? {
+        if (!isAttachedToWindow) return null // 未 attach 时注册的监听等不到 onDetachedFromWindow 来解绑
+        var p = parent
+        while (p is ViewGroup) {
+            val capsule = p.findViewById<View>(R.id.fab_bar)
+            if (capsule != null) {
+                // GONE 时也挂监听：重新显示会触发一次 layout，按钮跟着重算。
+                observeCapsule(capsule)
+                return capsule.takeIf { it.isPlacedInLayout() }
+            }
+            p = p.parent
         }
         return null
     }
 
-    private fun findCapsuleView(): View? {
-        val act = findActivity()
-        val capsule = act?.findViewById<View>(R.id.fab_bar)
-            ?: (parent as? View)?.findViewById<View>(R.id.fab_bar)
-            ?: rootView?.findViewById<View>(R.id.fab_bar)
-        return capsule?.takeIf { it.isShown }?.also { observeCapsule(it) }
+    private fun View.isPlacedInLayout(): Boolean {
+        if (!isLaidOut) return false
+        var v: View? = this
+        while (v != null) {
+            if (v.visibility == View.GONE) return false
+            v = v.parent as? View
+        }
+        return true
     }
 
     private fun observeCapsule(capsule: View) {
@@ -368,8 +381,15 @@ class UgoiraPlayerView @JvmOverloads constructor(
             getLocationInWindow(playerLoc)
 
             val capsuleTopInPlayer = (capsuleLoc[1] - playerLoc[1]).toFloat()
+            val capsuleLeftInPlayer = capsuleLoc[0] - playerLoc[0]
+            // 按钮水平居中；还没量过宽度时按占满整行保守处理，onLayout 里会再算一次。
+            val btnW = playButton.width.takeIf { it > 0 } ?: w
+            val btnLeft = (w - btnW) / 2
+            // 横向和按钮错开就不必避让：平板左右分栏时胶囊在右侧信息栏，胶囊设为靠左/靠右时也可能错开。
+            val overlapsHorizontally = capsuleLeftInPlayer < btnLeft + btnW &&
+                capsuleLeftInPlayer + capsule.width > btnLeft
             // 胶囊在当前播放器可视高度范围内且按钮落点会触及/被盖住时，向上推到胶囊上沿留白处
-            if (capsuleTopInPlayer in 0f..h.toFloat()) {
+            if (overlapsHorizontally && capsuleTopInPlayer in 0f..h.toFloat()) {
                 val maxAllowedBottom = capsuleTopInPlayer - margin
                 if (targetBottom > maxAllowedBottom) {
                     targetBottom = maxAllowedBottom
