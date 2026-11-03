@@ -14,6 +14,7 @@ import android.widget.CompoundButton;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.widget.SwitchCompat;
 
 import ceui.pixiv.witstudio.dialog.WitDialog;
@@ -42,6 +43,12 @@ public class FragmentSettingsNetwork extends SettingsPageFragment<FragmentSettin
     @Override
     public void initLayout() {
         mLayoutID = R.layout.fragment_settings_network;
+    }
+
+    @NonNull
+    @Override
+    protected FragmentSettingsNetworkBinding bindView(@NonNull View root) {
+        return FragmentSettingsNetworkBinding.bind(root);
     }
 
     @Override

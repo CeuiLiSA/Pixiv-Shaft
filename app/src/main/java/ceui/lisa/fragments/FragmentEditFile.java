@@ -66,6 +66,12 @@ public class FragmentEditFile extends BaseLazyFragment<FragmentEditFileBinding> 
         mLayoutID = R.layout.fragment_edit_file;
     }
 
+    @NonNull
+    @Override
+    protected FragmentEditFileBinding bindView(@NonNull View root) {
+        return FragmentEditFileBinding.bind(root);
+    }
+
     @Override
     protected void initData() {
         if (!SessionManager.INSTANCE.isLoggedIn()) {

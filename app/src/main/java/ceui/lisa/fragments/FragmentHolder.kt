@@ -2,6 +2,7 @@
 
 package ceui.lisa.fragments
 
+import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentPagerAdapter
 import androidx.lifecycle.ViewModelProvider
@@ -35,6 +36,8 @@ class FragmentHolder : BaseFragment<FragmentHolderBinding>() {
     override fun initLayout() {
         mLayoutID = R.layout.fragment_holder
     }
+
+    override fun bindView(root: View): FragmentHolderBinding = FragmentHolderBinding.bind(root)
 
     override fun initView() {
         val data = mUserViewModel.user.value ?: return

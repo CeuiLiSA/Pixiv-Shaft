@@ -64,6 +64,8 @@ class UActivity : BaseActivity<ActivityNewUserBinding>(), Display<UserDetailResp
         return R.layout.activity_new_user
     }
 
+    override fun bindView(root: View): ActivityNewUserBinding = ActivityNewUserBinding.bind(root)
+
     override fun initView() {
         // 列表右下角「回顶」悬浮钮(issue #1040,设置里默认关),与 V3 主页同款;
         // 装在 FragmentHolder 建 pager 之前,插画/漫画/收藏 tab 的 feeds 列表建好视图时自动挂上

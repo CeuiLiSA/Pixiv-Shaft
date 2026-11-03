@@ -1,109 +1,104 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="12dp"
+    android:orientation="horizontal"
+    android:weightSum="3">
 
-    <data />
+    <!-- issue #1005: 原「分享」位。收藏从头卡右上角的小红心换到这里，分享去了头卡右上角 -->
+    <LinearLayout
+        android:id="@+id/btn_bookmark"
+        android:layout_width="0dp"
+        android:layout_height="52dp"
+        android:layout_marginEnd="6dp"
+        android:layout_weight="1"
+        android:background="@drawable/bg_novel_action_button"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <!-- ProgressImageButton：收藏请求在飞时原地转圈（对齐头卡旧红心）。
+             clickable=false 让点击落在按钮容器上，背景置空去掉 ImageButton 默认底 -->
+        <ceui.pixiv.widgets.ProgressImageButton
+            android:id="@+id/bookmark_icon"
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:background="@null"
+            android:clickable="false"
+            android:contentDescription="@null"
+            android:src="@drawable/icon_not_liked"
+            app:ptb_progress_stroke_width="2dp"
+            app:ptb_progress_width="12dp"
+            app:tint="@color/v3_text_1" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:text="@string/v3_label_bookmarks"
+            android:textColor="@color/v3_text_1"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+    </LinearLayout>
 
     <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="12dp"
-        android:orientation="horizontal"
-        android:weightSum="3">
+        android:id="@+id/btn_comments"
+        android:layout_width="0dp"
+        android:layout_height="52dp"
+        android:layout_marginHorizontal="3dp"
+        android:layout_weight="1"
+        android:background="@drawable/bg_novel_action_button"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center"
+        android:orientation="horizontal">
 
-        <!-- issue #1005: 原「分享」位。收藏从头卡右上角的小红心换到这里，分享去了头卡右上角 -->
-        <LinearLayout
-            android:id="@+id/btn_bookmark"
-            android:layout_width="0dp"
-            android:layout_height="52dp"
-            android:layout_marginEnd="6dp"
-            android:layout_weight="1"
-            android:background="@drawable/bg_novel_action_button"
-            android:clickable="true"
-            android:focusable="true"
-            android:gravity="center"
-            android:orientation="horizontal">
+        <ImageView
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:contentDescription="@null"
+            android:src="@drawable/ic_baseline_comment_24"
+            app:tint="@color/v3_text_1" />
 
-            <!-- ProgressImageButton：收藏请求在飞时原地转圈（对齐头卡旧红心）。
-                 clickable=false 让点击落在按钮容器上，背景置空去掉 ImageButton 默认底 -->
-            <ceui.pixiv.widgets.ProgressImageButton
-                android:id="@+id/bookmark_icon"
-                android:layout_width="18dp"
-                android:layout_height="18dp"
-                android:background="@null"
-                android:clickable="false"
-                android:contentDescription="@null"
-                android:src="@drawable/icon_not_liked"
-                app:ptb_progress_stroke_width="2dp"
-                app:ptb_progress_width="12dp"
-                app:tint="@color/v3_text_1" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="6dp"
-                android:text="@string/v3_label_bookmarks"
-                android:textColor="@color/v3_text_1"
-                android:textSize="13sp"
-                android:textStyle="bold" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/btn_comments"
-            android:layout_width="0dp"
-            android:layout_height="52dp"
-            android:layout_marginHorizontal="3dp"
-            android:layout_weight="1"
-            android:background="@drawable/bg_novel_action_button"
-            android:clickable="true"
-            android:focusable="true"
-            android:gravity="center"
-            android:orientation="horizontal">
-
-            <ImageView
-                android:layout_width="18dp"
-                android:layout_height="18dp"
-                android:contentDescription="@null"
-                android:src="@drawable/ic_baseline_comment_24"
-                app:tint="@color/v3_text_1" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="6dp"
-                android:text="@string/novel_actions_comments"
-                android:textColor="@color/v3_text_1"
-                android:textSize="13sp"
-                android:textStyle="bold" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/btn_download"
-            android:layout_width="0dp"
-            android:layout_height="52dp"
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_marginStart="6dp"
-            android:layout_weight="1"
-            android:background="@drawable/bg_novel_action_button"
-            android:clickable="true"
-            android:focusable="true"
-            android:gravity="center"
-            android:orientation="horizontal">
-
-            <ImageView
-                android:layout_width="18dp"
-                android:layout_height="18dp"
-                android:contentDescription="@null"
-                android:src="@drawable/ic_file_download_black_24dp"
-                app:tint="@color/v3_text_1" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="6dp"
-                android:text="@string/novel_actions_download"
-                android:textColor="@color/v3_text_1"
-                android:textSize="13sp"
-                android:textStyle="bold" />
-        </LinearLayout>
+            android:text="@string/novel_actions_comments"
+            android:textColor="@color/v3_text_1"
+            android:textSize="13sp"
+            android:textStyle="bold" />
     </LinearLayout>
-</layout>
+
+    <LinearLayout
+        android:id="@+id/btn_download"
+        android:layout_width="0dp"
+        android:layout_height="52dp"
+        android:layout_marginStart="6dp"
+        android:layout_weight="1"
+        android:background="@drawable/bg_novel_action_button"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:contentDescription="@null"
+            android:src="@drawable/ic_file_download_black_24dp"
+            app:tint="@color/v3_text_1" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:text="@string/novel_actions_download"
+            android:textColor="@color/v3_text_1"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+</LinearLayout>

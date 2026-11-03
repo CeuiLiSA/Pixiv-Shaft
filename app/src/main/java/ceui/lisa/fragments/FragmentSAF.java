@@ -2,6 +2,7 @@ package ceui.lisa.fragments;
 
 import android.view.View;
 
+import androidx.annotation.NonNull;
 import androidx.documentfile.provider.DocumentFile;
 import ceui.lisa.R;
 import ceui.lisa.activities.BaseActivity;
@@ -16,6 +17,12 @@ public class FragmentSAF extends BaseFragment<FragmentSafBinding> {
     @Override
     protected void initLayout() {
         mLayoutID = R.layout.fragment_saf;
+    }
+
+    @NonNull
+    @Override
+    protected FragmentSafBinding bindView(@NonNull View root) {
+        return FragmentSafBinding.bind(root);
     }
 
     @Override

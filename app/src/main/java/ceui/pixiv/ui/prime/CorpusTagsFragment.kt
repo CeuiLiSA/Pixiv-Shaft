@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import androidx.recyclerview.widget.RecyclerView
+import androidx.core.view.isVisible
 import androidx.viewbinding.ViewBinding
 import ceui.lisa.R
 import ceui.lisa.activities.TemplateActivity
@@ -25,6 +26,7 @@ import ceui.pixiv.shaftapi.CorpusTag
 import ceui.pixiv.ui.common.setUpToolbar
 import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.ui.navigation.TemplateRoute
+import ceui.pixiv.ui.user.binding_loadSquareMedia
 import ceui.pixiv.utils.ppppx
 import com.blankj.utilcode.util.Utils
 import java.text.NumberFormat
@@ -76,7 +78,14 @@ class CorpusTagsFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
             cell.binding.root.setOnClickListener { openTag(cell.item.tag) }
         },
     ) { cell ->
-        cell.binding.holder = cell.item
+        val b = cell.binding
+        val item = cell.item
+        b.tagName.text = item.tag.name
+        b.tagCount.text = item.countText
+        b.illustsPreview.isVisible = item.tag.preview.isNotEmpty()
+        b.illust1.binding_loadSquareMedia(item.illust0)
+        b.illust2.binding_loadSquareMedia(item.illust1)
+        b.illust3.binding_loadSquareMedia(item.illust2)
     }
 
     private fun openTag(tag: CorpusTag) {
@@ -98,7 +107,7 @@ class CorpusTagsFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
 }
 
 /**
- * 目录里的一条。预览图借 [Illust] 这个壳传给 `loadSquareMedia`（同 [PrimeTagItemHolder]），
+ * 目录里的一条。预览图借 [Illust] 这个壳传给 `binding_loadSquareMedia`（同 [PrimeTagItemHolder]），
  * 它们只是缩略图，不是可点开的作品。
  */
 data class CorpusTagItemHolder(val tag: CorpusTag) : FeedItem {

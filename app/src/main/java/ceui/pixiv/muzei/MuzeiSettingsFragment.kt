@@ -2,6 +2,7 @@ package ceui.pixiv.muzei
 
 import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.view.View
 import androidx.core.net.toUri
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentSettingsMuzeiBinding
@@ -19,6 +20,8 @@ class MuzeiSettingsFragment : SettingsPageFragment<FragmentSettingsMuzeiBinding>
     override fun initLayout() {
         mLayoutID = R.layout.fragment_settings_muzei
     }
+
+    override fun bindView(root: View): FragmentSettingsMuzeiBinding = FragmentSettingsMuzeiBinding.bind(root)
 
     override fun initData() {
         val sources = MuzeiSource.entries

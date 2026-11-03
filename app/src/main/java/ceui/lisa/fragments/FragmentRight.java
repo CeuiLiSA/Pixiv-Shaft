@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.annotation.NonNull;
 import androidx.core.view.GravityCompat;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
@@ -72,6 +73,12 @@ public class FragmentRight extends BaseLazyFragment<FragmentNewRightBinding> {
     @Override
     public void initLayout() {
         mLayoutID = R.layout.fragment_new_right;
+    }
+
+    @NonNull
+    @Override
+    protected FragmentNewRightBinding bindView(@NonNull View root) {
+        return FragmentNewRightBinding.bind(root);
     }
 
     @Override

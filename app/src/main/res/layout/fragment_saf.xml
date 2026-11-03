@@ -1,32 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android">
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:orientation="vertical"
+    android:layout_height="match_parent">
 
-    <data>
+    <Button
+        android:layout_width="wrap_content"
+        android:id="@+id/request"
+        android:layout_marginTop="100dp"
+        android:text="@string/saf_request_path"
+        android:layout_height="wrap_content">
 
-    </data>
+    </Button>
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:orientation="vertical"
-        android:layout_height="match_parent">
+    <Button
+        android:layout_width="wrap_content"
+        android:id="@+id/create"
+        android:layout_marginTop="100dp"
+        android:text="@string/saf_create_file"
+        android:layout_height="wrap_content">
 
-        <Button
-            android:layout_width="wrap_content"
-            android:id="@+id/request"
-            android:layout_marginTop="100dp"
-            android:text="@string/saf_request_path"
-            android:layout_height="wrap_content">
+    </Button>
 
-        </Button>
-
-        <Button
-            android:layout_width="wrap_content"
-            android:id="@+id/create"
-            android:layout_marginTop="100dp"
-            android:text="@string/saf_create_file"
-            android:layout_height="wrap_content">
-
-        </Button>
-
-    </LinearLayout>
-</layout>
+</LinearLayout>

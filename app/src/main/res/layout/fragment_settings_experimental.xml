@@ -1,352 +1,344 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/v3_bg"
+    android:orientation="vertical">
 
-    <data>
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorPrimary"
+        android:elevation="@dimen/six_dp"
+        android:fitsSystemWindows="true"
+        android:theme="@style/AppTheme.AppBarOverlay"
+        app:navigationIcon="@drawable/ic_arrow_back_white_shadow"
+        app:popupTheme="@style/AppTheme.PopupOverlay"
+        app:title=" "
+        app:titleTextColor="@android:color/white">
 
-    </data>
+        <TextView
+            android:id="@+id/toolbar_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="@string/experimental_section"
+            android:textColor="@color/white"
+            android:textSize="18sp" />
 
-    <LinearLayout
+    </androidx.appcompat.widget.Toolbar>
+
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/scroll_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/v3_bg"
-        android:orientation="vertical">
+        android:clipToPadding="false"
+        android:paddingBottom="32dp"
+        android:scrollbars="none">
 
-        <androidx.appcompat.widget.Toolbar
-            android:id="@+id/toolbar"
+        <LinearLayout
+            android:id="@+id/parent_linear"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="?attr/colorPrimary"
-            android:elevation="@dimen/six_dp"
-            android:fitsSystemWindows="true"
-            android:theme="@style/AppTheme.AppBarOverlay"
-            app:navigationIcon="@drawable/ic_arrow_back_white_shadow"
-            app:popupTheme="@style/AppTheme.PopupOverlay"
-            app:title=" "
-            app:titleTextColor="@android:color/white">
+            android:orientation="vertical"
+            android:paddingStart="16dp"
+            android:paddingTop="10dp"
+            android:paddingEnd="16dp">
 
-            <TextView
-                android:id="@+id/toolbar_title"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:text="@string/experimental_section"
-                android:textColor="@color/white"
-                android:textSize="18sp" />
+            <RelativeLayout
+                android:id="@+id/show_chat_room_push_banner_rela"
+                style="@style/M3SetRow"
+                android:background="@drawable/wit_row_single">
 
-        </androidx.appcompat.widget.Toolbar>
-
-        <androidx.core.widget.NestedScrollView
-            android:id="@+id/scroll_view"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:clipToPadding="false"
-            android:paddingBottom="32dp"
-            android:scrollbars="none">
-
-            <LinearLayout
-                android:id="@+id/parent_linear"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:paddingStart="16dp"
-                android:paddingTop="10dp"
-                android:paddingEnd="16dp">
-
-                <RelativeLayout
-                    android:id="@+id/show_chat_room_push_banner_rela"
-                    style="@style/M3SetRow"
-                    android:background="@drawable/wit_row_single">
-
-                    <LinearLayout style="@style/M3SetTexts">
-
-                        <TextView
-                            style="@style/M3SetTitle"
-                            android:text="@string/setting_show_chat_room_push_banner" />
-                    </LinearLayout>
-
-                    <androidx.appcompat.widget.SwitchCompat
-                        android:id="@+id/show_chat_room_push_banner"
-                        style="@style/M3SetSwitch" />
-
-                </RelativeLayout>
-
-                <RelativeLayout
-                    android:id="@+id/auto_snapshot_quota_rela"
-                    style="@style/M3SetRow"
-                    android:layout_marginTop="14dp"
-                    android:background="@drawable/wit_row_single">
-
-                    <LinearLayout
-                        style="@style/M3SetTexts"
-                        android:layout_marginEnd="130dp">
-
-                        <TextView
-                            style="@style/M3SetTitle"
-                            android:text="@string/setting_auto_snapshot_quota" />
-
-                        <TextView
-                            style="@style/M3SetDesc"
-                            android:text="@string/setting_auto_snapshot_quota_desc" />
-                    </LinearLayout>
+                <LinearLayout style="@style/M3SetTexts">
 
                     <TextView
-                        android:id="@+id/auto_snapshot_quota"
-                        style="@style/M3SetValue" />
+                        style="@style/M3SetTitle"
+                        android:text="@string/setting_show_chat_room_push_banner" />
+                </LinearLayout>
 
-                </RelativeLayout>
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/show_chat_room_push_banner"
+                    style="@style/M3SetSwitch" />
 
-                <RelativeLayout
-                    android:id="@+id/auto_snapshot_on_bookmark_rela"
-                    style="@style/M3SetRow"
-                    android:layout_marginTop="14dp"
-                    android:background="@drawable/wit_row_single">
+            </RelativeLayout>
 
-                    <LinearLayout style="@style/M3SetTexts">
+            <RelativeLayout
+                android:id="@+id/auto_snapshot_quota_rela"
+                style="@style/M3SetRow"
+                android:layout_marginTop="14dp"
+                android:background="@drawable/wit_row_single">
 
-                        <TextView
-                            style="@style/M3SetTitle"
-                            android:text="@string/setting_auto_snapshot_on_bookmark" />
+                <LinearLayout
+                    style="@style/M3SetTexts"
+                    android:layout_marginEnd="130dp">
 
-                        <TextView
-                            style="@style/M3SetDesc"
-                            android:text="@string/setting_auto_snapshot_on_bookmark_desc" />
-                    </LinearLayout>
+                    <TextView
+                        style="@style/M3SetTitle"
+                        android:text="@string/setting_auto_snapshot_quota" />
 
-                    <androidx.appcompat.widget.SwitchCompat
-                        android:id="@+id/auto_snapshot_on_bookmark"
-                        style="@style/M3SetSwitch" />
+                    <TextView
+                        style="@style/M3SetDesc"
+                        android:text="@string/setting_auto_snapshot_quota_desc" />
+                </LinearLayout>
 
-                </RelativeLayout>
+                <TextView
+                    android:id="@+id/auto_snapshot_quota"
+                    style="@style/M3SetValue" />
 
-                <RelativeLayout
-                    android:id="@+id/auto_snapshot_on_illust_manga_rela"
-                    style="@style/M3SetRow"
-                    android:layout_marginTop="14dp"
-                    android:background="@drawable/wit_row_single">
+            </RelativeLayout>
 
-                    <LinearLayout style="@style/M3SetTexts">
+            <RelativeLayout
+                android:id="@+id/auto_snapshot_on_bookmark_rela"
+                style="@style/M3SetRow"
+                android:layout_marginTop="14dp"
+                android:background="@drawable/wit_row_single">
 
-                        <TextView
-                            style="@style/M3SetTitle"
-                            android:text="@string/setting_auto_snapshot_on_illust_manga" />
+                <LinearLayout style="@style/M3SetTexts">
 
-                        <TextView
-                            style="@style/M3SetDesc"
-                            android:text="@string/setting_auto_snapshot_on_illust_manga_desc" />
-                    </LinearLayout>
+                    <TextView
+                        style="@style/M3SetTitle"
+                        android:text="@string/setting_auto_snapshot_on_bookmark" />
 
-                    <androidx.appcompat.widget.SwitchCompat
-                        android:id="@+id/auto_snapshot_on_illust_manga"
-                        style="@style/M3SetSwitch" />
+                    <TextView
+                        style="@style/M3SetDesc"
+                        android:text="@string/setting_auto_snapshot_on_bookmark_desc" />
+                </LinearLayout>
 
-                </RelativeLayout>
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/auto_snapshot_on_bookmark"
+                    style="@style/M3SetSwitch" />
 
-                <RelativeLayout
-                    android:id="@+id/log_file_enable_rela"
-                    style="@style/M3SetRow"
-                    android:layout_marginTop="14dp"
-                    android:background="@drawable/wit_row_single">
+            </RelativeLayout>
 
-                    <LinearLayout
-                        style="@style/M3SetTexts"
-                        android:layout_marginEnd="96dp">
+            <RelativeLayout
+                android:id="@+id/auto_snapshot_on_illust_manga_rela"
+                style="@style/M3SetRow"
+                android:layout_marginTop="14dp"
+                android:background="@drawable/wit_row_single">
 
-                        <TextView
-                            style="@style/M3SetTitle"
-                            android:text="@string/setting_log_file_enable" />
+                <LinearLayout style="@style/M3SetTexts">
 
-                        <TextView
-                            android:id="@+id/log_file_path"
-                            style="@style/M3SetDesc"
-                            android:text="@string/setting_log_file_no_file" />
-                    </LinearLayout>
+                    <TextView
+                        style="@style/M3SetTitle"
+                        android:text="@string/setting_auto_snapshot_on_illust_manga" />
 
-                    <ImageView
-                        android:id="@+id/log_file_share"
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:layout_centerVertical="true"
-                        android:layout_marginEnd="12dp"
-                        android:layout_toStartOf="@id/log_file_enable"
-                        android:clickable="true"
-                        android:contentDescription="@string/setting_log_file_share"
-                        android:focusable="true"
-                        android:src="@drawable/ic_share_black_24dp"
-                        app:tint="@color/v3_text_1" />
+                    <TextView
+                        style="@style/M3SetDesc"
+                        android:text="@string/setting_auto_snapshot_on_illust_manga_desc" />
+                </LinearLayout>
 
-                    <androidx.appcompat.widget.SwitchCompat
-                        android:id="@+id/log_file_enable"
-                        style="@style/M3SetSwitch" />
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/auto_snapshot_on_illust_manga"
+                    style="@style/M3SetSwitch" />
 
-                </RelativeLayout>
+            </RelativeLayout>
 
-                <RelativeLayout
-                    android:id="@+id/trigger_crash_rela"
-                    style="@style/M3SetRow"
-                    android:layout_marginTop="14dp"
-                    android:background="@drawable/wit_row_single">
+            <RelativeLayout
+                android:id="@+id/log_file_enable_rela"
+                style="@style/M3SetRow"
+                android:layout_marginTop="14dp"
+                android:background="@drawable/wit_row_single">
 
-                    <LinearLayout style="@style/M3SetTexts">
+                <LinearLayout
+                    style="@style/M3SetTexts"
+                    android:layout_marginEnd="96dp">
 
-                        <TextView
-                            style="@style/M3SetTitle"
-                            android:text="@string/setting_trigger_crash" />
+                    <TextView
+                        style="@style/M3SetTitle"
+                        android:text="@string/setting_log_file_enable" />
 
-                        <TextView
-                            style="@style/M3SetDesc"
-                            android:text="@string/setting_trigger_crash_desc" />
-                    </LinearLayout>
+                    <TextView
+                        android:id="@+id/log_file_path"
+                        style="@style/M3SetDesc"
+                        android:text="@string/setting_log_file_no_file" />
+                </LinearLayout>
 
-                </RelativeLayout>
+                <ImageView
+                    android:id="@+id/log_file_share"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_centerVertical="true"
+                    android:layout_marginEnd="12dp"
+                    android:layout_toStartOf="@id/log_file_enable"
+                    android:clickable="true"
+                    android:contentDescription="@string/setting_log_file_share"
+                    android:focusable="true"
+                    android:src="@drawable/ic_share_black_24dp"
+                    app:tint="@color/v3_text_1" />
 
-                <RelativeLayout
-                    android:id="@+id/is_firebase_enable_rela"
-                    style="@style/M3SetRow"
-                    android:layout_marginTop="14dp"
-                    android:background="@drawable/wit_row_single">
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/log_file_enable"
+                    style="@style/M3SetSwitch" />
 
-                    <LinearLayout style="@style/M3SetTexts">
+            </RelativeLayout>
 
-                        <TextView
-                            style="@style/M3SetTitle"
-                            android:text="@string/string_367" />
-                    </LinearLayout>
+            <RelativeLayout
+                android:id="@+id/trigger_crash_rela"
+                style="@style/M3SetRow"
+                android:layout_marginTop="14dp"
+                android:background="@drawable/wit_row_single">
 
-                    <androidx.appcompat.widget.SwitchCompat
-                        android:id="@+id/is_firebase_enable"
-                        style="@style/M3SetSwitch" />
+                <LinearLayout style="@style/M3SetTexts">
 
-                </RelativeLayout>
+                    <TextView
+                        style="@style/M3SetTitle"
+                        android:text="@string/setting_trigger_crash" />
 
-                <!--
-                  弹窗画廊 —— 临时开发工具，只在 debug 包可见
-                  （可见性在 FragmentSettingsExperimental 里按 BuildConfig.DEBUG 控制）。
-                  ⚠️ phase 7 收尾时连同 WitDialogGallery.kt 一起删除。
-                -->
-                <RelativeLayout
-                    android:id="@+id/wit_gallery_rela"
-                    style="@style/M3SetRow"
-                    android:layout_marginTop="14dp"
-                    android:background="@drawable/wit_row_single">
+                    <TextView
+                        style="@style/M3SetDesc"
+                        android:text="@string/setting_trigger_crash_desc" />
+                </LinearLayout>
 
-                    <LinearLayout style="@style/M3SetTexts">
+            </RelativeLayout>
 
-                        <TextView
-                            style="@style/M3SetTitle"
-                            android:text="@string/wit_gallery_title" />
+            <RelativeLayout
+                android:id="@+id/is_firebase_enable_rela"
+                style="@style/M3SetRow"
+                android:layout_marginTop="14dp"
+                android:background="@drawable/wit_row_single">
 
-                        <TextView
-                            style="@style/M3SetDesc"
-                            android:text="@string/wit_gallery_desc" />
-                    </LinearLayout>
+                <LinearLayout style="@style/M3SetTexts">
 
-                </RelativeLayout>
+                    <TextView
+                        style="@style/M3SetTitle"
+                        android:text="@string/string_367" />
+                </LinearLayout>
 
-                <!--
-                  收藏库就绪 banner —— 临时调试入口，只在 debug 包可见
-                  （可见性在 FragmentSettingsExperimental 里按 BuildConfig.DEBUG 控制）。
-                  ⚠️ 验完连同 DebugMirrorBannerTrigger.kt 一起删除。
-                -->
-                <RelativeLayout
-                    android:id="@+id/debug_mirror_banner_rela"
-                    style="@style/M3SetRow"
-                    android:layout_marginTop="14dp"
-                    android:background="@drawable/wit_row_single">
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/is_firebase_enable"
+                    style="@style/M3SetSwitch" />
 
-                    <LinearLayout style="@style/M3SetTexts">
+            </RelativeLayout>
 
-                        <TextView
-                            style="@style/M3SetTitle"
-                            android:text="@string/debug_mirror_banner_title" />
+            <!--
+              弹窗画廊 —— 临时开发工具，只在 debug 包可见
+              （可见性在 FragmentSettingsExperimental 里按 BuildConfig.DEBUG 控制）。
+              ⚠️ phase 7 收尾时连同 WitDialogGallery.kt 一起删除。
+            -->
+            <RelativeLayout
+                android:id="@+id/wit_gallery_rela"
+                style="@style/M3SetRow"
+                android:layout_marginTop="14dp"
+                android:background="@drawable/wit_row_single">
 
-                        <TextView
-                            style="@style/M3SetDesc"
-                            android:text="@string/debug_mirror_banner_desc" />
-                    </LinearLayout>
+                <LinearLayout style="@style/M3SetTexts">
 
-                </RelativeLayout>
+                    <TextView
+                        style="@style/M3SetTitle"
+                        android:text="@string/wit_gallery_title" />
 
-                <!--
-                  更新弹窗调试 —— 临时调试入口，只在 debug 包可见
-                  （可见性在 FragmentSettingsExperimental 里按 BuildConfig.DEBUG 控制）。
-                -->
-                <RelativeLayout
-                    android:id="@+id/debug_update_sheet_rela"
-                    style="@style/M3SetRow"
-                    android:layout_marginTop="14dp"
-                    android:background="@drawable/wit_row_single">
+                    <TextView
+                        style="@style/M3SetDesc"
+                        android:text="@string/wit_gallery_desc" />
+                </LinearLayout>
 
-                    <LinearLayout style="@style/M3SetTexts">
+            </RelativeLayout>
 
-                        <TextView
-                            style="@style/M3SetTitle"
-                            android:text="@string/debug_update_sheet_title" />
+            <!--
+              收藏库就绪 banner —— 临时调试入口，只在 debug 包可见
+              （可见性在 FragmentSettingsExperimental 里按 BuildConfig.DEBUG 控制）。
+              ⚠️ 验完连同 DebugMirrorBannerTrigger.kt 一起删除。
+            -->
+            <RelativeLayout
+                android:id="@+id/debug_mirror_banner_rela"
+                style="@style/M3SetRow"
+                android:layout_marginTop="14dp"
+                android:background="@drawable/wit_row_single">
 
-                        <TextView
-                            style="@style/M3SetDesc"
-                            android:text="@string/debug_update_sheet_desc" />
-                    </LinearLayout>
+                <LinearLayout style="@style/M3SetTexts">
 
-                </RelativeLayout>
+                    <TextView
+                        style="@style/M3SetTitle"
+                        android:text="@string/debug_mirror_banner_title" />
 
-                <!--
-                  失效作品模拟 —— 调试入口，只在 debug 包可见
-                  （可见性在 FragmentSettingsExperimental 里按 BuildConfig.DEBUG 控制）。
-                  打开后两个收藏页会把「有离线快照的作品」画成失效作品卡（占位图封面、无角标），
-                  用来验「失效卡仍显示快照标记」这条路径；只改画法，不动任何数据。
-                -->
-                <RelativeLayout
-                    android:id="@+id/debug_fake_invalid_rela"
-                    style="@style/M3SetRow"
-                    android:layout_marginTop="14dp"
-                    android:background="@drawable/wit_row_single">
+                    <TextView
+                        style="@style/M3SetDesc"
+                        android:text="@string/debug_mirror_banner_desc" />
+                </LinearLayout>
 
-                    <LinearLayout style="@style/M3SetTexts">
+            </RelativeLayout>
 
-                        <TextView
-                            style="@style/M3SetTitle"
-                            android:text="@string/debug_fake_invalid_title" />
+            <!--
+              更新弹窗调试 —— 临时调试入口，只在 debug 包可见
+              （可见性在 FragmentSettingsExperimental 里按 BuildConfig.DEBUG 控制）。
+            -->
+            <RelativeLayout
+                android:id="@+id/debug_update_sheet_rela"
+                style="@style/M3SetRow"
+                android:layout_marginTop="14dp"
+                android:background="@drawable/wit_row_single">
 
-                        <TextView
-                            style="@style/M3SetDesc"
-                            android:text="@string/debug_fake_invalid_desc" />
-                    </LinearLayout>
+                <LinearLayout style="@style/M3SetTexts">
 
-                    <androidx.appcompat.widget.SwitchCompat
-                        android:id="@+id/debug_fake_invalid_switch"
-                        style="@style/M3SetSwitch" />
+                    <TextView
+                        style="@style/M3SetTitle"
+                        android:text="@string/debug_update_sheet_title" />
 
-                </RelativeLayout>
+                    <TextView
+                        style="@style/M3SetDesc"
+                        android:text="@string/debug_update_sheet_desc" />
+                </LinearLayout>
 
-                <!-- 打印所有数据库耗时：排查「哪条查询在拖」用，开关状态存 MMKV，不进备份。 -->
-                <RelativeLayout
-                    android:id="@+id/db_call_trace_rela"
-                    style="@style/M3SetRow"
-                    android:layout_marginTop="14dp"
-                    android:background="@drawable/wit_row_single">
+            </RelativeLayout>
 
-                    <LinearLayout style="@style/M3SetTexts">
+            <!--
+              失效作品模拟 —— 调试入口，只在 debug 包可见
+              （可见性在 FragmentSettingsExperimental 里按 BuildConfig.DEBUG 控制）。
+              打开后两个收藏页会把「有离线快照的作品」画成失效作品卡（占位图封面、无角标），
+              用来验「失效卡仍显示快照标记」这条路径；只改画法，不动任何数据。
+            -->
+            <RelativeLayout
+                android:id="@+id/debug_fake_invalid_rela"
+                style="@style/M3SetRow"
+                android:layout_marginTop="14dp"
+                android:background="@drawable/wit_row_single">
 
-                        <TextView
-                            style="@style/M3SetTitle"
-                            android:text="@string/setting_db_call_trace" />
+                <LinearLayout style="@style/M3SetTexts">
 
-                        <TextView
-                            style="@style/M3SetDesc"
-                            android:text="@string/setting_db_call_trace_desc" />
-                    </LinearLayout>
+                    <TextView
+                        style="@style/M3SetTitle"
+                        android:text="@string/debug_fake_invalid_title" />
 
-                    <androidx.appcompat.widget.SwitchCompat
-                        android:id="@+id/db_call_trace"
-                        style="@style/M3SetSwitch" />
+                    <TextView
+                        style="@style/M3SetDesc"
+                        android:text="@string/debug_fake_invalid_desc" />
+                </LinearLayout>
 
-                </RelativeLayout>
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/debug_fake_invalid_switch"
+                    style="@style/M3SetSwitch" />
 
-            </LinearLayout>
+            </RelativeLayout>
 
-        </androidx.core.widget.NestedScrollView>
+            <!-- 打印所有数据库耗时：排查「哪条查询在拖」用，开关状态存 MMKV，不进备份。 -->
+            <RelativeLayout
+                android:id="@+id/db_call_trace_rela"
+                style="@style/M3SetRow"
+                android:layout_marginTop="14dp"
+                android:background="@drawable/wit_row_single">
 
-    </LinearLayout>
+                <LinearLayout style="@style/M3SetTexts">
 
-</layout>
+                    <TextView
+                        style="@style/M3SetTitle"
+                        android:text="@string/setting_db_call_trace" />
+
+                    <TextView
+                        style="@style/M3SetDesc"
+                        android:text="@string/setting_db_call_trace_desc" />
+                </LinearLayout>
+
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/db_call_trace"
+                    style="@style/M3SetSwitch" />
+
+            </RelativeLayout>
+
+        </LinearLayout>
+
+    </androidx.core.widget.NestedScrollView>
+
+</LinearLayout>

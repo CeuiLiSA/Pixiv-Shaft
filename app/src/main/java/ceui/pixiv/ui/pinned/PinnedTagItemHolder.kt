@@ -16,8 +16,8 @@ import timber.log.Timber
  * （由 [ceui.pixiv.utils.buildPinnedTagPreviewJson] 写入，沿用旧 Prime 内置榜 assets 的
  * `{tag, resp:{illusts}}` 外形）。
  *
- * 字段命名 / 暴露形式刻意对齐 [ceui.pixiv.ui.prime.PrimeTagItemHolder] —— 这样 cell xml 就能
- * 一比一抄 `cell_item_prime_tag.xml` 的 binding 表达式。
+ * 字段命名 / 暴露形式刻意对齐 [ceui.pixiv.ui.prime.PrimeTagItemHolder]，两张卡的 renderer
+ * 绑法一比一对得上。
  *
  * [SearchEntity] 是无 equals 的可变 Java POJO，[FeedItem] 的默认（引用）相等性照实反映——
  * 每次重查 DB 都是全新实例，靠 [feedKey] 做身份去重即可，不需要为它另造 equals。

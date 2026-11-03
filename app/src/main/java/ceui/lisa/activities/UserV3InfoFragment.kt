@@ -10,7 +10,6 @@ import androidx.core.view.OneShotPreDrawListener
 import androidx.core.view.doOnPreDraw
 import androidx.core.view.isVisible
 import androidx.core.view.doOnPreDraw
-import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import ceui.lisa.R
@@ -48,9 +47,7 @@ class UserV3InfoFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?,
     ): View {
-        _binding = DataBindingUtil.inflate(
-            inflater, R.layout.fragment_user_v3_info, container, false
-        )
+        _binding = FragmentUserV3InfoBinding.inflate(inflater, container, false)
         return binding.root
     }
 

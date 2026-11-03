@@ -24,6 +24,8 @@ class FragmentWorkSpace : BaseLazyFragment<FragmentWorkSpaceBinding>(), Display<
         mLayoutID = R.layout.fragment_work_space
     }
 
+    override fun bindView(root: View): FragmentWorkSpaceBinding = FragmentWorkSpaceBinding.bind(root)
+
 
     public override fun initData() {
         viewLifecycleOwner.lifecycleScope.launch {

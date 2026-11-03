@@ -1,7 +1,9 @@
 package ceui.lisa.fragments;
 
+import android.view.View;
 import android.widget.CompoundButton;
 
+import androidx.annotation.NonNull;
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.databinding.FragmentSettingsBookmarksBinding;
@@ -14,6 +16,12 @@ public class FragmentSettingsBookmarks extends SettingsPageFragment<FragmentSett
     @Override
     public void initLayout() {
         mLayoutID = R.layout.fragment_settings_bookmarks;
+    }
+
+    @NonNull
+    @Override
+    protected FragmentSettingsBookmarksBinding bindView(@NonNull View root) {
+        return FragmentSettingsBookmarksBinding.bind(root);
     }
 
     @Override

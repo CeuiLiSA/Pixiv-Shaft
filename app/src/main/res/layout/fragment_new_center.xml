@@ -7,430 +7,674 @@
      · 本月收藏 / 当前最热走自建 shaft-api-v2,Lite 渠道整段 GONE(代码里按 BuildConfig.IS_LITE)。
      · 缩略图货架卡复用排行榜 hero 卡样式(recy_rank_illust_horizontal / recy_discover_tag):
        圆角 16 + 底部 scrim + 白标题,日夜自适应。 -->
-<layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/v3_bg"
+    android:orientation="vertical">
 
-    <data>
+    <!-- 状态栏占位:代码里按 Dev.hideMainActivityStatus 撑到 statusHeight -->
+    <View
+        android:id="@+id/head"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/v3_bg" />
 
-    </data>
-
+    <!-- Header 行:抽屉入口 + 大标题「发现」+ 搜索(和「推荐」tab 一致) -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@color/v3_bg"
-        android:orientation="vertical">
+        android:layout_height="56dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="12dp"
+        android:paddingEnd="16dp">
 
-        <!-- 状态栏占位:代码里按 Dev.hideMainActivityStatus 撑到 statusHeight -->
-        <View
-            android:id="@+id/head"
+        <ImageButton
+            android:id="@+id/drawerButton"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/string_75"
+            android:scaleType="centerInside"
+            android:src="@drawable/ic_baseline_dns_24"
+            app:tint="@color/v3_text_1" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="6dp"
+            android:letterSpacing="-0.02"
+            android:text="@string/string_75"
+            android:textColor="@color/v3_text_1"
+            android:textSize="24sp"
+            android:textStyle="bold" />
+
+        <ImageButton
+            android:id="@+id/searchBar"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/search"
+            android:scaleType="centerInside"
+            android:src="@drawable/ic_search_black_24dp"
+            app:tint="@color/v3_text_1" />
+
+    </LinearLayout>
+
+    <FrameLayout
+        android:id="@+id/refreshLayout"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <!-- clipToPadding=false:内容滚动时贴着视口底边裁切,而不是被 24dp paddingBottom 提前
+             24dp 切一刀(那会在底部悬空一条「莫名其妙的裁切痕迹」)。padding 只用来给末尾留出滚动余量。 -->
+        <androidx.core.widget.NestedScrollView
+            android:id="@+id/discoverScroll"
             android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="@color/v3_bg" />
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:overScrollMode="never"
+            android:paddingBottom="24dp">
 
-        <!-- Header 行:抽屉入口 + 大标题「发现」+ 搜索(和「推荐」tab 一致) -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:paddingStart="12dp"
-            android:paddingEnd="16dp">
-
-            <ImageButton
-                android:id="@+id/drawerButton"
-                android:layout_width="44dp"
-                android:layout_height="44dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="@string/string_75"
-                android:scaleType="centerInside"
-                android:src="@drawable/ic_baseline_dns_24"
-                app:tint="@color/v3_text_1" />
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginStart="6dp"
-                android:letterSpacing="-0.02"
-                android:text="@string/string_75"
-                android:textColor="@color/v3_text_1"
-                android:textSize="24sp"
-                android:textStyle="bold" />
-
-            <ImageButton
-                android:id="@+id/searchBar"
-                android:layout_width="44dp"
-                android:layout_height="44dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="@string/search"
-                android:scaleType="centerInside"
-                android:src="@drawable/ic_search_black_24dp"
-                app:tint="@color/v3_text_1" />
-
-        </LinearLayout>
-
-        <FrameLayout
-            android:id="@+id/refreshLayout"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1">
-
-            <!-- clipToPadding=false:内容滚动时贴着视口底边裁切,而不是被 24dp paddingBottom 提前
-                 24dp 切一刀(那会在底部悬空一条「莫名其妙的裁切痕迹」)。padding 只用来给末尾留出滚动余量。 -->
-            <androidx.core.widget.NestedScrollView
-                android:id="@+id/discoverScroll"
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:clipToPadding="false"
-                android:overScrollMode="never"
-                android:paddingBottom="24dp">
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
 
+                <!-- ============ 重点模块:漫画 / 小说 ============
+                     这两个是独立内容大类,提到最上方做成主题色大卡,和下方「更多分类」的小 chip
+                     明确分开(用户反馈:别和小入口混在一起)。卡底(seriesStripBg)/图标底(seriesIconBg)
+                     在 FragmentCenter 里按主题色 tint,日夜双模;点击跳「推荐漫画」/「推荐小说」整页。 -->
                 <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:baselineAligned="false"
+                    android:orientation="horizontal"
+                    android:paddingStart="20dp"
+                    android:paddingTop="20dp"
+                    android:paddingEnd="20dp">
+
+                    <LinearLayout
+                        android:id="@+id/bigManga"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="6dp"
+                        android:layout_weight="1"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:padding="14dp"
+                        android:stateListAnimator="@animator/button_press_scale">
+
+                        <FrameLayout
+                            android:id="@+id/bigMangaIconWrap"
+                            android:layout_width="42dp"
+                            android:layout_height="42dp">
+
+                            <ImageView
+                                android:layout_width="22dp"
+                                android:layout_height="22dp"
+                                android:layout_gravity="center"
+                                android:importantForAccessibility="no"
+                                android:src="@drawable/ic_baseline_palette_24"
+                                android:tint="@android:color/white" />
+                        </FrameLayout>
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/type_manga"
+                                android:textColor="@color/v3_text_1"
+                                android:textSize="16sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="1dp"
+                                android:ellipsize="end"
+                                android:maxLines="1"
+                                android:text="@string/recommend_manga"
+                                android:textColor="@color/v3_text_2"
+                                android:textSize="11sp" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/bigNovel"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="6dp"
+                        android:layout_weight="1"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:padding="14dp"
+                        android:stateListAnimator="@animator/button_press_scale">
+
+                        <FrameLayout
+                            android:id="@+id/bigNovelIconWrap"
+                            android:layout_width="42dp"
+                            android:layout_height="42dp">
+
+                            <ImageView
+                                android:layout_width="22dp"
+                                android:layout_height="22dp"
+                                android:layout_gravity="center"
+                                android:importantForAccessibility="no"
+                                android:src="@drawable/ic_baseline_menu_book_24"
+                                android:tint="@android:color/white" />
+                        </FrameLayout>
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/type_novel"
+                                android:textColor="@color/v3_text_1"
+                                android:textSize="16sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="1dp"
+                                android:ellipsize="end"
+                                android:maxLines="1"
+                                android:text="@string/recommend_novel"
+                                android:textColor="@color/v3_text_2"
+                                android:textSize="11sp" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                </LinearLayout>
+
+                <!-- ============ 特辑(pixivision 子 fragment,置顶) ============
+                     pixivision 子 fragment 自带品牌 logo + 「查看更多」头,不再另加「特辑」文字标题。
+                     它的 see_more 已经跳 pixivision 列表,无需再接一个「查看全部」。logo marginTop=24 与
+                     其余货架头间距一致。 -->
+                <FrameLayout
+                    android:id="@+id/fragment_pivision"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+
+                <!-- ============ 热度标签 ============ -->
+                <LinearLayout
+                    android:id="@+id/tagSection"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
 
-                    <!-- ============ 重点模块:漫画 / 小说 ============
-                         这两个是独立内容大类,提到最上方做成主题色大卡,和下方「更多分类」的小 chip
-                         明确分开(用户反馈:别和小入口混在一起)。卡底(seriesStripBg)/图标底(seriesIconBg)
-                         在 FragmentCenter 里按主题色 tint,日夜双模;点击跳「推荐漫画」/「推荐小说」整页。 -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:baselineAligned="false"
+                        android:gravity="center_vertical"
                         android:orientation="horizontal"
                         android:paddingStart="20dp"
-                        android:paddingTop="20dp"
-                        android:paddingEnd="20dp">
+                        android:paddingTop="24dp"
+                        android:paddingEnd="16dp"
+                        android:paddingBottom="12dp">
 
-                        <LinearLayout
-                            android:id="@+id/bigManga"
+                        <TextView
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:layout_marginEnd="6dp"
                             android:layout_weight="1"
-                            android:clickable="true"
-                            android:focusable="true"
-                            android:gravity="center_vertical"
-                            android:orientation="horizontal"
-                            android:padding="14dp"
-                            android:stateListAnimator="@animator/button_press_scale">
+                            android:letterSpacing="0.01"
+                            android:text="@string/prime_tags"
+                            android:textColor="@color/v3_text_1"
+                            android:textSize="17sp"
+                            android:textStyle="bold" />
 
-                            <FrameLayout
-                                android:id="@+id/bigMangaIconWrap"
-                                android:layout_width="42dp"
-                                android:layout_height="42dp">
+                        <TextView
+                            android:id="@+id/tagMore"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:gravity="center"
+                            android:stateListAnimator="@animator/button_press_alpha"
+                            android:text="@string/string_167"
+                            android:textColor="?attr/colorPrimary"
+                            android:textSize="13sp"
+                            app:drawableEndCompat="@drawable/ic_chevron_right_black_24dp"
+                            app:drawableTint="?attr/colorPrimary" />
 
-                                <ImageView
-                                    android:layout_width="22dp"
-                                    android:layout_height="22dp"
-                                    android:layout_gravity="center"
-                                    android:importantForAccessibility="no"
-                                    android:src="@drawable/ic_baseline_palette_24"
-                                    android:tint="@android:color/white" />
-                            </FrameLayout>
+                    </LinearLayout>
 
-                            <LinearLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="12dp"
-                                android:layout_weight="1"
-                                android:orientation="vertical">
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/tagRail"
+                        android:layout_width="match_parent"
+                        android:layout_height="120dp"
+                        android:clipToPadding="false"
+                        android:overScrollMode="never"
+                        android:paddingStart="20dp"
+                        android:paddingEnd="8dp" />
 
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="@string/type_manga"
-                                    android:textColor="@color/v3_text_1"
-                                    android:textSize="16sp"
-                                    android:textStyle="bold" />
+                </LinearLayout>
 
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginTop="1dp"
-                                    android:ellipsize="end"
-                                    android:maxLines="1"
-                                    android:text="@string/recommend_manga"
-                                    android:textColor="@color/v3_text_2"
-                                    android:textSize="11sp" />
-                            </LinearLayout>
-                        </LinearLayout>
+                <!-- ============ 最新 ============ -->
+                <LinearLayout
+                    android:id="@+id/latestSection"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
 
-                        <LinearLayout
-                            android:id="@+id/bigNovel"
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingStart="20dp"
+                        android:paddingTop="24dp"
+                        android:paddingEnd="16dp"
+                        android:paddingBottom="12dp">
+
+                        <TextView
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:layout_marginStart="6dp"
                             android:layout_weight="1"
-                            android:clickable="true"
-                            android:focusable="true"
-                            android:gravity="center_vertical"
-                            android:orientation="horizontal"
-                            android:padding="14dp"
-                            android:stateListAnimator="@animator/button_press_scale">
+                            android:letterSpacing="0.01"
+                            android:text="@string/latest_work"
+                            android:textColor="@color/v3_text_1"
+                            android:textSize="17sp"
+                            android:textStyle="bold" />
 
-                            <FrameLayout
-                                android:id="@+id/bigNovelIconWrap"
-                                android:layout_width="42dp"
-                                android:layout_height="42dp">
-
-                                <ImageView
-                                    android:layout_width="22dp"
-                                    android:layout_height="22dp"
-                                    android:layout_gravity="center"
-                                    android:importantForAccessibility="no"
-                                    android:src="@drawable/ic_baseline_menu_book_24"
-                                    android:tint="@android:color/white" />
-                            </FrameLayout>
-
-                            <LinearLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="12dp"
-                                android:layout_weight="1"
-                                android:orientation="vertical">
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="@string/type_novel"
-                                    android:textColor="@color/v3_text_1"
-                                    android:textSize="16sp"
-                                    android:textStyle="bold" />
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginTop="1dp"
-                                    android:ellipsize="end"
-                                    android:maxLines="1"
-                                    android:text="@string/recommend_novel"
-                                    android:textColor="@color/v3_text_2"
-                                    android:textSize="11sp" />
-                            </LinearLayout>
-                        </LinearLayout>
+                        <TextView
+                            android:id="@+id/latestMore"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:gravity="center"
+                            android:stateListAnimator="@animator/button_press_alpha"
+                            android:text="@string/string_167"
+                            android:textColor="?attr/colorPrimary"
+                            android:textSize="13sp"
+                            app:drawableEndCompat="@drawable/ic_chevron_right_black_24dp"
+                            app:drawableTint="?attr/colorPrimary" />
 
                     </LinearLayout>
 
-                    <!-- ============ 特辑(pixivision 子 fragment,置顶) ============
-                         pixivision 子 fragment 自带品牌 logo + 「查看更多」头,不再另加「特辑」文字标题。
-                         它的 see_more 已经跳 pixivision 列表,无需再接一个「查看全部」。logo marginTop=24 与
-                         其余货架头间距一致。 -->
-                    <FrameLayout
-                        android:id="@+id/fragment_pivision"
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/latestRail"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content" />
+                        android:layout_height="180dp"
+                        android:clipToPadding="false"
+                        android:overScrollMode="never"
+                        android:paddingStart="20dp"
+                        android:paddingEnd="8dp" />
 
-                    <!-- ============ 热度标签 ============ -->
+                </LinearLayout>
+
+                <!-- ============ 当前最热(shaft-api-v2,Lite GONE) ============ -->
+                <LinearLayout
+                    android:id="@+id/recentSection"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
                     <LinearLayout
-                        android:id="@+id/tagSection"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical">
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingStart="20dp"
+                        android:paddingTop="24dp"
+                        android:paddingEnd="16dp"
+                        android:paddingBottom="12dp">
 
-                        <LinearLayout
-                            android:layout_width="match_parent"
+                        <TextView
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:gravity="center_vertical"
-                            android:orientation="horizontal"
-                            android:paddingStart="20dp"
-                            android:paddingTop="24dp"
-                            android:paddingEnd="16dp"
-                            android:paddingBottom="12dp">
+                            android:layout_weight="1"
+                            android:letterSpacing="0.01"
+                            android:text="@string/current_hot"
+                            android:textColor="@color/v3_text_1"
+                            android:textSize="17sp"
+                            android:textStyle="bold" />
 
-                            <TextView
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:letterSpacing="0.01"
-                                android:text="@string/prime_tags"
-                                android:textColor="@color/v3_text_1"
-                                android:textSize="17sp"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:id="@+id/tagMore"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:gravity="center"
-                                android:stateListAnimator="@animator/button_press_alpha"
-                                android:text="@string/string_167"
-                                android:textColor="?attr/colorPrimary"
-                                android:textSize="13sp"
-                                app:drawableEndCompat="@drawable/ic_chevron_right_black_24dp"
-                                app:drawableTint="?attr/colorPrimary" />
-
-                        </LinearLayout>
-
-                        <androidx.recyclerview.widget.RecyclerView
-                            android:id="@+id/tagRail"
-                            android:layout_width="match_parent"
-                            android:layout_height="120dp"
-                            android:clipToPadding="false"
-                            android:overScrollMode="never"
-                            android:paddingStart="20dp"
-                            android:paddingEnd="8dp" />
+                        <TextView
+                            android:id="@+id/recentMore"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:gravity="center"
+                            android:stateListAnimator="@animator/button_press_alpha"
+                            android:text="@string/string_167"
+                            android:textColor="?attr/colorPrimary"
+                            android:textSize="13sp"
+                            app:drawableEndCompat="@drawable/ic_chevron_right_black_24dp"
+                            app:drawableTint="?attr/colorPrimary" />
 
                     </LinearLayout>
 
-                    <!-- ============ 最新 ============ -->
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/recentRail"
+                        android:layout_width="match_parent"
+                        android:layout_height="180dp"
+                        android:clipToPadding="false"
+                        android:overScrollMode="never"
+                        android:paddingStart="20dp"
+                        android:paddingEnd="8dp" />
+
+                </LinearLayout>
+
+                <!-- ============ 本月收藏(站长推荐,shaft-api-v2,Lite GONE) ============ -->
+                <LinearLayout
+                    android:id="@+id/siteSection"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
                     <LinearLayout
-                        android:id="@+id/latestSection"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical">
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingStart="20dp"
+                        android:paddingTop="24dp"
+                        android:paddingEnd="16dp"
+                        android:paddingBottom="12dp">
 
-                        <LinearLayout
-                            android:layout_width="match_parent"
+                        <TextView
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:gravity="center_vertical"
-                            android:orientation="horizontal"
-                            android:paddingStart="20dp"
-                            android:paddingTop="24dp"
-                            android:paddingEnd="16dp"
-                            android:paddingBottom="12dp">
+                            android:layout_weight="1"
+                            android:letterSpacing="0.01"
+                            android:text="@string/site_recommend"
+                            android:textColor="@color/v3_text_1"
+                            android:textSize="17sp"
+                            android:textStyle="bold" />
 
-                            <TextView
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:letterSpacing="0.01"
-                                android:text="@string/latest_work"
-                                android:textColor="@color/v3_text_1"
-                                android:textSize="17sp"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:id="@+id/latestMore"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:gravity="center"
-                                android:stateListAnimator="@animator/button_press_alpha"
-                                android:text="@string/string_167"
-                                android:textColor="?attr/colorPrimary"
-                                android:textSize="13sp"
-                                app:drawableEndCompat="@drawable/ic_chevron_right_black_24dp"
-                                app:drawableTint="?attr/colorPrimary" />
-
-                        </LinearLayout>
-
-                        <androidx.recyclerview.widget.RecyclerView
-                            android:id="@+id/latestRail"
-                            android:layout_width="match_parent"
-                            android:layout_height="180dp"
-                            android:clipToPadding="false"
-                            android:overScrollMode="never"
-                            android:paddingStart="20dp"
-                            android:paddingEnd="8dp" />
+                        <TextView
+                            android:id="@+id/siteMore"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:gravity="center"
+                            android:stateListAnimator="@animator/button_press_alpha"
+                            android:text="@string/string_167"
+                            android:textColor="?attr/colorPrimary"
+                            android:textSize="13sp"
+                            app:drawableEndCompat="@drawable/ic_chevron_right_black_24dp"
+                            app:drawableTint="?attr/colorPrimary" />
 
                     </LinearLayout>
 
-                    <!-- ============ 当前最热(shaft-api-v2,Lite GONE) ============ -->
-                    <LinearLayout
-                        android:id="@+id/recentSection"
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/siteRail"
                         android:layout_width="match_parent"
+                        android:layout_height="180dp"
+                        android:clipToPadding="false"
+                        android:overScrollMode="never"
+                        android:paddingStart="20dp"
+                        android:paddingEnd="8dp" />
+
+                </LinearLayout>
+
+                <!-- ============ 更多分类 ============ -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="20dp"
+                    android:layout_marginEnd="20dp"
+                    android:layout_marginTop="24dp"
+                    android:layout_marginBottom="12dp"
+                    android:fontFamily="@font/montserrat_bold"
+                    android:letterSpacing="0.06"
+                    android:lineSpacingExtra="3sp"
+                    android:text="@string/string_76"
+                    android:textColor="@color/v3_text_2"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+
+                <com.google.android.flexbox.FlexboxLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="20dp"
+                    android:layout_marginEnd="20dp"
+                    app:flexWrap="wrap">
+
+                    <TextView
+                        android:id="@+id/catWalk"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical">
+                        android:layout_marginEnd="9dp"
+                        android:layout_marginBottom="9dp"
+                        android:background="@drawable/bg_v3_chip"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:paddingStart="15dp"
+                        android:paddingTop="9dp"
+                        android:paddingEnd="15dp"
+                        android:paddingBottom="9dp"
+                        android:stateListAnimator="@animator/button_press_scale"
+                        android:text="@string/type_walk_through"
+                        android:textColor="@color/v3_text_1"
+                        android:textSize="13sp" />
 
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:gravity="center_vertical"
-                            android:orientation="horizontal"
-                            android:paddingStart="20dp"
-                            android:paddingTop="24dp"
-                            android:paddingEnd="16dp"
-                            android:paddingBottom="12dp">
-
-                            <TextView
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:letterSpacing="0.01"
-                                android:text="@string/current_hot"
-                                android:textColor="@color/v3_text_1"
-                                android:textSize="17sp"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:id="@+id/recentMore"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:gravity="center"
-                                android:stateListAnimator="@animator/button_press_alpha"
-                                android:text="@string/string_167"
-                                android:textColor="?attr/colorPrimary"
-                                android:textSize="13sp"
-                                app:drawableEndCompat="@drawable/ic_chevron_right_black_24dp"
-                                app:drawableTint="?attr/colorPrimary" />
-
-                        </LinearLayout>
-
-                        <androidx.recyclerview.widget.RecyclerView
-                            android:id="@+id/recentRail"
-                            android:layout_width="match_parent"
-                            android:layout_height="180dp"
-                            android:clipToPadding="false"
-                            android:overScrollMode="never"
-                            android:paddingStart="20dp"
-                            android:paddingEnd="8dp" />
-
-                    </LinearLayout>
-
-                    <!-- ============ 本月收藏(站长推荐,shaft-api-v2,Lite GONE) ============ -->
-                    <LinearLayout
-                        android:id="@+id/siteSection"
-                        android:layout_width="match_parent"
+                    <!-- pixiv 漫画官方连载首页(comic.pixiv.net,复用主 app 的 token) -->
+                    <TextView
+                        android:id="@+id/catPixivComic"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical">
+                        android:layout_marginEnd="9dp"
+                        android:layout_marginBottom="9dp"
+                        android:background="@drawable/bg_v3_chip"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:paddingStart="15dp"
+                        android:paddingTop="9dp"
+                        android:paddingEnd="15dp"
+                        android:paddingBottom="9dp"
+                        android:stateListAnimator="@animator/button_press_scale"
+                        android:text="@string/pixiv_comic"
+                        android:textColor="@color/v3_text_1"
+                        android:textSize="13sp" />
 
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:gravity="center_vertical"
-                            android:orientation="horizontal"
-                            android:paddingStart="20dp"
-                            android:paddingTop="24dp"
-                            android:paddingEnd="16dp"
-                            android:paddingBottom="12dp">
+                    <TextView
+                        android:id="@+id/catFollowNovel"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="9dp"
+                        android:layout_marginBottom="9dp"
+                        android:background="@drawable/bg_v3_chip"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:paddingStart="15dp"
+                        android:paddingTop="9dp"
+                        android:paddingEnd="15dp"
+                        android:paddingBottom="9dp"
+                        android:stateListAnimator="@animator/button_press_scale"
+                        android:text="@string/string_196"
+                        android:textColor="@color/v3_text_1"
+                        android:textSize="13sp" />
 
-                            <TextView
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:letterSpacing="0.01"
-                                android:text="@string/site_recommend"
-                                android:textColor="@color/v3_text_1"
-                                android:textSize="17sp"
-                                android:textStyle="bold" />
+                    <TextView
+                        android:id="@+id/catDiscovery"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="9dp"
+                        android:layout_marginBottom="9dp"
+                        android:background="@drawable/bg_v3_chip"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:paddingStart="15dp"
+                        android:paddingTop="9dp"
+                        android:paddingEnd="15dp"
+                        android:paddingBottom="9dp"
+                        android:stateListAnimator="@animator/button_press_scale"
+                        android:text="@string/string_discovery"
+                        android:textColor="@color/v3_text_1"
+                        android:textSize="13sp" />
 
-                            <TextView
-                                android:id="@+id/siteMore"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:gravity="center"
-                                android:stateListAnimator="@animator/button_press_alpha"
-                                android:text="@string/string_167"
-                                android:textColor="?attr/colorPrimary"
-                                android:textSize="13sp"
-                                app:drawableEndCompat="@drawable/ic_chevron_right_black_24dp"
-                                app:drawableTint="?attr/colorPrimary" />
+                    <TextView
+                        android:id="@+id/catWebDiscovery"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="9dp"
+                        android:layout_marginBottom="9dp"
+                        android:background="@drawable/bg_v3_chip"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:paddingStart="15dp"
+                        android:paddingTop="9dp"
+                        android:paddingEnd="15dp"
+                        android:paddingBottom="9dp"
+                        android:stateListAnimator="@animator/button_press_scale"
+                        android:text="@string/web_discovery_title"
+                        android:textColor="@color/v3_text_1"
+                        android:textSize="13sp" />
 
-                        </LinearLayout>
+                    <!-- Web 首页 / pixiv FANBOX:从侧边栏迁入此处,Lite 里 GONE -->
+                    <TextView
+                        android:id="@+id/catWeb"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="9dp"
+                        android:layout_marginBottom="9dp"
+                        android:background="@drawable/bg_v3_chip"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:paddingStart="15dp"
+                        android:paddingTop="9dp"
+                        android:paddingEnd="15dp"
+                        android:paddingBottom="9dp"
+                        android:stateListAnimator="@animator/button_press_scale"
+                        android:text="@string/street_title"
+                        android:textColor="@color/v3_text_1"
+                        android:textSize="13sp" />
 
-                        <androidx.recyclerview.widget.RecyclerView
-                            android:id="@+id/siteRail"
-                            android:layout_width="match_parent"
-                            android:layout_height="180dp"
-                            android:clipToPadding="false"
-                            android:overScrollMode="never"
-                            android:paddingStart="20dp"
-                            android:paddingEnd="8dp" />
+                    <TextView
+                        android:id="@+id/catFanbox"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="9dp"
+                        android:layout_marginBottom="9dp"
+                        android:background="@drawable/bg_v3_chip"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:paddingStart="15dp"
+                        android:paddingTop="9dp"
+                        android:paddingEnd="15dp"
+                        android:paddingBottom="9dp"
+                        android:stateListAnimator="@animator/button_press_scale"
+                        android:text="@string/fanbox_entry"
+                        android:textColor="@color/v3_text_1"
+                        android:textSize="13sp" />
 
-                    </LinearLayout>
+                    <TextView
+                        android:id="@+id/catNiceFriend"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="9dp"
+                        android:layout_marginBottom="9dp"
+                        android:background="@drawable/bg_v3_chip"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:paddingStart="15dp"
+                        android:paddingTop="9dp"
+                        android:paddingEnd="15dp"
+                        android:paddingBottom="9dp"
+                        android:stateListAnimator="@animator/button_press_scale"
+                        android:text="@string/nice_friend_works"
+                        android:textColor="@color/v3_text_1"
+                        android:textSize="13sp" />
 
-                    <!-- ============ 更多分类 ============ -->
+                    <!-- 大家搜过的:自建后端的作品库(搜索缓存逐日沉淀),同 Lite 口径 GONE -->
+                    <TextView
+                        android:id="@+id/catCorpusLibrary"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="9dp"
+                        android:layout_marginBottom="9dp"
+                        android:background="@drawable/bg_v3_chip"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:paddingStart="15dp"
+                        android:paddingTop="9dp"
+                        android:paddingEnd="15dp"
+                        android:paddingBottom="9dp"
+                        android:stateListAnimator="@animator/button_press_scale"
+                        android:text="@string/corpus_library"
+                        android:textColor="@color/v3_text_1"
+                        android:textSize="13sp" />
+
+                    <TextView
+                        android:id="@+id/catNovelLengthRank"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="9dp"
+                        android:layout_marginBottom="9dp"
+                        android:background="@drawable/bg_v3_chip"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:paddingStart="15dp"
+                        android:paddingTop="9dp"
+                        android:paddingEnd="15dp"
+                        android:paddingBottom="9dp"
+                        android:stateListAnimator="@animator/button_press_scale"
+                        android:text="@string/novel_length_rank"
+                        android:textColor="@color/v3_text_1"
+                        android:textSize="13sp" />
+
+                    <TextView
+                        android:id="@+id/catTrendingArtists"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="9dp"
+                        android:layout_marginBottom="9dp"
+                        android:background="@drawable/bg_v3_chip"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:paddingStart="15dp"
+                        android:paddingTop="9dp"
+                        android:paddingEnd="15dp"
+                        android:paddingBottom="9dp"
+                        android:stateListAnimator="@animator/button_press_scale"
+                        android:text="@string/trending_artists"
+                        android:textColor="@color/v3_text_1"
+                        android:textSize="13sp" />
+
+                    <TextView
+                        android:id="@+id/catDailyRecommendations"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="9dp"
+                        android:layout_marginBottom="9dp"
+                        android:background="@drawable/bg_v3_chip"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:paddingStart="15dp"
+                        android:paddingTop="9dp"
+                        android:paddingEnd="15dp"
+                        android:paddingBottom="9dp"
+                        android:stateListAnimator="@animator/button_press_scale"
+                        android:text="@string/daily_recommendations"
+                        android:textColor="@color/v3_text_1"
+                        android:textSize="13sp" />
+
+                </com.google.android.flexbox.FlexboxLayout>
+
+                <!-- ============ Shaft 榜单(自建后端,Lite 整段 GONE) ============ -->
+                <LinearLayout
+                    android:id="@+id/shaftRankSection"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -441,7 +685,7 @@
                         android:fontFamily="@font/montserrat_bold"
                         android:letterSpacing="0.06"
                         android:lineSpacingExtra="3sp"
-                        android:text="@string/string_76"
+                        android:text="@string/shaft_rankings"
                         android:textColor="@color/v3_text_2"
                         android:textSize="13sp"
                         android:textStyle="bold" />
@@ -454,7 +698,7 @@
                         app:flexWrap="wrap">
 
                         <TextView
-                            android:id="@+id/catWalk"
+                            android:id="@+id/catArtistRank"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginEnd="9dp"
@@ -467,31 +711,12 @@
                             android:paddingEnd="15dp"
                             android:paddingBottom="9dp"
                             android:stateListAnimator="@animator/button_press_scale"
-                            android:text="@string/type_walk_through"
-                            android:textColor="@color/v3_text_1"
-                            android:textSize="13sp" />
-
-                        <!-- pixiv 漫画官方连载首页(comic.pixiv.net,复用主 app 的 token) -->
-                        <TextView
-                            android:id="@+id/catPixivComic"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginEnd="9dp"
-                            android:layout_marginBottom="9dp"
-                            android:background="@drawable/bg_v3_chip"
-                            android:clickable="true"
-                            android:focusable="true"
-                            android:paddingStart="15dp"
-                            android:paddingTop="9dp"
-                            android:paddingEnd="15dp"
-                            android:paddingBottom="9dp"
-                            android:stateListAnimator="@animator/button_press_scale"
-                            android:text="@string/pixiv_comic"
+                            android:text="@string/artist_rank"
                             android:textColor="@color/v3_text_1"
                             android:textSize="13sp" />
 
                         <TextView
-                            android:id="@+id/catFollowNovel"
+                            android:id="@+id/catArtistAvgRank"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginEnd="9dp"
@@ -504,12 +729,12 @@
                             android:paddingEnd="15dp"
                             android:paddingBottom="9dp"
                             android:stateListAnimator="@animator/button_press_scale"
-                            android:text="@string/string_196"
+                            android:text="@string/artist_avg_rank"
                             android:textColor="@color/v3_text_1"
                             android:textSize="13sp" />
 
                         <TextView
-                            android:id="@+id/catDiscovery"
+                            android:id="@+id/catViewRank"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginEnd="9dp"
@@ -522,12 +747,31 @@
                             android:paddingEnd="15dp"
                             android:paddingBottom="9dp"
                             android:stateListAnimator="@animator/button_press_scale"
-                            android:text="@string/string_discovery"
+                            android:text="@string/view_rank"
+                            android:textColor="@color/v3_text_1"
+                            android:textSize="13sp" />
+
+                        <!-- 收藏榜 / AI 榜 / 年代榜:shaft-api-v2 discover/most-bookmarked,Lite 里 GONE -->
+                        <TextView
+                            android:id="@+id/catBookmarkRank"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="9dp"
+                            android:layout_marginBottom="9dp"
+                            android:background="@drawable/bg_v3_chip"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:paddingStart="15dp"
+                            android:paddingTop="9dp"
+                            android:paddingEnd="15dp"
+                            android:paddingBottom="9dp"
+                            android:stateListAnimator="@animator/button_press_scale"
+                            android:text="@string/bookmark_rank"
                             android:textColor="@color/v3_text_1"
                             android:textSize="13sp" />
 
                         <TextView
-                            android:id="@+id/catWebDiscovery"
+                            android:id="@+id/catAiRank"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginEnd="9dp"
@@ -540,31 +784,12 @@
                             android:paddingEnd="15dp"
                             android:paddingBottom="9dp"
                             android:stateListAnimator="@animator/button_press_scale"
-                            android:text="@string/web_discovery_title"
-                            android:textColor="@color/v3_text_1"
-                            android:textSize="13sp" />
-
-                        <!-- Web 首页 / pixiv FANBOX:从侧边栏迁入此处,Lite 里 GONE -->
-                        <TextView
-                            android:id="@+id/catWeb"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginEnd="9dp"
-                            android:layout_marginBottom="9dp"
-                            android:background="@drawable/bg_v3_chip"
-                            android:clickable="true"
-                            android:focusable="true"
-                            android:paddingStart="15dp"
-                            android:paddingTop="9dp"
-                            android:paddingEnd="15dp"
-                            android:paddingBottom="9dp"
-                            android:stateListAnimator="@animator/button_press_scale"
-                            android:text="@string/street_title"
+                            android:text="@string/ai_rank"
                             android:textColor="@color/v3_text_1"
                             android:textSize="13sp" />
 
                         <TextView
-                            android:id="@+id/catFanbox"
+                            android:id="@+id/catYearRank"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginEnd="9dp"
@@ -577,12 +802,12 @@
                             android:paddingEnd="15dp"
                             android:paddingBottom="9dp"
                             android:stateListAnimator="@animator/button_press_scale"
-                            android:text="@string/fanbox_entry"
+                            android:text="@string/year_rank"
                             android:textColor="@color/v3_text_1"
                             android:textSize="13sp" />
 
                         <TextView
-                            android:id="@+id/catNiceFriend"
+                            android:id="@+id/catTagRank"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginEnd="9dp"
@@ -595,31 +820,12 @@
                             android:paddingEnd="15dp"
                             android:paddingBottom="9dp"
                             android:stateListAnimator="@animator/button_press_scale"
-                            android:text="@string/nice_friend_works"
-                            android:textColor="@color/v3_text_1"
-                            android:textSize="13sp" />
-
-                        <!-- 大家搜过的:自建后端的作品库(搜索缓存逐日沉淀),同 Lite 口径 GONE -->
-                        <TextView
-                            android:id="@+id/catCorpusLibrary"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginEnd="9dp"
-                            android:layout_marginBottom="9dp"
-                            android:background="@drawable/bg_v3_chip"
-                            android:clickable="true"
-                            android:focusable="true"
-                            android:paddingStart="15dp"
-                            android:paddingTop="9dp"
-                            android:paddingEnd="15dp"
-                            android:paddingBottom="9dp"
-                            android:stateListAnimator="@animator/button_press_scale"
-                            android:text="@string/corpus_library"
+                            android:text="@string/tag_rank"
                             android:textColor="@color/v3_text_1"
                             android:textSize="13sp" />
 
                         <TextView
-                            android:id="@+id/catNovelLengthRank"
+                            android:id="@+id/catWallpaperRank"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginEnd="9dp"
@@ -632,12 +838,31 @@
                             android:paddingEnd="15dp"
                             android:paddingBottom="9dp"
                             android:stateListAnimator="@animator/button_press_scale"
-                            android:text="@string/novel_length_rank"
+                            android:text="@string/wallpaper_rank"
+                            android:textColor="@color/v3_text_1"
+                            android:textSize="13sp" />
+
+                        <!-- 系列榜 / 新作榜:shaft-api-v2 discover/series & most-bookmarked?month,Lite 里 GONE -->
+                        <TextView
+                            android:id="@+id/catSeriesRank"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="9dp"
+                            android:layout_marginBottom="9dp"
+                            android:background="@drawable/bg_v3_chip"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:paddingStart="15dp"
+                            android:paddingTop="9dp"
+                            android:paddingEnd="15dp"
+                            android:paddingBottom="9dp"
+                            android:stateListAnimator="@animator/button_press_scale"
+                            android:text="@string/series_rank"
                             android:textColor="@color/v3_text_1"
                             android:textSize="13sp" />
 
                         <TextView
-                            android:id="@+id/catTrendingArtists"
+                            android:id="@+id/catMonthRank"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginEnd="9dp"
@@ -650,12 +875,12 @@
                             android:paddingEnd="15dp"
                             android:paddingBottom="9dp"
                             android:stateListAnimator="@animator/button_press_scale"
-                            android:text="@string/trending_artists"
+                            android:text="@string/month_rank"
                             android:textColor="@color/v3_text_1"
                             android:textSize="13sp" />
 
                         <TextView
-                            android:id="@+id/catDailyRecommendations"
+                            android:id="@+id/catSfwRank"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginEnd="9dp"
@@ -668,275 +893,42 @@
                             android:paddingEnd="15dp"
                             android:paddingBottom="9dp"
                             android:stateListAnimator="@animator/button_press_scale"
-                            android:text="@string/daily_recommendations"
+                            android:text="@string/sfw_rank"
+                            android:textColor="@color/v3_text_1"
+                            android:textSize="13sp" />
+
+                        <TextView
+                            android:id="@+id/catUgoiraRank"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="9dp"
+                            android:layout_marginBottom="9dp"
+                            android:background="@drawable/bg_v3_chip"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:paddingStart="15dp"
+                            android:paddingTop="9dp"
+                            android:paddingEnd="15dp"
+                            android:paddingBottom="9dp"
+                            android:stateListAnimator="@animator/button_press_scale"
+                            android:text="@string/ugoira_rank"
                             android:textColor="@color/v3_text_1"
                             android:textSize="13sp" />
 
                     </com.google.android.flexbox.FlexboxLayout>
 
-                    <!-- ============ Shaft 榜单(自建后端,Lite 整段 GONE) ============ -->
-                    <LinearLayout
-                        android:id="@+id/shaftRankSection"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="20dp"
-                            android:layout_marginEnd="20dp"
-                            android:layout_marginTop="24dp"
-                            android:layout_marginBottom="12dp"
-                            android:fontFamily="@font/montserrat_bold"
-                            android:letterSpacing="0.06"
-                            android:lineSpacingExtra="3sp"
-                            android:text="@string/shaft_rankings"
-                            android:textColor="@color/v3_text_2"
-                            android:textSize="13sp"
-                            android:textStyle="bold" />
-
-                        <com.google.android.flexbox.FlexboxLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="20dp"
-                            android:layout_marginEnd="20dp"
-                            app:flexWrap="wrap">
-
-                            <TextView
-                                android:id="@+id/catArtistRank"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginEnd="9dp"
-                                android:layout_marginBottom="9dp"
-                                android:background="@drawable/bg_v3_chip"
-                                android:clickable="true"
-                                android:focusable="true"
-                                android:paddingStart="15dp"
-                                android:paddingTop="9dp"
-                                android:paddingEnd="15dp"
-                                android:paddingBottom="9dp"
-                                android:stateListAnimator="@animator/button_press_scale"
-                                android:text="@string/artist_rank"
-                                android:textColor="@color/v3_text_1"
-                                android:textSize="13sp" />
-
-                            <TextView
-                                android:id="@+id/catArtistAvgRank"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginEnd="9dp"
-                                android:layout_marginBottom="9dp"
-                                android:background="@drawable/bg_v3_chip"
-                                android:clickable="true"
-                                android:focusable="true"
-                                android:paddingStart="15dp"
-                                android:paddingTop="9dp"
-                                android:paddingEnd="15dp"
-                                android:paddingBottom="9dp"
-                                android:stateListAnimator="@animator/button_press_scale"
-                                android:text="@string/artist_avg_rank"
-                                android:textColor="@color/v3_text_1"
-                                android:textSize="13sp" />
-
-                            <TextView
-                                android:id="@+id/catViewRank"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginEnd="9dp"
-                                android:layout_marginBottom="9dp"
-                                android:background="@drawable/bg_v3_chip"
-                                android:clickable="true"
-                                android:focusable="true"
-                                android:paddingStart="15dp"
-                                android:paddingTop="9dp"
-                                android:paddingEnd="15dp"
-                                android:paddingBottom="9dp"
-                                android:stateListAnimator="@animator/button_press_scale"
-                                android:text="@string/view_rank"
-                                android:textColor="@color/v3_text_1"
-                                android:textSize="13sp" />
-
-                            <!-- 收藏榜 / AI 榜 / 年代榜:shaft-api-v2 discover/most-bookmarked,Lite 里 GONE -->
-                            <TextView
-                                android:id="@+id/catBookmarkRank"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginEnd="9dp"
-                                android:layout_marginBottom="9dp"
-                                android:background="@drawable/bg_v3_chip"
-                                android:clickable="true"
-                                android:focusable="true"
-                                android:paddingStart="15dp"
-                                android:paddingTop="9dp"
-                                android:paddingEnd="15dp"
-                                android:paddingBottom="9dp"
-                                android:stateListAnimator="@animator/button_press_scale"
-                                android:text="@string/bookmark_rank"
-                                android:textColor="@color/v3_text_1"
-                                android:textSize="13sp" />
-
-                            <TextView
-                                android:id="@+id/catAiRank"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginEnd="9dp"
-                                android:layout_marginBottom="9dp"
-                                android:background="@drawable/bg_v3_chip"
-                                android:clickable="true"
-                                android:focusable="true"
-                                android:paddingStart="15dp"
-                                android:paddingTop="9dp"
-                                android:paddingEnd="15dp"
-                                android:paddingBottom="9dp"
-                                android:stateListAnimator="@animator/button_press_scale"
-                                android:text="@string/ai_rank"
-                                android:textColor="@color/v3_text_1"
-                                android:textSize="13sp" />
-
-                            <TextView
-                                android:id="@+id/catYearRank"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginEnd="9dp"
-                                android:layout_marginBottom="9dp"
-                                android:background="@drawable/bg_v3_chip"
-                                android:clickable="true"
-                                android:focusable="true"
-                                android:paddingStart="15dp"
-                                android:paddingTop="9dp"
-                                android:paddingEnd="15dp"
-                                android:paddingBottom="9dp"
-                                android:stateListAnimator="@animator/button_press_scale"
-                                android:text="@string/year_rank"
-                                android:textColor="@color/v3_text_1"
-                                android:textSize="13sp" />
-
-                            <TextView
-                                android:id="@+id/catTagRank"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginEnd="9dp"
-                                android:layout_marginBottom="9dp"
-                                android:background="@drawable/bg_v3_chip"
-                                android:clickable="true"
-                                android:focusable="true"
-                                android:paddingStart="15dp"
-                                android:paddingTop="9dp"
-                                android:paddingEnd="15dp"
-                                android:paddingBottom="9dp"
-                                android:stateListAnimator="@animator/button_press_scale"
-                                android:text="@string/tag_rank"
-                                android:textColor="@color/v3_text_1"
-                                android:textSize="13sp" />
-
-                            <TextView
-                                android:id="@+id/catWallpaperRank"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginEnd="9dp"
-                                android:layout_marginBottom="9dp"
-                                android:background="@drawable/bg_v3_chip"
-                                android:clickable="true"
-                                android:focusable="true"
-                                android:paddingStart="15dp"
-                                android:paddingTop="9dp"
-                                android:paddingEnd="15dp"
-                                android:paddingBottom="9dp"
-                                android:stateListAnimator="@animator/button_press_scale"
-                                android:text="@string/wallpaper_rank"
-                                android:textColor="@color/v3_text_1"
-                                android:textSize="13sp" />
-
-                            <!-- 系列榜 / 新作榜:shaft-api-v2 discover/series & most-bookmarked?month,Lite 里 GONE -->
-                            <TextView
-                                android:id="@+id/catSeriesRank"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginEnd="9dp"
-                                android:layout_marginBottom="9dp"
-                                android:background="@drawable/bg_v3_chip"
-                                android:clickable="true"
-                                android:focusable="true"
-                                android:paddingStart="15dp"
-                                android:paddingTop="9dp"
-                                android:paddingEnd="15dp"
-                                android:paddingBottom="9dp"
-                                android:stateListAnimator="@animator/button_press_scale"
-                                android:text="@string/series_rank"
-                                android:textColor="@color/v3_text_1"
-                                android:textSize="13sp" />
-
-                            <TextView
-                                android:id="@+id/catMonthRank"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginEnd="9dp"
-                                android:layout_marginBottom="9dp"
-                                android:background="@drawable/bg_v3_chip"
-                                android:clickable="true"
-                                android:focusable="true"
-                                android:paddingStart="15dp"
-                                android:paddingTop="9dp"
-                                android:paddingEnd="15dp"
-                                android:paddingBottom="9dp"
-                                android:stateListAnimator="@animator/button_press_scale"
-                                android:text="@string/month_rank"
-                                android:textColor="@color/v3_text_1"
-                                android:textSize="13sp" />
-
-                            <TextView
-                                android:id="@+id/catSfwRank"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginEnd="9dp"
-                                android:layout_marginBottom="9dp"
-                                android:background="@drawable/bg_v3_chip"
-                                android:clickable="true"
-                                android:focusable="true"
-                                android:paddingStart="15dp"
-                                android:paddingTop="9dp"
-                                android:paddingEnd="15dp"
-                                android:paddingBottom="9dp"
-                                android:stateListAnimator="@animator/button_press_scale"
-                                android:text="@string/sfw_rank"
-                                android:textColor="@color/v3_text_1"
-                                android:textSize="13sp" />
-
-                            <TextView
-                                android:id="@+id/catUgoiraRank"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginEnd="9dp"
-                                android:layout_marginBottom="9dp"
-                                android:background="@drawable/bg_v3_chip"
-                                android:clickable="true"
-                                android:focusable="true"
-                                android:paddingStart="15dp"
-                                android:paddingTop="9dp"
-                                android:paddingEnd="15dp"
-                                android:paddingBottom="9dp"
-                                android:stateListAnimator="@animator/button_press_scale"
-                                android:text="@string/ugoira_rank"
-                                android:textColor="@color/v3_text_1"
-                                android:textSize="13sp" />
-
-                        </com.google.android.flexbox.FlexboxLayout>
-
-                    </LinearLayout>
-
-                    <ceui.pixiv.ui.discovery.DiscoverSocialSection
-                        android:id="@+id/socialSection"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:visibility="gone" />
-
                 </LinearLayout>
 
-            </androidx.core.widget.NestedScrollView>
+                <ceui.pixiv.ui.discovery.DiscoverSocialSection
+                    android:id="@+id/socialSection"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone" />
 
-        </FrameLayout>
+            </LinearLayout>
 
-    </LinearLayout>
+        </androidx.core.widget.NestedScrollView>
 
-</layout>
+    </FrameLayout>
+
+</LinearLayout>

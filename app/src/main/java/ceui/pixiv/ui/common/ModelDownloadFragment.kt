@@ -1,5 +1,6 @@
 package ceui.pixiv.ui.common
 
+import android.view.View
 import androidx.annotation.StringRes
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
@@ -40,6 +41,8 @@ abstract class ModelDownloadFragment : BaseLazyFragment<FragmentRembgModelDownlo
     override fun initLayout() {
         mLayoutID = R.layout.fragment_rembg_model_download
     }
+
+    override fun bindView(root: View): FragmentRembgModelDownloadBinding = FragmentRembgModelDownloadBinding.bind(root)
 
 
 

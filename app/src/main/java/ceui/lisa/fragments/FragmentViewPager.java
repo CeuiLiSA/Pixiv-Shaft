@@ -77,6 +77,12 @@ public class FragmentViewPager extends BaseFragment<ViewpagerWithTablayoutBindin
         mLayoutID = R.layout.viewpager_with_tablayout;
     }
 
+    @NonNull
+    @Override
+    protected ViewpagerWithTablayoutBinding bindView(@NonNull View root) {
+        return ViewpagerWithTablayoutBinding.bind(root);
+    }
+
     @Override
     public void initView() {
         if (TextUtils.equals(title, Params.VIEW_PAGER_MUTED)) {

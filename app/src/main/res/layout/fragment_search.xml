@@ -1,329 +1,307 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/base_parent"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/fragment_center">
 
-    <data>
-
-    </data>
-
-    <RelativeLayout
-        android:id="@+id/base_parent"
+    <LinearLayout
+        android:id="@+id/top_rela"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@color/fragment_center">
+        android:layout_height="wrap_content"
+        android:background="?attr/colorPrimary"
+        android:orientation="vertical">
 
-        <LinearLayout
-            android:id="@+id/top_rela"
+        <ImageView
+            android:id="@+id/head"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="?attr/colorPrimary"
-            android:orientation="vertical">
+            android:layout_height="1dp">
+
+        </ImageView>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <!-- 输入框底色是硬编码纯白胶囊（@drawable/search_et_bg 的 solid 写死
+                 @color/white，也没有 drawable-night 变体）：
+                 若让 hint 回落到主题，AppCompat DayNight 的深色分支会经
+                 android:textColorHint 指向 abc_hint_foreground_material_dark —— 一个半透明
+                 近白色（框架同名色 hint_foreground_material_dark 即 50% 白 #80ffffff），
+                 压在白底上就是白底白字。因此 textColorHint 钉成左侧搜索图标的 #999999；
+                 正文字体遵循当前主题色 ?attr/colorPrimary（#1223），与顶栏协调且在白底上清晰可读。
+                 选区高亮同理：主题级 text_selection_highlight 夜间是 36% 白 scrim，压在
+                 白底上选中了也看不见，这里钉成日间值（v3_blue 30%）。 -->
+            <EditText
+                android:id="@+id/input_box"
+                android:layout_width="match_parent"
+                android:layout_height="36dp"
+                android:layout_marginStart="@dimen/sixteen_dp"
+                android:layout_marginTop="@dimen/twelve_dp"
+                android:layout_marginEnd="@dimen/twelve_dp"
+                android:layout_marginBottom="@dimen/twelve_dp"
+                android:layout_toStartOf="@+id/more"
+                android:background="@drawable/search_et_bg"
+                android:drawableStart="@drawable/ic_search_grey_24dp"
+                android:drawablePadding="@dimen/six_dp"
+                android:ellipsize="end"
+                android:imeOptions="actionSearch"
+                android:inputType="text"
+                android:maxLines="1"
+                android:paddingStart="@dimen/twelve_dp"
+                android:paddingEnd="36dp"
+                android:singleLine="true"
+                android:textColor="?attr/colorPrimary"
+                android:textColorHighlight="#4D2B6FCC"
+                android:textColorHint="#999999"
+                android:textSize="14sp">
+
+            </EditText>
 
             <ImageView
-                android:id="@+id/head"
-                android:layout_width="match_parent"
-                android:layout_height="1dp">
+                android:id="@+id/clear"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_alignEnd="@+id/input_box"
+                android:layout_centerVertical="true"
+                android:layout_marginEnd="@dimen/four_dp"
+                android:padding="@dimen/four_dp"
+                android:src="@drawable/ic_cancel_black_24dp"
+                android:visibility="invisible">
 
             </ImageView>
 
-
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-
-                <!-- 输入框底色是硬编码纯白胶囊（@drawable/search_et_bg 的 solid 写死
-                     @color/white，也没有 drawable-night 变体）：
-                     若让 hint 回落到主题，AppCompat DayNight 的深色分支会经
-                     android:textColorHint 指向 abc_hint_foreground_material_dark —— 一个半透明
-                     近白色（框架同名色 hint_foreground_material_dark 即 50% 白 #80ffffff），
-                     压在白底上就是白底白字。因此 textColorHint 钉成左侧搜索图标的 #999999；
-                     正文字体遵循当前主题色 ?attr/colorPrimary（#1223），与顶栏协调且在白底上清晰可读。
-                     选区高亮同理：主题级 text_selection_highlight 夜间是 36% 白 scrim，压在
-                     白底上选中了也看不见，这里钉成日间值（v3_blue 30%）。 -->
-                <EditText
-                    android:id="@+id/input_box"
-                    android:layout_width="match_parent"
-                    android:layout_height="36dp"
-                    android:layout_marginStart="@dimen/sixteen_dp"
-                    android:layout_marginTop="@dimen/twelve_dp"
-                    android:layout_marginEnd="@dimen/twelve_dp"
-                    android:layout_marginBottom="@dimen/twelve_dp"
-                    android:layout_toStartOf="@+id/more"
-                    android:background="@drawable/search_et_bg"
-                    android:drawableStart="@drawable/ic_search_grey_24dp"
-                    android:drawablePadding="@dimen/six_dp"
-                    android:ellipsize="end"
-                    android:imeOptions="actionSearch"
-                    android:inputType="text"
-                    android:maxLines="1"
-                    android:paddingStart="@dimen/twelve_dp"
-                    android:paddingEnd="36dp"
-                    android:singleLine="true"
-                    android:textColor="?attr/colorPrimary"
-                    android:textColorHighlight="#4D2B6FCC"
-                    android:textColorHint="#999999"
-                    android:textSize="14sp">
-
-
-                </EditText>
-
-
-                <ImageView
-                    android:id="@+id/clear"
-                    android:layout_width="30dp"
-                    android:layout_height="30dp"
-                    android:layout_alignEnd="@+id/input_box"
-                    android:layout_centerVertical="true"
-                    android:layout_marginEnd="@dimen/four_dp"
-                    android:padding="@dimen/four_dp"
-                    android:src="@drawable/ic_cancel_black_24dp"
-                    android:visibility="invisible">
-
-                </ImageView>
-
-
-                <TextView
-                    android:id="@+id/more"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentEnd="true"
-                    android:layout_centerVertical="true"
-                    android:layout_marginEnd="@dimen/sixteen_dp"
-                    android:text="@string/string_86"
-                    android:textColor="@color/white">
-
-
-                </TextView>
-
-
-            </RelativeLayout>
-
-        </LinearLayout>
-
-
-        <FrameLayout
-            android:id="@+id/container"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_below="@+id/top_rela">
-
-            <androidx.core.widget.NestedScrollView
-                android:id="@+id/scroll_view"
-                android:layout_width="match_parent"
+            <TextView
+                android:id="@+id/more"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:clipToPadding="false"
-                android:paddingBottom="@dimen/twenty_four_dp">
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:layout_marginEnd="@dimen/sixteen_dp"
+                android:text="@string/string_86"
+                android:textColor="@color/white">
+
+            </TextView>
+
+        </RelativeLayout>
+
+    </LinearLayout>
+
+    <FrameLayout
+        android:id="@+id/container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/top_rela">
+
+        <androidx.core.widget.NestedScrollView
+            android:id="@+id/scroll_view"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:clipToPadding="false"
+            android:paddingBottom="@dimen/twenty_four_dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
 
                 <LinearLayout
+                    android:id="@+id/pinned_users_section"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="vertical">
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone">
 
-
-                    <LinearLayout
-                        android:id="@+id/pinned_users_section"
-                        android:layout_width="match_parent"
+                    <TextView
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:visibility="gone">
+                        android:layout_marginStart="@dimen/sixteen_dp"
+                        android:layout_marginTop="@dimen/twenty_four_dp"
+                        android:layout_marginBottom="@dimen/eight_dp"
+                        android:text="@string/pinned_users"
+                        android:textColor="@color/second_text_color"
+                        android:textSize="14sp" />
+
+                    <ceui.lisa.view.NestMax
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <ceui.pixiv.witstudio.widget.WitTagFlowView
+                            app:flexWrap="wrap"
+                            android:id="@+id/pinned_users_flow"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="@dimen/twelve_dp"
+                            android:layout_marginEnd="@dimen/four_dp" />
+
+                    </ceui.lisa.view.NestMax>
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/pinned_section"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:layout_centerVertical="true"
                             android:layout_marginStart="@dimen/sixteen_dp"
                             android:layout_marginTop="@dimen/twenty_four_dp"
                             android:layout_marginBottom="@dimen/eight_dp"
-                            android:text="@string/pinned_users"
+                            android:text="@string/pinned_tags"
                             android:textColor="@color/second_text_color"
                             android:textSize="14sp" />
 
-                        <ceui.lisa.view.NestMax
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content">
-
-                            <ceui.pixiv.witstudio.widget.WitTagFlowView
-                                app:flexWrap="wrap"
-                                android:id="@+id/pinned_users_flow"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="@dimen/twelve_dp"
-                                android:layout_marginEnd="@dimen/four_dp" />
-
-                        </ceui.lisa.view.NestMax>
-
-                    </LinearLayout>
-
-
-                    <LinearLayout
-                        android:id="@+id/pinned_section"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:visibility="gone">
-
-                        <RelativeLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content">
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentEnd="true"
+                            android:layout_centerVertical="true"
+                            android:layout_marginTop="@dimen/twenty_four_dp"
+                            android:layout_marginEnd="@dimen/sixteen_dp"
+                            android:layout_marginBottom="@dimen/eight_dp"
+                            android:orientation="horizontal">
 
                             <TextView
+                                android:id="@+id/clear_pinned"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_centerVertical="true"
-                                android:layout_marginStart="@dimen/sixteen_dp"
-                                android:layout_marginTop="@dimen/twenty_four_dp"
-                                android:layout_marginBottom="@dimen/eight_dp"
-                                android:text="@string/pinned_tags"
-                                android:textColor="@color/second_text_color"
-                                android:textSize="14sp" />
-
-                            <LinearLayout
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_alignParentEnd="true"
-                                android:layout_centerVertical="true"
-                                android:layout_marginTop="@dimen/twenty_four_dp"
-                                android:layout_marginEnd="@dimen/sixteen_dp"
-                                android:layout_marginBottom="@dimen/eight_dp"
-                                android:orientation="horizontal">
-
-                                <TextView
-                                    android:id="@+id/clear_pinned"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:background="?attr/selectableItemBackgroundBorderless"
-                                    android:paddingHorizontal="@dimen/four_dp"
-                                    android:text="@string/clear"
-                                    android:textColor="?attr/colorPrimary"
-                                    android:textSize="14sp" />
-
-                                <TextView
-                                    android:id="@+id/view_all_pinned"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginStart="@dimen/twelve_dp"
-                                    android:background="?attr/selectableItemBackgroundBorderless"
-                                    android:paddingHorizontal="@dimen/four_dp"
-                                    android:text="@string/string_167"
-                                    android:textColor="?attr/colorPrimary"
-                                    android:textSize="14sp" />
-
-                            </LinearLayout>
-
-                        </RelativeLayout>
-
-                        <ceui.lisa.view.NestMax
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content">
-
-                            <ceui.pixiv.widgets.V3TagFlowView
-                                app:flexWrap="wrap"
-                                android:id="@+id/pinned_tags_flow"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="@dimen/twelve_dp"
-                                android:layout_marginEnd="@dimen/four_dp" />
-
-                        </ceui.lisa.view.NestMax>
-
-                    </LinearLayout>
-
-
-                    <LinearLayout
-                        android:id="@+id/history_section"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:visibility="gone">
-
-                        <RelativeLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_centerVertical="true"
-                                android:layout_marginStart="@dimen/sixteen_dp"
-                                android:layout_marginTop="@dimen/twenty_four_dp"
-                                android:layout_marginBottom="@dimen/eight_dp"
-                                android:text="@string/string_87"
-                                android:textColor="@color/second_text_color"
-                                android:textSize="14sp" />
-
-                            <TextView
-                                android:id="@+id/clear_history"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_alignParentEnd="true"
-                                android:layout_centerVertical="true"
-                                android:layout_marginTop="@dimen/twenty_four_dp"
-                                android:layout_marginEnd="@dimen/sixteen_dp"
-                                android:layout_marginBottom="@dimen/eight_dp"
                                 android:background="?attr/selectableItemBackgroundBorderless"
                                 android:paddingHorizontal="@dimen/four_dp"
                                 android:text="@string/clear"
                                 android:textColor="?attr/colorPrimary"
                                 android:textSize="14sp" />
 
-                        </RelativeLayout>
-
-                        <ceui.lisa.view.NestMax
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content">
-
-                            <ceui.pixiv.widgets.V3TagFlowView
-                                app:flexWrap="wrap"
-                                android:id="@+id/search_history"
-                                android:layout_width="match_parent"
+                            <TextView
+                                android:id="@+id/view_all_pinned"
+                                android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginStart="@dimen/twelve_dp"
-                                android:layout_marginEnd="@dimen/four_dp" />
+                                android:background="?attr/selectableItemBackgroundBorderless"
+                                android:paddingHorizontal="@dimen/four_dp"
+                                android:text="@string/string_167"
+                                android:textColor="?attr/colorPrimary"
+                                android:textSize="14sp" />
 
-                        </ceui.lisa.view.NestMax>
+                        </LinearLayout>
 
-                    </LinearLayout>
+                    </RelativeLayout>
 
-                    <TextView
-                        android:id="@+id/search_hint"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="@dimen/sixteen_dp"
-                        android:layout_marginTop="@dimen/twenty_four_dp"
-                        android:layout_marginBottom="@dimen/eight_dp"
-                        android:text="@string/string_88"
-                        android:textColor="@color/second_text_color"
-                        android:textSize="14sp">
-
-
-                    </TextView>
-
-
-                    <ceui.pixiv.widgets.V3TagFlowView
-                        app:flexWrap="wrap"
-                        android:id="@+id/hot_tags"
+                    <ceui.lisa.view.NestMax
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="@dimen/twelve_dp"
-                        android:layout_marginEnd="@dimen/four_dp"
-                        android:layout_marginBottom="@dimen/twelve_dp">
+                        android:layout_height="wrap_content">
 
+                        <ceui.pixiv.widgets.V3TagFlowView
+                            app:flexWrap="wrap"
+                            android:id="@+id/pinned_tags_flow"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="@dimen/twelve_dp"
+                            android:layout_marginEnd="@dimen/four_dp" />
 
-                    </ceui.pixiv.widgets.V3TagFlowView>
+                    </ceui.lisa.view.NestMax>
 
                 </LinearLayout>
 
+                <LinearLayout
+                    android:id="@+id/history_section"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone">
 
-            </androidx.core.widget.NestedScrollView>
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/hint_list"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@color/fragment_center"
-                android:visibility="gone">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_centerVertical="true"
+                            android:layout_marginStart="@dimen/sixteen_dp"
+                            android:layout_marginTop="@dimen/twenty_four_dp"
+                            android:layout_marginBottom="@dimen/eight_dp"
+                            android:text="@string/string_87"
+                            android:textColor="@color/second_text_color"
+                            android:textSize="14sp" />
 
-            </androidx.recyclerview.widget.RecyclerView>
-        </FrameLayout>
-    </RelativeLayout>
-</layout>
+                        <TextView
+                            android:id="@+id/clear_history"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentEnd="true"
+                            android:layout_centerVertical="true"
+                            android:layout_marginTop="@dimen/twenty_four_dp"
+                            android:layout_marginEnd="@dimen/sixteen_dp"
+                            android:layout_marginBottom="@dimen/eight_dp"
+                            android:background="?attr/selectableItemBackgroundBorderless"
+                            android:paddingHorizontal="@dimen/four_dp"
+                            android:text="@string/clear"
+                            android:textColor="?attr/colorPrimary"
+                            android:textSize="14sp" />
 
+                    </RelativeLayout>
+
+                    <ceui.lisa.view.NestMax
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <ceui.pixiv.widgets.V3TagFlowView
+                            app:flexWrap="wrap"
+                            android:id="@+id/search_history"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="@dimen/twelve_dp"
+                            android:layout_marginEnd="@dimen/four_dp" />
+
+                    </ceui.lisa.view.NestMax>
+
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/search_hint"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/sixteen_dp"
+                    android:layout_marginTop="@dimen/twenty_four_dp"
+                    android:layout_marginBottom="@dimen/eight_dp"
+                    android:text="@string/string_88"
+                    android:textColor="@color/second_text_color"
+                    android:textSize="14sp">
+
+                </TextView>
+
+                <ceui.pixiv.widgets.V3TagFlowView
+                    app:flexWrap="wrap"
+                    android:id="@+id/hot_tags"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/twelve_dp"
+                    android:layout_marginEnd="@dimen/four_dp"
+                    android:layout_marginBottom="@dimen/twelve_dp">
+
+                </ceui.pixiv.widgets.V3TagFlowView>
+
+            </LinearLayout>
+
+        </androidx.core.widget.NestedScrollView>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/hint_list"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/fragment_center"
+            android:visibility="gone">
+
+        </androidx.recyclerview.widget.RecyclerView>
+    </FrameLayout>
+</RelativeLayout>

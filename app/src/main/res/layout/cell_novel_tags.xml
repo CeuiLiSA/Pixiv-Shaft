@@ -1,30 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingHorizontal="12dp">
 
-    <data />
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
+        android:letterSpacing="0.12"
+        android:text="@string/novel_section_tags"
+        android:textAllCaps="true"
+        android:textColor="@color/v3_text_3"
+        android:textSize="12sp"
+        android:textStyle="bold" />
 
-    <LinearLayout
+    <ceui.pixiv.widgets.V3TagFlowView
+        android:id="@+id/tags_flow"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:paddingHorizontal="12dp">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="10dp"
-            android:letterSpacing="0.12"
-            android:text="@string/novel_section_tags"
-            android:textAllCaps="true"
-            android:textColor="@color/v3_text_3"
-            android:textSize="12sp"
-            android:textStyle="bold" />
-
-        <ceui.pixiv.widgets.V3TagFlowView
-            android:id="@+id/tags_flow"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:flexWrap="wrap" />
-    </LinearLayout>
-</layout>
+        app:flexWrap="wrap" />
+</LinearLayout>

@@ -8,124 +8,107 @@
   标签组合（pixez#1364）：标题是「原神 + 胡桃」、「+」用 textAccent，最多两行；副标题「N 个标签的组合」。
   标题 / 副标题的文字与行数由 PinnedTagsFragment 的 renderer 按单标签 / 组合分别设置，不走 data binding。
 -->
-<layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_v3_card"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="@drawable/bg_drawer_item_pill"
+    android:orientation="vertical"
+    android:paddingHorizontal="20dp"
+    android:paddingVertical="16dp">
 
-    <data>
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
 
-        <import type="ceui.pixiv.ui.pinned.PinnedTagItemHolder" />
-        <import type="android.view.View" />
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/delete_pin"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
 
-        <variable
-            name="holder"
-            type="PinnedTagItemHolder" />
-    </data>
+            <TextView
+                android:id="@+id/pinned_tag_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="@color/v3_text_1"
+                android:textSize="16sp"
+                android:textStyle="bold" />
 
-    <LinearLayout
+            <TextView
+                android:id="@+id/pinned_tag_subtitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="@color/v3_text_2"
+                android:textSize="13sp" />
+        </LinearLayout>
+
+        <ImageView
+            android:id="@+id/delete_pin"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="8dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/string_443"
+            android:padding="10dp"
+            android:src="@drawable/ic_cancel_black_24dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="@color/v3_text_3" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/illusts_preview"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/bg_v3_card"
-        android:clickable="true"
-        android:focusable="true"
-        android:foreground="@drawable/bg_drawer_item_pill"
-        android:orientation="vertical"
-        android:paddingHorizontal="20dp"
-        android:paddingVertical="16dp">
+        android:layout_marginTop="10dp">
 
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+        <net.csdn.roundview.RoundImageView
+            android:id="@+id/illust_1"
+            android:background="@drawable/bg_tag_preview_placeholder"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            app:layout_constraintDimensionRatio="1:1"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:rRadius="10dp" />
 
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toStartOf="@+id/delete_pin"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent">
+        <net.csdn.roundview.RoundImageView
+            android:id="@+id/illust_2"
+            android:background="@drawable/bg_tag_preview_placeholder"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginHorizontal="4dp"
+            app:layout_constraintDimensionRatio="1:1"
+            app:layout_constraintEnd_toStartOf="@+id/illust_3"
+            app:layout_constraintStart_toEndOf="@+id/illust_1"
+            app:layout_constraintTop_toTopOf="parent"
+            app:rRadius="10dp" />
 
-                <TextView
-                    android:id="@+id/pinned_tag_title"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:ellipsize="end"
-                    android:maxLines="1"
-                    android:textColor="@color/v3_text_1"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
+        <net.csdn.roundview.RoundImageView
+            android:id="@+id/illust_3"
+            android:background="@drawable/bg_tag_preview_placeholder"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            app:layout_constraintDimensionRatio="1:1"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/illust_2"
+            app:layout_constraintTop_toTopOf="parent"
+            app:rRadius="10dp" />
 
-                <TextView
-                    android:id="@+id/pinned_tag_subtitle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:ellipsize="end"
-                    android:maxLines="1"
-                    android:textColor="@color/v3_text_2"
-                    android:textSize="13sp" />
-            </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
-            <ImageView
-                android:id="@+id/delete_pin"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_marginStart="8dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="@string/string_443"
-                android:padding="10dp"
-                android:src="@drawable/ic_cancel_black_24dp"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:tint="@color/v3_text_3" />
-
-        </androidx.constraintlayout.widget.ConstraintLayout>
-
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/illusts_preview"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:visibility="@{holder.hasPreview ? View.VISIBLE : View.GONE}">
-
-            <net.csdn.roundview.RoundImageView
-                android:id="@+id/illust_1"
-                android:background="@drawable/bg_tag_preview_placeholder"
-                loadSquareMedia="@{holder.illust0}"
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                app:layout_constraintDimensionRatio="1:1"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:rRadius="10dp" />
-
-            <net.csdn.roundview.RoundImageView
-                android:id="@+id/illust_2"
-                android:background="@drawable/bg_tag_preview_placeholder"
-                loadSquareMedia="@{holder.illust1}"
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:layout_marginHorizontal="4dp"
-                app:layout_constraintDimensionRatio="1:1"
-                app:layout_constraintEnd_toStartOf="@+id/illust_3"
-                app:layout_constraintStart_toEndOf="@+id/illust_1"
-                app:layout_constraintTop_toTopOf="parent"
-                app:rRadius="10dp" />
-
-            <net.csdn.roundview.RoundImageView
-                android:id="@+id/illust_3"
-                android:background="@drawable/bg_tag_preview_placeholder"
-                loadSquareMedia="@{holder.illust2}"
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                app:layout_constraintDimensionRatio="1:1"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toEndOf="@+id/illust_2"
-                app:layout_constraintTop_toTopOf="parent"
-                app:rRadius="10dp" />
-
-        </androidx.constraintlayout.widget.ConstraintLayout>
-
-    </LinearLayout>
-</layout>
+</LinearLayout>

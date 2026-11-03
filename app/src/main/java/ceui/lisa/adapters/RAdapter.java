@@ -2,6 +2,8 @@ package ceui.lisa.adapters;
 
 import android.content.Context;
 
+import android.view.View;
+import androidx.annotation.NonNull;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 
@@ -21,6 +23,12 @@ public class RAdapter extends BaseAdapter<Illust, RecyRankIllustHorizontalBindin
     @Override
     public void initLayout() {
         mLayoutID = R.layout.recy_rank_illust_horizontal;
+    }
+
+    @NonNull
+    @Override
+    protected RecyRankIllustHorizontalBinding bindView(@NonNull View root) {
+        return RecyRankIllustHorizontalBinding.bind(root);
     }
 
     @Override

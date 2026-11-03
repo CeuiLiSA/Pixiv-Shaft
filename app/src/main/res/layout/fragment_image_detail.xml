@@ -1,137 +1,130 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+<!-- 页面自身不铺黑底(黑底在 activity 根布局上):下拉关闭把 ViewPager 拖走时,
+     跟手缩小的必须是图片本体而不是一整块黑色矩形 -->
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
 
-    <data>
-
-    </data>
-
-    <!-- 页面自身不铺黑底(黑底在 activity 根布局上):下拉关闭把 ViewPager 拖走时,
-         跟手缩小的必须是图片本体而不是一整块黑色矩形 -->
-    <RelativeLayout
+    <com.github.panpf.zoomimage.SketchZoomImageView
+        android:id="@+id/image"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:scaleType="fitCenter" />
 
-        <com.github.panpf.zoomimage.SketchZoomImageView
-            android:id="@+id/image"
+    <LinearLayout
+        android:id="@+id/empty_frame"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:visibility="gone"
+        android:orientation="vertical">
+
+        <Button
+            android:id="@+id/empty_action_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="12dp"
+            android:background="@drawable/refresh_button_background"
+            android:gravity="center"
+            android:minHeight="0dp"
+            android:paddingHorizontal="20dp"
+            android:paddingVertical="8dp"
+            android:stateListAnimator="@animator/button_press_alpha"
+            android:text="@string/refresh"
+            android:textAllCaps="false"
+            android:textColor="@color/colorWhite60"
+            android:textSize="15sp" />
+
+        <TextView
+            android:id="@+id/empty_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:ellipsize="end"
+            android:gravity="center"
+            android:maxLines="5"
+            android:minLines="1"
+            android:text="@string/empty_content_here"
+            android:textAlignment="center"
+            android:textColor="@color/colorWhite60"
+            android:textSize="14sp" />
+    </LinearLayout>
+
+    <ceui.lisa.view.SeamlessCircularProgressIndicator
+        android:id="@+id/progress_circular"
+        android:layout_width="wrap_content"
+        android:visibility="gone"
+        android:layout_centerInParent="true"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        app:indicatorColor="@color/white"
+        app:indicatorSize="30dp"
+        app:trackColor="@color/voice_record_track_color"
+        app:trackCornerRadius="4dp"
+        app:trackThickness="5dp" />
+
+    <ceui.pixiv.widgets.ProgressTextButton
+        android:id="@+id/download_button"
+        style="@style/GreenShiningButton"
+        android:layout_width="wrap_content"
+        android:layout_height="32dp"
+        android:layout_centerHorizontal="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="40dp"
+        android:paddingHorizontal="16dp"
+        android:text="@string/string_7"
+        android:visibility="gone"
+        app:ptb_progress_stroke_width="3dp"
+        app:ptb_progress_width="14dp" />
+
+    <!-- 「圈选翻译」框选层:默认 GONE,进入圈选模式才显示并接管触摸,正常翻页/缩放不受影响 -->
+    <FrameLayout
+        android:id="@+id/manual_selection_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone">
+
+        <ceui.pixiv.ui.translate.SelectionBoxView
+            android:id="@+id/selection_box_view"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:scaleType="fitCenter" />
+            android:layout_height="match_parent" />
 
         <LinearLayout
-            android:id="@+id/empty_frame"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
-            android:visibility="gone"
-            android:orientation="vertical">
-
-            <Button
-                android:id="@+id/empty_action_button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginBottom="12dp"
-                android:background="@drawable/refresh_button_background"
-                android:gravity="center"
-                android:minHeight="0dp"
-                android:paddingHorizontal="20dp"
-                android:paddingVertical="8dp"
-                android:stateListAnimator="@animator/button_press_alpha"
-                android:text="@string/refresh"
-                android:textAllCaps="false"
-                android:textColor="@color/colorWhite60"
-                android:textSize="15sp" />
+            android:layout_gravity="top|center_horizontal"
+            android:layout_marginTop="64dp"
+            android:background="@drawable/bg_page_count_overlay"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="10dp">
 
             <TextView
-                android:id="@+id/empty_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:ellipsize="end"
-                android:gravity="center"
-                android:maxLines="5"
-                android:minLines="1"
-                android:text="@string/empty_content_here"
-                android:textAlignment="center"
-                android:textColor="@color/colorWhite60"
-                android:textSize="14sp" />
+                android:layout_marginEnd="12dp"
+                android:maxWidth="220dp"
+                android:text="@string/string_ai_manga_translate_manual_hint"
+                android:textColor="#CCFFFFFF"
+                android:textSize="13sp" />
+
+            <TextView
+                android:id="@+id/manual_selection_cancel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/refresh_button_background"
+                android:paddingHorizontal="14dp"
+                android:paddingVertical="6dp"
+                android:stateListAnimator="@animator/button_press_alpha"
+                android:text="@string/action_cancel"
+                android:textColor="@android:color/white"
+                android:textSize="13sp" />
+
         </LinearLayout>
 
-        <ceui.lisa.view.SeamlessCircularProgressIndicator
-            android:id="@+id/progress_circular"
-            android:layout_width="wrap_content"
-            android:visibility="gone"
-            android:layout_centerInParent="true"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            app:indicatorColor="@color/white"
-            app:indicatorSize="30dp"
-            app:trackColor="@color/voice_record_track_color"
-            app:trackCornerRadius="4dp"
-            app:trackThickness="5dp" />
+    </FrameLayout>
 
-        <ceui.pixiv.widgets.ProgressTextButton
-            android:id="@+id/download_button"
-            style="@style/GreenShiningButton"
-            android:layout_width="wrap_content"
-            android:layout_height="32dp"
-            android:layout_centerHorizontal="true"
-            android:layout_alignParentBottom="true"
-            android:layout_marginBottom="40dp"
-            android:paddingHorizontal="16dp"
-            android:text="@string/string_7"
-            android:visibility="gone"
-            app:ptb_progress_stroke_width="3dp"
-            app:ptb_progress_width="14dp" />
-
-        <!-- 「圈选翻译」框选层:默认 GONE,进入圈选模式才显示并接管触摸,正常翻页/缩放不受影响 -->
-        <FrameLayout
-            android:id="@+id/manual_selection_overlay"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:visibility="gone">
-
-            <ceui.pixiv.ui.translate.SelectionBoxView
-                android:id="@+id/selection_box_view"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent" />
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="top|center_horizontal"
-                android:layout_marginTop="64dp"
-                android:background="@drawable/bg_page_count_overlay"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:paddingHorizontal="16dp"
-                android:paddingVertical="10dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="12dp"
-                    android:maxWidth="220dp"
-                    android:text="@string/string_ai_manga_translate_manual_hint"
-                    android:textColor="#CCFFFFFF"
-                    android:textSize="13sp" />
-
-                <TextView
-                    android:id="@+id/manual_selection_cancel"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/refresh_button_background"
-                    android:paddingHorizontal="14dp"
-                    android:paddingVertical="6dp"
-                    android:stateListAnimator="@animator/button_press_alpha"
-                    android:text="@string/action_cancel"
-                    android:textColor="@android:color/white"
-                    android:textSize="13sp" />
-
-            </LinearLayout>
-
-        </FrameLayout>
-
-    </RelativeLayout>
-</layout>
+</RelativeLayout>

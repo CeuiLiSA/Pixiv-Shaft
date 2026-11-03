@@ -42,6 +42,12 @@ public class FragmentLeft extends BaseLazyFragment<FragmentLeftBinding> {
         mLayoutID = R.layout.fragment_left;
     }
 
+    @NonNull
+    @Override
+    protected FragmentLeftBinding bindView(@NonNull View root) {
+        return FragmentLeftBinding.bind(root);
+    }
+
     @Override
     public void initView() {
         if (Dev.hideMainActivityStatus) {

@@ -10,6 +10,7 @@ import android.os.Build;
 import android.os.CancellationSignal;
 import android.os.Environment;
 import android.os.OperationCanceledException;
+import androidx.annotation.NonNull;
 import timber.log.Timber;
 import android.provider.DocumentsContract;
 import android.text.TextUtils;
@@ -80,6 +81,12 @@ public class FragmentSettingsData extends SettingsPageFragment<FragmentSettingsD
     @Override
     public void initLayout() {
         mLayoutID = R.layout.fragment_settings_data;
+    }
+
+    @NonNull
+    @Override
+    protected FragmentSettingsDataBinding bindView(@NonNull View root) {
+        return FragmentSettingsDataBinding.bind(root);
     }
 
     @Override

@@ -1,60 +1,52 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    app:cardCornerRadius="@dimen/eight_dp"
+    app:cardElevation="@dimen/eight_dp"
+    android:layout_height="wrap_content">
 
-    <data>
-
-    </data>
-
-    <androidx.cardview.widget.CardView
+    <RelativeLayout
         android:layout_width="match_parent"
-        app:cardCornerRadius="@dimen/eight_dp"
-        app:cardElevation="@dimen/eight_dp"
         android:layout_height="wrap_content">
 
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+        <ImageButton
+            android:layout_width="36dp"
+            android:src="@drawable/ic_baseline_dehaze_24"
+            android:layout_centerVertical="true"
+            android:id="@+id/change_position"
+            android:layout_marginStart="@dimen/four_dp"
+            android:layout_height="36dp">
 
-            <ImageButton
-                android:layout_width="36dp"
-                android:src="@drawable/ic_baseline_dehaze_24"
-                android:layout_centerVertical="true"
-                android:id="@+id/change_position"
-                android:layout_marginStart="@dimen/four_dp"
-                android:layout_height="36dp">
+        </ImageButton>
 
-            </ImageButton>
+        <CheckBox
+            android:id="@+id/title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginStart="@dimen/four_dp"
+            android:layout_marginTop="@dimen/sixteen_dp"
+            android:layout_marginBottom="@dimen/sixteen_dp"
+            android:layout_toEndOf="@+id/change_position"
+            android:buttonTint="?attr/colorPrimary"
+            android:text="@string/string_116"
+            android:textSize="15sp" />
 
-            <CheckBox
-                android:id="@+id/title"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginStart="@dimen/four_dp"
-                android:layout_marginTop="@dimen/sixteen_dp"
-                android:layout_marginBottom="@dimen/sixteen_dp"
-                android:layout_toEndOf="@+id/change_position"
-                android:buttonTint="?attr/colorPrimary"
-                android:text="@string/string_116"
-                android:textSize="15sp" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_marginStart="30dp"
+            android:layout_toEndOf="@+id/title"
+            android:textSize="13sp"
+            android:gravity="end"
+            android:id="@+id/description"
+            android:text="@string/string_117"
+            android:textColor="@color/dark_text"
+            android:layout_marginEnd="@dimen/sixteen_dp"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:layout_height="wrap_content" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_marginStart="30dp"
-                android:layout_toEndOf="@+id/title"
-                android:textSize="13sp"
-                android:gravity="end"
-                android:id="@+id/description"
-                android:text="@string/string_117"
-                android:textColor="@color/dark_text"
-                android:layout_marginEnd="@dimen/sixteen_dp"
-                android:layout_alignParentEnd="true"
-                android:layout_centerVertical="true"
-                android:layout_height="wrap_content" />
+    </RelativeLayout>
 
-        </RelativeLayout>
-
-    </androidx.cardview.widget.CardView>
-
-</layout>
+</androidx.cardview.widget.CardView>

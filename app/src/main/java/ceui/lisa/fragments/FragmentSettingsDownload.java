@@ -7,6 +7,7 @@ import android.text.TextUtils;
 import android.view.View;
 import android.widget.CompoundButton;
 
+import androidx.annotation.NonNull;
 import ceui.pixiv.witstudio.dialog.WitDialog;
 
 import ceui.lisa.R;
@@ -33,6 +34,12 @@ public class FragmentSettingsDownload extends SettingsPageFragment<FragmentSetti
     @Override
     public void initLayout() {
         mLayoutID = R.layout.fragment_settings_download;
+    }
+
+    @NonNull
+    @Override
+    protected FragmentSettingsDownloadBinding bindView(@NonNull View root) {
+        return FragmentSettingsDownloadBinding.bind(root);
     }
 
     @Override

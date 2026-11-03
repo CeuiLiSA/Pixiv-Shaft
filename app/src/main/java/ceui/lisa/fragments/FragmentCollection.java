@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
@@ -59,6 +60,12 @@ public class FragmentCollection extends BaseFragment<ViewpagerWithTablayoutBindi
     @Override
     public void initLayout() {
         mLayoutID = R.layout.viewpager_with_tablayout;
+    }
+
+    @NonNull
+    @Override
+    protected ViewpagerWithTablayoutBinding bindView(@NonNull View root) {
+        return ViewpagerWithTablayoutBinding.bind(root);
     }
 
     @Override

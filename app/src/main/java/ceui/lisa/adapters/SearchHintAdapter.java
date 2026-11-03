@@ -7,6 +7,7 @@ import android.text.TextUtils;
 import android.text.style.ForegroundColorSpan;
 import android.view.View;
 
+import androidx.annotation.NonNull;
 import java.util.List;
 import java.util.Locale;
 import java.util.regex.Matcher;
@@ -29,6 +30,12 @@ public class SearchHintAdapter extends BaseAdapter<ListTrendingtag.TrendTagsBean
     @Override
     public void initLayout() {
         mLayoutID = R.layout.recy_search_hint;
+    }
+
+    @NonNull
+    @Override
+    protected RecySearchHintBinding bindView(@NonNull View root) {
+        return RecySearchHintBinding.bind(root);
     }
 
     @Override

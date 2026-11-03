@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import androidx.recyclerview.widget.RecyclerView
+import androidx.core.view.isVisible
 import androidx.viewbinding.ViewBinding
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
@@ -23,6 +24,7 @@ import ceui.pixiv.feeds.feedRenderer
 import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.ui.common.setUpToolbar
 import ceui.pixiv.ui.common.viewBinding
+import ceui.pixiv.ui.user.binding_loadSquareMedia
 import ceui.pixiv.utils.ppppx
 import com.blankj.utilcode.util.Utils
 import com.google.gson.reflect.TypeToken
@@ -78,7 +80,14 @@ class PrimeTagsFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
             cell.binding.root.setOnClickListener { onClickPrimeTag(cell.item.indexItem) }
         },
     ) { cell ->
-        cell.binding.holder = cell.item
+        val b = cell.binding
+        val item = cell.item
+        b.userName.text = item.primeTag.tag.translated_name
+        b.userInfo.text = item.primeTag.tag.name
+        b.illustsPreview.isVisible = item.indexItem.previewSquareUrls.isNotEmpty()
+        b.illust1.binding_loadSquareMedia(item.illust0)
+        b.illust2.binding_loadSquareMedia(item.illust1)
+        b.illust3.binding_loadSquareMedia(item.illust2)
     }
 
     private fun onClickPrimeTag(indexItem: PrimeTagIndexItem) {

@@ -16,10 +16,8 @@ import android.text.TextUtils
 import android.text.method.LinkMovementMethod
 import android.text.style.ClickableSpan
 import android.view.HapticFeedbackConstants
-import android.view.LayoutInflater
 import android.view.View
 import android.view.View.OnLongClickListener
-import android.view.ViewGroup
 import android.view.ViewStub
 import android.view.ViewTreeObserver.OnGlobalLayoutListener
 import android.widget.TextView
@@ -258,14 +256,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
         mLayoutID = R.layout.fragment_illust
     }
 
-    // fragment_illust.xml 已从 DataBinding 改为 ViewBinding（布局里没有任何 DataBinding 表达式，
-    // <data> 里那个 LiveData<User> variable 从没被引用、代码里也从没 set 过）。DataBindingUtil.inflate
-    // 对非 <layout> 根的布局返回 null，所以这里必须自己走 ViewBinding 的 inflate。
-    override fun inflateBinding(inflater: LayoutInflater, container: ViewGroup?): FragmentIllustBinding =
-        FragmentIllustBinding.inflate(inflater, container, false)
-
-    override fun bindExisting(root: View): FragmentIllustBinding =
-        FragmentIllustBinding.bind(root)
+    override fun bindView(root: View): FragmentIllustBinding = FragmentIllustBinding.bind(root)
 
     override fun initView() {
         // 导航栏占位要在快照 early-return 之前挂好,否则离线快照页底栏压在手势条上。

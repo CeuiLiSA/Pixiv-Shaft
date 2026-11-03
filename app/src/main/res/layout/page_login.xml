@@ -1,94 +1,89 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
 
-    <data />
-
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <LinearLayout
+        android:id="@+id/bottom_linear"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <TextView
+            android:id="@+id/login_button"
+            style="@style/textMontserratSemiBold"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginHorizontal="30dp"
+            android:layout_marginBottom="10dp"
+            android:background="@drawable/round_corner_white_r20"
+            android:gravity="center"
+            android:text="@string/now_login"
+            android:textColor="@color/black"
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/sign_button"
+            style="@style/textMontserratSemiBold"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginHorizontal="30dp"
+            android:layout_marginBottom="10dp"
+            android:background="@drawable/round_corner_white_r20"
+            android:gravity="center"
+            android:text="@string/now_sign"
+            android:textColor="@color/black"
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/restore_from_email"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="14dp"
+            android:alpha="0.85"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:gravity="center"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="6dp"
+            android:text="@string/email_backup_login_entry"
+            android:textColor="@color/white"
+            android:textSize="13sp" />
 
         <LinearLayout
-            android:id="@+id/bottom_linear"
+            android:id="@+id/checkbox_one"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent">
+            android:layout_marginStart="20dp"
+            android:layout_marginEnd="34dp">
 
-            <TextView
-                android:id="@+id/login_button"
-                style="@style/textMontserratSemiBold"
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:layout_marginHorizontal="30dp"
-                android:layout_marginBottom="10dp"
-                android:background="@drawable/round_corner_white_r20"
-                android:gravity="center"
-                android:text="@string/now_login"
-                android:textColor="@color/black"
-                android:textSize="16sp" />
+            <FrameLayout
+                android:layout_width="40dp"
+                android:layout_height="40dp">
 
-            <TextView
-                android:id="@+id/sign_button"
-                style="@style/textMontserratSemiBold"
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:layout_marginHorizontal="30dp"
-                android:layout_marginBottom="10dp"
-                android:background="@drawable/round_corner_white_r20"
-                android:gravity="center"
-                android:text="@string/now_sign"
-                android:textColor="@color/black"
-                android:textSize="16sp" />
-
-            <TextView
-                android:id="@+id/restore_from_email"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginBottom="14dp"
-                android:alpha="0.85"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:gravity="center"
-                android:paddingHorizontal="12dp"
-                android:paddingVertical="6dp"
-                android:text="@string/email_backup_login_entry"
-                android:textColor="@color/white"
-                android:textSize="13sp" />
-
-            <LinearLayout
-                android:id="@+id/checkbox_one"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="20dp"
-                android:layout_marginEnd="34dp">
-
-                <FrameLayout
-                    android:layout_width="40dp"
-                    android:layout_height="40dp">
-
-                    <ImageView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center_horizontal"
-                        android:layout_marginStart="4dp"
-                        android:layout_marginTop="12dp"
-                        android:src="@drawable/terms_checkbox" />
-
-                </FrameLayout>
-
-                <TextView
-                    android:id="@+id/first_text"
-                    android:layout_width="match_parent"
+                <ImageView
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:textColor="@color/white"
-                    android:textSize="12sp" />
-            </LinearLayout>
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginStart="4dp"
+                    android:layout_marginTop="12dp"
+                    android:src="@drawable/terms_checkbox" />
 
+            </FrameLayout>
+
+            <TextView
+                android:id="@+id/first_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:textColor="@color/white"
+                android:textSize="12sp" />
         </LinearLayout>
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
-</layout>
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

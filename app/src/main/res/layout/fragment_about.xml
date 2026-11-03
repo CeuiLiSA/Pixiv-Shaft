@@ -1,94 +1,114 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools">
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/v3_bg"
+    android:orientation="vertical">
 
-    <data>
-
-    </data>
-
-    <LinearLayout
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@color/v3_bg"
-        android:orientation="vertical">
+        android:layout_height="wrap_content"
+        android:background="?attr/colorPrimary"
+        android:elevation="@dimen/six_dp"
+        android:fitsSystemWindows="true"
+        android:theme="@style/AppTheme.AppBarOverlay"
+        app:navigationIcon="@drawable/ic_arrow_back_white_shadow"
+        app:popupTheme="@style/AppTheme.PopupOverlay"
+        app:title=" "
+        app:titleTextColor="@android:color/white">
 
-        <androidx.appcompat.widget.Toolbar
-            android:id="@+id/toolbar"
-            android:layout_width="match_parent"
+        <TextView
+            android:id="@+id/toolbar_title"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="?attr/colorPrimary"
-            android:elevation="@dimen/six_dp"
-            android:fitsSystemWindows="true"
-            android:theme="@style/AppTheme.AppBarOverlay"
-            app:navigationIcon="@drawable/ic_arrow_back_white_shadow"
-            app:popupTheme="@style/AppTheme.PopupOverlay"
-            app:title=" "
-            app:titleTextColor="@android:color/white">
+            android:layout_gravity="center"
+            android:text="@string/about_app"
+            android:textColor="@color/white"
+            android:textSize="18sp" />
 
-            <TextView
-                android:id="@+id/toolbar_title"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:text="@string/about_app"
-                android:textColor="@color/white"
-                android:textSize="18sp" />
+    </androidx.appcompat.widget.Toolbar>
 
-        </androidx.appcompat.widget.Toolbar>
+    <FrameLayout
+        android:id="@+id/refreshLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
-        <FrameLayout
-            android:id="@+id/refreshLayout"
+        <androidx.core.widget.NestedScrollView
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingBottom="32dp"
+            android:scrollbars="none">
 
-            <androidx.core.widget.NestedScrollView
+            <LinearLayout
+                android:id="@+id/parent_linear"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:clipToPadding="false"
-                android:paddingBottom="32dp"
-                android:scrollbars="none">
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp">
+
+                <ImageView
+                    android:layout_width="84dp"
+                    android:layout_height="84dp"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="28dp"
+                    android:importantForAccessibility="no"
+                    android:src="@mipmap/ic_launcher_round" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="14dp"
+                    android:text="@string/app_name"
+                    android:textColor="@color/v3_text_1"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/application_id"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="4dp"
+                    android:layout_marginBottom="24dp"
+                    android:textColor="@color/v3_text_2"
+                    android:textSize="13sp" />
+
+                <RelativeLayout
+                    android:id="@+id/version_rela"
+                    style="@style/M3SetRow"
+                    android:background="@drawable/wit_row_top">
+
+                    <LinearLayout
+                        style="@style/M3SetTexts"
+                        android:layout_marginEnd="130dp">
+
+                        <TextView
+                            style="@style/M3SetTitle"
+                            android:text="@string/string_199" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/app_version"
+                        style="@style/M3SetValue" />
+
+                </RelativeLayout>
 
                 <LinearLayout
-                    android:id="@+id/parent_linear"
+                    android:id="@+id/github_update_section"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:paddingStart="16dp"
-                    android:paddingEnd="16dp">
-
-                    <ImageView
-                        android:layout_width="84dp"
-                        android:layout_height="84dp"
-                        android:layout_gravity="center_horizontal"
-                        android:layout_marginTop="28dp"
-                        android:importantForAccessibility="no"
-                        android:src="@mipmap/ic_launcher_round" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center_horizontal"
-                        android:layout_marginTop="14dp"
-                        android:text="@string/app_name"
-                        android:textColor="@color/v3_text_1"
-                        android:textSize="20sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/application_id"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center_horizontal"
-                        android:layout_marginTop="4dp"
-                        android:layout_marginBottom="24dp"
-                        android:textColor="@color/v3_text_2"
-                        android:textSize="13sp" />
+                    android:orientation="vertical">
 
                     <RelativeLayout
-                        android:id="@+id/version_rela"
+                        android:id="@+id/check_update"
                         style="@style/M3SetRow"
-                        android:background="@drawable/wit_row_top">
+                        android:background="@drawable/wit_row_mid">
 
                         <LinearLayout
                             style="@style/M3SetTexts"
@@ -96,137 +116,24 @@
 
                             <TextView
                                 style="@style/M3SetTitle"
-                                android:text="@string/string_199" />
+                                android:text="@string/check_for_updates" />
                         </LinearLayout>
 
+                        <!-- 状态文案会长到「被速率限制，请于 18:38 后再试」这种程度，
+                             M3SetValue 的 150dp + singleLine 会把它截成「请于 18:5…」。
+                             这一行单独放宽并允许折成两行；行高是 wrap_content，会自动长高。 -->
                         <TextView
-                            android:id="@+id/app_version"
-                            style="@style/M3SetValue" />
-
-                    </RelativeLayout>
-
-                    <LinearLayout
-                        android:id="@+id/github_update_section"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical">
-
-                        <RelativeLayout
-                            android:id="@+id/check_update"
-                            style="@style/M3SetRow"
-                            android:background="@drawable/wit_row_mid">
-
-                            <LinearLayout
-                                style="@style/M3SetTexts"
-                                android:layout_marginEnd="130dp">
-
-                                <TextView
-                                    style="@style/M3SetTitle"
-                                    android:text="@string/check_for_updates" />
-                            </LinearLayout>
-
-                            <!-- 状态文案会长到「被速率限制，请于 18:38 后再试」这种程度，
-                                 M3SetValue 的 150dp + singleLine 会把它截成「请于 18:5…」。
-                                 这一行单独放宽并允许折成两行；行高是 wrap_content，会自动长高。 -->
-                            <TextView
-                                android:id="@+id/update_status"
-                                style="@style/M3SetValue"
-                                android:ellipsize="end"
-                                android:maxLines="2"
-                                android:maxWidth="220dp"
-                                android:singleLine="false" />
-
-                        </RelativeLayout>
-
-                        <RelativeLayout
-                            android:id="@+id/version_history"
-                            style="@style/M3SetRow"
-                            android:background="@drawable/wit_row_bottom">
-
-                            <LinearLayout style="@style/M3SetTexts">
-
-                                <TextView
-                                    style="@style/M3SetTitle"
-                                    android:text="@string/version_history" />
-                            </LinearLayout>
-
-                            <TextView style="@style/M3SetArrow" />
-
-                        </RelativeLayout>
-
-                    </LinearLayout>
-
-                    <TextView
-                        style="@style/M3SetHeader"
-                        android:text="@string/string_202" />
-
-                    <RelativeLayout
-                        android:id="@+id/faq"
-                        style="@style/M3SetRow"
-                        android:background="@drawable/wit_row_top">
-
-                        <LinearLayout style="@style/M3SetTexts">
-
-                            <TextView
-                                style="@style/M3SetTitle"
-                                android:text="FAQ"
-                                tools:ignore="HardcodedText" />
-                        </LinearLayout>
-
-                        <TextView style="@style/M3SetArrow" />
+                            android:id="@+id/update_status"
+                            style="@style/M3SetValue"
+                            android:ellipsize="end"
+                            android:maxLines="2"
+                            android:maxWidth="220dp"
+                            android:singleLine="false" />
 
                     </RelativeLayout>
 
                     <RelativeLayout
-                        android:id="@+id/rate_this_app"
-                        style="@style/M3SetRow"
-                        android:background="@drawable/wit_row_mid">
-
-                        <LinearLayout style="@style/M3SetTexts">
-
-                            <TextView
-                                style="@style/M3SetTitle"
-                                android:text="@string/string_198" />
-                        </LinearLayout>
-
-                        <TextView style="@style/M3SetArrow" />
-
-                    </RelativeLayout>
-
-                    <RelativeLayout
-                        android:id="@+id/go_weibo"
-                        style="@style/M3SetRow"
-                        android:background="@drawable/wit_row_mid">
-
-                        <LinearLayout style="@style/M3SetTexts">
-
-                            <TextView
-                                style="@style/M3SetTitle"
-                                android:text="@string/string_200" />
-                        </LinearLayout>
-
-                        <TextView style="@style/M3SetArrow" />
-
-                    </RelativeLayout>
-
-                    <RelativeLayout
-                        android:id="@+id/go_telegram"
-                        style="@style/M3SetRow"
-                        android:background="@drawable/wit_row_mid">
-
-                        <LinearLayout style="@style/M3SetTexts">
-
-                            <TextView
-                                style="@style/M3SetTitle"
-                                android:text="@string/string_201" />
-                        </LinearLayout>
-
-                        <TextView style="@style/M3SetArrow" />
-
-                    </RelativeLayout>
-
-                    <RelativeLayout
-                        android:id="@+id/go_qq"
+                        android:id="@+id/version_history"
                         style="@style/M3SetRow"
                         android:background="@drawable/wit_row_bottom">
 
@@ -234,111 +141,7 @@
 
                             <TextView
                                 style="@style/M3SetTitle"
-                                android:text="@string/string_225" />
-                        </LinearLayout>
-
-                        <TextView style="@style/M3SetArrow" />
-
-                    </RelativeLayout>
-
-                    <TextView
-                        style="@style/M3SetHeader"
-                        android:text="@string/string_26" />
-
-                    <RelativeLayout
-                        android:id="@+id/pixiv_problem"
-                        style="@style/M3SetRow"
-                        android:background="@drawable/wit_row_top">
-
-                        <LinearLayout style="@style/M3SetTexts">
-
-                            <TextView
-                                style="@style/M3SetTitle"
-                                android:text="@string/pixiv_problem" />
-                        </LinearLayout>
-
-                        <TextView style="@style/M3SetArrow" />
-
-                    </RelativeLayout>
-
-                    <RelativeLayout
-                        android:id="@+id/pixiv_use_detail"
-                        style="@style/M3SetRow"
-                        android:background="@drawable/wit_row_mid">
-
-                        <LinearLayout style="@style/M3SetTexts">
-
-                            <TextView
-                                style="@style/M3SetTitle"
-                                android:text="@string/pixiv_use_detail" />
-                        </LinearLayout>
-
-                        <TextView style="@style/M3SetArrow" />
-
-                    </RelativeLayout>
-
-                    <RelativeLayout
-                        android:id="@+id/pixiv_privacy"
-                        style="@style/M3SetRow"
-                        android:background="@drawable/wit_row_bottom">
-
-                        <LinearLayout style="@style/M3SetTexts">
-
-                            <TextView
-                                style="@style/M3SetTitle"
-                                android:text="@string/privacy" />
-                        </LinearLayout>
-
-                        <TextView style="@style/M3SetArrow" />
-
-                    </RelativeLayout>
-
-                    <TextView
-                        style="@style/M3SetHeader"
-                        android:text="@string/string_27" />
-
-                    <RelativeLayout
-                        android:id="@+id/project_website"
-                        style="@style/M3SetRow"
-                        android:background="@drawable/wit_row_single"
-                        android:minHeight="72dp">
-
-                        <FrameLayout
-                            android:id="@+id/github_icon_wrap"
-                            android:layout_width="42dp"
-                            android:layout_height="42dp"
-                            android:layout_centerVertical="true"
-                            android:background="@drawable/bg_m3_icon_circle">
-
-                            <ImageView
-                                android:id="@+id/github_image"
-                                android:layout_width="22dp"
-                                android:layout_height="22dp"
-                                android:layout_gravity="center"
-                                android:importantForAccessibility="no"
-                                android:src="@mipmap/github"
-                                app:tint="?attr/colorPrimary" />
-
-                        </FrameLayout>
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_centerVertical="true"
-                            android:layout_marginStart="15dp"
-                            android:layout_marginEnd="28dp"
-                            android:layout_toEndOf="@id/github_icon_wrap"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:id="@+id/github_text"
-                                style="@style/M3SetTitle"
-                                android:text="@string/string_31" />
-
-                            <TextView
-                                style="@style/M3SetDesc"
-                                android:text="@string/string_32" />
-
+                                android:text="@string/version_history" />
                         </LinearLayout>
 
                         <TextView style="@style/M3SetArrow" />
@@ -346,9 +149,199 @@
                     </RelativeLayout>
 
                 </LinearLayout>
-            </androidx.core.widget.NestedScrollView>
 
-        </FrameLayout>
+                <TextView
+                    style="@style/M3SetHeader"
+                    android:text="@string/string_202" />
 
-    </LinearLayout>
-</layout>
+                <RelativeLayout
+                    android:id="@+id/faq"
+                    style="@style/M3SetRow"
+                    android:background="@drawable/wit_row_top">
+
+                    <LinearLayout style="@style/M3SetTexts">
+
+                        <TextView
+                            style="@style/M3SetTitle"
+                            android:text="FAQ"
+                            tools:ignore="HardcodedText" />
+                    </LinearLayout>
+
+                    <TextView style="@style/M3SetArrow" />
+
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:id="@+id/rate_this_app"
+                    style="@style/M3SetRow"
+                    android:background="@drawable/wit_row_mid">
+
+                    <LinearLayout style="@style/M3SetTexts">
+
+                        <TextView
+                            style="@style/M3SetTitle"
+                            android:text="@string/string_198" />
+                    </LinearLayout>
+
+                    <TextView style="@style/M3SetArrow" />
+
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:id="@+id/go_weibo"
+                    style="@style/M3SetRow"
+                    android:background="@drawable/wit_row_mid">
+
+                    <LinearLayout style="@style/M3SetTexts">
+
+                        <TextView
+                            style="@style/M3SetTitle"
+                            android:text="@string/string_200" />
+                    </LinearLayout>
+
+                    <TextView style="@style/M3SetArrow" />
+
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:id="@+id/go_telegram"
+                    style="@style/M3SetRow"
+                    android:background="@drawable/wit_row_mid">
+
+                    <LinearLayout style="@style/M3SetTexts">
+
+                        <TextView
+                            style="@style/M3SetTitle"
+                            android:text="@string/string_201" />
+                    </LinearLayout>
+
+                    <TextView style="@style/M3SetArrow" />
+
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:id="@+id/go_qq"
+                    style="@style/M3SetRow"
+                    android:background="@drawable/wit_row_bottom">
+
+                    <LinearLayout style="@style/M3SetTexts">
+
+                        <TextView
+                            style="@style/M3SetTitle"
+                            android:text="@string/string_225" />
+                    </LinearLayout>
+
+                    <TextView style="@style/M3SetArrow" />
+
+                </RelativeLayout>
+
+                <TextView
+                    style="@style/M3SetHeader"
+                    android:text="@string/string_26" />
+
+                <RelativeLayout
+                    android:id="@+id/pixiv_problem"
+                    style="@style/M3SetRow"
+                    android:background="@drawable/wit_row_top">
+
+                    <LinearLayout style="@style/M3SetTexts">
+
+                        <TextView
+                            style="@style/M3SetTitle"
+                            android:text="@string/pixiv_problem" />
+                    </LinearLayout>
+
+                    <TextView style="@style/M3SetArrow" />
+
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:id="@+id/pixiv_use_detail"
+                    style="@style/M3SetRow"
+                    android:background="@drawable/wit_row_mid">
+
+                    <LinearLayout style="@style/M3SetTexts">
+
+                        <TextView
+                            style="@style/M3SetTitle"
+                            android:text="@string/pixiv_use_detail" />
+                    </LinearLayout>
+
+                    <TextView style="@style/M3SetArrow" />
+
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:id="@+id/pixiv_privacy"
+                    style="@style/M3SetRow"
+                    android:background="@drawable/wit_row_bottom">
+
+                    <LinearLayout style="@style/M3SetTexts">
+
+                        <TextView
+                            style="@style/M3SetTitle"
+                            android:text="@string/privacy" />
+                    </LinearLayout>
+
+                    <TextView style="@style/M3SetArrow" />
+
+                </RelativeLayout>
+
+                <TextView
+                    style="@style/M3SetHeader"
+                    android:text="@string/string_27" />
+
+                <RelativeLayout
+                    android:id="@+id/project_website"
+                    style="@style/M3SetRow"
+                    android:background="@drawable/wit_row_single"
+                    android:minHeight="72dp">
+
+                    <FrameLayout
+                        android:id="@+id/github_icon_wrap"
+                        android:layout_width="42dp"
+                        android:layout_height="42dp"
+                        android:layout_centerVertical="true"
+                        android:background="@drawable/bg_m3_icon_circle">
+
+                        <ImageView
+                            android:id="@+id/github_image"
+                            android:layout_width="22dp"
+                            android:layout_height="22dp"
+                            android:layout_gravity="center"
+                            android:importantForAccessibility="no"
+                            android:src="@mipmap/github"
+                            app:tint="?attr/colorPrimary" />
+
+                    </FrameLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_centerVertical="true"
+                        android:layout_marginStart="15dp"
+                        android:layout_marginEnd="28dp"
+                        android:layout_toEndOf="@id/github_icon_wrap"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/github_text"
+                            style="@style/M3SetTitle"
+                            android:text="@string/string_31" />
+
+                        <TextView
+                            style="@style/M3SetDesc"
+                            android:text="@string/string_32" />
+
+                    </LinearLayout>
+
+                    <TextView style="@style/M3SetArrow" />
+
+                </RelativeLayout>
+
+            </LinearLayout>
+        </androidx.core.widget.NestedScrollView>
+
+    </FrameLayout>
+
+</LinearLayout>

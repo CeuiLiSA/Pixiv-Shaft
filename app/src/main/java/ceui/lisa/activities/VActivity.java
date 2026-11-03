@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.os.Parcelable;
 import android.text.TextUtils;
 
+import android.view.View;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import android.view.ViewTreeObserver;
@@ -75,6 +76,12 @@ public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
     @Override
     protected int initLayout() {
         return R.layout.activity_view_pager;
+    }
+
+    @NonNull
+    @Override
+    protected ActivityViewPagerBinding bindView(@NonNull View root) {
+        return ActivityViewPagerBinding.bind(root);
     }
 
     @Override

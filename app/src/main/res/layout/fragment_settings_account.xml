@@ -1,250 +1,242 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/v3_bg"
+    android:orientation="vertical">
 
-    <data>
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorPrimary"
+        android:elevation="@dimen/six_dp"
+        android:fitsSystemWindows="true"
+        android:theme="@style/AppTheme.AppBarOverlay"
+        app:navigationIcon="@drawable/ic_arrow_back_white_shadow"
+        app:popupTheme="@style/AppTheme.PopupOverlay"
+        app:title=" "
+        app:titleTextColor="@android:color/white">
 
-    </data>
+        <TextView
+            android:id="@+id/toolbar_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="@string/account"
+            android:textColor="@color/white"
+            android:textSize="18sp" />
 
-    <LinearLayout
+    </androidx.appcompat.widget.Toolbar>
+
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/scroll_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/v3_bg"
-        android:orientation="vertical">
+        android:clipToPadding="false"
+        android:paddingBottom="32dp"
+        android:scrollbars="none">
 
-        <androidx.appcompat.widget.Toolbar
-            android:id="@+id/toolbar"
+        <LinearLayout
+            android:id="@+id/parent_linear"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="?attr/colorPrimary"
-            android:elevation="@dimen/six_dp"
-            android:fitsSystemWindows="true"
-            android:theme="@style/AppTheme.AppBarOverlay"
-            app:navigationIcon="@drawable/ic_arrow_back_white_shadow"
-            app:popupTheme="@style/AppTheme.PopupOverlay"
-            app:title=" "
-            app:titleTextColor="@android:color/white">
+            android:orientation="vertical"
+            android:paddingStart="16dp"
+            android:paddingTop="10dp"
+            android:paddingEnd="16dp">
 
-            <TextView
-                android:id="@+id/toolbar_title"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:text="@string/account"
-                android:textColor="@color/white"
-                android:textSize="18sp" />
+            <RelativeLayout
+                android:id="@+id/user_manage"
+                style="@style/M3SetRow"
+                android:background="@drawable/wit_row_top">
 
-        </androidx.appcompat.widget.Toolbar>
-
-        <androidx.core.widget.NestedScrollView
-            android:id="@+id/scroll_view"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:clipToPadding="false"
-            android:paddingBottom="32dp"
-            android:scrollbars="none">
-
-            <LinearLayout
-                android:id="@+id/parent_linear"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:paddingStart="16dp"
-                android:paddingTop="10dp"
-                android:paddingEnd="16dp">
-
-                <RelativeLayout
-                    android:id="@+id/user_manage"
-                    style="@style/M3SetRow"
-                    android:background="@drawable/wit_row_top">
-
-                    <LinearLayout style="@style/M3SetTexts">
-
-                        <TextView
-                            style="@style/M3SetTitle"
-                            android:text="@string/account_manage" />
-                    </LinearLayout>
-
-                    <TextView style="@style/M3SetArrow" />
-
-                </RelativeLayout>
-
-                <RelativeLayout
-                    android:id="@+id/edit_account"
-                    style="@style/M3SetRow"
-                    android:background="@drawable/wit_row_mid">
-
-                    <LinearLayout style="@style/M3SetTexts">
-
-                        <TextView
-                            style="@style/M3SetTitle"
-                            android:text="@string/string_91" />
-                    </LinearLayout>
-
-                    <TextView style="@style/M3SetArrow" />
-
-                </RelativeLayout>
-
-                <Space
-                    android:id="@+id/account_backup_divider"
-                    android:layout_width="0dp"
-                    android:layout_height="0dp" />
-
-                <RelativeLayout
-                    android:id="@+id/account_backup"
-                    style="@style/M3SetRow"
-                    android:background="@drawable/wit_row_mid">
-
-                    <LinearLayout style="@style/M3SetTexts">
-
-                        <TextView
-                            style="@style/M3SetTitle"
-                            android:text="@string/email_backup_settings_entry" />
-                    </LinearLayout>
-
-                    <TextView style="@style/M3SetArrow" />
-
-                </RelativeLayout>
-
-                <RelativeLayout
-                    android:id="@+id/edit_file"
-                    style="@style/M3SetRow"
-                    android:background="@drawable/wit_row_mid">
-
-                    <LinearLayout style="@style/M3SetTexts">
-
-                        <TextView
-                            style="@style/M3SetTitle"
-                            android:text="@string/string_92" />
-                    </LinearLayout>
-
-                    <TextView style="@style/M3SetArrow" />
-
-                </RelativeLayout>
-
-                <RelativeLayout
-                    android:id="@+id/work_space"
-                    style="@style/M3SetRow"
-                    android:background="@drawable/wit_row_mid">
-
-                    <LinearLayout style="@style/M3SetTexts">
-
-                        <TextView
-                            style="@style/M3SetTitle"
-                            android:text="@string/string_267" />
-                    </LinearLayout>
-
-                    <TextView style="@style/M3SetArrow" />
-
-                </RelativeLayout>
-
-                <RelativeLayout
-                    android:id="@+id/r18_space"
-                    style="@style/M3SetRow"
-                    android:background="@drawable/wit_row_mid">
-
-                    <LinearLayout style="@style/M3SetTexts">
-
-                        <TextView
-                            style="@style/M3SetTitle"
-                            android:text="@string/string_398" />
-                    </LinearLayout>
-
-                    <TextView style="@style/M3SetArrow" />
-
-                </RelativeLayout>
-
-                <RelativeLayout
-                    android:id="@+id/premium_space"
-                    style="@style/M3SetRow"
-                    android:background="@drawable/wit_row_bottom">
-
-                    <LinearLayout style="@style/M3SetTexts">
-
-                        <TextView
-                            style="@style/M3SetTitle"
-                            android:text="@string/string_399" />
-                    </LinearLayout>
-
-                    <TextView style="@style/M3SetArrow" />
-
-                </RelativeLayout>
-
-                <!-- 应用锁（issue #1197）。底色由 FragmentSettingsAccount.renderAppLock 按开关
-                     切换独行 / 段首：关闭时「自动锁定」整行隐藏。 -->
-                <RelativeLayout
-                    android:id="@+id/app_lock_rela"
-                    style="@style/M3SetRow"
-                    android:layout_marginTop="14dp"
-                    android:background="@drawable/wit_row_single">
-
-                    <LinearLayout style="@style/M3SetTexts">
-
-                        <TextView
-                            style="@style/M3SetTitle"
-                            android:text="@string/app_lock_title" />
-
-                        <TextView
-                            style="@style/M3SetDesc"
-                            android:text="@string/app_lock_desc" />
-                    </LinearLayout>
-
-                    <androidx.appcompat.widget.SwitchCompat
-                        android:id="@+id/app_lock"
-                        style="@style/M3SetSwitch" />
-
-                </RelativeLayout>
-
-                <RelativeLayout
-                    android:id="@+id/app_lock_timeout_rela"
-                    style="@style/M3SetRow"
-                    android:background="@drawable/wit_row_bottom"
-                    android:visibility="gone">
-
-                    <LinearLayout
-                        style="@style/M3SetTexts"
-                        android:layout_marginEnd="130dp">
-
-                        <TextView
-                            style="@style/M3SetTitle"
-                            android:text="@string/app_lock_timeout_title" />
-
-                        <TextView
-                            style="@style/M3SetDesc"
-                            android:text="@string/app_lock_timeout_desc" />
-                    </LinearLayout>
+                <LinearLayout style="@style/M3SetTexts">
 
                     <TextView
-                        android:id="@+id/app_lock_timeout"
-                        style="@style/M3SetValue" />
+                        style="@style/M3SetTitle"
+                        android:text="@string/account_manage" />
+                </LinearLayout>
 
-                </RelativeLayout>
+                <TextView style="@style/M3SetArrow" />
 
-                <RelativeLayout
-                    android:id="@+id/login_out"
-                    style="@style/M3SetRow"
-                    android:layout_marginTop="14dp"
-                    android:background="@drawable/wit_row_single">
+            </RelativeLayout>
 
-                    <LinearLayout style="@style/M3SetTexts">
+            <RelativeLayout
+                android:id="@+id/edit_account"
+                style="@style/M3SetRow"
+                android:background="@drawable/wit_row_mid">
 
-                        <!-- 破坏性操作:标题与箭头走 v3_danger(wit_danger,日夜各一版),不跟主题色。 -->
-                        <TextView
-                            style="@style/M3SetTitle"
-                            android:text="@string/login_out"
-                            android:textColor="@color/v3_danger" />
-                    </LinearLayout>
+                <LinearLayout style="@style/M3SetTexts">
 
                     <TextView
-                        style="@style/M3SetArrow"
-                        android:drawableTint="@color/v3_danger" />
+                        style="@style/M3SetTitle"
+                        android:text="@string/string_91" />
+                </LinearLayout>
 
-                </RelativeLayout>
+                <TextView style="@style/M3SetArrow" />
 
-            </LinearLayout>
+            </RelativeLayout>
 
-        </androidx.core.widget.NestedScrollView>
+            <Space
+                android:id="@+id/account_backup_divider"
+                android:layout_width="0dp"
+                android:layout_height="0dp" />
 
-    </LinearLayout>
+            <RelativeLayout
+                android:id="@+id/account_backup"
+                style="@style/M3SetRow"
+                android:background="@drawable/wit_row_mid">
 
-</layout>
+                <LinearLayout style="@style/M3SetTexts">
+
+                    <TextView
+                        style="@style/M3SetTitle"
+                        android:text="@string/email_backup_settings_entry" />
+                </LinearLayout>
+
+                <TextView style="@style/M3SetArrow" />
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:id="@+id/edit_file"
+                style="@style/M3SetRow"
+                android:background="@drawable/wit_row_mid">
+
+                <LinearLayout style="@style/M3SetTexts">
+
+                    <TextView
+                        style="@style/M3SetTitle"
+                        android:text="@string/string_92" />
+                </LinearLayout>
+
+                <TextView style="@style/M3SetArrow" />
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:id="@+id/work_space"
+                style="@style/M3SetRow"
+                android:background="@drawable/wit_row_mid">
+
+                <LinearLayout style="@style/M3SetTexts">
+
+                    <TextView
+                        style="@style/M3SetTitle"
+                        android:text="@string/string_267" />
+                </LinearLayout>
+
+                <TextView style="@style/M3SetArrow" />
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:id="@+id/r18_space"
+                style="@style/M3SetRow"
+                android:background="@drawable/wit_row_mid">
+
+                <LinearLayout style="@style/M3SetTexts">
+
+                    <TextView
+                        style="@style/M3SetTitle"
+                        android:text="@string/string_398" />
+                </LinearLayout>
+
+                <TextView style="@style/M3SetArrow" />
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:id="@+id/premium_space"
+                style="@style/M3SetRow"
+                android:background="@drawable/wit_row_bottom">
+
+                <LinearLayout style="@style/M3SetTexts">
+
+                    <TextView
+                        style="@style/M3SetTitle"
+                        android:text="@string/string_399" />
+                </LinearLayout>
+
+                <TextView style="@style/M3SetArrow" />
+
+            </RelativeLayout>
+
+            <!-- 应用锁（issue #1197）。底色由 FragmentSettingsAccount.renderAppLock 按开关
+                 切换独行 / 段首：关闭时「自动锁定」整行隐藏。 -->
+            <RelativeLayout
+                android:id="@+id/app_lock_rela"
+                style="@style/M3SetRow"
+                android:layout_marginTop="14dp"
+                android:background="@drawable/wit_row_single">
+
+                <LinearLayout style="@style/M3SetTexts">
+
+                    <TextView
+                        style="@style/M3SetTitle"
+                        android:text="@string/app_lock_title" />
+
+                    <TextView
+                        style="@style/M3SetDesc"
+                        android:text="@string/app_lock_desc" />
+                </LinearLayout>
+
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/app_lock"
+                    style="@style/M3SetSwitch" />
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:id="@+id/app_lock_timeout_rela"
+                style="@style/M3SetRow"
+                android:background="@drawable/wit_row_bottom"
+                android:visibility="gone">
+
+                <LinearLayout
+                    style="@style/M3SetTexts"
+                    android:layout_marginEnd="130dp">
+
+                    <TextView
+                        style="@style/M3SetTitle"
+                        android:text="@string/app_lock_timeout_title" />
+
+                    <TextView
+                        style="@style/M3SetDesc"
+                        android:text="@string/app_lock_timeout_desc" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/app_lock_timeout"
+                    style="@style/M3SetValue" />
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:id="@+id/login_out"
+                style="@style/M3SetRow"
+                android:layout_marginTop="14dp"
+                android:background="@drawable/wit_row_single">
+
+                <LinearLayout style="@style/M3SetTexts">
+
+                    <!-- 破坏性操作:标题与箭头走 v3_danger(wit_danger,日夜各一版),不跟主题色。 -->
+                    <TextView
+                        style="@style/M3SetTitle"
+                        android:text="@string/login_out"
+                        android:textColor="@color/v3_danger" />
+                </LinearLayout>
+
+                <TextView
+                    style="@style/M3SetArrow"
+                    android:drawableTint="@color/v3_danger" />
+
+            </RelativeLayout>
+
+        </LinearLayout>
+
+    </androidx.core.widget.NestedScrollView>
+
+</LinearLayout>

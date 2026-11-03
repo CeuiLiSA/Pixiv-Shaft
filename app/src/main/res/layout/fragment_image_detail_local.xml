@@ -1,21 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:background="@color/black"
+    android:layout_height="match_parent">
 
-    <data>
-
-    </data>
-
-    <RelativeLayout
+    <xyz.zpayh.hdimage.HDImageView
         android:layout_width="match_parent"
-        android:background="@color/black"
-        android:layout_height="match_parent">
+        android:scaleType="fitCenter"
+        android:id="@+id/illust_image"
+        android:layout_height="match_parent" />
 
-        <xyz.zpayh.hdimage.HDImageView
-            android:layout_width="match_parent"
-            android:scaleType="fitCenter"
-            android:id="@+id/illust_image"
-            android:layout_height="match_parent" />
-
-    </RelativeLayout>
-</layout>
+</RelativeLayout>

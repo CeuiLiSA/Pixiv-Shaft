@@ -4,6 +4,7 @@ import android.content.Context;
 import android.view.View;
 import android.widget.CompoundButton;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.util.List;
@@ -22,6 +23,12 @@ public class FileNameAdapter extends BaseAdapter<CustomFileNameCell, RecyFileNam
     @Override
     public void initLayout() {
         mLayoutID = R.layout.recy_file_name;
+    }
+
+    @NonNull
+    @Override
+    protected RecyFileNameBinding bindView(@NonNull View root) {
+        return RecyFileNameBinding.bind(root);
     }
 
     @Override

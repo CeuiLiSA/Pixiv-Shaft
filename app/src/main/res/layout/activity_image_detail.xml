@@ -1,127 +1,119 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+<!-- 根布局 = 竖向拖拽关闭手势层;黑底画在它身上,透明窗口下由转场/拖拽驱动其 alpha -->
+<ceui.lisa.view.DragDismissLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/black">
 
-    <data>
-
-    </data>
-
-    <!-- 根布局 = 竖向拖拽关闭手势层;黑底画在它身上,透明窗口下由转场/拖拽驱动其 alpha -->
-    <ceui.lisa.view.DragDismissLayout
+    <ceui.lisa.view.FixedViewPager
+        android:id="@+id/view_pager"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@color/black">
+        android:layout_height="match_parent" />
 
+    <!-- Top-right AI menu button -->
+    <ImageView
+        android:id="@+id/btn_ai_menu"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:layout_alignParentEnd="true"
+        android:layout_marginEnd="12dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:padding="10dp"
+        android:src="@drawable/baseline_auto_awesome_24"
+        android:tint="@android:color/white"
+        android:visibility="gone" />
 
-        <ceui.lisa.view.FixedViewPager
-            android:id="@+id/view_pager"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+    <!-- 注意别用 RelativeLayout + alignParentBottom + bottomMargin 摆胶囊:
+         wrap_content 的 RelativeLayout 会把 alignParentBottom 子 view 的 bottomMargin 吃掉。
+         竖排:译图勾选在上,胶囊行 / 下载详情路径按钮在下(两者按模式互斥显示) -->
+    <LinearLayout
+        android:id="@+id/bottom_rela"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:orientation="vertical"
+        android:paddingHorizontal="20dp">
 
-        <!-- Top-right AI menu button -->
-        <ImageView
-            android:id="@+id/btn_ai_menu"
-            android:layout_width="44dp"
-            android:layout_height="44dp"
-            android:layout_alignParentEnd="true"
-            android:layout_marginEnd="12dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:padding="10dp"
-            android:src="@drawable/baseline_auto_awesome_24"
-            android:tint="@android:color/white"
-            android:visibility="gone" />
-
-        <!-- 注意别用 RelativeLayout + alignParentBottom + bottomMargin 摆胶囊:
-             wrap_content 的 RelativeLayout 会把 alignParentBottom 子 view 的 bottomMargin 吃掉。
-             竖排:译图勾选在上,胶囊行 / 下载详情路径按钮在下(两者按模式互斥显示) -->
-        <LinearLayout
-            android:id="@+id/bottom_rela"
-            android:layout_width="match_parent"
+        <!-- 「二级详情」当前页有译图时出现:勾上显示并保存译图,取消则显示并保存原图。
+             漫画页多为白底,垫一层半透明黑底保证白字/白框在亮图上也看得清 -->
+        <com.google.android.material.checkbox.MaterialCheckBox
+            android:id="@+id/show_translated"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
-            android:orientation="vertical"
-            android:paddingHorizontal="20dp">
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="8dp"
+            android:background="@drawable/bg_page_count_overlay"
+            android:checked="true"
+            android:paddingEnd="12dp"
+            android:shadowColor="@android:color/black"
+            android:shadowRadius="3"
+            android:text="@string/image_detail_show_translated"
+            android:textColor="@android:color/white"
+            android:visibility="gone"
+            app:buttonTint="@android:color/white" />
 
-            <!-- 「二级详情」当前页有译图时出现:勾上显示并保存译图,取消则显示并保存原图。
-                 漫画页多为白底,垫一层半透明黑底保证白字/白框在亮图上也看得清 -->
-            <com.google.android.material.checkbox.MaterialCheckBox
-                android:id="@+id/show_translated"
+        <!-- 「二级详情」:下载 + 收藏胶囊(与一级 V3 详情页共用)+ 右侧页码。
+             整行吃 24dp + 导航栏 inset 的底距(V3FabBarController.attachBottomInsetMargin),
+             与一级页胶囊落点一致,页码跟随胶囊垂直居中。 -->
+        <FrameLayout
+            android:id="@+id/fab_bar_row"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_gravity="bottom"
+            android:layout_marginBottom="24dp">
+
+            <include
+                layout="@layout/view_v3_fab_bar"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginBottom="8dp"
-                android:background="@drawable/bg_page_count_overlay"
-                android:checked="true"
-                android:paddingEnd="12dp"
+                android:layout_height="48dp"
+                android:layout_gravity="center_horizontal" />
+
+            <TextView
+                android:id="@+id/current_page"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_gravity="end"
+                android:gravity="center_vertical"
                 android:shadowColor="@android:color/black"
                 android:shadowRadius="3"
-                android:text="@string/image_detail_show_translated"
-                android:textColor="@android:color/white"
-                android:visibility="gone"
-                app:buttonTint="@android:color/white" />
+                android:textColor="@android:color/white" />
 
-            <!-- 「二级详情」:下载 + 收藏胶囊(与一级 V3 详情页共用)+ 右侧页码。
-                 整行吃 24dp + 导航栏 inset 的底距(V3FabBarController.attachBottomInsetMargin),
-                 与一级页胶囊落点一致,页码跟随胶囊垂直居中。 -->
-            <FrameLayout
-                android:id="@+id/fab_bar_row"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:layout_gravity="bottom"
-                android:layout_marginBottom="24dp">
-
-                <include
-                    layout="@layout/view_v3_fab_bar"
-                    android:layout_width="wrap_content"
-                    android:layout_height="48dp"
-                    android:layout_gravity="center_horizontal" />
-
-                <TextView
-                    android:id="@+id/current_page"
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:layout_gravity="end"
-                    android:gravity="center_vertical"
-                    android:shadowColor="@android:color/black"
-                    android:shadowRadius="3"
-                    android:textColor="@android:color/white" />
-
-                <!-- 动图:页码位换成「逐帧」入口(动图只有 1P,页码本来就不显示)。
-                     样式在 ImageDetailActivity.setupUgoiraFramesEntry 里按 V3Palette 着色。 -->
-                <TextView
-                    android:id="@+id/btn_ugoira_frames"
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:layout_gravity="end"
-                    android:gravity="center_vertical"
-                    android:text="@string/ugoira_frames_entry"
-                    android:visibility="gone" />
-
-            </FrameLayout>
-
-            <!-- 「下载详情」模式复用底部中央位置显示本地文件路径(历史行为) -->
-            <ceui.pixiv.widgets.ProgressTextButton
-                android:id="@+id/download_this_one"
-                style="@style/GreenShiningButton"
+            <!-- 动图:页码位换成「逐帧」入口(动图只有 1P,页码本来就不显示)。
+                 样式在 ImageDetailActivity.setupUgoiraFramesEntry 里按 V3Palette 着色。 -->
+            <TextView
+                android:id="@+id/btn_ugoira_frames"
                 android:layout_width="wrap_content"
-                android:layout_height="32dp"
-                android:layout_gravity="bottom|center_horizontal"
-                android:layout_marginBottom="40dp"
-                android:ellipsize="middle"
-                android:gravity="center"
-                android:paddingHorizontal="16dp"
-                android:text="@string/string_7"
-                android:visibility="gone"
-                app:ptb_progress_stroke_width="3dp"
-                app:ptb_progress_width="14dp" />
+                android:layout_height="match_parent"
+                android:layout_gravity="end"
+                android:gravity="center_vertical"
+                android:text="@string/ugoira_frames_entry"
+                android:visibility="gone" />
 
-        </LinearLayout>
+        </FrameLayout>
 
-        <!-- AI 进度层(翻译漫画/圈选翻译/AI 放大/抠图共用)挂在 Activity 根布局上,全局唯一。
-             若随各页 FragmentImageDetail 各带一份,同 id 会有多份,Activity 的
-             findViewById 命中的是 ViewPager 中 child 顺序第一个(通常是相邻页),
-             转圈 + 状态文本就叠到了看不见的页上,表现为「有概率不显示」。 -->
-        <include layout="@layout/view_ai_upscale_overlay" />
+        <!-- 「下载详情」模式复用底部中央位置显示本地文件路径(历史行为) -->
+        <ceui.pixiv.widgets.ProgressTextButton
+            android:id="@+id/download_this_one"
+            style="@style/GreenShiningButton"
+            android:layout_width="wrap_content"
+            android:layout_height="32dp"
+            android:layout_gravity="bottom|center_horizontal"
+            android:layout_marginBottom="40dp"
+            android:ellipsize="middle"
+            android:gravity="center"
+            android:paddingHorizontal="16dp"
+            android:text="@string/string_7"
+            android:visibility="gone"
+            app:ptb_progress_stroke_width="3dp"
+            app:ptb_progress_width="14dp" />
 
-    </ceui.lisa.view.DragDismissLayout>
-</layout>
+    </LinearLayout>
+
+    <!-- AI 进度层(翻译漫画/圈选翻译/AI 放大/抠图共用)挂在 Activity 根布局上,全局唯一。
+         若随各页 FragmentImageDetail 各带一份,同 id 会有多份,Activity 的
+         findViewById 命中的是 ViewPager 中 child 顺序第一个(通常是相邻页),
+         转圈 + 状态文本就叠到了看不见的页上,表现为「有概率不显示」。 -->
+    <include layout="@layout/view_ai_upscale_overlay" />
+
+</ceui.lisa.view.DragDismissLayout>

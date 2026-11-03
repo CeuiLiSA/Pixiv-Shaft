@@ -2,6 +2,8 @@ package ceui.lisa.adapters;
 
 import android.content.Context;
 
+import android.view.View;
+import androidx.annotation.NonNull;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 
@@ -27,6 +29,12 @@ public class DiscoverTagAdapter extends BaseAdapter<PrimeTagIndexItem, RecyDisco
     @Override
     public void initLayout() {
         mLayoutID = R.layout.recy_discover_tag;
+    }
+
+    @NonNull
+    @Override
+    protected RecyDiscoverTagBinding bindView(@NonNull View root) {
+        return RecyDiscoverTagBinding.bind(root);
     }
 
     @Override

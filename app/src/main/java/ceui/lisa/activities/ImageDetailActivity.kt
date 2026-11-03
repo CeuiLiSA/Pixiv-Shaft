@@ -169,6 +169,8 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         return R.layout.activity_image_detail
     }
 
+    override fun bindView(root: View): ActivityImageDetailBinding = ActivityImageDetailBinding.bind(root)
+
     override fun initView() {
         // 新的查看器会话：上一次会话回传的「当前页那一格」已失效，见 ViewerPageLink.clearViewport
         ViewerPageLink.clearViewport()

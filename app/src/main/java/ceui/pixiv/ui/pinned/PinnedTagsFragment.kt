@@ -30,6 +30,7 @@ import ceui.pixiv.feeds.feedRenderer
 import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.ui.prime.TagShelfSkeletonView
+import ceui.pixiv.ui.user.binding_loadSquareMedia
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
 import ceui.pixiv.witstudio.theme.V3Palette
@@ -113,8 +114,13 @@ class PinnedTagsFragment : FeedFragment() {
             cell.binding.deletePin.setOnClickListener { onClickDeletePinnedTag(cell.item) }
         },
     ) { cell ->
-        cell.binding.holder = cell.item
-        bindTitles(cell.binding, cell.item)
+        val b = cell.binding
+        val item = cell.item
+        b.illustsPreview.isVisible = item.hasPreview
+        b.illust1.binding_loadSquareMedia(item.illust0)
+        b.illust2.binding_loadSquareMedia(item.illust1)
+        b.illust3.binding_loadSquareMedia(item.illust2)
+        bindTitles(b, item)
     }
 
     /**

@@ -19,6 +19,8 @@ class FragmentUserRight : BaseLazyFragment<FragmentUserRightBinding>() {
         mLayoutID = R.layout.fragment_user_right
     }
 
+    override fun bindView(root: View): FragmentUserRightBinding = FragmentUserRightBinding.bind(root)
+
     override fun initModel() {
         mUserViewModel = ViewModelProvider(mActivity).get(UserViewModel::class.java)
     }

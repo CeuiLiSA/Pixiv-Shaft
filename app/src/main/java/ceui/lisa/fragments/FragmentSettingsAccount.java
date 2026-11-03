@@ -30,6 +30,12 @@ public class FragmentSettingsAccount extends SettingsPageFragment<FragmentSettin
         mLayoutID = R.layout.fragment_settings_account;
     }
 
+    @NonNull
+    @Override
+    protected FragmentSettingsAccountBinding bindView(@NonNull View root) {
+        return FragmentSettingsAccountBinding.bind(root);
+    }
+
     @Override
     protected void initData() {
         baseBind.userManage.setOnClickListener(v -> {

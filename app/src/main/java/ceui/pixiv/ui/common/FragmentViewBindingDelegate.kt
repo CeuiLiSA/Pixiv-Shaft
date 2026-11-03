@@ -3,7 +3,6 @@ package ceui.pixiv.ui.common
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.databinding.ViewDataBinding
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.Lifecycle
@@ -42,7 +41,6 @@ class FragmentViewBindingDelegate<T : ViewBinding>(
 
         return viewBindingFactory(thisView).also {
             this.binding = it
-            (this.binding as? ViewDataBinding)?.lifecycleOwner = thisRef.viewLifecycleOwner
         }
     }
 }
@@ -78,7 +76,6 @@ class FragmentChildViewBindingDelegate<T : ViewBinding>(
 
         return viewBindingFactory(thisRef.layoutInflater, thisView as ViewGroup, false).also {
             this.binding = it
-            (this.binding as? ViewDataBinding)?.lifecycleOwner = thisRef.viewLifecycleOwner
         }
     }
 }

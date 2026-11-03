@@ -1,33 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- 搜索首页置顶作者。主题胶囊及交互由 WitTagFlowView 统一管理。 -->
-<layout xmlns:android="http://schemas.android.com/apk/res/android">
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:minHeight="48dp"
+    android:gravity="center_vertical"
+    android:padding="@dimen/eight_dp">
 
-    <LinearLayout
+    <de.hdodenhof.circleimageview.CircleImageView
+        android:id="@+id/user_avatar"
+        android:layout_width="@dimen/twenty_four_dp"
+        android:layout_height="@dimen/twenty_four_dp"
+        android:layout_marginEnd="@dimen/eight_dp"
+        android:contentDescription="@null" />
+
+    <TextView
+        android:id="@+id/user_name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:minHeight="48dp"
-        android:gravity="center_vertical"
-        android:padding="@dimen/eight_dp">
+        android:maxWidth="160dp"
+        android:textColor="@color/second_text_color"
+        android:textSize="13sp" />
 
-        <de.hdodenhof.circleimageview.CircleImageView
-            android:id="@+id/user_avatar"
-            android:layout_width="@dimen/twenty_four_dp"
-            android:layout_height="@dimen/twenty_four_dp"
-            android:layout_marginEnd="@dimen/eight_dp"
-            android:contentDescription="@null" />
-
-        <TextView
-            android:id="@+id/user_name"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:maxWidth="160dp"
-            android:textColor="@color/second_text_color"
-            android:textSize="13sp" />
-
-    </LinearLayout>
-
-    <data>
-
-    </data>
-
-</layout>
+</LinearLayout>

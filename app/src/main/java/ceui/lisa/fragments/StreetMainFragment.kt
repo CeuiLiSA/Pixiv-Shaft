@@ -140,6 +140,8 @@ class StreetMainFragment : BaseLazyFragment<FragmentBaseListBinding>() {
         mLayoutID = R.layout.fragment_base_list
     }
 
+    override fun bindView(root: View): FragmentBaseListBinding = FragmentBaseListBinding.bind(root)
+
     override fun initView() {
         baseBind.toolbar.setNavigationOnClickListener { activity?.finish() }
         baseBind.toolbarTitle.text = getString(R.string.street_title)

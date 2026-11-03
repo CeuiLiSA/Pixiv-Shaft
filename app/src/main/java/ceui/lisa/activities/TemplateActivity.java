@@ -5,6 +5,8 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.KeyEvent;
 
+import android.view.View;
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
@@ -112,6 +114,12 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding>
     @Override
     protected int initLayout() {
         return R.layout.activity_fragment;
+    }
+
+    @NonNull
+    @Override
+    protected ActivityFragmentBinding bindView(@NonNull View root) {
+        return ActivityFragmentBinding.bind(root);
     }
 
     /** GA4 页面名按路由记：一百多个页面都开在这一个 Activity 里，类名区分不出任何东西。 */

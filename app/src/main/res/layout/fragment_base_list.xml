@@ -1,72 +1,64 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
 
-    <data>
-
-    </data>
-
-    <RelativeLayout
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
         android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorPrimary"
+        android:elevation="@dimen/six_dp"
+        android:fitsSystemWindows="true"
+        android:theme="@style/AppTheme.AppBarOverlay"
+        app:popupTheme="@style/AppTheme.PopupOverlay"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:navigationIcon="@drawable/ic_arrow_back_white_shadow"
+        app:title=" "
+        app:titleTextColor="@android:color/white">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="@dimen/sixteen_dp"
+            android:singleLine="true"
+            android:ellipsize="end"
+            android:layout_gravity="center"
+            android:id="@+id/toolbar_title"
+            android:textColor="@color/always_white"
+            android:textSize="18sp">
+
+        </TextView>
+
+    </androidx.appcompat.widget.Toolbar>
+
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:layout_width="match_parent"
+        android:id="@+id/refreshLayout"
+        android:layout_below="@+id/toolbar"
+        android:background="@color/fragment_center"
         android:layout_height="match_parent">
 
-        <androidx.appcompat.widget.Toolbar
-            android:id="@+id/toolbar"
+        <!-- SwipeRefreshLayout 只允许一个直接子 View(多于一个直接抛 IllegalStateException),
+             所以列表/空态都装在这层里;运行时要往页面上叠 View(如 StreetMainFragment 的
+             登录 WebView)也必须加到 listContainer 而不是刷新层上。 -->
+        <FrameLayout
+            android:id="@+id/listContainer"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="?attr/colorPrimary"
-            android:elevation="@dimen/six_dp"
-            android:fitsSystemWindows="true"
-            android:theme="@style/AppTheme.AppBarOverlay"
-            app:popupTheme="@style/AppTheme.PopupOverlay"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:navigationIcon="@drawable/ic_arrow_back_white_shadow"
-            app:title=" "
-            app:titleTextColor="@android:color/white">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="@dimen/sixteen_dp"
-                android:singleLine="true"
-                android:ellipsize="end"
-                android:layout_gravity="center"
-                android:id="@+id/toolbar_title"
-                android:textColor="@color/always_white"
-                android:textSize="18sp">
-
-            </TextView>
-
-        </androidx.appcompat.widget.Toolbar>
-
-        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-            android:layout_width="match_parent"
-            android:id="@+id/refreshLayout"
-            android:layout_below="@+id/toolbar"
-            android:background="@color/fragment_center"
             android:layout_height="match_parent">
 
-            <!-- SwipeRefreshLayout 只允许一个直接子 View(多于一个直接抛 IllegalStateException),
-                 所以列表/空态都装在这层里;运行时要往页面上叠 View(如 StreetMainFragment 的
-                 登录 WebView)也必须加到 listContainer 而不是刷新层上。 -->
-            <FrameLayout
-                android:id="@+id/listContainer"
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerView"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                android:layout_height="match_parent"
+                android:fadeScrollbars="false">
 
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/recyclerView"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:fadeScrollbars="false">
+            </androidx.recyclerview.widget.RecyclerView>
 
-                </androidx.recyclerview.widget.RecyclerView>
+        </FrameLayout>
 
-            </FrameLayout>
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
-        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
-
-    </RelativeLayout>
-</layout>
-
+</RelativeLayout>

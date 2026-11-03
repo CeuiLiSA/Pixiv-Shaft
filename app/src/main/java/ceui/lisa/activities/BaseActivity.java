@@ -14,16 +14,17 @@ import android.os.Bundle;
 import android.os.Looper;
 import android.text.TextUtils;
 import android.view.View;
+import android.view.ViewGroup;
 
 import androidx.activity.EdgeToEdge;
 import androidx.activity.SystemBarStyle;
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
-import androidx.databinding.DataBindingUtil;
-import androidx.databinding.ViewDataBinding;
+import androidx.viewbinding.ViewBinding;
 import androidx.fragment.app.FragmentActivity;
 import ceui.lisa.R;
 import ceui.lisa.interfaces.FeedBack;
@@ -36,7 +37,7 @@ import ceui.pixiv.download.config.StorageChoice;
 import static android.provider.DocumentsContract.EXTRA_INITIAL_URI;
 
 
-public abstract class BaseActivity<Layout extends ViewDataBinding> extends AppCompatActivity implements BannerHostOwner {
+public abstract class BaseActivity<Layout extends ViewBinding> extends AppCompatActivity implements BannerHostOwner {
 
     protected Context mContext;
     protected FragmentActivity mActivity;
@@ -96,7 +97,11 @@ public abstract class BaseActivity<Layout extends ViewDataBinding> extends AppCo
                         SystemBarStyle.auto(Color.TRANSPARENT, Color.TRANSPARENT));
             }
             try {
-                baseBind = DataBindingUtil.setContentView(mActivity, mLayoutID);
+                // 仍走 setContentView(int)：按 content 容器 inflate，根布局的 layout_* 属性照常生效
+                // （setContentView(View) 会把根的 LayoutParams 换成 MATCH_PARENT）。
+                setContentView(mLayoutID);
+                ViewGroup content = findViewById(android.R.id.content);
+                baseBind = bindView(content.getChildAt(0));
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
@@ -119,6 +124,10 @@ public abstract class BaseActivity<Layout extends ViewDataBinding> extends AppCo
     }
 
     protected abstract int initLayout();
+
+    /** 把 {@link #initLayout()} 对应布局的根 View 绑成 baseBind，子类一行 {@code XxxBinding.bind(root)}。 */
+    @NonNull
+    protected abstract Layout bindView(@NonNull View root);
 
     protected abstract void initView();
 

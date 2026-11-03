@@ -1,252 +1,247 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools">
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/v3_bg"
+    android:orientation="vertical">
 
-    <data />
-
-    <LinearLayout
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@color/v3_bg"
-        android:orientation="vertical">
+        android:layout_height="wrap_content"
+        android:background="?attr/colorPrimary"
+        android:elevation="@dimen/six_dp"
+        android:fitsSystemWindows="true"
+        android:theme="@style/AppTheme.AppBarOverlay"
+        app:navigationIcon="@drawable/ic_arrow_back_white_shadow"
+        app:popupTheme="@style/AppTheme.PopupOverlay"
+        app:title=" "
+        app:titleTextColor="@android:color/white">
 
-        <androidx.appcompat.widget.Toolbar
-            android:id="@+id/toolbar"
-            android:layout_width="match_parent"
+        <TextView
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="?attr/colorPrimary"
-            android:elevation="@dimen/six_dp"
-            android:fitsSystemWindows="true"
-            android:theme="@style/AppTheme.AppBarOverlay"
-            app:navigationIcon="@drawable/ic_arrow_back_white_shadow"
-            app:popupTheme="@style/AppTheme.PopupOverlay"
-            app:title=" "
-            app:titleTextColor="@android:color/white">
+            android:layout_gravity="center"
+            android:text="@string/nana7mi_usage_title"
+            android:textColor="@color/white"
+            android:textSize="18sp" />
+    </androidx.appcompat.widget.Toolbar>
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:text="@string/nana7mi_usage_title"
-                android:textColor="@color/white"
-                android:textSize="18sp" />
-        </androidx.appcompat.widget.Toolbar>
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
-        <FrameLayout
+        <!--
+            下拉刷新裹在内容外面而不是整个 FrameLayout 外面：加载态和错误态各有各的
+            交互（转圈不该能下拉，错误态整块点一下就是重试），套进来只会多出两条
+            「同一件事有两种做法」的路径。
+        -->
+        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+            android:id="@+id/swipe_refresh"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent"
+            android:visibility="gone">
 
-            <!--
-                下拉刷新裹在内容外面而不是整个 FrameLayout 外面：加载态和错误态各有各的
-                交互（转圈不该能下拉，错误态整块点一下就是重试），套进来只会多出两条
-                「同一件事有两种做法」的路径。
-            -->
-            <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-                android:id="@+id/swipe_refresh"
+            <androidx.core.widget.NestedScrollView
+                android:id="@+id/content_scroll"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:visibility="gone">
+                android:clipToPadding="false"
+                android:paddingBottom="32dp"
+                android:scrollbars="none">
 
-                <androidx.core.widget.NestedScrollView
-                    android:id="@+id/content_scroll"
+                <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:clipToPadding="false"
-                    android:paddingBottom="32dp"
-                    android:scrollbars="none">
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingStart="16dp"
+                    android:paddingTop="16dp"
+                    android:paddingEnd="16dp">
 
+                    <!--
+                        Claude 用量页顶上那句「Plan usage limits  Max (5x)」的位置：左边说明
+                        额度是按谁算的，右边挂当前档位和倍率。
+
+                        档位就挂在标题旁边、进度条正上方，而不是塞进下面的订阅区 —— 那两根条
+                        画的就是这一档的额度，读数和它的量纲必须挨在一起；隔着半屏去猜「这条
+                        100% 是几次的 100%」正是这页原来缺的那句话。
+                    -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:paddingStart="16dp"
-                        android:paddingTop="16dp"
-                        android:paddingEnd="16dp">
-
-                        <!--
-                            Claude 用量页顶上那句「Plan usage limits  Max (5x)」的位置：左边说明
-                            额度是按谁算的，右边挂当前档位和倍率。
-
-                            档位就挂在标题旁边、进度条正上方，而不是塞进下面的订阅区 —— 那两根条
-                            画的就是这一档的额度，读数和它的量纲必须挨在一起；隔着半屏去猜「这条
-                            100% 是几次的 100%」正是这页原来缺的那句话。
-                        -->
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:baselineAligned="true"
-                            android:orientation="horizontal"
-                            android:paddingBottom="10dp"
-                            android:paddingStart="4dp">
-
-                            <TextView
-                                android:id="@+id/usage_section_title"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/nana7mi_usage_section"
-                                android:textColor="@color/v3_text_2"
-                                android:textSize="13sp" />
-
-                            <!--
-                                「Max (20x)」。用 Montserrat 是因为括号里是读数（倍率），和页面上
-                                其它数字读数同一套字；档位名本身是产品名，不翻译。
-                                拿不到档位就整个 gone —— 空着一块比写个假的「Free」强。
-                            -->
-                            <TextView
-                                android:id="@+id/usage_plan_label"
-                                style="@style/textMontserratBold"
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="8dp"
-                                android:layout_weight="1"
-                                android:ellipsize="end"
-                                android:maxLines="1"
-                                android:textColor="@color/v3_text_1"
-                                android:textSize="13sp"
-                                android:visibility="gone"
-                                tools:text="Max (20x)"
-                                tools:visibility="visible" />
-                        </LinearLayout>
-
-                        <!-- 分段行宿主：两只桶各一行，圆角由 WitRowStyle 按位置贴合 -->
-                        <LinearLayout
-                            android:id="@+id/usage_rows"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical" />
-
-                        <!--
-                            云翻译额度（服务端 src/translate.js 的两只桶，单位是字符）。和热度排序共用
-                            同一档位倍率，所以放在同一页、同一套分段行；服务端说功能关着或老服务端
-                            没这条路由时整组 gone，不画一组永远动不了的进度条。
-                        -->
-                        <TextView
-                            android:id="@+id/translate_section_title"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="16dp"
-                            android:paddingBottom="10dp"
-                            android:paddingStart="4dp"
-                            android:text="@string/cloud_translate_usage_section"
-                            android:textColor="@color/v3_text_2"
-                            android:textSize="13sp"
-                            android:visibility="gone"
-                            tools:visibility="visible" />
-
-                        <LinearLayout
-                            android:id="@+id/translate_rows"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:visibility="gone"
-                            tools:visibility="visible" />
+                        android:baselineAligned="true"
+                        android:orientation="horizontal"
+                        android:paddingBottom="10dp"
+                        android:paddingStart="4dp">
 
                         <TextView
-                            android:id="@+id/usage_motto"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="22dp"
-                            android:background="@drawable/bg_v3_surface"
-                            android:gravity="center"
-                            android:paddingStart="20dp"
-                            android:paddingTop="10dp"
-                            android:paddingEnd="20dp"
-                            android:paddingBottom="10dp"
-                            android:text="@string/nana7mi_usage_motto"
-                            android:textColor="@color/v3_text_2"
-                            android:textSize="13sp"
-                            android:fontFamily="@font/montserrat_semi_bold" />
-
-                        <!--
-                            订阅方案。放在额度读数和 UID **之下**：先让用户看见自己用到哪了、
-                            手里有可复制的 UID，再谈解锁 —— 顶在读数上面就成了没有由头的广告。
-
-                            两档并排列出而不是只放一个「去订阅」按钮，是为了把价格摆在跳出 app 之前
-                            （学 Claude 的套餐页）：用户在这页就能决定买哪档，网页只负责付款。
-
-                            版式还是本页的 MD3-E 分段行（外角 20dp / 内角 5dp / 行间 2dp），只把底色
-                            从中性的 wit_menu_bg 换成主题色 tonal —— 这一组是这页唯一的行动区，
-                            比上面那些只读的行醒目一档，但不至于变成一块广告牌。
-
-                            刻意不用 v3_premium_gold_* —— 金色在本仓库是 pixiv Premium 的品牌语义
-                            （头像环、徽章都用它），借给第三方订阅会让人以为买的是 pixiv 会员。
-                        -->
-                        <TextView
-                            android:id="@+id/plans_section_title"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="22dp"
-                            android:paddingBottom="10dp"
-                            android:paddingStart="4dp"
-                            android:text="@string/nana7mi_usage_cta_title"
-                            android:textColor="@color/v3_text_2"
-                            android:textSize="13sp" />
-
-                        <!-- 卡片宿主：一档方案一张卡，底色和圆角由 Fragment 从品牌色派生 -->
-                        <LinearLayout
-                            android:id="@+id/plan_rows"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical" />
-
-                        <!--
-                            恢复购买入口。放在方案卡之下、当一行小字：它只为「先在爱发电付了款、
-                            没走本页链接」的人存在，正常从这页买的单会自动到账，用不着它 ——
-                            所以不能做成一颗和「选择」同级的按钮，那会让人以为买完还得再来一步。
-                        -->
-                        <TextView
-                            android:id="@+id/claim_entry"
+                            android:id="@+id/usage_section_title"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="14dp"
-                            android:background="?attr/selectableItemBackground"
-                            android:paddingStart="4dp"
-                            android:paddingTop="6dp"
-                            android:paddingEnd="4dp"
-                            android:paddingBottom="6dp"
-                            android:text="@string/nana7mi_usage_claim_entry"
+                            android:text="@string/nana7mi_usage_section"
+                            android:textColor="@color/v3_text_2"
                             android:textSize="13sp" />
 
+                        <!--
+                            「Max (20x)」。用 Montserrat 是因为括号里是读数（倍率），和页面上
+                            其它数字读数同一套字；档位名本身是产品名，不翻译。
+                            拿不到档位就整个 gone —— 空着一块比写个假的「Free」强。
+                        -->
+                        <TextView
+                            android:id="@+id/usage_plan_label"
+                            style="@style/textMontserratBold"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:layout_weight="1"
+                            android:ellipsize="end"
+                            android:maxLines="1"
+                            android:textColor="@color/v3_text_1"
+                            android:textSize="13sp"
+                            android:visibility="gone"
+                            tools:text="Max (20x)"
+                            tools:visibility="visible" />
                     </LinearLayout>
-                </androidx.core.widget.NestedScrollView>
-            </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
-            <ProgressBar
-                android:id="@+id/loading"
+                    <!-- 分段行宿主：两只桶各一行，圆角由 WitRowStyle 按位置贴合 -->
+                    <LinearLayout
+                        android:id="@+id/usage_rows"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical" />
+
+                    <!--
+                        云翻译额度（服务端 src/translate.js 的两只桶，单位是字符）。和热度排序共用
+                        同一档位倍率，所以放在同一页、同一套分段行；服务端说功能关着或老服务端
+                        没这条路由时整组 gone，不画一组永远动不了的进度条。
+                    -->
+                    <TextView
+                        android:id="@+id/translate_section_title"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:paddingBottom="10dp"
+                        android:paddingStart="4dp"
+                        android:text="@string/cloud_translate_usage_section"
+                        android:textColor="@color/v3_text_2"
+                        android:textSize="13sp"
+                        android:visibility="gone"
+                        tools:visibility="visible" />
+
+                    <LinearLayout
+                        android:id="@+id/translate_rows"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:visibility="gone"
+                        tools:visibility="visible" />
+
+                    <TextView
+                        android:id="@+id/usage_motto"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="22dp"
+                        android:background="@drawable/bg_v3_surface"
+                        android:gravity="center"
+                        android:paddingStart="20dp"
+                        android:paddingTop="10dp"
+                        android:paddingEnd="20dp"
+                        android:paddingBottom="10dp"
+                        android:text="@string/nana7mi_usage_motto"
+                        android:textColor="@color/v3_text_2"
+                        android:textSize="13sp"
+                        android:fontFamily="@font/montserrat_semi_bold" />
+
+                    <!--
+                        订阅方案。放在额度读数和 UID **之下**：先让用户看见自己用到哪了、
+                        手里有可复制的 UID，再谈解锁 —— 顶在读数上面就成了没有由头的广告。
+
+                        两档并排列出而不是只放一个「去订阅」按钮，是为了把价格摆在跳出 app 之前
+                        （学 Claude 的套餐页）：用户在这页就能决定买哪档，网页只负责付款。
+
+                        版式还是本页的 MD3-E 分段行（外角 20dp / 内角 5dp / 行间 2dp），只把底色
+                        从中性的 wit_menu_bg 换成主题色 tonal —— 这一组是这页唯一的行动区，
+                        比上面那些只读的行醒目一档，但不至于变成一块广告牌。
+
+                        刻意不用 v3_premium_gold_* —— 金色在本仓库是 pixiv Premium 的品牌语义
+                        （头像环、徽章都用它），借给第三方订阅会让人以为买的是 pixiv 会员。
+                    -->
+                    <TextView
+                        android:id="@+id/plans_section_title"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="22dp"
+                        android:paddingBottom="10dp"
+                        android:paddingStart="4dp"
+                        android:text="@string/nana7mi_usage_cta_title"
+                        android:textColor="@color/v3_text_2"
+                        android:textSize="13sp" />
+
+                    <!-- 卡片宿主：一档方案一张卡，底色和圆角由 Fragment 从品牌色派生 -->
+                    <LinearLayout
+                        android:id="@+id/plan_rows"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical" />
+
+                    <!--
+                        恢复购买入口。放在方案卡之下、当一行小字：它只为「先在爱发电付了款、
+                        没走本页链接」的人存在，正常从这页买的单会自动到账，用不着它 ——
+                        所以不能做成一颗和「选择」同级的按钮，那会让人以为买完还得再来一步。
+                    -->
+                    <TextView
+                        android:id="@+id/claim_entry"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="14dp"
+                        android:background="?attr/selectableItemBackground"
+                        android:paddingStart="4dp"
+                        android:paddingTop="6dp"
+                        android:paddingEnd="4dp"
+                        android:paddingBottom="6dp"
+                        android:text="@string/nana7mi_usage_claim_entry"
+                        android:textSize="13sp" />
+
+                </LinearLayout>
+            </androidx.core.widget.NestedScrollView>
+        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+        <ProgressBar
+            android:id="@+id/loading"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center" />
+
+        <!-- 失败态整块可点重试：错误页上再放一个小按钮，手指要瞄准，没必要 -->
+        <LinearLayout
+            android:id="@+id/error_state"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:paddingStart="32dp"
+            android:paddingEnd="32dp"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/error_text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center" />
-
-            <!-- 失败态整块可点重试：错误页上再放一个小按钮，手指要瞄准，没必要 -->
-            <LinearLayout
-                android:id="@+id/error_state"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:clickable="true"
-                android:focusable="true"
                 android:gravity="center"
-                android:orientation="vertical"
-                android:paddingStart="32dp"
-                android:paddingEnd="32dp"
-                android:visibility="gone">
+                android:textColor="@color/v3_text_2"
+                android:textSize="14sp" />
 
-                <TextView
-                    android:id="@+id/error_text"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:gravity="center"
-                    android:textColor="@color/v3_text_2"
-                    android:textSize="14sp" />
-
-                <TextView
-                    android:id="@+id/error_action"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:text="@string/nana7mi_usage_retry"
-                    android:textSize="14sp" />
-            </LinearLayout>
-        </FrameLayout>
-    </LinearLayout>
-</layout>
+            <TextView
+                android:id="@+id/error_action"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/nana7mi_usage_retry"
+                android:textSize="14sp" />
+        </LinearLayout>
+    </FrameLayout>
+</LinearLayout>

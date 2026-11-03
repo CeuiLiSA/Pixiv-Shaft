@@ -21,6 +21,7 @@ import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.core.content.ContextCompat;
@@ -70,6 +71,12 @@ public class FragmentSettingsAppearance extends SettingsPageFragment<FragmentSet
     @Override
     public void initLayout() {
         mLayoutID = R.layout.fragment_settings_appearance;
+    }
+
+    @NonNull
+    @Override
+    protected FragmentSettingsAppearanceBinding bindView(@NonNull View root) {
+        return FragmentSettingsAppearanceBinding.bind(root);
     }
 
     private void refreshPredictiveBackSummary() {

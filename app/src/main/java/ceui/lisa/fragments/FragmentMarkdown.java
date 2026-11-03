@@ -38,6 +38,12 @@ public class FragmentMarkdown extends BaseFragment<FragmentMarkdownBinding> {
         mLayoutID = R.layout.fragment_markdown;
     }
 
+    @NonNull
+    @Override
+    protected FragmentMarkdownBinding bindView(@NonNull View root) {
+        return FragmentMarkdownBinding.bind(root);
+    }
+
     @Override
     protected void initData() {
         super.initData();

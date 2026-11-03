@@ -47,6 +47,12 @@ public class FragmentFileName extends BaseLazyFragment<FragmentFileNameBinding> 
         mLayoutID = R.layout.fragment_file_name;
     }
 
+    @NonNull
+    @Override
+    protected FragmentFileNameBinding bindView(@NonNull View root) {
+        return FragmentFileNameBinding.bind(root);
+    }
+
     @Override
     protected void initView() {
         illust = Shaft.sGson.fromJson(Params.EXAMPLE_ILLUST, Illust.class);

@@ -7,6 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
 import androidx.core.widget.TextViewCompat;
@@ -67,6 +68,12 @@ public class FragmentCenter extends BaseLazyFragment<FragmentNewCenterBinding> {
     @Override
     public void initLayout() {
         mLayoutID = R.layout.fragment_new_center;
+    }
+
+    @NonNull
+    @Override
+    protected FragmentNewCenterBinding bindView(@NonNull View root) {
+        return FragmentNewCenterBinding.bind(root);
     }
 
     @Override

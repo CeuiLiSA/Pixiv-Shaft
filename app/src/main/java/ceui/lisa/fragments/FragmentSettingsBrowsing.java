@@ -7,6 +7,7 @@ import android.view.View;
 import android.widget.CompoundButton;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import ceui.pixiv.witstudio.dialog.WitDialog;
 
 import java.util.LinkedHashSet;
@@ -60,6 +61,12 @@ public class FragmentSettingsBrowsing extends SettingsPageFragment<FragmentSetti
     @Override
     public void initLayout() {
         mLayoutID = R.layout.fragment_settings_browsing;
+    }
+
+    @NonNull
+    @Override
+    protected FragmentSettingsBrowsingBinding bindView(@NonNull View root) {
+        return FragmentSettingsBrowsingBinding.bind(root);
     }
 
     @Override

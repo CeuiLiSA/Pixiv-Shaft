@@ -1,80 +1,69 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:tools="http://schemas.android.com/tools"
+<androidx.cardview.widget.CardView xmlns:tools="http://schemas.android.com/tools"
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:clickable="true"
+    app:cardBackgroundColor="@color/fragment_center"
+    app:cardCornerRadius="@dimen/four_dp"
+    app:cardElevation="2dp"
+    android:foreground="?attr/selectableItemBackground"
+    android:layout_height="wrap_content">
 
-    <data>
-
-    </data>
-
-    <androidx.cardview.widget.CardView
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:clickable="true"
-        app:cardBackgroundColor="@color/fragment_center"
-        app:cardCornerRadius="@dimen/four_dp"
-        app:cardElevation="2dp"
-        android:foreground="?attr/selectableItemBackground"
         android:layout_height="wrap_content">
 
+        <TextView
+            android:id="@+id/side_decorator"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            android:background="?attr/colorPrimary"
+            android:paddingHorizontal="5dp"
+            android:text="RE "
+            android:textColor="@android:color/white"
+            android:textSize="11sp"
+            android:textStyle="bold|italic"
+            android:visibility="gone"
+            tools:ignore="HardcodedText" />
 
-        <RelativeLayout
+        <TextView
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:layout_margin="@dimen/sixteen_dp"
+            android:textColor="?attr/colorPrimary"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:id="@+id/star_size"
+            android:singleLine="true"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:layout_toStartOf="@+id/is_effective"
+            android:layout_marginStart="@dimen/eight_dp"
+            android:layout_height="wrap_content" />
 
-            <TextView
-                android:id="@+id/side_decorator"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentStart="true"
-                android:layout_alignParentTop="true"
-                android:background="?attr/colorPrimary"
-                android:paddingHorizontal="5dp"
-                android:text="RE "
-                android:textColor="@android:color/white"
-                android:textSize="11sp"
-                android:textStyle="bold|italic"
-                android:visibility="gone"
-                tools:ignore="HardcodedText" />
+        <ImageView
+            android:layout_width="28dp"
+            android:padding="2dp"
+            android:layout_centerVertical="true"
+            android:layout_alignParentEnd="true"
+            android:id="@+id/delete_item"
+            android:layout_marginBottom="3dp"
+            android:layout_marginEnd="@dimen/twelve_dp"
+            android:src="@drawable/ic_delete_black_24dp"
+            android:layout_height="28dp"
+            app:tint="?attr/colorPrimary">
 
-            <TextView
-                android:textSize="15sp"
-                android:textStyle="bold"
-                android:layout_margin="@dimen/sixteen_dp"
-                android:textColor="?attr/colorPrimary"
-                android:layout_width="match_parent"
-                android:id="@+id/star_size"
-                android:singleLine="true"
-                android:maxLines="1"
-                android:ellipsize="end"
-                android:layout_toStartOf="@+id/is_effective"
-                android:layout_marginStart="@dimen/eight_dp"
-                android:layout_height="wrap_content" />
+        </ImageView>
 
-            <ImageView
-                android:layout_width="28dp"
-                android:padding="2dp"
-                android:layout_centerVertical="true"
-                android:layout_alignParentEnd="true"
-                android:id="@+id/delete_item"
-                android:layout_marginBottom="3dp"
-                android:layout_marginEnd="@dimen/twelve_dp"
-                android:src="@drawable/ic_delete_black_24dp"
-                android:layout_height="28dp"
-                app:tint="?attr/colorPrimary">
+        <androidx.appcompat.widget.SwitchCompat
+            android:layout_toStartOf="@+id/delete_item"
+            android:layout_alignParentEnd="false"
+            android:layout_marginEnd="@dimen/eight_dp"
+            android:id="@+id/is_effective"
+            style="@style/setting_right_switch"/>
 
-            </ImageView>
+    </RelativeLayout>
 
-
-            <androidx.appcompat.widget.SwitchCompat
-                android:layout_toStartOf="@+id/delete_item"
-                android:layout_alignParentEnd="false"
-                android:layout_marginEnd="@dimen/eight_dp"
-                android:id="@+id/is_effective"
-                style="@style/setting_right_switch"/>
-
-        </RelativeLayout>
-
-
-    </androidx.cardview.widget.CardView>
-</layout>
-
+</androidx.cardview.widget.CardView>

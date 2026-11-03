@@ -237,6 +237,12 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
         return R.layout.activity_cover;
     }
 
+    @NonNull
+    @Override
+    protected ActivityCoverBinding bindView(@NonNull View root) {
+        return ActivityCoverBinding.bind(root);
+    }
+
     @Override
     public boolean hideStatusBar() {
         return Dev.hideMainActivityStatus;

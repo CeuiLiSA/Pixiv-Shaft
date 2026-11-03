@@ -14,6 +14,7 @@ import android.widget.CompoundButton;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import ceui.pixiv.witstudio.dialog.WitDialog;
 
 import java.util.Locale;
@@ -43,6 +44,12 @@ public class FragmentSettingsViewing extends SettingsPageFragment<FragmentSettin
     @Override
     public void initLayout() {
         mLayoutID = R.layout.fragment_settings_viewing;
+    }
+
+    @NonNull
+    @Override
+    protected FragmentSettingsViewingBinding bindView(@NonNull View root) {
+        return FragmentSettingsViewingBinding.bind(root);
     }
 
     @Override

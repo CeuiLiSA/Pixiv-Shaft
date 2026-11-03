@@ -2,13 +2,13 @@ package ceui.lisa.adapters;
 
 import android.content.Context;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.databinding.DataBindingUtil;
-import androidx.databinding.ViewDataBinding;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.viewbinding.ViewBinding;
 
 import java.util.List;
 
@@ -18,7 +18,7 @@ import ceui.lisa.models.Starable;
 import ceui.pixiv.api.model.Illust;
 import ceui.lisa.utils.Common;
 
-public abstract class BaseAdapter<Item, BindView extends ViewDataBinding> extends
+public abstract class BaseAdapter<Item, BindView extends ViewBinding> extends
         RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     public static final int ITEM_HEAD = 1023;
@@ -70,7 +70,7 @@ public abstract class BaseAdapter<Item, BindView extends ViewDataBinding> extend
 
     @NonNull
     @Override
-    public ViewHolder<? extends ViewDataBinding> onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public ViewHolder<? extends ViewBinding> onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         if (viewType == ITEM_NORMAL) {
             return getNormalItem(parent);
         } else {
@@ -109,20 +109,18 @@ public abstract class BaseAdapter<Item, BindView extends ViewDataBinding> extend
         return 0;
     }
 
-    public ViewHolder<? extends ViewDataBinding> getHeader(ViewGroup parent) {
+    public ViewHolder<? extends ViewBinding> getHeader(ViewGroup parent) {
         return null;
     }
 
     public ViewHolder<BindView> getNormalItem(ViewGroup parent) {
-        return new ViewHolder<>(
-                DataBindingUtil.inflate(
-                        LayoutInflater.from(mContext),
-                        mLayoutID,
-                        parent,
-                        false
-                )
-        );
+        return new ViewHolder<>(bindView(
+                LayoutInflater.from(mContext).inflate(mLayoutID, parent, false)));
     }
+
+    /** 把 {@link #mLayoutID} inflate 出来的条目根 View 绑起来，子类一行 {@code XxxBinding.bind(root)}。 */
+    @NonNull
+    protected abstract BindView bindView(@NonNull View root);
 
     public Item getItemAt(int index) {
         if (index < allItems.size()) {

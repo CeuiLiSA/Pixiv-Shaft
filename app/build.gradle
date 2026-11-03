@@ -205,9 +205,6 @@ android {
     }
 
     buildFeatures {
-        // 没有 kapt，DataBinding 处理器跑在 javac 上、看不到 Kotlin 里的 @BindingAdapter；
-        // 自定义布局属性一律登记在 ceui.pixiv.utils.DataBindingAdapters（Java）。
-        dataBinding = true
         viewBinding = true
         buildConfig = true // 启用 BuildConfig
         resValues = true // AGP 9 起默认关闭；app_name / out_wake_label 靠 resValue 生成

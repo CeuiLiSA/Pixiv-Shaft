@@ -3,6 +3,7 @@ package ceui.lisa.fragments;
 import android.text.TextUtils;
 import android.view.View;
 
+import androidx.annotation.NonNull;
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.database.AppDatabase;
@@ -23,6 +24,12 @@ public class FragmentEditAccount extends BaseFragment<FragmentEditAccountBinding
     @Override
     public void initLayout() {
         mLayoutID = R.layout.fragment_edit_account;
+    }
+
+    @NonNull
+    @Override
+    protected FragmentEditAccountBinding bindView(@NonNull View root) {
+        return FragmentEditAccountBinding.bind(root);
     }
 
     @Override

@@ -123,6 +123,8 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
 
     override fun initLayout(): Int = R.layout.activity_user_v3
 
+    override fun bindView(root: View): ActivityUserV3Binding = ActivityUserV3Binding.bind(root)
+
     override fun initBundle(bundle: Bundle) {
         userId = Params.getUserId(bundle)
     }

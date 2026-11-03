@@ -14,7 +14,6 @@ import androidx.annotation.Nullable;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
-import androidx.databinding.DataBindingUtil;
 import androidx.viewbinding.ViewBinding;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
@@ -88,19 +87,15 @@ public abstract class BaseFragment<Layout extends ViewBinding> extends Fragment 
             isInit = true;
             if (rootView != null) {
                 if (baseBind == null) {
-                    baseBind = bindExisting(rootView);
+                    baseBind = bindView(rootView);
                 }
                 return rootView;
             }
             initLayout();
 
             if (mLayoutID != -1) {
-                baseBind = inflateBinding(inflater, container);
-                if (baseBind != null) {
-                    rootView = baseBind.getRoot();
-                } else {
-                    rootView = inflater.inflate(mLayoutID, container, false);
-                }
+                rootView = inflater.inflate(mLayoutID, container, false);
+                baseBind = bindView(rootView);
                 initView();
                 initData();
                 return rootView;
@@ -146,21 +141,11 @@ public abstract class BaseFragment<Layout extends ViewBinding> extends Fragment 
     }
 
     /**
-     * 生成 binding。默认走 DataBinding，既有子类行为不变。
-     *
-     * 用 ViewBinding 布局的子类必须覆写它 —— {@link DataBindingUtil#inflate} 对非
-     * {@code <layout>} 根的布局返回 null，覆写后 baseBind 才拿得到。
+     * 把 {@link #mLayoutID} inflate 出来的根 View 绑成 baseBind，子类一行
+     * {@code XxxBinding.bind(root)}。DataBinding 已移除，没有按 layout id 反查绑定类的通用路径了。
      */
-    @SuppressWarnings("unchecked")
-    protected Layout inflateBinding(@NonNull LayoutInflater inflater, @Nullable ViewGroup container) {
-        return (Layout) DataBindingUtil.inflate(inflater, mLayoutID, container, false);
-    }
-
-    /** 同 {@link #inflateBinding}，对应 rootView 已存在、只需补绑的那条路径。 */
-    @SuppressWarnings("unchecked")
-    protected Layout bindExisting(@NonNull View root) {
-        return (Layout) DataBindingUtil.bind(root);
-    }
+    @NonNull
+    protected abstract Layout bindView(@NonNull View root);
 
     protected abstract void initLayout();
 

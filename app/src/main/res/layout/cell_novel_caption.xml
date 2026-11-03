@@ -1,57 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android">
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingHorizontal="12dp">
 
-    <data>
-        <variable
-            name="novel"
-            type="androidx.lifecycle.LiveData&lt;ceui.loxia.Novel>" />
-    </data>
+    <TextView
+        android:id="@+id/caption_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
+        android:letterSpacing="0.12"
+        android:text="@string/novel_section_caption"
+        android:textAllCaps="true"
+        android:textColor="@color/v3_text_3"
+        android:textSize="12sp"
+        android:textStyle="bold" />
 
-    <LinearLayout
+    <TextView
+        android:id="@+id/caption"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:paddingHorizontal="12dp">
+        android:alpha="0.78"
+        android:background="?attr/selectableItemBackground"
+        android:lineSpacingMultiplier="1.65"
+        android:paddingHorizontal="8dp"
+        android:textColor="@color/v3_text_1"
+        android:textColorLink="@color/v3_blue"
+        android:textIsSelectable="true"
+        android:textSize="14sp" />
 
-        <TextView
-            android:id="@+id/caption_label"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="10dp"
-            android:letterSpacing="0.12"
-            android:text="@string/novel_section_caption"
-            android:textAllCaps="true"
-            android:textColor="@color/v3_text_3"
-            android:textSize="12sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/caption"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:alpha="0.78"
-            android:background="?attr/selectableItemBackground"
-            android:lineSpacingMultiplier="1.65"
-            android:paddingHorizontal="8dp"
-            android:textColor="@color/v3_text_1"
-            android:textColorLink="@color/v3_blue"
-            android:textIsSelectable="true"
-            android:textSize="14sp" />
-
-        <!-- issue #1005: 超长简介折叠开关（样式对齐插画详情 section_v3_description 的 desc_toggle）
-             #1053: 点击区拉满整行（48dp 高 + 波纹） -->
-        <TextView
-            android:id="@+id/caption_toggle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="?attr/selectableItemBackground"
-            android:gravity="center_vertical"
-            android:minHeight="48dp"
-            android:paddingHorizontal="8dp"
-            android:text="@string/v3_desc_expand"
-            android:textColor="@color/v3_blue"
-            android:textSize="13sp"
-            android:textStyle="bold"
-            android:visibility="gone" />
-    </LinearLayout>
-</layout>
+    <!-- issue #1005: 超长简介折叠开关（样式对齐插画详情 section_v3_description 的 desc_toggle）
+         #1053: 点击区拉满整行（48dp 高 + 波纹） -->
+    <TextView
+        android:id="@+id/caption_toggle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/selectableItemBackground"
+        android:gravity="center_vertical"
+        android:minHeight="48dp"
+        android:paddingHorizontal="8dp"
+        android:text="@string/v3_desc_expand"
+        android:textColor="@color/v3_blue"
+        android:textSize="13sp"
+        android:textStyle="bold"
+        android:visibility="gone" />
+</LinearLayout>

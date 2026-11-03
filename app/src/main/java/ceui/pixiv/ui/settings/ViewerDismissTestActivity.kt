@@ -2,6 +2,7 @@ package ceui.pixiv.ui.settings
 
 import android.net.Uri
 import android.os.Bundle
+import android.view.View
 import androidx.activity.OnBackPressedCallback
 import ceui.lisa.R
 import ceui.lisa.activities.BaseActivity
@@ -47,6 +48,8 @@ class ViewerDismissTestActivity : BaseActivity<ActivityViewerDismissTestBinding?
     override fun hideStatusBar(): Boolean = true
 
     override fun initLayout(): Int = R.layout.activity_viewer_dismiss_test
+
+    override fun bindView(root: View): ActivityViewerDismissTestBinding = ActivityViewerDismissTestBinding.bind(root)
 
     override fun initView() {
         val root = baseBind!!.root as DragDismissLayout

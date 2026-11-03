@@ -1,231 +1,223 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/v3_bg"
+    android:orientation="vertical">
 
-    <data>
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorPrimary"
+        android:elevation="@dimen/six_dp"
+        android:fitsSystemWindows="true"
+        android:theme="@style/AppTheme.AppBarOverlay"
+        app:navigationIcon="@drawable/ic_arrow_back_white_shadow"
+        app:popupTheme="@style/AppTheme.PopupOverlay"
+        app:title=" "
+        app:titleTextColor="@android:color/white">
 
-    </data>
+        <TextView
+            android:id="@+id/toolbar_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="@string/settings_cat_data"
+            android:textColor="@color/white"
+            android:textSize="18sp" />
 
-    <LinearLayout
+    </androidx.appcompat.widget.Toolbar>
+
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/scroll_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/v3_bg"
-        android:orientation="vertical">
+        android:clipToPadding="false"
+        android:paddingBottom="32dp"
+        android:scrollbars="none">
 
-        <androidx.appcompat.widget.Toolbar
-            android:id="@+id/toolbar"
+        <LinearLayout
+            android:id="@+id/parent_linear"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="?attr/colorPrimary"
-            android:elevation="@dimen/six_dp"
-            android:fitsSystemWindows="true"
-            android:theme="@style/AppTheme.AppBarOverlay"
-            app:navigationIcon="@drawable/ic_arrow_back_white_shadow"
-            app:popupTheme="@style/AppTheme.PopupOverlay"
-            app:title=" "
-            app:titleTextColor="@android:color/white">
+            android:orientation="vertical"
+            android:paddingStart="16dp"
+            android:paddingTop="10dp"
+            android:paddingEnd="16dp">
 
-            <TextView
-                android:id="@+id/toolbar_title"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:text="@string/settings_cat_data"
-                android:textColor="@color/white"
-                android:textSize="18sp" />
+            <RelativeLayout
+                android:id="@+id/backup_rela"
+                style="@style/M3SetRow"
+                android:background="@drawable/wit_row_top">
 
-        </androidx.appcompat.widget.Toolbar>
-
-        <androidx.core.widget.NestedScrollView
-            android:id="@+id/scroll_view"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:clipToPadding="false"
-            android:paddingBottom="32dp"
-            android:scrollbars="none">
-
-            <LinearLayout
-                android:id="@+id/parent_linear"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:paddingStart="16dp"
-                android:paddingTop="10dp"
-                android:paddingEnd="16dp">
-
-                <RelativeLayout
-                    android:id="@+id/backup_rela"
-                    style="@style/M3SetRow"
-                    android:background="@drawable/wit_row_top">
-
-                    <LinearLayout style="@style/M3SetTexts">
-
-                        <TextView
-                            style="@style/M3SetTitle"
-                            android:text="@string/string_420" />
-                    </LinearLayout>
-
-                    <TextView style="@style/M3SetArrow" />
-
-                </RelativeLayout>
-
-                <RelativeLayout
-                    android:id="@+id/restore_rela"
-                    style="@style/M3SetRow"
-                    android:background="@drawable/wit_row_mid">
-
-                    <LinearLayout style="@style/M3SetTexts">
-
-                        <TextView
-                            style="@style/M3SetTitle"
-                            android:text="@string/string_421" />
-                    </LinearLayout>
-
-                    <TextView style="@style/M3SetArrow" />
-
-                </RelativeLayout>
-
-                <RelativeLayout
-                    android:id="@+id/webdav_rela"
-                    style="@style/M3SetRow"
-                    android:background="@drawable/wit_row_mid">
-
-                    <LinearLayout style="@style/M3SetTexts">
-
-                        <TextView
-                            style="@style/M3SetTitle"
-                            android:text="@string/webdav_settings_title" />
-
-                        <TextView
-                            android:id="@+id/webdav_desc"
-                            style="@style/M3SetDesc"
-                            android:text="@string/webdav_settings_entry_desc" />
-                    </LinearLayout>
-
-                    <TextView style="@style/M3SetArrow" />
-
-                </RelativeLayout>
-
-                <RelativeLayout
-                    android:id="@+id/moon_upload_rela"
-                    style="@style/M3SetRow"
-                    android:background="@drawable/wit_row_mid">
-
-                    <LinearLayout style="@style/M3SetTexts">
-
-                        <TextView
-                            style="@style/M3SetTitle"
-                            android:text="@string/moon_upload_title" />
-                    </LinearLayout>
-
-                    <TextView style="@style/M3SetArrow" />
-
-                </RelativeLayout>
-
-                <RelativeLayout
-                    android:id="@+id/moon_sync_rela"
-                    style="@style/M3SetRow"
-                    android:background="@drawable/wit_row_bottom">
-
-                    <LinearLayout style="@style/M3SetTexts">
-
-                        <TextView
-                            style="@style/M3SetTitle"
-                            android:text="@string/moon_manual_sync_title" />
-                    </LinearLayout>
-
-                    <TextView style="@style/M3SetArrow" />
-
-                </RelativeLayout>
-
-                <RelativeLayout
-                    android:id="@+id/clear_image_cache"
-                    style="@style/M3SetRow"
-                    android:background="@drawable/wit_row_top"
-                    android:layout_marginTop="14dp">
-
-                    <LinearLayout
-                        style="@style/M3SetTexts"
-                        android:layout_marginEnd="130dp">
-
-                        <TextView
-                            style="@style/M3SetTitle"
-                            android:text="@string/string_101" />
-                    </LinearLayout>
+                <LinearLayout style="@style/M3SetTexts">
 
                     <TextView
-                        android:id="@+id/image_cache_size"
-                        style="@style/M3SetValue" />
+                        style="@style/M3SetTitle"
+                        android:text="@string/string_420" />
+                </LinearLayout>
 
-                </RelativeLayout>
+                <TextView style="@style/M3SetArrow" />
 
-                <RelativeLayout
-                    android:id="@+id/clear_gif_cache"
-                    style="@style/M3SetRow"
-                    android:background="@drawable/wit_row_mid">
+            </RelativeLayout>
 
-                    <LinearLayout
-                        style="@style/M3SetTexts"
-                        android:layout_marginEnd="130dp">
+            <RelativeLayout
+                android:id="@+id/restore_rela"
+                style="@style/M3SetRow"
+                android:background="@drawable/wit_row_mid">
 
-                        <TextView
-                            style="@style/M3SetTitle"
-                            android:text="@string/string_102" />
-                    </LinearLayout>
+                <LinearLayout style="@style/M3SetTexts">
 
                     <TextView
-                        android:id="@+id/gif_cache_size"
-                        style="@style/M3SetValue" />
+                        style="@style/M3SetTitle"
+                        android:text="@string/string_421" />
+                </LinearLayout>
 
-                </RelativeLayout>
+                <TextView style="@style/M3SetArrow" />
 
-                <RelativeLayout
-                    android:id="@+id/clear_bulk_download_cache"
-                    style="@style/M3SetRow"
-                    android:background="@drawable/wit_row_bottom">
+            </RelativeLayout>
 
-                    <LinearLayout
-                        style="@style/M3SetTexts"
-                        android:layout_marginEnd="130dp">
+            <RelativeLayout
+                android:id="@+id/webdav_rela"
+                style="@style/M3SetRow"
+                android:background="@drawable/wit_row_mid">
 
-                        <TextView
-                            style="@style/M3SetTitle"
-                            android:text="@string/clear_bulk_download_cache" />
-                    </LinearLayout>
+                <LinearLayout style="@style/M3SetTexts">
 
                     <TextView
-                        android:id="@+id/bulk_download_cache_size"
-                        style="@style/M3SetValue" />
-
-                </RelativeLayout>
-
-                <RelativeLayout
-                    android:id="@+id/image_cache_quota_rela"
-                    style="@style/M3SetRow"
-                    android:layout_marginTop="14dp"
-                    android:background="@drawable/wit_row_single">
-
-                    <!-- 右侧数值比其它行长（多一个「（未生效）」后缀），按 M3SetValue 的
-                         maxWidth 150dp 预留；留 130dp 时字体放大后标题会和数值重叠。 -->
-                    <LinearLayout
-                        style="@style/M3SetTexts"
-                        android:layout_marginEnd="150dp">
-
-                        <TextView
-                            style="@style/M3SetTitle"
-                            android:text="@string/setting_image_cache_quota" />
-                    </LinearLayout>
+                        style="@style/M3SetTitle"
+                        android:text="@string/webdav_settings_title" />
 
                     <TextView
-                        android:id="@+id/image_cache_quota"
-                        style="@style/M3SetValue" />
+                        android:id="@+id/webdav_desc"
+                        style="@style/M3SetDesc"
+                        android:text="@string/webdav_settings_entry_desc" />
+                </LinearLayout>
 
-                </RelativeLayout>
+                <TextView style="@style/M3SetArrow" />
 
-            </LinearLayout>
+            </RelativeLayout>
 
-        </androidx.core.widget.NestedScrollView>
+            <RelativeLayout
+                android:id="@+id/moon_upload_rela"
+                style="@style/M3SetRow"
+                android:background="@drawable/wit_row_mid">
 
-    </LinearLayout>
+                <LinearLayout style="@style/M3SetTexts">
 
-</layout>
+                    <TextView
+                        style="@style/M3SetTitle"
+                        android:text="@string/moon_upload_title" />
+                </LinearLayout>
+
+                <TextView style="@style/M3SetArrow" />
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:id="@+id/moon_sync_rela"
+                style="@style/M3SetRow"
+                android:background="@drawable/wit_row_bottom">
+
+                <LinearLayout style="@style/M3SetTexts">
+
+                    <TextView
+                        style="@style/M3SetTitle"
+                        android:text="@string/moon_manual_sync_title" />
+                </LinearLayout>
+
+                <TextView style="@style/M3SetArrow" />
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:id="@+id/clear_image_cache"
+                style="@style/M3SetRow"
+                android:background="@drawable/wit_row_top"
+                android:layout_marginTop="14dp">
+
+                <LinearLayout
+                    style="@style/M3SetTexts"
+                    android:layout_marginEnd="130dp">
+
+                    <TextView
+                        style="@style/M3SetTitle"
+                        android:text="@string/string_101" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/image_cache_size"
+                    style="@style/M3SetValue" />
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:id="@+id/clear_gif_cache"
+                style="@style/M3SetRow"
+                android:background="@drawable/wit_row_mid">
+
+                <LinearLayout
+                    style="@style/M3SetTexts"
+                    android:layout_marginEnd="130dp">
+
+                    <TextView
+                        style="@style/M3SetTitle"
+                        android:text="@string/string_102" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/gif_cache_size"
+                    style="@style/M3SetValue" />
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:id="@+id/clear_bulk_download_cache"
+                style="@style/M3SetRow"
+                android:background="@drawable/wit_row_bottom">
+
+                <LinearLayout
+                    style="@style/M3SetTexts"
+                    android:layout_marginEnd="130dp">
+
+                    <TextView
+                        style="@style/M3SetTitle"
+                        android:text="@string/clear_bulk_download_cache" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/bulk_download_cache_size"
+                    style="@style/M3SetValue" />
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:id="@+id/image_cache_quota_rela"
+                style="@style/M3SetRow"
+                android:layout_marginTop="14dp"
+                android:background="@drawable/wit_row_single">
+
+                <!-- 右侧数值比其它行长（多一个「（未生效）」后缀），按 M3SetValue 的
+                     maxWidth 150dp 预留；留 130dp 时字体放大后标题会和数值重叠。 -->
+                <LinearLayout
+                    style="@style/M3SetTexts"
+                    android:layout_marginEnd="150dp">
+
+                    <TextView
+                        style="@style/M3SetTitle"
+                        android:text="@string/setting_image_cache_quota" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/image_cache_quota"
+                    style="@style/M3SetValue" />
+
+            </RelativeLayout>
+
+        </LinearLayout>
+
+    </androidx.core.widget.NestedScrollView>
+
+</LinearLayout>

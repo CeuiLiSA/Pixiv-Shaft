@@ -14,7 +14,7 @@ import android.view.ViewGroup;
 import android.webkit.URLUtil;
 import android.widget.TextView;
 
-import androidx.databinding.DataBindingUtil;
+import androidx.annotation.NonNull;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -79,6 +79,12 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
     @Override
     public void initLayout() {
         mLayoutID = R.layout.fragment_search;
+    }
+
+    @NonNull
+    @Override
+    protected FragmentSearchBinding bindView(@NonNull View root) {
+        return FragmentSearchBinding.bind(root);
     }
 
     @Override
@@ -430,8 +436,8 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
         baseBind.pinnedUsersFlow.setShowHashPrefix(false);
         baseBind.pinnedUsersFlow.setItemViewFactory((parent, item, position, palette) -> {
             User user = users.get(position);
-            RecyPinnedUserBinding binding = DataBindingUtil.inflate(
-                    LayoutInflater.from(mContext), R.layout.recy_pinned_user, parent, false);
+            RecyPinnedUserBinding binding = RecyPinnedUserBinding.inflate(
+                    LayoutInflater.from(mContext), parent, false);
             binding.userName.setText(user.getName());
             WitTagStyle.applyText(binding.userName, palette);
             Glide.with(binding.userAvatar).load(GlideUtil.getHead(user)).into(binding.userAvatar);

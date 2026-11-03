@@ -1,150 +1,139 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
 
-    <data>
+    <include
+        android:id="@+id/toolbar"
+        layout="@layout/toolbar_layout" />
 
-    </data>
-
-    <RelativeLayout
+    <FrameLayout
         android:layout_width="match_parent"
+        android:id="@+id/refreshLayout"
+        android:layout_above="@+id/submit_linear"
+        android:layout_below="@+id/toolbar"
         android:layout_height="match_parent">
 
-        <include
-            android:id="@+id/toolbar"
-            layout="@layout/toolbar_layout" />
-
-        <FrameLayout
+        <RelativeLayout
             android:layout_width="match_parent"
-            android:id="@+id/refreshLayout"
-            android:layout_above="@+id/submit_linear"
-            android:layout_below="@+id/toolbar"
             android:layout_height="match_parent">
 
-            <RelativeLayout
+            <TextView
+                android:id="@+id/now_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/sixteen_dp"
+                android:layout_marginTop="@dimen/sixteen_dp"
+                android:layout_marginBottom="@dimen/twelve_dp"
+                android:text="@string/string_56"
+                android:textSize="15sp"
+                android:textColor="@color/dark_text">
+            </TextView>
+
+            <TextView
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                android:id="@+id/file_name"
+                android:textColor="?attr/colorPrimary"
+                android:layout_below="@+id/now_name"
+                android:text="@string/string_57"
+                android:layout_marginBottom="@dimen/sixteen_dp"
+                android:textSize="20sp"
+                android:layout_marginStart="@dimen/sixteen_dp"
+                android:layout_marginEnd="@dimen/sixteen_dp"
+                android:layout_height="wrap_content">
 
-                <TextView
-                    android:id="@+id/now_name"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/sixteen_dp"
-                    android:layout_marginTop="@dimen/sixteen_dp"
-                    android:layout_marginBottom="@dimen/twelve_dp"
-                    android:text="@string/string_56"
-                    android:textSize="15sp"
-                    android:textColor="@color/dark_text">
-                </TextView>
+            </TextView>
 
-                <TextView
-                    android:layout_width="match_parent"
-                    android:id="@+id/file_name"
-                    android:textColor="?attr/colorPrimary"
-                    android:layout_below="@+id/now_name"
-                    android:text="@string/string_57"
-                    android:layout_marginBottom="@dimen/sixteen_dp"
-                    android:textSize="20sp"
-                    android:layout_marginStart="@dimen/sixteen_dp"
-                    android:layout_marginEnd="@dimen/sixteen_dp"
-                    android:layout_height="wrap_content">
+            <androidx.recyclerview.widget.RecyclerView
+                android:layout_height="match_parent"
+                android:id="@+id/recyclerView"
+                android:layout_below="@+id/file_name"
+                android:layout_width="match_parent">
 
+            </androidx.recyclerview.widget.RecyclerView>
 
-                </TextView>
+        </RelativeLayout>
 
-                <androidx.recyclerview.widget.RecyclerView
-                    android:layout_height="match_parent"
-                    android:id="@+id/recyclerView"
-                    android:layout_below="@+id/file_name"
-                    android:layout_width="match_parent">
+    </FrameLayout>
 
-                </androidx.recyclerview.widget.RecyclerView>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:id="@+id/submit_linear"
+        android:layout_alignParentBottom="true"
+        android:orientation="vertical"
+        android:layout_height="wrap_content">
 
-            </RelativeLayout>
+        <CheckBox
+            android:layout_width="wrap_content"
+            android:text="@string/singlePage_isAdd_p0"
+            android:paddingTop="@dimen/four_dp"
+            android:id="@+id/has_p0"
+            android:paddingBottom="@dimen/four_dp"
+            android:layout_marginStart="@dimen/sixteen_dp"
+            android:layout_height="wrap_content">
 
-
-        </FrameLayout>
+        </CheckBox>
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:id="@+id/submit_linear"
-            android:layout_alignParentBottom="true"
-            android:orientation="vertical"
             android:layout_height="wrap_content">
 
-            <CheckBox
-                android:layout_width="wrap_content"
-                android:text="@string/singlePage_isAdd_p0"
-                android:paddingTop="@dimen/four_dp"
-                android:id="@+id/has_p0"
-                android:paddingBottom="@dimen/four_dp"
-                android:layout_marginStart="@dimen/sixteen_dp"
-                android:layout_height="wrap_content">
+            <ceui.pixiv.witstudio.widget.WitRoundButton
+                android:id="@+id/reset"
+                android:layout_width="0dp"
+                android:layout_marginTop="@dimen/eight_dp"
+                android:layout_height="45dp"
+                android:layout_marginStart="@dimen/twenty_four_dp"
+                android:layout_marginEnd="@dimen/six_dp"
+                android:layout_marginBottom="@dimen/eight_dp"
+                android:layout_weight="1"
+                android:text="@string/string_449"
+                android:textColor="@color/black"
+                app:wit_backgroundColor="@color/white"
+                app:wit_borderColor="#eaebf9"
+                app:wit_radius="@dimen/eight_dp">
 
-            </CheckBox>
+            </ceui.pixiv.witstudio.widget.WitRoundButton>
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+            <ceui.pixiv.witstudio.widget.WitRoundButton
+                android:id="@+id/show_now"
+                android:layout_width="0dp"
+                android:layout_height="45dp"
+                android:layout_marginStart="@dimen/six_dp"
+                android:layout_marginTop="@dimen/eight_dp"
+                android:layout_marginEnd="@dimen/six_dp"
+                android:layout_marginBottom="@dimen/eight_dp"
+                android:layout_weight="1"
+                android:text="@string/string_59"
+                android:textColor="#9f9fb4"
+                app:wit_backgroundColor="@color/white"
+                app:wit_borderColor="#eaebf9"
+                app:wit_radius="@dimen/eight_dp"
+                android:visibility="gone">
 
-                <ceui.pixiv.witstudio.widget.WitRoundButton
-                    android:id="@+id/reset"
-                    android:layout_width="0dp"
-                    android:layout_marginTop="@dimen/eight_dp"
-                    android:layout_height="45dp"
-                    android:layout_marginStart="@dimen/twenty_four_dp"
-                    android:layout_marginEnd="@dimen/six_dp"
-                    android:layout_marginBottom="@dimen/eight_dp"
-                    android:layout_weight="1"
-                    android:text="@string/string_449"
-                    android:textColor="@color/black"
-                    app:wit_backgroundColor="@color/white"
-                    app:wit_borderColor="#eaebf9"
-                    app:wit_radius="@dimen/eight_dp">
+            </ceui.pixiv.witstudio.widget.WitRoundButton>
 
-                </ceui.pixiv.witstudio.widget.WitRoundButton>
+            <ceui.pixiv.witstudio.widget.WitRoundButton
+                android:id="@+id/save_now"
+                android:layout_width="0dp"
+                android:layout_height="45dp"
+                android:layout_marginStart="@dimen/six_dp"
+                android:layout_marginEnd="@dimen/twenty_four_dp"
+                android:layout_marginBottom="@dimen/eight_dp"
+                android:layout_marginTop="@dimen/eight_dp"
+                android:layout_weight="2"
+                android:text="@string/string_60"
+                android:textColor="@color/white"
+                app:wit_backgroundColor="?attr/colorPrimary"
+                app:wit_borderColor="#eaebf9"
+                app:wit_borderWidth="0dp"
+                app:wit_radius="@dimen/eight_dp">
 
-                <ceui.pixiv.witstudio.widget.WitRoundButton
-                    android:id="@+id/show_now"
-                    android:layout_width="0dp"
-                    android:layout_height="45dp"
-                    android:layout_marginStart="@dimen/six_dp"
-                    android:layout_marginTop="@dimen/eight_dp"
-                    android:layout_marginEnd="@dimen/six_dp"
-                    android:layout_marginBottom="@dimen/eight_dp"
-                    android:layout_weight="1"
-                    android:text="@string/string_59"
-                    android:textColor="#9f9fb4"
-                    app:wit_backgroundColor="@color/white"
-                    app:wit_borderColor="#eaebf9"
-                    app:wit_radius="@dimen/eight_dp"
-                    android:visibility="gone">
-
-                </ceui.pixiv.witstudio.widget.WitRoundButton>
-
-                <ceui.pixiv.witstudio.widget.WitRoundButton
-                    android:id="@+id/save_now"
-                    android:layout_width="0dp"
-                    android:layout_height="45dp"
-                    android:layout_marginStart="@dimen/six_dp"
-                    android:layout_marginEnd="@dimen/twenty_four_dp"
-                    android:layout_marginBottom="@dimen/eight_dp"
-                    android:layout_marginTop="@dimen/eight_dp"
-                    android:layout_weight="2"
-                    android:text="@string/string_60"
-                    android:textColor="@color/white"
-                    app:wit_backgroundColor="?attr/colorPrimary"
-                    app:wit_borderColor="#eaebf9"
-                    app:wit_borderWidth="0dp"
-                    app:wit_radius="@dimen/eight_dp">
-
-                </ceui.pixiv.witstudio.widget.WitRoundButton>
-
-            </LinearLayout>
-
+            </ceui.pixiv.witstudio.widget.WitRoundButton>
 
         </LinearLayout>
 
+    </LinearLayout>
 
-    </RelativeLayout>
-</layout>
+</RelativeLayout>

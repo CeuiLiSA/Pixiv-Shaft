@@ -8,6 +8,7 @@ import android.widget.CompoundButton;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import java.text.DecimalFormat;
 
 import com.google.firebase.analytics.FirebaseAnalytics;
@@ -31,6 +32,12 @@ public class FragmentSettingsExperimental extends SettingsPageFragment<FragmentS
     @Override
     public void initLayout() {
         mLayoutID = R.layout.fragment_settings_experimental;
+    }
+
+    @NonNull
+    @Override
+    protected FragmentSettingsExperimentalBinding bindView(@NonNull View root) {
+        return FragmentSettingsExperimentalBinding.bind(root);
     }
 
     @Override

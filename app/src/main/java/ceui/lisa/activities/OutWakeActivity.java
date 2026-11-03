@@ -4,6 +4,8 @@ import android.content.Intent;
 import android.net.Uri;
 import android.text.TextUtils;
 
+import android.view.View;
+import androidx.annotation.NonNull;
 import java.util.List;
 import java.util.Locale;
 
@@ -57,6 +59,12 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
     @Override
     protected int initLayout() {
         return R.layout.activity_out_wake;
+    }
+
+    @NonNull
+    @Override
+    protected ActivityOutWakeBinding bindView(@NonNull View root) {
+        return ActivityOutWakeBinding.bind(root);
     }
 
     @Override

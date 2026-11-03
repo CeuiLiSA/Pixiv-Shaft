@@ -24,6 +24,8 @@ class FragmentSettingsHub : BaseFragment<FragmentSettingsHubBinding>() {
         mLayoutID = R.layout.fragment_settings_hub
     }
 
+    override fun bindView(root: View): FragmentSettingsHubBinding = FragmentSettingsHubBinding.bind(root)
+
     override fun initData() {
         baseBind.toolbar.setNavigationOnClickListener { mActivity.finish() }
 

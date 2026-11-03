@@ -34,6 +34,8 @@ class FragmentAboutApp : BaseLazyFragment<FragmentAboutBinding>() {
         mLayoutID = R.layout.fragment_about
     }
 
+    override fun bindView(root: View): FragmentAboutBinding = FragmentAboutBinding.bind(root)
+
 
     override fun initData() {
         baseBind.toolbar.setNavigationOnClickListener { mActivity.finish() }

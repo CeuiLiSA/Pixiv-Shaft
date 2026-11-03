@@ -4,170 +4,163 @@
   占用条是 AppBarLayout 的滚动子项（scroll|enterAlways），所以它的收起 / 恢复
   由 AppBarLayout 原生驱动，和 Toolbar 完全同步；不占用条时它按 Tab 切换整体隐藏。
 -->
-<layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+<ceui.pixiv.widgets.TopInsetLinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="?attr/colorPrimary">
 
-    <data>
-
-    </data>
-
-    <ceui.pixiv.widgets.TopInsetLinearLayout
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:background="?attr/colorPrimary">
+        android:layout_height="match_parent">
 
-        <androidx.coordinatorlayout.widget.CoordinatorLayout
+        <com.google.android.material.appbar.AppBarLayout
+            android:id="@+id/app_bar"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="wrap_content"
+            android:background="?attr/colorPrimary">
 
-            <com.google.android.material.appbar.AppBarLayout
-                android:id="@+id/app_bar"
+            <androidx.appcompat.widget.Toolbar
+                android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                android:theme="@style/AppTheme.AppBarOverlay"
+                android:elevation="@dimen/six_dp"
+                app:layout_scrollFlags="scroll|enterAlways"
+                app:navigationIcon="@drawable/ic_arrow_back_white_shadow"
+                app:popupTheme="@style/AppTheme.PopupOverlay"
+                app:title=" "
+                app:titleTextColor="@android:color/white">
+
+                <TextView
+                    android:id="@+id/toolbar_title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:textColor="@color/white"
+                    android:textSize="18sp" />
+            </androidx.appcompat.widget.Toolbar>
+
+            <LinearLayout
+                android:id="@+id/auto_snapshot_quota_banner"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="?attr/colorPrimary">
-
-                <androidx.appcompat.widget.Toolbar
-                    android:id="@+id/toolbar"
-                    android:layout_width="match_parent"
-                    android:layout_height="?attr/actionBarSize"
-                    android:theme="@style/AppTheme.AppBarOverlay"
-                    android:elevation="@dimen/six_dp"
-                    app:layout_scrollFlags="scroll|enterAlways"
-                    app:navigationIcon="@drawable/ic_arrow_back_white_shadow"
-                    app:popupTheme="@style/AppTheme.PopupOverlay"
-                    app:title=" "
-                    app:titleTextColor="@android:color/white">
-
-                    <TextView
-                        android:id="@+id/toolbar_title"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center"
-                        android:textColor="@color/white"
-                        android:textSize="18sp" />
-                </androidx.appcompat.widget.Toolbar>
+                android:layout_marginHorizontal="16dp"
+                android:layout_marginTop="6dp"
+                android:layout_marginBottom="8dp"
+                android:orientation="vertical"
+                android:paddingHorizontal="14dp"
+                android:paddingVertical="10dp"
+                app:layout_scrollFlags="scroll|enterAlways">
 
                 <LinearLayout
-                    android:id="@+id/auto_snapshot_quota_banner"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginHorizontal="16dp"
-                    android:layout_marginTop="6dp"
-                    android:layout_marginBottom="8dp"
-                    android:orientation="vertical"
-                    android:paddingHorizontal="14dp"
-                    android:paddingVertical="10dp"
-                    app:layout_scrollFlags="scroll|enterAlways">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
-
-                        <!--
-                          被挤压的必须是标题而不是数值：土耳其语标题「Otomatik anlık görüntü
-                          kullanımı」在 360dp 窄屏上就已经吃掉整行，数值反过来被省略成
-                          「0.48 M…」—— 而这条 banner 存在的唯一理由就是那个数值。
-                          所以 weight 给标题，数值保持 wrap_content 先拿够自己的宽度。
-                        -->
-                        <TextView
-                            android:id="@+id/auto_snapshot_quota_title"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:ellipsize="end"
-                            android:singleLine="true"
-                            android:text="@string/snapshot_quota_banner_title"
-                            android:textSize="12sp" />
-
-                        <TextView
-                            android:id="@+id/auto_snapshot_quota_value"
-                            style="@style/textMontserratSemiBold"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="10dp"
-                            android:ellipsize="end"
-                            android:gravity="end"
-                            android:singleLine="true"
-                            android:text="@string/string_221"
-                            android:textSize="13sp" />
-                    </LinearLayout>
-
-                    <ProgressBar
-                        android:id="@+id/auto_snapshot_quota_progress"
-                        style="?android:attr/progressBarStyleHorizontal"
-                        android:layout_width="match_parent"
-                        android:layout_height="4dp"
-                        android:layout_marginTop="8dp"
-                        android:max="1000"
-                        android:progressDrawable="@drawable/v3_progress_pill" />
-                </LinearLayout>
-
-                <!--
-                  补齐收藏快照（#1275）有一轮在跑时出现，点开进进度页。与上面的占用条同一套
-                  「实色 bar 上的 onPrimary 前景」，同为 scroll|enterAlways，跟 Toolbar 一起收起。
-                -->
-                <LinearLayout
-                    android:id="@+id/snapshot_backfill_strip"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginHorizontal="16dp"
-                    android:layout_marginBottom="8dp"
                     android:gravity="center_vertical"
-                    android:minHeight="48dp"
-                    android:orientation="horizontal"
-                    android:paddingHorizontal="14dp"
-                    android:visibility="gone"
-                    app:layout_scrollFlags="scroll|enterAlways">
+                    android:orientation="horizontal">
 
+                    <!--
+                      被挤压的必须是标题而不是数值：土耳其语标题「Otomatik anlık görüntü
+                      kullanımı」在 360dp 窄屏上就已经吃掉整行，数值反过来被省略成
+                      「0.48 M…」—— 而这条 banner 存在的唯一理由就是那个数值。
+                      所以 weight 给标题，数值保持 wrap_content 先拿够自己的宽度。
+                    -->
                     <TextView
-                        android:id="@+id/snapshot_backfill_strip_title"
+                        android:id="@+id/auto_snapshot_quota_title"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:ellipsize="end"
                         android:singleLine="true"
-                        android:text="@string/snapshot_backfill_title"
+                        android:text="@string/snapshot_quota_banner_title"
                         android:textSize="12sp" />
 
                     <TextView
-                        android:id="@+id/snapshot_backfill_strip_value"
+                        android:id="@+id/auto_snapshot_quota_value"
                         style="@style/textMontserratSemiBold"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="10dp"
+                        android:ellipsize="end"
+                        android:gravity="end"
                         android:singleLine="true"
+                        android:text="@string/string_221"
                         android:textSize="13sp" />
-
-                    <ImageView
-                        android:id="@+id/snapshot_backfill_strip_chevron"
-                        android:layout_width="18dp"
-                        android:layout_height="18dp"
-                        android:layout_marginStart="4dp"
-                        android:importantForAccessibility="no"
-                        android:src="@drawable/ic_v3_chevron_24" />
                 </LinearLayout>
 
-                <com.google.android.material.tabs.TabLayout
-                    android:id="@+id/tab_layout"
+                <ProgressBar
+                    android:id="@+id/auto_snapshot_quota_progress"
+                    style="?android:attr/progressBarStyleHorizontal"
                     android:layout_width="match_parent"
-                    android:layout_height="35dp"
-                    android:background="?attr/colorPrimary"
-                    app:tabIndicatorColor="@android:color/white"
-                    app:tabIndicatorFullWidth="false"
-                    app:tabMode="fixed"
-                    app:tabSelectedTextColor="@android:color/white"
-                    app:tabTextColor="@color/light_new_primary_color" />
-            </com.google.android.material.appbar.AppBarLayout>
+                    android:layout_height="4dp"
+                    android:layout_marginTop="8dp"
+                    android:max="1000"
+                    android:progressDrawable="@drawable/v3_progress_pill" />
+            </LinearLayout>
 
-            <androidx.viewpager.widget.ViewPager
-                android:id="@+id/view_pager"
+            <!--
+              补齐收藏快照（#1275）有一轮在跑时出现，点开进进度页。与上面的占用条同一套
+              「实色 bar 上的 onPrimary 前景」，同为 scroll|enterAlways，跟 Toolbar 一起收起。
+            -->
+            <LinearLayout
+                android:id="@+id/snapshot_backfill_strip"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="?android:attr/colorBackground"
-                app:layout_behavior="@string/appbar_scrolling_view_behavior" />
-        </androidx.coordinatorlayout.widget.CoordinatorLayout>
-    </ceui.pixiv.widgets.TopInsetLinearLayout>
-</layout>
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="16dp"
+                android:layout_marginBottom="8dp"
+                android:gravity="center_vertical"
+                android:minHeight="48dp"
+                android:orientation="horizontal"
+                android:paddingHorizontal="14dp"
+                android:visibility="gone"
+                app:layout_scrollFlags="scroll|enterAlways">
+
+                <TextView
+                    android:id="@+id/snapshot_backfill_strip_title"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:ellipsize="end"
+                    android:singleLine="true"
+                    android:text="@string/snapshot_backfill_title"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/snapshot_backfill_strip_value"
+                    style="@style/textMontserratSemiBold"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:singleLine="true"
+                    android:textSize="13sp" />
+
+                <ImageView
+                    android:id="@+id/snapshot_backfill_strip_chevron"
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:layout_marginStart="4dp"
+                    android:importantForAccessibility="no"
+                    android:src="@drawable/ic_v3_chevron_24" />
+            </LinearLayout>
+
+            <com.google.android.material.tabs.TabLayout
+                android:id="@+id/tab_layout"
+                android:layout_width="match_parent"
+                android:layout_height="35dp"
+                android:background="?attr/colorPrimary"
+                app:tabIndicatorColor="@android:color/white"
+                app:tabIndicatorFullWidth="false"
+                app:tabMode="fixed"
+                app:tabSelectedTextColor="@android:color/white"
+                app:tabTextColor="@color/light_new_primary_color" />
+        </com.google.android.material.appbar.AppBarLayout>
+
+        <androidx.viewpager.widget.ViewPager
+            android:id="@+id/view_pager"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="?android:attr/colorBackground"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+</ceui.pixiv.widgets.TopInsetLinearLayout>

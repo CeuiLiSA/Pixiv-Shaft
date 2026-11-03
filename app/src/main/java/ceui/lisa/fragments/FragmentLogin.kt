@@ -180,6 +180,8 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
         mLayoutID = R.layout.activity_login
     }
 
+    override fun bindView(root: View): ActivityLoginBinding = ActivityLoginBinding.bind(root)
+
     override fun initView() {
         setupInsets()
         setupToolbar()

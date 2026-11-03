@@ -14,10 +14,7 @@ import com.bumptech.glide.request.target.Target
 /**
  * 从已删的 UserFollowingFragment.kt 抽出的全局图片加载函数。
  * [binding_loadUserIcon] 被 CommentCardRenderer / ArtworkDetailAdapter 等直接调用,
- * [binding_loadSquareMedia] 是布局 `loadSquareMedia` 属性的实现,[NO_PROFILE_IMG] 被 ImageHostManager 引用。
- *
- * 这里不能再写 @BindingAdapter —— :app 不用 kapt,DataBinding 处理器跑在 javac 上,看不到 Kotlin
- * 里的注解。布局属性统一在 [ceui.pixiv.utils.DataBindingAdapters] 登记,再转发到这里。
+ * [binding_loadSquareMedia] 给标签卡（置顶 / Prime / 热门搜索）的三格预览图用,[NO_PROFILE_IMG] 被 ImageHostManager 引用。
  */
 
 const val NO_PROFILE_IMG = "https://s.pximg.net/common/images/no_profile.png"

@@ -335,7 +335,6 @@ fun novelHeaderRenderer(
         fullSpan = true,
         create = { cell ->
             val b = cell.binding
-            b.lifecycleOwner = lifecycleOwner
             val ctx = b.root.context
             val d = ctx.resources.displayMetrics.density
             val palette = V3Palette.from(ctx)
@@ -369,8 +368,12 @@ fun novelHeaderRenderer(
         val b = cell.binding
         val ctx = b.root.context
         val liveNovel = ObjectPool.get<Novel>(cell.item.novelId)
-        b.novel = liveNovel
         slots.getOrPut(cell) { CellObserverSlot(lifecycleOwner) }.rebind(liveNovel) { novel ->
+            // 标题与系列条放在判空之前：novel 为 null 时也要清掉复用 cell 上一篇的内容
+            b.title.text = novel?.title
+            val seriesTitle = novel?.series?.title
+            b.seriesStrip.isVisible = !seriesTitle.isNullOrEmpty()
+            b.seriesName.text = seriesTitle
             if (novel == null) return@rebind
             b.metaDate.text = novel.create_date?.replace('T', ' ')?.take(16).orEmpty()
             // AI 标记与屏蔽 / 仅看 AI 同一口径（[IllustNovelFilter.isAiWork]）：官方
@@ -642,7 +645,6 @@ fun novelCaptionRenderer(
         inflate = CellNovelCaptionBinding::inflate,
         fullSpan = true,
         create = { cell ->
-            cell.binding.lifecycleOwner = lifecycleOwner
             cell.binding.captionToggle.setOnClick {
                 collapse.expanded = !collapse.expanded
                 applyNovelCaptionCollapse(cell.binding, collapse)
@@ -659,7 +661,6 @@ fun novelCaptionRenderer(
         val b = cell.binding
         val ctx = b.root.context
         val liveNovel = ObjectPool.get<Novel>(cell.item.novelId)
-        b.novel = liveNovel
         slots.getOrPut(cell) { CellObserverSlot(lifecycleOwner) }.rebind(liveNovel) { novel ->
             val rawCaption = novel.caption.orEmpty()
             // 本 observer 挂在 ObjectPool 上，这条小说**任何**字段的更新（收藏切换最常见）都会

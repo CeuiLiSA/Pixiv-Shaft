@@ -1,5 +1,6 @@
 package ceui.lisa.fragments
 
+import android.view.View
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentUserInfoBinding
 import ceui.lisa.interfaces.Display
@@ -12,6 +13,8 @@ class FragmentUserInfo : BaseFragment<FragmentUserInfoBinding>(), Display<UserDe
     override fun initLayout() {
         mLayoutID = R.layout.fragment_user_info
     }
+
+    override fun bindView(root: View): FragmentUserInfoBinding = FragmentUserInfoBinding.bind(root)
 
     public override fun initData() {
         baseBind.toolbar.setNavigationOnClickListener {

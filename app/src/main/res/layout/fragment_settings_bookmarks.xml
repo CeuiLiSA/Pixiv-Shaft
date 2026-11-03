@@ -1,267 +1,259 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/v3_bg"
+    android:orientation="vertical">
 
-    <data>
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorPrimary"
+        android:elevation="@dimen/six_dp"
+        android:fitsSystemWindows="true"
+        android:theme="@style/AppTheme.AppBarOverlay"
+        app:navigationIcon="@drawable/ic_arrow_back_white_shadow"
+        app:popupTheme="@style/AppTheme.PopupOverlay"
+        app:title=" "
+        app:titleTextColor="@android:color/white">
 
-    </data>
+        <TextView
+            android:id="@+id/toolbar_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="@string/settings_cat_bookmark"
+            android:textColor="@color/white"
+            android:textSize="18sp" />
 
-    <LinearLayout
+    </androidx.appcompat.widget.Toolbar>
+
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/scroll_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/v3_bg"
-        android:orientation="vertical">
+        android:clipToPadding="false"
+        android:paddingBottom="32dp"
+        android:scrollbars="none">
 
-        <androidx.appcompat.widget.Toolbar
-            android:id="@+id/toolbar"
+        <LinearLayout
+            android:id="@+id/parent_linear"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="?attr/colorPrimary"
-            android:elevation="@dimen/six_dp"
-            android:fitsSystemWindows="true"
-            android:theme="@style/AppTheme.AppBarOverlay"
-            app:navigationIcon="@drawable/ic_arrow_back_white_shadow"
-            app:popupTheme="@style/AppTheme.PopupOverlay"
-            app:title=" "
-            app:titleTextColor="@android:color/white">
-
-            <TextView
-                android:id="@+id/toolbar_title"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:text="@string/settings_cat_bookmark"
-                android:textColor="@color/white"
-                android:textSize="18sp" />
-
-        </androidx.appcompat.widget.Toolbar>
-
-        <androidx.core.widget.NestedScrollView
-            android:id="@+id/scroll_view"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:clipToPadding="false"
-            android:paddingBottom="32dp"
-            android:scrollbars="none">
-
-            <LinearLayout
-                android:id="@+id/parent_linear"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:paddingStart="16dp"
-                android:paddingTop="10dp"
-                android:paddingEnd="16dp">
-
-                <RelativeLayout
-                    android:id="@+id/show_like_button_rela"
-                    style="@style/M3SetRow"
-                    android:background="@drawable/wit_row_top">
-
-                    <LinearLayout style="@style/M3SetTexts">
-
-                        <TextView
-                            style="@style/M3SetTitle"
-                            android:text="@string/string_335" />
-                    </LinearLayout>
-
-                    <androidx.appcompat.widget.SwitchCompat
-                        android:id="@+id/show_like_button"
-                        style="@style/M3SetSwitch" />
-
-                </RelativeLayout>
-
-                <RelativeLayout
-                    android:id="@+id/private_follow_rela"
-                    style="@style/M3SetRow"
-                    android:background="@drawable/wit_row_mid">
-
-                    <LinearLayout style="@style/M3SetTexts">
-
-                        <TextView
-                            style="@style/M3SetTitle"
-                            android:text="@string/private_follow_by_default" />
-                    </LinearLayout>
-
-                    <androidx.appcompat.widget.SwitchCompat
-                        android:id="@+id/private_follow"
-                        style="@style/M3SetSwitch" />
-
-                </RelativeLayout>
-
-                <RelativeLayout
-                    android:id="@+id/hide_star_bar_rela"
-                    style="@style/M3SetRow"
-                    android:background="@drawable/wit_row_mid">
-
-                    <LinearLayout style="@style/M3SetTexts">
-
-                        <TextView
-                            style="@style/M3SetTitle"
-                            android:text="@string/string_371" />
-                    </LinearLayout>
-
-                    <androidx.appcompat.widget.SwitchCompat
-                        android:id="@+id/hide_star_bar"
-                        style="@style/M3SetSwitch" />
-
-                </RelativeLayout>
-
-                <!-- 收藏和取消收藏共用的触感反馈开关。 -->
-                <RelativeLayout
-                    android:id="@+id/like_haptic_rela"
-                    style="@style/M3SetRow"
-                    android:background="@drawable/wit_row_mid">
-
-                    <LinearLayout style="@style/M3SetTexts">
-
-                        <TextView
-                            style="@style/M3SetTitle"
-                            android:text="@string/settings_like_haptic" />
+            android:orientation="vertical"
+            android:paddingStart="16dp"
+            android:paddingTop="10dp"
+            android:paddingEnd="16dp">
 
-                        <TextView
-                            style="@style/M3SetDesc"
-                            android:text="@string/settings_like_haptic_desc" />
-                    </LinearLayout>
+            <RelativeLayout
+                android:id="@+id/show_like_button_rela"
+                style="@style/M3SetRow"
+                android:background="@drawable/wit_row_top">
 
-                    <androidx.appcompat.widget.SwitchCompat
-                        android:id="@+id/like_haptic"
-                        style="@style/M3SetSwitch" />
+                <LinearLayout style="@style/M3SetTexts">
 
-                </RelativeLayout>
+                    <TextView
+                        style="@style/M3SetTitle"
+                        android:text="@string/string_335" />
+                </LinearLayout>
 
-                <RelativeLayout
-                    android:id="@+id/filter_invalid_bookmarks_rela"
-                    style="@style/M3SetRow"
-                    android:background="@drawable/wit_row_mid">
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/show_like_button"
+                    style="@style/M3SetSwitch" />
 
-                    <LinearLayout style="@style/M3SetTexts">
+            </RelativeLayout>
 
-                        <TextView
-                            style="@style/M3SetTitle"
-                            android:text="@string/filter_invalid_bookmarks" />
-                    </LinearLayout>
+            <RelativeLayout
+                android:id="@+id/private_follow_rela"
+                style="@style/M3SetRow"
+                android:background="@drawable/wit_row_mid">
 
-                    <androidx.appcompat.widget.SwitchCompat
-                        android:id="@+id/filter_invalid_bookmarks"
-                        style="@style/M3SetSwitch" />
+                <LinearLayout style="@style/M3SetTexts">
 
-                </RelativeLayout>
+                    <TextView
+                        style="@style/M3SetTitle"
+                        android:text="@string/private_follow_by_default" />
+                </LinearLayout>
 
-                <!-- 收藏库本地镜像总开关。关掉后后台引擎立即停工（已镜像的数据保留，
-                     可以在收藏库页的「重建本地镜像」里自己处理）。 -->
-                <RelativeLayout
-                    android:id="@+id/bookmark_mirror_rela"
-                    style="@style/M3SetRow"
-                    android:background="@drawable/wit_row_mid">
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/private_follow"
+                    style="@style/M3SetSwitch" />
 
-                    <LinearLayout style="@style/M3SetTexts">
+            </RelativeLayout>
 
-                        <TextView
-                            style="@style/M3SetTitle"
-                            android:text="@string/settings_bookmark_mirror" />
-                    </LinearLayout>
+            <RelativeLayout
+                android:id="@+id/hide_star_bar_rela"
+                style="@style/M3SetRow"
+                android:background="@drawable/wit_row_mid">
 
-                    <androidx.appcompat.widget.SwitchCompat
-                        android:id="@+id/bookmark_mirror"
-                        style="@style/M3SetSwitch" />
+                <LinearLayout style="@style/M3SetTexts">
 
-                </RelativeLayout>
+                    <TextView
+                        style="@style/M3SetTitle"
+                        android:text="@string/string_371" />
+                </LinearLayout>
 
-                <RelativeLayout
-                    android:id="@+id/select_all_tag_rela"
-                    style="@style/M3SetRow"
-                    android:background="@drawable/wit_row_mid">
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/hide_star_bar"
+                    style="@style/M3SetSwitch" />
 
-                    <LinearLayout style="@style/M3SetTexts">
+            </RelativeLayout>
 
-                        <TextView
-                            style="@style/M3SetTitle"
-                            android:text="@string/string_372" />
-                    </LinearLayout>
+            <!-- 收藏和取消收藏共用的触感反馈开关。 -->
+            <RelativeLayout
+                android:id="@+id/like_haptic_rela"
+                style="@style/M3SetRow"
+                android:background="@drawable/wit_row_mid">
 
-                    <androidx.appcompat.widget.SwitchCompat
-                        android:id="@+id/select_all_tag"
-                        style="@style/M3SetSwitch" />
+                <LinearLayout style="@style/M3SetTexts">
 
-                </RelativeLayout>
+                    <TextView
+                        style="@style/M3SetTitle"
+                        android:text="@string/settings_like_haptic" />
 
-                <RelativeLayout
-                    android:id="@+id/show_related_when_star_rela"
-                    style="@style/M3SetRow"
-                    android:background="@drawable/wit_row_mid">
+                    <TextView
+                        style="@style/M3SetDesc"
+                        android:text="@string/settings_like_haptic_desc" />
+                </LinearLayout>
 
-                    <LinearLayout style="@style/M3SetTexts">
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/like_haptic"
+                    style="@style/M3SetSwitch" />
 
-                        <TextView
-                            style="@style/M3SetTitle"
-                            android:text="@string/string_396" />
-                    </LinearLayout>
+            </RelativeLayout>
 
-                    <androidx.appcompat.widget.SwitchCompat
-                        android:id="@+id/show_related_when_star"
-                        style="@style/M3SetSwitch" />
+            <RelativeLayout
+                android:id="@+id/filter_invalid_bookmarks_rela"
+                style="@style/M3SetRow"
+                android:background="@drawable/wit_row_mid">
 
-                </RelativeLayout>
+                <LinearLayout style="@style/M3SetTexts">
 
-                <RelativeLayout
-                    android:id="@+id/auto_follow_after_star_rela"
-                    style="@style/M3SetRow"
-                    android:background="@drawable/wit_row_mid">
+                    <TextView
+                        style="@style/M3SetTitle"
+                        android:text="@string/filter_invalid_bookmarks" />
+                </LinearLayout>
 
-                    <LinearLayout style="@style/M3SetTexts">
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/filter_invalid_bookmarks"
+                    style="@style/M3SetSwitch" />
 
-                        <TextView
-                            style="@style/M3SetTitle"
-                            android:text="@string/string_456" />
-                    </LinearLayout>
+            </RelativeLayout>
 
-                    <androidx.appcompat.widget.SwitchCompat
-                        android:id="@+id/auto_follow_after_star"
-                        style="@style/M3SetSwitch" />
+            <!-- 收藏库本地镜像总开关。关掉后后台引擎立即停工（已镜像的数据保留，
+                 可以在收藏库页的「重建本地镜像」里自己处理）。 -->
+            <RelativeLayout
+                android:id="@+id/bookmark_mirror_rela"
+                style="@style/M3SetRow"
+                android:background="@drawable/wit_row_mid">
 
-                </RelativeLayout>
+                <LinearLayout style="@style/M3SetTexts">
 
-                <RelativeLayout
-                    android:id="@+id/auto_download_after_star_rela"
-                    style="@style/M3SetRow"
-                    android:background="@drawable/wit_row_mid">
+                    <TextView
+                        style="@style/M3SetTitle"
+                        android:text="@string/settings_bookmark_mirror" />
+                </LinearLayout>
 
-                    <LinearLayout style="@style/M3SetTexts">
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/bookmark_mirror"
+                    style="@style/M3SetSwitch" />
 
-                        <TextView
-                            style="@style/M3SetTitle"
-                            android:text="@string/auto_download_after_star" />
-                    </LinearLayout>
+            </RelativeLayout>
 
-                    <androidx.appcompat.widget.SwitchCompat
-                        android:id="@+id/auto_download_after_star"
-                        style="@style/M3SetSwitch" />
+            <RelativeLayout
+                android:id="@+id/select_all_tag_rela"
+                style="@style/M3SetRow"
+                android:background="@drawable/wit_row_mid">
 
-                </RelativeLayout>
+                <LinearLayout style="@style/M3SetTexts">
 
-                <RelativeLayout
-                    android:id="@+id/download_auto_post_like_rela"
-                    style="@style/M3SetRow"
-                    android:background="@drawable/wit_row_bottom">
+                    <TextView
+                        style="@style/M3SetTitle"
+                        android:text="@string/string_372" />
+                </LinearLayout>
 
-                    <LinearLayout style="@style/M3SetTexts">
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/select_all_tag"
+                    style="@style/M3SetSwitch" />
 
-                        <TextView
-                            style="@style/M3SetTitle"
-                            android:text="@string/string_409" />
-                    </LinearLayout>
+            </RelativeLayout>
 
-                    <androidx.appcompat.widget.SwitchCompat
-                        android:id="@+id/download_auto_post_like"
-                        style="@style/M3SetSwitch" />
+            <RelativeLayout
+                android:id="@+id/show_related_when_star_rela"
+                style="@style/M3SetRow"
+                android:background="@drawable/wit_row_mid">
 
-                </RelativeLayout>
+                <LinearLayout style="@style/M3SetTexts">
 
-            </LinearLayout>
+                    <TextView
+                        style="@style/M3SetTitle"
+                        android:text="@string/string_396" />
+                </LinearLayout>
 
-        </androidx.core.widget.NestedScrollView>
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/show_related_when_star"
+                    style="@style/M3SetSwitch" />
 
-    </LinearLayout>
+            </RelativeLayout>
 
-</layout>
+            <RelativeLayout
+                android:id="@+id/auto_follow_after_star_rela"
+                style="@style/M3SetRow"
+                android:background="@drawable/wit_row_mid">
+
+                <LinearLayout style="@style/M3SetTexts">
+
+                    <TextView
+                        style="@style/M3SetTitle"
+                        android:text="@string/string_456" />
+                </LinearLayout>
+
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/auto_follow_after_star"
+                    style="@style/M3SetSwitch" />
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:id="@+id/auto_download_after_star_rela"
+                style="@style/M3SetRow"
+                android:background="@drawable/wit_row_mid">
+
+                <LinearLayout style="@style/M3SetTexts">
+
+                    <TextView
+                        style="@style/M3SetTitle"
+                        android:text="@string/auto_download_after_star" />
+                </LinearLayout>
+
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/auto_download_after_star"
+                    style="@style/M3SetSwitch" />
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:id="@+id/download_auto_post_like_rela"
+                style="@style/M3SetRow"
+                android:background="@drawable/wit_row_bottom">
+
+                <LinearLayout style="@style/M3SetTexts">
+
+                    <TextView
+                        style="@style/M3SetTitle"
+                        android:text="@string/string_409" />
+                </LinearLayout>
+
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/download_auto_post_like"
+                    style="@style/M3SetSwitch" />
+
+            </RelativeLayout>
+
+        </LinearLayout>
+
+    </androidx.core.widget.NestedScrollView>
+
+</LinearLayout>

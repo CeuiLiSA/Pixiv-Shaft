@@ -5,62 +5,57 @@
   横向 RecyclerView 全出血 —— padding 挂在 RV 自身 + clipToPadding=false，静止时首尾卡停在
   12dp 内容边距上与标题对齐，滑动中卡片能画进 padding 区贴满屏宽（padding 挂外层容器会被裁）。
 -->
-<layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
-
-    <data />
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingTop="6dp"
+    android:paddingBottom="18dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:paddingTop="6dp"
-        android:paddingBottom="18dp">
+        android:layout_marginBottom="12dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="6dp">
 
-        <LinearLayout
-            android:layout_width="match_parent"
+        <TextView
+            android:id="@+id/rail_label"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="12dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:paddingHorizontal="6dp">
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:letterSpacing="0.12"
+            android:maxLines="1"
+            android:textAllCaps="true"
+            android:textColor="@color/v3_text_3"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            tools:text="精选新作" />
 
-            <TextView
-                android:id="@+id/rail_label"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:ellipsize="end"
-                android:letterSpacing="0.12"
-                android:maxLines="1"
-                android:textAllCaps="true"
-                android:textColor="@color/v3_text_3"
-                android:textSize="12sp"
-                android:textStyle="bold"
-                tools:text="精选新作" />
-
-            <TextView
-                android:id="@+id/rail_see_all"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:paddingStart="12dp"
-                android:paddingTop="4dp"
-                android:paddingEnd="0dp"
-                android:paddingBottom="4dp"
-                android:text="@string/see_more"
-                android:textColor="@color/v3_ambient_primary"
-                android:textSize="12sp"
-                android:visibility="gone"
-                tools:visibility="visible" />
-        </LinearLayout>
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rail_rv"
-            android:layout_width="match_parent"
+        <TextView
+            android:id="@+id/rail_see_all"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:clipToPadding="false"
-            android:nestedScrollingEnabled="false"
-            android:overScrollMode="never"
-            android:paddingHorizontal="6dp" />
+            android:paddingStart="12dp"
+            android:paddingTop="4dp"
+            android:paddingEnd="0dp"
+            android:paddingBottom="4dp"
+            android:text="@string/see_more"
+            android:textColor="@color/v3_ambient_primary"
+            android:textSize="12sp"
+            android:visibility="gone"
+            tools:visibility="visible" />
     </LinearLayout>
-</layout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rail_rv"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:clipToPadding="false"
+        android:nestedScrollingEnabled="false"
+        android:overScrollMode="never"
+        android:paddingHorizontal="6dp" />
+</LinearLayout>

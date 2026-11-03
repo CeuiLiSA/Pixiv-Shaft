@@ -1,5 +1,6 @@
 package ceui.lisa.fragments;
 
+import android.view.View;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -16,6 +17,12 @@ public class FragmentNew extends BaseFragment<ViewpagerWithTablayoutBinding> {
     @Override
     public void initLayout() {
         mLayoutID = R.layout.viewpager_with_tablayout;
+    }
+
+    @NonNull
+    @Override
+    protected ViewpagerWithTablayoutBinding bindView(@NonNull View root) {
+        return ViewpagerWithTablayoutBinding.bind(root);
     }
 
     @Override

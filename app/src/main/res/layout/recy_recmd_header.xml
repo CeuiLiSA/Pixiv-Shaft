@@ -1,94 +1,81 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:android="http://schemas.android.com/apk/res/android">
+<RelativeLayout xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    app:layout_scrollFlags="scroll"
+    android:id="@+id/top_rela"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
 
-    <data>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/eight_dp"
+        android:layout_marginTop="@dimen/twelve_dip"
+        android:layout_marginBottom="@dimen/four_dp"
+        app:drawableStartCompat="@drawable/ic_huangguan"
+        android:drawablePadding="@dimen/eight_dp"
+        android:text="@string/ranking_illust"
+        android:gravity="center"
+        android:id="@+id/ranking_s"
+        android:letterSpacing="0.01"
+        android:textColor="@color/v3_text_1"
+        android:textSize="15sp"
+        android:textStyle="bold" />
 
-    </data>
+    <TextView
+        android:id="@+id/see_more"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:stateListAnimator="@animator/button_press_alpha"
+        android:layout_alignParentEnd="true"
+        android:layout_marginStart="@dimen/sixteen_dp"
+        android:layout_alignBaseline="@+id/ranking_s"
+        android:layout_marginEnd="@dimen/sixteen_dp"
+        android:layout_marginBottom="@dimen/four_dp"
+        android:text="@string/see_more"
+        app:drawableEndCompat="@drawable/ic_chevron_right_black_24dp"
+        android:gravity="center"
+        app:drawableTint="?attr/colorPrimary"
+        android:textColor="?attr/colorPrimary"
+        android:textSize="13sp" />
 
-    <RelativeLayout
-        app:layout_scrollFlags="scroll"
-        android:id="@+id/top_rela"
+    <androidx.recyclerview.widget.RecyclerView
         android:layout_width="match_parent"
+        android:id="@+id/ranking"
+        android:layout_below="@+id/see_more"
         android:layout_height="wrap_content">
 
+    </androidx.recyclerview.widget.RecyclerView>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_below="@+id/ranking"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:layout_width="30dp"
+            android:src="@mipmap/recmd"
+            android:layout_marginStart="@dimen/eight_dp"
+            android:scaleType="centerCrop"
+            android:id="@+id/image_recmd"
+            android:layout_height="30dp">
+
+        </ImageView>
+
         <TextView
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/eight_dp"
-            android:layout_marginTop="@dimen/twelve_dip"
-            android:layout_marginBottom="@dimen/four_dp"
-            app:drawableStartCompat="@drawable/ic_huangguan"
-            android:drawablePadding="@dimen/eight_dp"
-            android:text="@string/ranking_illust"
-            android:gravity="center"
-            android:id="@+id/ranking_s"
-            android:letterSpacing="0.01"
             android:textColor="@color/v3_text_1"
             android:textSize="15sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/see_more"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:stateListAnimator="@animator/button_press_alpha"
-            android:layout_alignParentEnd="true"
-            android:layout_marginStart="@dimen/sixteen_dp"
-            android:layout_alignBaseline="@+id/ranking_s"
-            android:layout_marginEnd="@dimen/sixteen_dp"
-            android:layout_marginBottom="@dimen/four_dp"
-            android:text="@string/see_more"
-            app:drawableEndCompat="@drawable/ic_chevron_right_black_24dp"
-            android:gravity="center"
-            app:drawableTint="?attr/colorPrimary"
-            android:textColor="?attr/colorPrimary"
-            android:textSize="13sp" />
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:layout_width="match_parent"
-            android:id="@+id/ranking"
-            android:layout_below="@+id/see_more"
+            android:letterSpacing="0.01"
+            android:text="@string/recmd_for_you"
+            android:layout_marginTop="@dimen/six_dp"
+            android:textStyle="bold"
+            android:layout_toEndOf="@+id/image_recmd"
+            android:layout_marginStart="@dimen/eight_dp"
             android:layout_height="wrap_content">
 
-
-        </androidx.recyclerview.widget.RecyclerView>
-
-
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_below="@+id/ranking"
-            android:layout_height="wrap_content">
-
-            <ImageView
-                android:layout_width="30dp"
-                android:src="@mipmap/recmd"
-                android:layout_marginStart="@dimen/eight_dp"
-                android:scaleType="centerCrop"
-                android:id="@+id/image_recmd"
-                android:layout_height="30dp">
-
-            </ImageView>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:textColor="@color/v3_text_1"
-                android:textSize="15sp"
-                android:letterSpacing="0.01"
-                android:text="@string/recmd_for_you"
-                android:layout_marginTop="@dimen/six_dp"
-                android:textStyle="bold"
-                android:layout_toEndOf="@+id/image_recmd"
-                android:layout_marginStart="@dimen/eight_dp"
-                android:layout_height="wrap_content">
-
-
-            </TextView>
-
-        </RelativeLayout>
-
+        </TextView>
 
     </RelativeLayout>
 
-</layout>
-
+</RelativeLayout>

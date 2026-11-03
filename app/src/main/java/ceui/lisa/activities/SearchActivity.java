@@ -146,6 +146,12 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
         return R.layout.fragment_new_search;
     }
 
+    @NonNull
+    @Override
+    protected FragmentNewSearchBinding bindView(@NonNull View root) {
+        return FragmentNewSearchBinding.bind(root);
+    }
+
     @Override
     protected void initView() {
         // 列表右下角「回顶」悬浮钮（issue #1040，设置里默认关）：在建 pager 之前装，

@@ -1,229 +1,223 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools">
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/v3_bg"
+    android:clipToPadding="false">
 
-    <data />
-
-    <androidx.core.widget.NestedScrollView
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@color/v3_bg"
-        android:clipToPadding="false">
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingHorizontal="20dp"
+        android:paddingTop="16dp"
+        android:paddingBottom="32dp">
 
+        <!-- Profile Details Card -->
         <LinearLayout
+            android:id="@+id/profile_card"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:background="@drawable/v3_glass_surface_xl"
             android:orientation="vertical"
-            android:paddingHorizontal="20dp"
-            android:paddingTop="16dp"
-            android:paddingBottom="32dp">
+            android:padding="18dp"
+            android:visibility="gone">
 
-            <!-- Profile Details Card -->
-            <LinearLayout
-                android:id="@+id/profile_card"
+            <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/v3_glass_surface_xl"
-                android:orientation="vertical"
-                android:padding="18dp"
-                android:visibility="gone">
+                android:letterSpacing="0.12"
+                android:text="@string/v3_label_profile_details"
+                android:textAllCaps="true"
+                android:textColor="@color/v3_text_3"
+                android:textSize="12sp"
+                android:textStyle="bold" />
 
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:letterSpacing="0.12"
-                    android:text="@string/v3_label_profile_details"
-                    android:textAllCaps="true"
-                    android:textColor="@color/v3_text_3"
-                    android:textSize="12sp"
-                    android:textStyle="bold" />
-
-                <LinearLayout
-                    android:id="@+id/profile_grid"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="14dp"
-                    android:orientation="vertical" />
-            </LinearLayout>
-
-            <!-- Social Links Card -->
             <LinearLayout
-                android:id="@+id/socials_card"
+                android:id="@+id/profile_grid"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:background="@drawable/v3_glass_surface_xl"
-                android:orientation="vertical"
-                android:paddingStart="18dp"
-                android:paddingTop="18dp"
-                android:paddingEnd="18dp"
-                android:paddingBottom="6dp"
-                android:visibility="gone">
+                android:layout_marginTop="14dp"
+                android:orientation="vertical" />
+        </LinearLayout>
 
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:letterSpacing="0.12"
-                    android:text="@string/v3_label_social"
-                    android:textAllCaps="true"
-                    android:textColor="@color/v3_text_3"
-                    android:textSize="12sp"
-                    android:textStyle="bold" />
+        <!-- Social Links Card -->
+        <LinearLayout
+            android:id="@+id/socials_card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/v3_glass_surface_xl"
+            android:orientation="vertical"
+            android:paddingStart="18dp"
+            android:paddingTop="18dp"
+            android:paddingEnd="18dp"
+            android:paddingBottom="6dp"
+            android:visibility="gone">
 
-                <LinearLayout
-                    android:id="@+id/socials_group"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:orientation="vertical" />
-            </LinearLayout>
-
-            <!-- Bio (between profile and workspace) -->
-            <LinearLayout
-                android:id="@+id/bio_section"
+            <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:orientation="vertical"
-                android:visibility="gone">
+                android:letterSpacing="0.12"
+                android:text="@string/v3_label_social"
+                android:textAllCaps="true"
+                android:textColor="@color/v3_text_3"
+                android:textSize="12sp"
+                android:textStyle="bold" />
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:letterSpacing="0.12"
-                        android:text="@string/label_personal_intro"
-                        android:textAllCaps="true"
-                        android:textColor="@color/v3_text_3"
-                        android:textSize="12sp"
-                        android:textStyle="bold" />
-
-                    <View
-                        android:layout_width="0dp"
-                        android:layout_height="0dp"
-                        android:layout_weight="1" />
-
-                    <ImageView
-                        android:id="@+id/bio_translate"
-                        android:layout_width="48dp"
-                        android:layout_height="48dp"
-                        android:background="?attr/selectableItemBackgroundBorderless"
-                        android:padding="12dp"
-                        android:contentDescription="@string/string_translate_caption"
-                        android:src="@drawable/ic_baseline_translate_24"
-                        app:tint="@color/v3_text_3" />
-                </LinearLayout>
-
-                <TextView
-                    android:id="@+id/bio"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:alpha="0.78"
-                    android:autoLink="all"
-                    android:lineSpacingMultiplier="1.6"
-                    android:textColor="@color/v3_text_1"
-                    android:textColorLink="#3D8BFD"
-                    android:textIsSelectable="true"
-                    android:textSize="14sp" />
-
-                <TextView
-                    android:id="@+id/bio_toggle"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="?attr/selectableItemBackground"
-                    android:gravity="center_vertical"
-                    android:minHeight="48dp"
-                    android:text="@string/v3_desc_expand"
-                    android:textColor="@color/v3_blue"
-                    android:textSize="13sp"
-                    android:textStyle="bold"
-                    android:visibility="gone" />
-            </LinearLayout>
-
-            <!-- Workspace Card -->
             <LinearLayout
-                android:id="@+id/workspace_card"
+                android:id="@+id/socials_group"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:background="@drawable/v3_glass_surface_xl"
-                android:orientation="vertical"
-                android:padding="18dp"
-                android:visibility="gone">
+                android:layout_marginTop="6dp"
+                android:orientation="vertical" />
+        </LinearLayout>
 
-                <LinearLayout
-                    android:id="@+id/workspace_header_toggle"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
+        <!-- Bio (between profile and workspace) -->
+        <LinearLayout
+            android:id="@+id/bio_section"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:orientation="vertical"
+            android:visibility="gone">
 
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:letterSpacing="0.12"
-                        android:text="@string/v3_label_workspace"
-                        android:textAllCaps="true"
-                        android:textColor="@color/v3_text_3"
-                        android:textSize="12sp"
-                        android:textStyle="bold" />
-
-                    <ImageView
-                        android:id="@+id/workspace_arrow"
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:rotation="180"
-                        android:src="@drawable/ic_arrow_right_little"
-                        app:tint="@color/v3_text_3" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:id="@+id/workspace_grid"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="14dp"
-                    android:orientation="vertical" />
-            </LinearLayout>
-
-            <!-- Mute User Strip -->
             <LinearLayout
-                android:id="@+id/mute_strip"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:background="@drawable/bg_v3_mute_strip"
                 android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:padding="14dp"
-                android:visibility="gone">
+                android:orientation="horizontal">
 
                 <TextView
                     android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:letterSpacing="0.12"
+                    android:text="@string/label_personal_intro"
+                    android:textAllCaps="true"
+                    android:textColor="@color/v3_text_3"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:layout_weight="1" />
+
+                <ImageView
+                    android:id="@+id/bio_translate"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:padding="12dp"
+                    android:contentDescription="@string/string_translate_caption"
+                    android:src="@drawable/ic_baseline_translate_24"
+                    app:tint="@color/v3_text_3" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/bio"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:alpha="0.78"
+                android:autoLink="all"
+                android:lineSpacingMultiplier="1.6"
+                android:textColor="@color/v3_text_1"
+                android:textColorLink="#3D8BFD"
+                android:textIsSelectable="true"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/bio_toggle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackground"
+                android:gravity="center_vertical"
+                android:minHeight="48dp"
+                android:text="@string/v3_desc_expand"
+                android:textColor="@color/v3_blue"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:visibility="gone" />
+        </LinearLayout>
+
+        <!-- Workspace Card -->
+        <LinearLayout
+            android:id="@+id/workspace_card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/v3_glass_surface_xl"
+            android:orientation="vertical"
+            android:padding="18dp"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:id="@+id/workspace_header_toggle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="@string/block_this_users_work"
-                    android:textColor="@color/v3_text_2"
-                    android:textSize="13sp"
+                    android:letterSpacing="0.12"
+                    android:text="@string/v3_label_workspace"
+                    android:textAllCaps="true"
+                    android:textColor="@color/v3_text_3"
+                    android:textSize="12sp"
                     android:textStyle="bold" />
 
-                <androidx.appcompat.widget.SwitchCompat
-                    android:id="@+id/mute_switch"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
+                <ImageView
+                    android:id="@+id/workspace_arrow"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:rotation="180"
+                    android:src="@drawable/ic_arrow_right_little"
+                    app:tint="@color/v3_text_3" />
             </LinearLayout>
 
-            <!-- Bottom spacing -->
-            <View
+            <LinearLayout
+                android:id="@+id/workspace_grid"
                 android:layout_width="match_parent"
-                android:layout_height="60dp" />
-
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:orientation="vertical" />
         </LinearLayout>
-    </androidx.core.widget.NestedScrollView>
-</layout>
+
+        <!-- Mute User Strip -->
+        <LinearLayout
+            android:id="@+id/mute_strip"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:background="@drawable/bg_v3_mute_strip"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="14dp"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/block_this_users_work"
+                android:textColor="@color/v3_text_2"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/mute_switch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
+        <!-- Bottom spacing -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="60dp" />
+
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

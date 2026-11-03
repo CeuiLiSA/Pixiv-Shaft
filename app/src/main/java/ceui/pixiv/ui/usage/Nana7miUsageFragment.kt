@@ -258,6 +258,8 @@ class Nana7miUsageFragment : BaseFragment<FragmentNana7miUsageBinding>() {
         mLayoutID = R.layout.fragment_nana7mi_usage
     }
 
+    override fun bindView(root: View): FragmentNana7miUsageBinding = FragmentNana7miUsageBinding.bind(root)
+
     override fun initData() {
         baseBind.toolbar.setNavigationOnClickListener { mActivity.finish() }
         baseBind.errorState.setOnClickListener { load() }

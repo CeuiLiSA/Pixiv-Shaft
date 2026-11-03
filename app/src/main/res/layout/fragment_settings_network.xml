@@ -1,265 +1,257 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/v3_bg"
+    android:orientation="vertical">
 
-    <data>
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorPrimary"
+        android:elevation="@dimen/six_dp"
+        android:fitsSystemWindows="true"
+        android:theme="@style/AppTheme.AppBarOverlay"
+        app:navigationIcon="@drawable/ic_arrow_back_white_shadow"
+        app:popupTheme="@style/AppTheme.PopupOverlay"
+        app:title=" "
+        app:titleTextColor="@android:color/white">
 
-    </data>
+        <TextView
+            android:id="@+id/toolbar_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="@string/about_network"
+            android:textColor="@color/white"
+            android:textSize="18sp" />
 
-    <LinearLayout
+    </androidx.appcompat.widget.Toolbar>
+
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/scroll_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/v3_bg"
-        android:orientation="vertical">
+        android:clipToPadding="false"
+        android:paddingBottom="32dp"
+        android:scrollbars="none">
 
-        <androidx.appcompat.widget.Toolbar
-            android:id="@+id/toolbar"
+        <LinearLayout
+            android:id="@+id/parent_linear"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="?attr/colorPrimary"
-            android:elevation="@dimen/six_dp"
-            android:fitsSystemWindows="true"
-            android:theme="@style/AppTheme.AppBarOverlay"
-            app:navigationIcon="@drawable/ic_arrow_back_white_shadow"
-            app:popupTheme="@style/AppTheme.PopupOverlay"
-            app:title=" "
-            app:titleTextColor="@android:color/white">
+            android:orientation="vertical"
+            android:paddingStart="16dp"
+            android:paddingTop="10dp"
+            android:paddingEnd="16dp">
 
-            <TextView
-                android:id="@+id/toolbar_title"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:text="@string/about_network"
-                android:textColor="@color/white"
-                android:textSize="18sp" />
+            <RelativeLayout
+                android:id="@+id/direct_connect_rela"
+                style="@style/M3SetRow"
+                android:background="@drawable/wit_row_top">
 
-        </androidx.appcompat.widget.Toolbar>
+                <LinearLayout style="@style/M3SetTexts">
 
-        <androidx.core.widget.NestedScrollView
-            android:id="@+id/scroll_view"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:clipToPadding="false"
-            android:paddingBottom="32dp"
-            android:scrollbars="none">
+                    <TextView
+                        android:id="@+id/direct_connect_title"
+                        style="@style/M3SetTitle"
+                        android:text="@string/open_direct_connection" />
 
-            <LinearLayout
-                android:id="@+id/parent_linear"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:paddingStart="16dp"
-                android:paddingTop="10dp"
-                android:paddingEnd="16dp">
-
-                <RelativeLayout
-                    android:id="@+id/direct_connect_rela"
-                    style="@style/M3SetRow"
-                    android:background="@drawable/wit_row_top">
-
-                    <LinearLayout style="@style/M3SetTexts">
-
-                        <TextView
-                            android:id="@+id/direct_connect_title"
-                            style="@style/M3SetTitle"
-                            android:text="@string/open_direct_connection" />
-
-                        <TextView
-                            android:id="@+id/direct_connect_link"
-                            style="@style/M3SetDesc"
-                            android:text="@string/see_pixiv_ez"
-                            android:textColor="?attr/colorPrimary" />
-                    </LinearLayout>
-
-                    <androidx.appcompat.widget.SwitchCompat
-                        android:id="@+id/auto_dns"
-                        style="@style/M3SetSwitch" />
-
-                </RelativeLayout>
-
-                <LinearLayout
-                    android:id="@+id/use_secure_dns_group"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical">
-
-                    <RelativeLayout
-                        android:id="@+id/use_secure_dns_rela"
-                        style="@style/M3SetRow"
-                        android:background="@drawable/wit_row_mid">
-
-                        <LinearLayout style="@style/M3SetTexts">
-
-                            <TextView
-                                android:id="@+id/use_secure_dns_title"
-                                style="@style/M3SetTitle"
-                                android:text="@string/use_secure_dns_title" />
-
-                            <TextView
-                                style="@style/M3SetDesc"
-                                android:text="@string/use_secure_dns_summary" />
-                        </LinearLayout>
-
-                        <androidx.appcompat.widget.SwitchCompat
-                            android:id="@+id/use_secure_dns"
-                            style="@style/M3SetSwitch" />
-
-                    </RelativeLayout>
-
+                    <TextView
+                        android:id="@+id/direct_connect_link"
+                        style="@style/M3SetDesc"
+                        android:text="@string/see_pixiv_ez"
+                        android:textColor="?attr/colorPrimary" />
                 </LinearLayout>
 
-                <!-- 图片加载/下载断流阈值：加载 + 下载共用的读超时，分直连 / 非直连两种量程。
-                     调小让断流更早触发重连；切换直连开关时重置为该模式默认值。
-                     标题列用 layout_toStartOf 锚到右侧值，按值的实际宽度让位 —— 不能像同页其他行
-                     那样写死 marginEnd：本行标题（图片加载/下载断流阈值）比它们长得多，写死 130dp
-                     会在值只有「默认（10 秒）」时仍把标题挤成两行。 -->
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/auto_dns"
+                    style="@style/M3SetSwitch" />
+
+            </RelativeLayout>
+
+            <LinearLayout
+                android:id="@+id/use_secure_dns_group"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
                 <RelativeLayout
-                    android:id="@+id/read_timeout_rela"
+                    android:id="@+id/use_secure_dns_rela"
                     style="@style/M3SetRow"
                     android:background="@drawable/wit_row_mid">
-
-                    <LinearLayout
-                        style="@style/M3SetTexts"
-                        android:layout_toStartOf="@id/read_timeout_value"
-                        android:layout_marginEnd="12dp">
-
-                        <TextView
-                            android:id="@+id/read_timeout_title"
-                            style="@style/M3SetTitle"
-                            android:text="@string/setting_read_timeout_title" />
-                    </LinearLayout>
-
-                    <TextView
-                        android:id="@+id/read_timeout_value"
-                        style="@style/M3SetValue" />
-
-                </RelativeLayout>
-
-                <RelativeLayout
-                    android:id="@+id/image_host_rela"
-                    style="@style/M3SetRow"
-                    android:background="@drawable/wit_row_mid">
-
-                    <LinearLayout
-                        style="@style/M3SetTexts"
-                        android:layout_marginEnd="130dp">
-
-                        <TextView
-                            android:id="@+id/image_host_title"
-                            style="@style/M3SetTitle"
-                            android:text="@string/image_host_title" />
-                    </LinearLayout>
-
-                    <TextView
-                        android:id="@+id/image_host_value"
-                        style="@style/M3SetValue" />
-
-                </RelativeLayout>
-
-                <!-- App API 代理（PxveAPI 风格）：独立输入选项，与直连共存。
-                     值为空 = 不代理；点击弹窗输入 https 根地址。
-                     帮助按钮在点击后弹出弹窗的标题栏右上角（由 WitDialog.setTitleAction 提供）。 -->
-                <RelativeLayout
-                    android:id="@+id/app_api_proxy_rela"
-                    style="@style/M3SetRow"
-                    android:background="@drawable/wit_row_mid">
-
-                    <LinearLayout
-                        style="@style/M3SetTexts"
-                        android:layout_marginEnd="130dp">
-
-                        <TextView
-                            android:id="@+id/app_api_proxy_title"
-                            style="@style/M3SetTitle"
-                            android:text="@string/app_api_proxy_title" />
-
-                        <TextView
-                            style="@style/M3SetDesc"
-                            android:text="@string/app_api_proxy_summary" />
-                    </LinearLayout>
-
-                    <TextView
-                        android:id="@+id/app_api_proxy_value"
-                        style="@style/M3SetValue" />
-
-                </RelativeLayout>
-
-                <!-- GitHub 加速地址：与 PxveAPI 代理同一组（分段末行）。
-                     值为空 = 不使用；点击弹窗选择内置加速站或自定义。
-                     行内小字已挪进弹窗（标题栏右侧问号图标点开才显示），行上只留标题与当前值。 -->
-                <RelativeLayout
-                    android:id="@+id/github_proxy_rela"
-                    style="@style/M3SetRow"
-                    android:background="@drawable/wit_row_bottom">
-
-                    <LinearLayout
-                        style="@style/M3SetTexts"
-                        android:layout_marginEnd="130dp">
-
-                        <TextView
-                            android:id="@+id/github_proxy_title"
-                            style="@style/M3SetTitle"
-                            android:text="@string/github_proxy_title" />
-                    </LinearLayout>
-
-                    <TextView
-                        android:id="@+id/github_proxy_value"
-                        style="@style/M3SetValue" />
-
-                </RelativeLayout>
-
-                <RelativeLayout
-                    android:id="@+id/show_large_thumbnail_image_rela"
-                    style="@style/M3SetRow"
-                    android:layout_marginTop="14dp"
-                    android:background="@drawable/wit_row_top">
 
                     <LinearLayout style="@style/M3SetTexts">
 
                         <TextView
-                            android:id="@+id/show_large_thumbnail_image_mark"
+                            android:id="@+id/use_secure_dns_title"
                             style="@style/M3SetTitle"
-                            android:text="@string/string_450" />
+                            android:text="@string/use_secure_dns_title" />
 
                         <TextView
                             style="@style/M3SetDesc"
-                            android:text="@string/string_334" />
+                            android:text="@string/use_secure_dns_summary" />
                     </LinearLayout>
 
                     <androidx.appcompat.widget.SwitchCompat
-                        android:id="@+id/show_large_thumbnail_image"
-                        style="@style/M3SetSwitch" />
-
-                </RelativeLayout>
-
-                <RelativeLayout
-                    android:id="@+id/show_original_preview_image_rela"
-                    style="@style/M3SetRow"
-                    android:background="@drawable/wit_row_bottom">
-
-                    <LinearLayout style="@style/M3SetTexts">
-
-                        <TextView
-                            android:id="@+id/show_original_preview_image_mark"
-                            style="@style/M3SetTitle"
-                            android:text="@string/string_413" />
-
-                        <TextView
-                            style="@style/M3SetDesc"
-                            android:text="@string/string_334" />
-                    </LinearLayout>
-
-                    <androidx.appcompat.widget.SwitchCompat
-                        android:id="@+id/show_original_preview_image"
+                        android:id="@+id/use_secure_dns"
                         style="@style/M3SetSwitch" />
 
                 </RelativeLayout>
 
             </LinearLayout>
 
-        </androidx.core.widget.NestedScrollView>
+            <!-- 图片加载/下载断流阈值：加载 + 下载共用的读超时，分直连 / 非直连两种量程。
+                 调小让断流更早触发重连；切换直连开关时重置为该模式默认值。
+                 标题列用 layout_toStartOf 锚到右侧值，按值的实际宽度让位 —— 不能像同页其他行
+                 那样写死 marginEnd：本行标题（图片加载/下载断流阈值）比它们长得多，写死 130dp
+                 会在值只有「默认（10 秒）」时仍把标题挤成两行。 -->
+            <RelativeLayout
+                android:id="@+id/read_timeout_rela"
+                style="@style/M3SetRow"
+                android:background="@drawable/wit_row_mid">
 
-    </LinearLayout>
+                <LinearLayout
+                    style="@style/M3SetTexts"
+                    android:layout_toStartOf="@id/read_timeout_value"
+                    android:layout_marginEnd="12dp">
 
-</layout>
+                    <TextView
+                        android:id="@+id/read_timeout_title"
+                        style="@style/M3SetTitle"
+                        android:text="@string/setting_read_timeout_title" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/read_timeout_value"
+                    style="@style/M3SetValue" />
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:id="@+id/image_host_rela"
+                style="@style/M3SetRow"
+                android:background="@drawable/wit_row_mid">
+
+                <LinearLayout
+                    style="@style/M3SetTexts"
+                    android:layout_marginEnd="130dp">
+
+                    <TextView
+                        android:id="@+id/image_host_title"
+                        style="@style/M3SetTitle"
+                        android:text="@string/image_host_title" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/image_host_value"
+                    style="@style/M3SetValue" />
+
+            </RelativeLayout>
+
+            <!-- App API 代理（PxveAPI 风格）：独立输入选项，与直连共存。
+                 值为空 = 不代理；点击弹窗输入 https 根地址。
+                 帮助按钮在点击后弹出弹窗的标题栏右上角（由 WitDialog.setTitleAction 提供）。 -->
+            <RelativeLayout
+                android:id="@+id/app_api_proxy_rela"
+                style="@style/M3SetRow"
+                android:background="@drawable/wit_row_mid">
+
+                <LinearLayout
+                    style="@style/M3SetTexts"
+                    android:layout_marginEnd="130dp">
+
+                    <TextView
+                        android:id="@+id/app_api_proxy_title"
+                        style="@style/M3SetTitle"
+                        android:text="@string/app_api_proxy_title" />
+
+                    <TextView
+                        style="@style/M3SetDesc"
+                        android:text="@string/app_api_proxy_summary" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/app_api_proxy_value"
+                    style="@style/M3SetValue" />
+
+            </RelativeLayout>
+
+            <!-- GitHub 加速地址：与 PxveAPI 代理同一组（分段末行）。
+                 值为空 = 不使用；点击弹窗选择内置加速站或自定义。
+                 行内小字已挪进弹窗（标题栏右侧问号图标点开才显示），行上只留标题与当前值。 -->
+            <RelativeLayout
+                android:id="@+id/github_proxy_rela"
+                style="@style/M3SetRow"
+                android:background="@drawable/wit_row_bottom">
+
+                <LinearLayout
+                    style="@style/M3SetTexts"
+                    android:layout_marginEnd="130dp">
+
+                    <TextView
+                        android:id="@+id/github_proxy_title"
+                        style="@style/M3SetTitle"
+                        android:text="@string/github_proxy_title" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/github_proxy_value"
+                    style="@style/M3SetValue" />
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:id="@+id/show_large_thumbnail_image_rela"
+                style="@style/M3SetRow"
+                android:layout_marginTop="14dp"
+                android:background="@drawable/wit_row_top">
+
+                <LinearLayout style="@style/M3SetTexts">
+
+                    <TextView
+                        android:id="@+id/show_large_thumbnail_image_mark"
+                        style="@style/M3SetTitle"
+                        android:text="@string/string_450" />
+
+                    <TextView
+                        style="@style/M3SetDesc"
+                        android:text="@string/string_334" />
+                </LinearLayout>
+
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/show_large_thumbnail_image"
+                    style="@style/M3SetSwitch" />
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:id="@+id/show_original_preview_image_rela"
+                style="@style/M3SetRow"
+                android:background="@drawable/wit_row_bottom">
+
+                <LinearLayout style="@style/M3SetTexts">
+
+                    <TextView
+                        android:id="@+id/show_original_preview_image_mark"
+                        style="@style/M3SetTitle"
+                        android:text="@string/string_413" />
+
+                    <TextView
+                        style="@style/M3SetDesc"
+                        android:text="@string/string_334" />
+                </LinearLayout>
+
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/show_original_preview_image"
+                    style="@style/M3SetSwitch" />
+
+            </RelativeLayout>
+
+        </LinearLayout>
+
+    </androidx.core.widget.NestedScrollView>
+
+</LinearLayout>

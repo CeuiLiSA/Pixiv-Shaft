@@ -1,534 +1,526 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/v3_bg"
+    android:orientation="vertical">
 
-    <data>
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorPrimary"
+        android:elevation="@dimen/six_dp"
+        android:fitsSystemWindows="true"
+        android:theme="@style/AppTheme.AppBarOverlay"
+        app:navigationIcon="@drawable/ic_arrow_back_white_shadow"
+        app:popupTheme="@style/AppTheme.PopupOverlay"
+        app:title=" "
+        app:titleTextColor="@android:color/white">
 
-    </data>
+        <TextView
+            android:id="@+id/toolbar_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="@string/settings_cat_viewing"
+            android:textColor="@color/white"
+            android:textSize="18sp" />
 
-    <LinearLayout
+    </androidx.appcompat.widget.Toolbar>
+
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/scroll_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/v3_bg"
-        android:orientation="vertical">
+        android:clipToPadding="false"
+        android:paddingBottom="32dp"
+        android:scrollbars="none">
 
-        <androidx.appcompat.widget.Toolbar
-            android:id="@+id/toolbar"
+        <LinearLayout
+            android:id="@+id/parent_linear"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="?attr/colorPrimary"
-            android:elevation="@dimen/six_dp"
-            android:fitsSystemWindows="true"
-            android:theme="@style/AppTheme.AppBarOverlay"
-            app:navigationIcon="@drawable/ic_arrow_back_white_shadow"
-            app:popupTheme="@style/AppTheme.PopupOverlay"
-            app:title=" "
-            app:titleTextColor="@android:color/white">
+            android:orientation="vertical"
+            android:paddingStart="16dp"
+            android:paddingTop="10dp"
+            android:paddingEnd="16dp">
 
-            <TextView
-                android:id="@+id/toolbar_title"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:text="@string/settings_cat_viewing"
-                android:textColor="@color/white"
-                android:textSize="18sp" />
+            <RelativeLayout
+                android:id="@+id/illust_detail_v3_rela"
+                style="@style/M3SetRow"
+                android:background="@drawable/wit_row_top">
 
-        </androidx.appcompat.widget.Toolbar>
-
-        <androidx.core.widget.NestedScrollView
-            android:id="@+id/scroll_view"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:clipToPadding="false"
-            android:paddingBottom="32dp"
-            android:scrollbars="none">
-
-            <LinearLayout
-                android:id="@+id/parent_linear"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:paddingStart="16dp"
-                android:paddingTop="10dp"
-                android:paddingEnd="16dp">
-
-                <RelativeLayout
-                    android:id="@+id/illust_detail_v3_rela"
-                    style="@style/M3SetRow"
-                    android:background="@drawable/wit_row_top">
-
-                    <LinearLayout style="@style/M3SetTexts">
-
-                        <TextView
-                            style="@style/M3SetTitle"
-                            android:text="@string/illust_detail_v3" />
-                    </LinearLayout>
-
-                    <androidx.appcompat.widget.SwitchCompat
-                        android:id="@+id/illust_detail_v3"
-                        style="@style/M3SetSwitch" />
-
-                </RelativeLayout>
-
-                <Space
-                    android:id="@+id/artwork_v3_fab_order_divider"
-                    android:layout_width="0dp"
-                    android:layout_height="0dp" />
-
-                <RelativeLayout
-                    android:id="@+id/artwork_v3_fab_position_rela"
-                    style="@style/M3SetRow"
-                    android:background="@drawable/wit_row_mid">
-
-                    <LinearLayout
-                        style="@style/M3SetTexts"
-                        android:layout_marginEnd="130dp">
-
-                        <TextView
-                            style="@style/M3SetTitle"
-                            android:text="@string/artwork_v3_fab_position_title" />
-
-                        <TextView
-                            style="@style/M3SetDesc"
-                            android:text="@string/artwork_v3_fab_position_desc" />
-                    </LinearLayout>
+                <LinearLayout style="@style/M3SetTexts">
 
                     <TextView
-                        android:id="@+id/artwork_v3_fab_position_select"
-                        style="@style/M3SetValue" />
-
-                </RelativeLayout>
-
-                <RelativeLayout
-                    android:id="@+id/artwork_v3_fab_order_rela"
-                    style="@style/M3SetRow"
-                    android:background="@drawable/wit_row_mid">
-
-                    <LinearLayout
-                        style="@style/M3SetTexts"
-                        android:layout_marginEnd="130dp">
-
-                        <TextView
-                            style="@style/M3SetTitle"
-                            android:text="@string/artwork_v3_fab_order_title" />
-                    </LinearLayout>
-
-                    <TextView
-                        android:id="@+id/artwork_v3_fab_order_select"
-                        style="@style/M3SetValue" />
-
-                </RelativeLayout>
-
-                <RelativeLayout
-                    android:id="@+id/artwork_v3_show_comments_rela"
-                    style="@style/M3SetRow"
-                    android:background="@drawable/wit_row_mid">
-
-                    <LinearLayout style="@style/M3SetTexts">
-
-                        <TextView
-                            style="@style/M3SetTitle"
-                            android:text="@string/artwork_v3_show_comments_title" />
-
-                        <TextView
-                            style="@style/M3SetDesc"
-                            android:text="@string/artwork_v3_show_comments_desc" />
-                    </LinearLayout>
-
-                    <androidx.appcompat.widget.SwitchCompat
-                        android:id="@+id/artwork_v3_show_comments"
-                        style="@style/M3SetSwitch" />
-
-                </RelativeLayout>
-
-                <RelativeLayout
-                    android:id="@+id/artwork_v3_comment_jump_rela"
-                    style="@style/M3SetRow"
-                    android:background="@drawable/wit_row_mid">
-
-                    <LinearLayout style="@style/M3SetTexts">
-
-                        <TextView
-                            style="@style/M3SetTitle"
-                            android:text="@string/artwork_v3_comment_jump_title" />
-
-                        <TextView
-                            style="@style/M3SetDesc"
-                            android:text="@string/artwork_v3_comment_jump_desc" />
-                    </LinearLayout>
-
-                    <androidx.appcompat.widget.SwitchCompat
-                        android:id="@+id/artwork_v3_comment_jump"
-                        style="@style/M3SetSwitch" />
-
-                </RelativeLayout>
-
-                <RelativeLayout
-                    android:id="@+id/artwork_v3_auto_expand_rela"
-                    style="@style/M3SetRow"
-                    android:background="@drawable/wit_row_mid">
-
-                    <LinearLayout style="@style/M3SetTexts">
-
-                        <TextView
-                            style="@style/M3SetTitle"
-                            android:text="@string/artwork_v3_auto_expand_title" />
-
-                        <TextView
-                            style="@style/M3SetDesc"
-                            android:text="@string/artwork_v3_auto_expand_desc" />
-                    </LinearLayout>
-
-                    <androidx.appcompat.widget.SwitchCompat
-                        android:id="@+id/artwork_v3_auto_expand"
-                        style="@style/M3SetSwitch" />
-
-                </RelativeLayout>
-
-                <RelativeLayout
-                    android:id="@+id/detail_panel_collapsed_rela"
-                    style="@style/M3SetRow"
-                    android:background="@drawable/wit_row_mid">
-
-                    <LinearLayout style="@style/M3SetTexts">
-
-                        <TextView
-                            style="@style/M3SetTitle"
-                            android:text="@string/detail_panel_collapsed_default" />
-
-                        <TextView
-                            style="@style/M3SetDesc"
-                            android:text="@string/detail_panel_collapsed_default_desc" />
-                    </LinearLayout>
-
-                    <androidx.appcompat.widget.SwitchCompat
-                        android:id="@+id/detail_panel_collapsed"
-                        style="@style/M3SetSwitch" />
-
-                </RelativeLayout>
-
-                <RelativeLayout
-                    android:id="@+id/novel_direct_reader_rela"
-                    style="@style/M3SetRow"
-                    android:background="@drawable/wit_row_mid">
-
-                    <LinearLayout style="@style/M3SetTexts">
-
-                        <TextView
-                            style="@style/M3SetTitle"
-                            android:text="@string/novel_direct_reader" />
-
-                        <TextView
-                            style="@style/M3SetDesc"
-                            android:text="@string/novel_direct_reader_desc" />
-                    </LinearLayout>
-
-                    <androidx.appcompat.widget.SwitchCompat
-                        android:id="@+id/novel_direct_reader"
-                        style="@style/M3SetSwitch" />
-
-                </RelativeLayout>
-
-                <RelativeLayout
-                    android:id="@+id/transform_type_rela"
-                    style="@style/M3SetRow"
-                    android:background="@drawable/wit_row_mid">
-
-                    <LinearLayout
-                        style="@style/M3SetTexts"
-                        android:layout_marginEnd="130dp">
-
-                        <TextView
-                            style="@style/M3SetTitle"
-                            android:text="@string/string_393" />
-                    </LinearLayout>
-
-                    <TextView
-                        android:id="@+id/transform_type"
-                        style="@style/M3SetValue" />
-
-                </RelativeLayout>
-
-                <RelativeLayout
-                    android:id="@+id/ugoira_rife_enable_rela"
-                    style="@style/M3SetRow"
-                    android:background="@drawable/wit_row_mid">
-
-                    <LinearLayout style="@style/M3SetTexts">
-
-                        <TextView
-                            style="@style/M3SetTitle"
-                            android:text="@string/ugoira_rife_enable" />
-
-                        <TextView
-                            style="@style/M3SetDesc"
-                            android:text="@string/ugoira_rife_enable_desc" />
-                    </LinearLayout>
-
-                    <!-- 跳模型下载页期间界面是 on、设置仍是 off；页面重建时若恢复视图状态，setChecked(true)
-                         会回调 listener，模型缺失就又把人推回下载页。开关每次都按 RifePrefs 重新 bind，不需要恢复。 -->
-                    <androidx.appcompat.widget.SwitchCompat
-                        android:id="@+id/ugoira_rife_enable"
-                        style="@style/M3SetSwitch"
-                        android:saveEnabled="false" />
-
-                </RelativeLayout>
-
-                <RelativeLayout
-                    android:id="@+id/ugoira_auto_play_rela"
-                    style="@style/M3SetRow"
-                    android:background="@drawable/wit_row_mid">
-
-                    <LinearLayout style="@style/M3SetTexts">
-
-                        <TextView
-                            style="@style/M3SetTitle"
-                            android:text="@string/ugoira_auto_play" />
-                    </LinearLayout>
-
-                    <androidx.appcompat.widget.SwitchCompat
-                        android:id="@+id/ugoira_auto_play"
-                        style="@style/M3SetSwitch" />
-
-                </RelativeLayout>
-
-                <RelativeLayout
-                    android:id="@+id/ugoira_play_button_position_rela"
-                    style="@style/M3SetRow"
-                    android:background="@drawable/wit_row_mid">
-
-                    <LinearLayout
-                        style="@style/M3SetTexts"
-                        android:layout_marginEnd="130dp">
-
-                        <TextView
-                            style="@style/M3SetTitle"
-                            android:text="@string/ugoira_play_button_position" />
-                    </LinearLayout>
-
-                    <TextView
-                        android:id="@+id/ugoira_play_button_position_select"
-                        style="@style/M3SetValue" />
-
-                </RelativeLayout>
-
-                <RelativeLayout
-                    android:id="@+id/keep_status_bar_when_view_image_rela"
-                    style="@style/M3SetRow"
-                    android:background="@drawable/wit_row_mid">
-
-                    <LinearLayout style="@style/M3SetTexts">
-
-                        <TextView
-                            style="@style/M3SetTitle"
-                            android:text="@string/keep_status_bar_when_view_image" />
-                    </LinearLayout>
-
-                    <androidx.appcompat.widget.SwitchCompat
-                        android:id="@+id/keep_status_bar_when_view_image"
-                        style="@style/M3SetSwitch" />
-
-                </RelativeLayout>
-
-                <RelativeLayout
-                    android:id="@+id/immersive_when_view_image_rela"
-                    style="@style/M3SetRow"
-                    android:background="@drawable/wit_row_mid">
-
-                    <LinearLayout style="@style/M3SetTexts">
-
-                        <TextView
-                            style="@style/M3SetTitle"
-                            android:text="@string/immersive_when_view_image" />
-                    </LinearLayout>
-
-                    <androidx.appcompat.widget.SwitchCompat
-                        android:id="@+id/immersive_when_view_image"
-                        style="@style/M3SetSwitch" />
-
-                </RelativeLayout>
-
-                <RelativeLayout
-                    android:id="@+id/illust_detail_keep_screen_on_rela"
-                    style="@style/M3SetRow"
-                    android:background="@drawable/wit_row_mid">
-
-                    <LinearLayout style="@style/M3SetTexts">
-
-                        <TextView
-                            style="@style/M3SetTitle"
-                            android:text="@string/string_451" />
-                    </LinearLayout>
-
-                    <androidx.appcompat.widget.SwitchCompat
-                        android:id="@+id/illust_detail_keep_screen_on"
-                        style="@style/M3SetSwitch" />
-
-                </RelativeLayout>
-
-                <RelativeLayout
-                    android:id="@+id/comic_reader_auto_rotate_image_rela"
-                    style="@style/M3SetRow"
-                    android:background="@drawable/wit_row_mid">
-                    <LinearLayout style="@style/M3SetTexts">
-                        <TextView style="@style/M3SetTitle" android:text="@string/comic_reader_auto_rotate_image" />
-                    </LinearLayout>
-                    <androidx.appcompat.widget.SwitchCompat
-                        android:id="@+id/comic_reader_auto_rotate_image"
-                        style="@style/M3SetSwitch" />
-                </RelativeLayout>
+                        style="@style/M3SetTitle"
+                        android:text="@string/illust_detail_v3" />
+                </LinearLayout>
+
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/illust_detail_v3"
+                    style="@style/M3SetSwitch" />
+
+            </RelativeLayout>
+
+            <Space
+                android:id="@+id/artwork_v3_fab_order_divider"
+                android:layout_width="0dp"
+                android:layout_height="0dp" />
+
+            <RelativeLayout
+                android:id="@+id/artwork_v3_fab_position_rela"
+                style="@style/M3SetRow"
+                android:background="@drawable/wit_row_mid">
 
                 <LinearLayout
-                    android:id="@+id/double_tap_zoom_group"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical">
+                    style="@style/M3SetTexts"
+                    android:layout_marginEnd="130dp">
 
-                    <!-- 大图拖动退出控制：点击进入灵敏度测试页（三个阈值实时体验与调节） -->
-                    <RelativeLayout
-                        android:id="@+id/viewer_dismiss_tuning_rela"
-                        style="@style/M3SetRow"
-                        android:background="@drawable/wit_row_mid">
+                    <TextView
+                        style="@style/M3SetTitle"
+                        android:text="@string/artwork_v3_fab_position_title" />
 
-                        <LinearLayout
-                            style="@style/M3SetTexts"
-                            android:layout_marginEnd="130dp">
-
-                            <TextView
-                                android:id="@+id/viewer_dismiss_tuning_title"
-                                style="@style/M3SetTitle"
-                                android:text="@string/viewer_dismiss_tuning_title" />
-                        </LinearLayout>
-
-                        <TextView style="@style/M3SetArrow" />
-
-                    </RelativeLayout>
-
-                    <!-- 大图 ↔ 详情页视口联动，默认关闭 -->
-                    <RelativeLayout
-                        android:id="@+id/viewer_viewport_link_rela"
-                        style="@style/M3SetRow"
-                        android:background="@drawable/wit_row_mid">
-
-                        <LinearLayout style="@style/M3SetTexts">
-
-                            <TextView
-                                style="@style/M3SetTitle"
-                                android:text="@string/viewer_viewport_link_title" />
-                        </LinearLayout>
-
-                        <TextView
-                            android:id="@+id/viewer_viewport_link_value"
-                            style="@style/M3SetValue" />
-
-                    </RelativeLayout>
-
-                    <RelativeLayout
-                        android:id="@+id/double_tap_zoom_mode_rela"
-                        style="@style/M3SetRow"
-                        android:background="@drawable/wit_row_mid">
-
-                        <LinearLayout
-                            style="@style/M3SetTexts"
-                            android:layout_marginEnd="130dp">
-
-                            <TextView
-                                android:id="@+id/double_tap_zoom_mode_title"
-                                style="@style/M3SetTitle"
-                                android:text="@string/double_tap_zoom_mode_title" />
-                        </LinearLayout>
-
-                        <TextView
-                            android:id="@+id/double_tap_zoom_mode_value"
-                            style="@style/M3SetValue" />
-
-                    </RelativeLayout>
-
-                    <RelativeLayout
-                        android:id="@+id/custom_zoom_scale_rela"
-                        style="@style/M3SetRow"
-                        android:background="@drawable/wit_row_mid">
-
-                        <LinearLayout
-                            style="@style/M3SetTexts"
-                            android:layout_marginEnd="150dp">
-
-                            <TextView
-                                android:id="@+id/custom_zoom_scale_title"
-                                style="@style/M3SetTitle"
-                                android:text="@string/custom_zoom_scale_title" />
-
-                            <TextView
-                                android:id="@+id/custom_zoom_scale_title_link"
-                                style="@style/M3SetDesc"
-                                android:text="@string/custom_zoom_scale_link_text"
-                                android:textColor="?attr/colorPrimary" />
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_alignParentEnd="true"
-                            android:layout_centerVertical="true"
-                            android:gravity="center_vertical"
-                            android:orientation="horizontal">
-
-                            <ImageButton
-                                android:id="@+id/custom_zoom_scale_decrease"
-                                android:layout_width="40dp"
-                                android:layout_height="40dp"
-                                android:background="?attr/selectableItemBackgroundBorderless"
-                                android:contentDescription="@string/custom_zoom_scale_decrease_desc"
-                                android:src="@android:drawable/ic_media_previous" />
-
-                            <TextView
-                                android:id="@+id/custom_zoom_scale_display"
-                                android:layout_width="52dp"
-                                android:layout_height="wrap_content"
-                                android:gravity="center"
-                                android:text="1.8"
-                                android:textColor="?attr/colorPrimary"
-                                android:textSize="18sp"
-                                android:textStyle="bold" />
-
-                            <ImageButton
-                                android:id="@+id/custom_zoom_scale_increase"
-                                android:layout_width="40dp"
-                                android:layout_height="40dp"
-                                android:background="?attr/selectableItemBackgroundBorderless"
-                                android:contentDescription="@string/custom_zoom_scale_increase_desc"
-                                android:src="@android:drawable/ic_media_next" />
-
-                        </LinearLayout>
-
-                    </RelativeLayout>
-
-                    <RelativeLayout
-                        android:id="@+id/long_press_behavior_rela"
-                        style="@style/M3SetRow"
-                        android:background="@drawable/wit_row_bottom">
-
-                        <LinearLayout style="@style/M3SetTexts">
-
-                            <TextView
-                                android:id="@+id/long_press_behavior_title"
-                                style="@style/M3SetTitle"
-                                android:text="@string/long_press_behavior_title" />
-                        </LinearLayout>
-
-                        <TextView
-                            android:id="@+id/long_press_behavior_value"
-                            style="@style/M3SetValue" />
-
-                    </RelativeLayout>
-
+                    <TextView
+                        style="@style/M3SetDesc"
+                        android:text="@string/artwork_v3_fab_position_desc" />
                 </LinearLayout>
+
+                <TextView
+                    android:id="@+id/artwork_v3_fab_position_select"
+                    style="@style/M3SetValue" />
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:id="@+id/artwork_v3_fab_order_rela"
+                style="@style/M3SetRow"
+                android:background="@drawable/wit_row_mid">
+
+                <LinearLayout
+                    style="@style/M3SetTexts"
+                    android:layout_marginEnd="130dp">
+
+                    <TextView
+                        style="@style/M3SetTitle"
+                        android:text="@string/artwork_v3_fab_order_title" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/artwork_v3_fab_order_select"
+                    style="@style/M3SetValue" />
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:id="@+id/artwork_v3_show_comments_rela"
+                style="@style/M3SetRow"
+                android:background="@drawable/wit_row_mid">
+
+                <LinearLayout style="@style/M3SetTexts">
+
+                    <TextView
+                        style="@style/M3SetTitle"
+                        android:text="@string/artwork_v3_show_comments_title" />
+
+                    <TextView
+                        style="@style/M3SetDesc"
+                        android:text="@string/artwork_v3_show_comments_desc" />
+                </LinearLayout>
+
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/artwork_v3_show_comments"
+                    style="@style/M3SetSwitch" />
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:id="@+id/artwork_v3_comment_jump_rela"
+                style="@style/M3SetRow"
+                android:background="@drawable/wit_row_mid">
+
+                <LinearLayout style="@style/M3SetTexts">
+
+                    <TextView
+                        style="@style/M3SetTitle"
+                        android:text="@string/artwork_v3_comment_jump_title" />
+
+                    <TextView
+                        style="@style/M3SetDesc"
+                        android:text="@string/artwork_v3_comment_jump_desc" />
+                </LinearLayout>
+
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/artwork_v3_comment_jump"
+                    style="@style/M3SetSwitch" />
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:id="@+id/artwork_v3_auto_expand_rela"
+                style="@style/M3SetRow"
+                android:background="@drawable/wit_row_mid">
+
+                <LinearLayout style="@style/M3SetTexts">
+
+                    <TextView
+                        style="@style/M3SetTitle"
+                        android:text="@string/artwork_v3_auto_expand_title" />
+
+                    <TextView
+                        style="@style/M3SetDesc"
+                        android:text="@string/artwork_v3_auto_expand_desc" />
+                </LinearLayout>
+
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/artwork_v3_auto_expand"
+                    style="@style/M3SetSwitch" />
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:id="@+id/detail_panel_collapsed_rela"
+                style="@style/M3SetRow"
+                android:background="@drawable/wit_row_mid">
+
+                <LinearLayout style="@style/M3SetTexts">
+
+                    <TextView
+                        style="@style/M3SetTitle"
+                        android:text="@string/detail_panel_collapsed_default" />
+
+                    <TextView
+                        style="@style/M3SetDesc"
+                        android:text="@string/detail_panel_collapsed_default_desc" />
+                </LinearLayout>
+
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/detail_panel_collapsed"
+                    style="@style/M3SetSwitch" />
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:id="@+id/novel_direct_reader_rela"
+                style="@style/M3SetRow"
+                android:background="@drawable/wit_row_mid">
+
+                <LinearLayout style="@style/M3SetTexts">
+
+                    <TextView
+                        style="@style/M3SetTitle"
+                        android:text="@string/novel_direct_reader" />
+
+                    <TextView
+                        style="@style/M3SetDesc"
+                        android:text="@string/novel_direct_reader_desc" />
+                </LinearLayout>
+
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/novel_direct_reader"
+                    style="@style/M3SetSwitch" />
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:id="@+id/transform_type_rela"
+                style="@style/M3SetRow"
+                android:background="@drawable/wit_row_mid">
+
+                <LinearLayout
+                    style="@style/M3SetTexts"
+                    android:layout_marginEnd="130dp">
+
+                    <TextView
+                        style="@style/M3SetTitle"
+                        android:text="@string/string_393" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/transform_type"
+                    style="@style/M3SetValue" />
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:id="@+id/ugoira_rife_enable_rela"
+                style="@style/M3SetRow"
+                android:background="@drawable/wit_row_mid">
+
+                <LinearLayout style="@style/M3SetTexts">
+
+                    <TextView
+                        style="@style/M3SetTitle"
+                        android:text="@string/ugoira_rife_enable" />
+
+                    <TextView
+                        style="@style/M3SetDesc"
+                        android:text="@string/ugoira_rife_enable_desc" />
+                </LinearLayout>
+
+                <!-- 跳模型下载页期间界面是 on、设置仍是 off；页面重建时若恢复视图状态，setChecked(true)
+                     会回调 listener，模型缺失就又把人推回下载页。开关每次都按 RifePrefs 重新 bind，不需要恢复。 -->
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/ugoira_rife_enable"
+                    style="@style/M3SetSwitch"
+                    android:saveEnabled="false" />
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:id="@+id/ugoira_auto_play_rela"
+                style="@style/M3SetRow"
+                android:background="@drawable/wit_row_mid">
+
+                <LinearLayout style="@style/M3SetTexts">
+
+                    <TextView
+                        style="@style/M3SetTitle"
+                        android:text="@string/ugoira_auto_play" />
+                </LinearLayout>
+
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/ugoira_auto_play"
+                    style="@style/M3SetSwitch" />
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:id="@+id/ugoira_play_button_position_rela"
+                style="@style/M3SetRow"
+                android:background="@drawable/wit_row_mid">
+
+                <LinearLayout
+                    style="@style/M3SetTexts"
+                    android:layout_marginEnd="130dp">
+
+                    <TextView
+                        style="@style/M3SetTitle"
+                        android:text="@string/ugoira_play_button_position" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/ugoira_play_button_position_select"
+                    style="@style/M3SetValue" />
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:id="@+id/keep_status_bar_when_view_image_rela"
+                style="@style/M3SetRow"
+                android:background="@drawable/wit_row_mid">
+
+                <LinearLayout style="@style/M3SetTexts">
+
+                    <TextView
+                        style="@style/M3SetTitle"
+                        android:text="@string/keep_status_bar_when_view_image" />
+                </LinearLayout>
+
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/keep_status_bar_when_view_image"
+                    style="@style/M3SetSwitch" />
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:id="@+id/immersive_when_view_image_rela"
+                style="@style/M3SetRow"
+                android:background="@drawable/wit_row_mid">
+
+                <LinearLayout style="@style/M3SetTexts">
+
+                    <TextView
+                        style="@style/M3SetTitle"
+                        android:text="@string/immersive_when_view_image" />
+                </LinearLayout>
+
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/immersive_when_view_image"
+                    style="@style/M3SetSwitch" />
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:id="@+id/illust_detail_keep_screen_on_rela"
+                style="@style/M3SetRow"
+                android:background="@drawable/wit_row_mid">
+
+                <LinearLayout style="@style/M3SetTexts">
+
+                    <TextView
+                        style="@style/M3SetTitle"
+                        android:text="@string/string_451" />
+                </LinearLayout>
+
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/illust_detail_keep_screen_on"
+                    style="@style/M3SetSwitch" />
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:id="@+id/comic_reader_auto_rotate_image_rela"
+                style="@style/M3SetRow"
+                android:background="@drawable/wit_row_mid">
+                <LinearLayout style="@style/M3SetTexts">
+                    <TextView style="@style/M3SetTitle" android:text="@string/comic_reader_auto_rotate_image" />
+                </LinearLayout>
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/comic_reader_auto_rotate_image"
+                    style="@style/M3SetSwitch" />
+            </RelativeLayout>
+
+            <LinearLayout
+                android:id="@+id/double_tap_zoom_group"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <!-- 大图拖动退出控制：点击进入灵敏度测试页（三个阈值实时体验与调节） -->
+                <RelativeLayout
+                    android:id="@+id/viewer_dismiss_tuning_rela"
+                    style="@style/M3SetRow"
+                    android:background="@drawable/wit_row_mid">
+
+                    <LinearLayout
+                        style="@style/M3SetTexts"
+                        android:layout_marginEnd="130dp">
+
+                        <TextView
+                            android:id="@+id/viewer_dismiss_tuning_title"
+                            style="@style/M3SetTitle"
+                            android:text="@string/viewer_dismiss_tuning_title" />
+                    </LinearLayout>
+
+                    <TextView style="@style/M3SetArrow" />
+
+                </RelativeLayout>
+
+                <!-- 大图 ↔ 详情页视口联动，默认关闭 -->
+                <RelativeLayout
+                    android:id="@+id/viewer_viewport_link_rela"
+                    style="@style/M3SetRow"
+                    android:background="@drawable/wit_row_mid">
+
+                    <LinearLayout style="@style/M3SetTexts">
+
+                        <TextView
+                            style="@style/M3SetTitle"
+                            android:text="@string/viewer_viewport_link_title" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/viewer_viewport_link_value"
+                        style="@style/M3SetValue" />
+
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:id="@+id/double_tap_zoom_mode_rela"
+                    style="@style/M3SetRow"
+                    android:background="@drawable/wit_row_mid">
+
+                    <LinearLayout
+                        style="@style/M3SetTexts"
+                        android:layout_marginEnd="130dp">
+
+                        <TextView
+                            android:id="@+id/double_tap_zoom_mode_title"
+                            style="@style/M3SetTitle"
+                            android:text="@string/double_tap_zoom_mode_title" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/double_tap_zoom_mode_value"
+                        style="@style/M3SetValue" />
+
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:id="@+id/custom_zoom_scale_rela"
+                    style="@style/M3SetRow"
+                    android:background="@drawable/wit_row_mid">
+
+                    <LinearLayout
+                        style="@style/M3SetTexts"
+                        android:layout_marginEnd="150dp">
+
+                        <TextView
+                            android:id="@+id/custom_zoom_scale_title"
+                            style="@style/M3SetTitle"
+                            android:text="@string/custom_zoom_scale_title" />
+
+                        <TextView
+                            android:id="@+id/custom_zoom_scale_title_link"
+                            style="@style/M3SetDesc"
+                            android:text="@string/custom_zoom_scale_link_text"
+                            android:textColor="?attr/colorPrimary" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <ImageButton
+                            android:id="@+id/custom_zoom_scale_decrease"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:background="?attr/selectableItemBackgroundBorderless"
+                            android:contentDescription="@string/custom_zoom_scale_decrease_desc"
+                            android:src="@android:drawable/ic_media_previous" />
+
+                        <TextView
+                            android:id="@+id/custom_zoom_scale_display"
+                            android:layout_width="52dp"
+                            android:layout_height="wrap_content"
+                            android:gravity="center"
+                            android:text="1.8"
+                            android:textColor="?attr/colorPrimary"
+                            android:textSize="18sp"
+                            android:textStyle="bold" />
+
+                        <ImageButton
+                            android:id="@+id/custom_zoom_scale_increase"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:background="?attr/selectableItemBackgroundBorderless"
+                            android:contentDescription="@string/custom_zoom_scale_increase_desc"
+                            android:src="@android:drawable/ic_media_next" />
+
+                    </LinearLayout>
+
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:id="@+id/long_press_behavior_rela"
+                    style="@style/M3SetRow"
+                    android:background="@drawable/wit_row_bottom">
+
+                    <LinearLayout style="@style/M3SetTexts">
+
+                        <TextView
+                            android:id="@+id/long_press_behavior_title"
+                            style="@style/M3SetTitle"
+                            android:text="@string/long_press_behavior_title" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/long_press_behavior_value"
+                        style="@style/M3SetValue" />
+
+                </RelativeLayout>
 
             </LinearLayout>
 
-        </androidx.core.widget.NestedScrollView>
+        </LinearLayout>
 
-    </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
 
-</layout>
+</LinearLayout>

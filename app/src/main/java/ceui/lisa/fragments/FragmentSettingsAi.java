@@ -3,6 +3,7 @@ package ceui.lisa.fragments;
 import android.content.Intent;
 import android.view.View;
 
+import androidx.annotation.NonNull;
 import ceui.pixiv.witstudio.dialog.WitDialog;
 import ceui.pixiv.witstudio.dialog.WitDialogAction;
 
@@ -19,6 +20,12 @@ public class FragmentSettingsAi extends SettingsPageFragment<FragmentSettingsAiB
     @Override
     public void initLayout() {
         mLayoutID = R.layout.fragment_settings_ai;
+    }
+
+    @NonNull
+    @Override
+    protected FragmentSettingsAiBinding bindView(@NonNull View root) {
+        return FragmentSettingsAiBinding.bind(root);
     }
 
     @Override

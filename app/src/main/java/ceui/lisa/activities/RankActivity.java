@@ -4,6 +4,8 @@ import android.content.Intent;
 import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentPagerAdapter;
@@ -28,6 +30,12 @@ public class RankActivity extends BaseActivity<ActivityMultiViewPagerBinding> im
     @Override
     protected int initLayout() {
         return R.layout.activity_multi_view_pager;
+    }
+
+    @NonNull
+    @Override
+    protected ActivityMultiViewPagerBinding bindView(@NonNull View root) {
+        return ActivityMultiViewPagerBinding.bind(root);
     }
 
     @Override

@@ -1,209 +1,196 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools">
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
 
-    <data>
-
-        <variable
-            name="novel"
-            type="androidx.lifecycle.LiveData&lt;ceui.loxia.Novel>" />
-    </data>
-
+    <!-- Hero: Title + Bookmark -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:paddingHorizontal="20dp"
+        android:paddingTop="10dp"
+        android:paddingBottom="4dp">
 
-        <!-- Hero: Title + Bookmark -->
-        <LinearLayout
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:paddingHorizontal="20dp"
-            android:paddingTop="10dp"
-            android:paddingBottom="4dp">
-
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-
-                <TextView
-                    android:id="@+id/title"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:background="?attr/selectableItemBackground"
-                    android:letterSpacing="-0.03"
-                    android:lineSpacingMultiplier="1.2"
-                    android:text="@{novel.title}"
-                    android:textColor="@color/v3_text_1"
-                    android:textSize="23sp"
-                    android:textStyle="bold"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toStartOf="@+id/share"
-                    app:layout_constraintHorizontal_bias="0.0"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    tools:text="ある小説のタイトル" />
-
-                <!-- issue #1005: 收藏心移入下方三大按钮，此处与插画详情对齐放「分享」 -->
-                <ceui.pixiv.widgets.ProgressImageButton
-                    android:id="@+id/share"
-                    android:layout_width="@dimen/min_widget_size"
-                    android:layout_height="@dimen/min_widget_size"
-                    android:contentDescription="@string/novel_actions_share"
-                    android:padding="8dp"
-                    android:src="@drawable/ic_share_black_24dp"
-                    app:layout_constraintBottom_toBottomOf="@+id/title"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="@+id/title"
-                    app:ptb_progress_stroke_width="3dp"
-                    app:ptb_progress_width="14dp"
-                    app:tint="@color/v3_text_1" />
-            </androidx.constraintlayout.widget.ConstraintLayout>
-
-            <!-- Meta line: Novel · date · word count -->
-            <LinearLayout
-                android:id="@+id/meta_row"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:id="@+id/meta_type"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/novel_meta_type"
-                    android:textColor="@color/v3_text_2"
-                    android:textSize="12sp"
-                    android:textStyle="bold" />
-
-                <View
-                    android:layout_width="3dp"
-                    android:layout_height="3dp"
-                    android:layout_marginHorizontal="8dp"
-                    android:background="@drawable/v3_nav_btn_bg" />
-
-                <TextView
-                    android:id="@+id/meta_date"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textColor="@color/v3_text_3"
-                    android:textSize="11sp"
-                    tools:text="2024-01-15 18:00" />
-
-                <View
-                    android:id="@+id/meta_dot_2"
-                    android:layout_width="3dp"
-                    android:layout_height="3dp"
-                    android:layout_marginHorizontal="8dp"
-                    android:background="@drawable/v3_nav_btn_bg" />
-
-                <TextView
-                    android:id="@+id/meta_word_count"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textColor="@color/v3_text_3"
-                    android:textSize="11sp"
-                    tools:text="5,000字" />
-
-                <!-- AI badge: shown only for AI-generated novels (novel_ai_type == 2) -->
-                <View
-                    android:id="@+id/meta_dot_ai"
-                    android:layout_width="3dp"
-                    android:layout_height="3dp"
-                    android:layout_marginHorizontal="8dp"
-                    android:background="@drawable/v3_nav_btn_bg"
-                    android:visibility="gone"
-                    tools:visibility="visible" />
-
-                <TextView
-                    android:id="@+id/meta_ai"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/v3_novel_ai_badge_bg"
-                    android:paddingHorizontal="6dp"
-                    android:paddingVertical="2dp"
-                    android:text="@string/v3_detail_ai"
-                    android:textColor="@android:color/white"
-                    android:textSize="9sp"
-                    android:textStyle="bold"
-                    android:visibility="gone"
-                    tools:visibility="visible" />
-            </LinearLayout>
-        </LinearLayout>
-
-        <!-- Series strip (conditional) -->
-        <LinearLayout
-            android:id="@+id/series_strip"
-            visibleOrGone="@{novel.series != null &amp;&amp; novel.series.title.length() > 0}"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="12dp"
-            android:layout_marginTop="12dp"
-            android:background="@drawable/v3_series_strip_bg"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:padding="12dp"
-            android:visibility="gone">
-
-            <FrameLayout
-                android:id="@+id/series_icon"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:layout_marginEnd="12dp"
-                android:background="@drawable/v3_series_icon_bg">
-
-                <ImageView
-                    android:layout_width="16dp"
-                    android:layout_height="16dp"
-                    android:layout_gravity="center"
-                    android:contentDescription="@null"
-                    android:src="@drawable/ic_baseline_menu_book_24"
-                    app:tint="@color/white" />
-            </FrameLayout>
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical">
-
-                <TextView
-                    android:id="@+id/series_label"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:alpha="0.7"
-                    android:letterSpacing="0.1"
-                    android:text="@string/v3_label_series"
-                    android:textAllCaps="true"
-                    android:textColor="@android:color/white"
-                    android:textSize="9sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/series_name"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="1dp"
-                    android:ellipsize="end"
-                    android:maxLines="1"
-                    android:text="@{novel.series.title}"
-                    android:textColor="@android:color/white"
-                    android:textSize="14sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
+            android:layout_height="wrap_content">
 
             <TextView
-                android:id="@+id/series_chevron"
+                android:id="@+id/title"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackground"
+                android:letterSpacing="-0.03"
+                android:lineSpacingMultiplier="1.2"
+                android:textColor="@color/v3_text_1"
+                android:textSize="23sp"
+                android:textStyle="bold"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@+id/share"
+                app:layout_constraintHorizontal_bias="0.0"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:text="ある小説のタイトル" />
+
+            <!-- issue #1005: 收藏心移入下方三大按钮，此处与插画详情对齐放「分享」 -->
+            <ceui.pixiv.widgets.ProgressImageButton
+                android:id="@+id/share"
+                android:layout_width="@dimen/min_widget_size"
+                android:layout_height="@dimen/min_widget_size"
+                android:contentDescription="@string/novel_actions_share"
+                android:padding="8dp"
+                android:src="@drawable/ic_share_black_24dp"
+                app:layout_constraintBottom_toBottomOf="@+id/title"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/title"
+                app:ptb_progress_stroke_width="3dp"
+                app:ptb_progress_width="14dp"
+                app:tint="@color/v3_text_1" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <!-- Meta line: Novel · date · word count -->
+        <LinearLayout
+            android:id="@+id/meta_row"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/meta_type"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:text="›"
+                android:text="@string/novel_meta_type"
+                android:textColor="@color/v3_text_2"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
+            <View
+                android:layout_width="3dp"
+                android:layout_height="3dp"
+                android:layout_marginHorizontal="8dp"
+                android:background="@drawable/v3_nav_btn_bg" />
+
+            <TextView
+                android:id="@+id/meta_date"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/v3_text_3"
+                android:textSize="11sp"
+                tools:text="2024-01-15 18:00" />
+
+            <View
+                android:id="@+id/meta_dot_2"
+                android:layout_width="3dp"
+                android:layout_height="3dp"
+                android:layout_marginHorizontal="8dp"
+                android:background="@drawable/v3_nav_btn_bg" />
+
+            <TextView
+                android:id="@+id/meta_word_count"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/v3_text_3"
+                android:textSize="11sp"
+                tools:text="5,000字" />
+
+            <!-- AI badge: shown only for AI-generated novels (novel_ai_type == 2) -->
+            <View
+                android:id="@+id/meta_dot_ai"
+                android:layout_width="3dp"
+                android:layout_height="3dp"
+                android:layout_marginHorizontal="8dp"
+                android:background="@drawable/v3_nav_btn_bg"
+                android:visibility="gone"
+                tools:visibility="visible" />
+
+            <TextView
+                android:id="@+id/meta_ai"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/v3_novel_ai_badge_bg"
+                android:paddingHorizontal="6dp"
+                android:paddingVertical="2dp"
+                android:text="@string/v3_detail_ai"
                 android:textColor="@android:color/white"
-                android:textSize="16sp" />
+                android:textSize="9sp"
+                android:textStyle="bold"
+                android:visibility="gone"
+                tools:visibility="visible" />
         </LinearLayout>
     </LinearLayout>
-</layout>
+
+    <!-- Series strip (conditional) -->
+    <LinearLayout
+        android:id="@+id/series_strip"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="12dp"
+        android:layout_marginTop="12dp"
+        android:background="@drawable/v3_series_strip_bg"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="12dp"
+        android:visibility="gone">
+
+        <FrameLayout
+            android:id="@+id/series_icon"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginEnd="12dp"
+            android:background="@drawable/v3_series_icon_bg">
+
+            <ImageView
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:layout_gravity="center"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_baseline_menu_book_24"
+                app:tint="@color/white" />
+        </FrameLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/series_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:alpha="0.7"
+                android:letterSpacing="0.1"
+                android:text="@string/v3_label_series"
+                android:textAllCaps="true"
+                android:textColor="@android:color/white"
+                android:textSize="9sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/series_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="1dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="@android:color/white"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/series_chevron"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="›"
+            android:textColor="@android:color/white"
+            android:textSize="16sp" />
+    </LinearLayout>
+</LinearLayout>

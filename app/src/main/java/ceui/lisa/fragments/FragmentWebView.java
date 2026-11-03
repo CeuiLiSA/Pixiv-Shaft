@@ -167,6 +167,12 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
         mLayoutID = R.layout.fragment_webview;
     }
 
+    @NonNull
+    @Override
+    protected FragmentWebviewBinding bindView(@NonNull View root) {
+        return FragmentWebviewBinding.bind(root);
+    }
+
     @Override
     public void initView() {
         baseBind.toolbarTitle.setText(title);

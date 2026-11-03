@@ -300,6 +300,8 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
         mLayoutID = R.layout.fragment_image_detail
     }
 
+    override fun bindView(root: View): FragmentImageDetailBinding = FragmentImageDetailBinding.bind(root)
+
     @SuppressLint("ClickableViewAccessibility")
     override fun initView() {
         if (mIllust?.isGif() == true && ugoiraPlayer == null) {

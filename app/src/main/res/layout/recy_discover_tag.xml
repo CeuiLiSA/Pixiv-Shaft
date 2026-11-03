@@ -2,49 +2,41 @@
 <!-- 发现页「热度标签」货架卡:120dp 方图 + 底部 bg_v3_card_scrim 恒暗渐变,白色标签名叠在 scrim 上。
      数据来自本地策展 asset(PrimeTagIndexItem),封面取 preview_square_urls[0];图未加载露 v3_surface_2
      圆角占位(日夜自适应)。和排行榜 hero / 发现插画货架同款 scrim-title 套路,视觉统一。 -->
-<layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="120dp"
+    android:layout_height="120dp"
+    android:foreground="?attr/selectableItemBackground"
+    app:cardBackgroundColor="@color/v3_surface_2"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="0dp">
 
-    <data>
+    <ImageView
+        android:id="@+id/tag_image"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/v3_surface_2"
+        android:contentDescription="@null"
+        android:scaleType="centerCrop" />
 
-    </data>
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="72dp"
+        android:layout_gravity="bottom"
+        android:background="@drawable/bg_v3_card_scrim" />
 
-    <androidx.cardview.widget.CardView
-        android:layout_width="120dp"
-        android:layout_height="120dp"
-        android:foreground="?attr/selectableItemBackground"
-        app:cardBackgroundColor="@color/v3_surface_2"
-        app:cardCornerRadius="16dp"
-        app:cardElevation="0dp">
+    <TextView
+        android:id="@+id/tag_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:ellipsize="end"
+        android:maxLines="2"
+        android:paddingStart="10dp"
+        android:paddingEnd="10dp"
+        android:paddingBottom="9dp"
+        android:textColor="@color/always_white"
+        android:textSize="13sp"
+        android:textStyle="bold" />
 
-        <ImageView
-            android:id="@+id/tag_image"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="@color/v3_surface_2"
-            android:contentDescription="@null"
-            android:scaleType="centerCrop" />
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="72dp"
-            android:layout_gravity="bottom"
-            android:background="@drawable/bg_v3_card_scrim" />
-
-        <TextView
-            android:id="@+id/tag_name"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom"
-            android:ellipsize="end"
-            android:maxLines="2"
-            android:paddingStart="10dp"
-            android:paddingEnd="10dp"
-            android:paddingBottom="9dp"
-            android:textColor="@color/always_white"
-            android:textSize="13sp"
-            android:textStyle="bold" />
-
-    </androidx.cardview.widget.CardView>
-
-</layout>
+</androidx.cardview.widget.CardView>

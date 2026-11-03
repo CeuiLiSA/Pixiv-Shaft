@@ -1,262 +1,244 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
 
-    <data>
-
-    </data>
-
-    <androidx.coordinatorlayout.widget.CoordinatorLayout
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/app_bar"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="wrap_content"
+        android:background="@drawable/primary_gradient_dark"
+        android:theme="@style/AppTheme.AppBarOverlay">
 
-        <com.google.android.material.appbar.AppBarLayout
-            android:id="@+id/app_bar"
+        <com.google.android.material.appbar.CollapsingToolbarLayout
+            android:id="@+id/toolbar_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@drawable/primary_gradient_dark"
-            android:theme="@style/AppTheme.AppBarOverlay">
+            app:layout_scrollFlags="scroll|exitUntilCollapsed|snap"
+            app:statusBarScrim="@android:color/transparent"
+            app:titleEnabled="false">
 
-            <com.google.android.material.appbar.CollapsingToolbarLayout
-                android:id="@+id/toolbar_layout"
+            <!--封面图片-->
+            <ImageView
+                android:id="@+id/imageview"
                 android:layout_width="match_parent"
+                android:layout_height="250dp"
+                android:fitsSystemWindows="true"
+                android:scaleType="centerCrop"
+                app:layout_collapseMode="parallax"
+                app:layout_collapseParallaxMultiplier="0.7" />
+
+            <View
+                android:id="@+id/banner_overlay"
+                android:layout_width="match_parent"
+                android:layout_height="250dp"
+                android:background="@color/colorBlack40"
+                android:visibility="gone"
+                app:layout_collapseMode="parallax"
+                app:layout_collapseParallaxMultiplier="0.7" />
+
+            <LinearLayout
+                android:id="@+id/center_header"
+                android:visibility="invisible"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                app:layout_scrollFlags="scroll|exitUntilCollapsed|snap"
-                app:statusBarScrim="@android:color/transparent"
-                app:titleEnabled="false">
+                android:layout_gravity="center"
+                android:orientation="vertical">
 
-                <!--封面图片-->
-                <ImageView
-                    android:id="@+id/imageview"
-                    android:layout_width="match_parent"
-                    android:layout_height="250dp"
-                    android:fitsSystemWindows="true"
+                <de.hdodenhof.circleimageview.CircleImageView
+                    android:id="@+id/user_head"
+                    android:layout_width="70dp"
+                    android:layout_height="70dp"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="48dp"
                     android:scaleType="centerCrop"
-                    app:layout_collapseMode="parallax"
-                    app:layout_collapseParallaxMultiplier="0.7" />
+                    app:civ_border_color="?attr/colorPrimary"
+                    app:civ_border_width="1dp">
 
-                <View
-                    android:id="@+id/banner_overlay"
-                    android:layout_width="match_parent"
-                    android:layout_height="250dp"
-                    android:background="@color/colorBlack40"
-                    android:visibility="gone"
-                    app:layout_collapseMode="parallax"
-                    app:layout_collapseParallaxMultiplier="0.7" />
+                </de.hdodenhof.circleimageview.CircleImageView>
 
-                <LinearLayout
-                    android:id="@+id/center_header"
-                    android:visibility="invisible"
+                <RelativeLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:orientation="vertical">
-
-                    <de.hdodenhof.circleimageview.CircleImageView
-                        android:id="@+id/user_head"
-                        android:layout_width="70dp"
-                        android:layout_height="70dp"
-                        android:layout_gravity="center_horizontal"
-                        android:layout_marginTop="48dp"
-                        android:scaleType="centerCrop"
-                        app:civ_border_color="?attr/colorPrimary"
-                        app:civ_border_width="1dp">
-
-                    </de.hdodenhof.circleimageview.CircleImageView>
-
-                    <RelativeLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center_horizontal"
-                        android:layout_marginTop="@dimen/twelve_dp">
-
-                        <TextView
-                            android:id="@+id/user_name"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:textColor="@color/white"
-                            android:textSize="19sp"
-                            android:textStyle="bold">
-
-
-                        </TextView>
-
-                        <ImageView
-                            android:id="@+id/vip_image"
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
-                            android:layout_centerVertical="true"
-                            android:layout_marginStart="@dimen/six_dp"
-                            android:layout_toEndOf="@+id/user_name"
-                            android:src="@mipmap/premium_user">
-
-                        </ImageView>
-                    </RelativeLayout>
-
-
-                    <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center_horizontal"
-                        android:layout_marginTop="@dimen/twelve_dp"
-                        android:orientation="horizontal">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="center_vertical"
-                            android:text="@string/string_145"
-                            android:id="@+id/follow_s"
-                            android:textColor="@color/white"
-                            android:textSize="13sp">
-
-
-                        </TextView>
-
-                        <TextView
-                            android:id="@+id/follow_count"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:textColor="@color/white"
-                            android:textSize="15sp"
-                            android:textStyle="bold">
-
-
-                        </TextView>
-
-                        <View
-                            android:layout_width="1dp"
-                            android:layout_height="10dp"
-                            android:layout_marginStart="@dimen/sixteen_dp"
-                            android:layout_marginTop="@dimen/six_dp"
-                            android:layout_marginEnd="@dimen/sixteen_dp"
-                            android:background="@color/white">
-
-                        </View>
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="center_vertical"
-                            android:text="@string/string_147"
-                            android:id="@+id/p_friend_s"
-                            android:textColor="@color/white"
-                            android:textSize="13sp">
-
-
-                        </TextView>
-
-                        <TextView
-                            android:id="@+id/p_friend"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text=""
-                            android:textColor="@color/white"
-                            android:textSize="15sp"
-                            android:textStyle="bold">
-
-
-                        </TextView>
-                    </LinearLayout>
-
-
-                </LinearLayout>
-
-                <androidx.appcompat.widget.Toolbar
-                    android:id="@+id/toolbar"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    app:layout_collapseMode="pin"
-                    app:navigationIcon="@drawable/ic_arrow_back_white_shadow">
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="@dimen/twelve_dp">
 
                     <TextView
-                        android:id="@+id/toolbar_title"
+                        android:id="@+id/user_name"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_gravity="center_horizontal"
-                        android:layout_marginEnd="@dimen/sixteen_dp"
-                        android:alpha="0.0"
-                        android:ellipsize="end"
-                        android:singleLine="true"
-                        android:text="@string/string_422"
                         android:textColor="@color/white"
-                        android:textSize="18sp">
+                        android:textSize="19sp"
+                        android:textStyle="bold">
 
                     </TextView>
 
+                    <ImageView
+                        android:id="@+id/vip_image"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_centerVertical="true"
+                        android:layout_marginStart="@dimen/six_dp"
+                        android:layout_toEndOf="@+id/user_name"
+                        android:src="@mipmap/premium_user">
 
-                    <LinearLayout
-                        android:orientation="horizontal"
-                        android:layout_width="wrap_content"
-                        android:gravity="center_vertical"
-                        android:layout_gravity="end|center_vertical"
-                        android:layout_height="wrap_content">
+                    </ImageView>
+                </RelativeLayout>
 
-                        <FrameLayout
-                            android:layout_width="wrap_content"
-                            android:id="@+id/follow_layout"
-                            android:layout_alignParentEnd="true"
-                            android:layout_marginEnd="12dp"
-                            android:layout_centerVertical="true"
-                            android:layout_height="wrap_content">
-
-                            <ceui.pixiv.widgets.ProgressTextButton
-                                android:id="@+id/follow"
-                                style="@style/BlueShiningButton"
-                                android:layout_width="wrap_content"
-                                android:visibility="gone"
-                                android:layout_height="32dp"
-                                android:paddingHorizontal="16dp"
-                                android:text="@string/follow"
-                                app:ptb_progress_stroke_width="3dp"
-                                app:ptb_progress_width="14dp" />
-
-                            <ceui.pixiv.widgets.ProgressTextButton
-                                android:id="@+id/unfollow"
-                                style="@style/RedShiningButton"
-                                android:visibility="gone"
-                                android:layout_width="wrap_content"
-                                android:layout_height="32dp"
-                                android:paddingHorizontal="16dp"
-                                android:text="@string/user_followed"
-                                app:ptb_progress_stroke_width="3dp"
-                                app:ptb_progress_width="14dp" />
-                        </FrameLayout>
-
-                        <ImageView
-                            android:id="@+id/more_action"
-                            android:layout_width="44dp"
-                            android:padding="9dp"
-                            android:src="@drawable/ic_more_vert_black_24dp"
-                            android:layout_height="44dp"/>
-                    </LinearLayout>
-
-
-                </androidx.appcompat.widget.Toolbar>
-
-                <ProgressBar
+                <LinearLayout
                     android:layout_width="wrap_content"
-                    android:id="@+id/progress"
-                    android:visibility="invisible"
-                    android:layout_gravity="center"
-                    android:indeterminateTint="@color/white"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="@dimen/twelve_dp"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:text="@string/string_145"
+                        android:id="@+id/follow_s"
+                        android:textColor="@color/white"
+                        android:textSize="13sp">
+
+                    </TextView>
+
+                    <TextView
+                        android:id="@+id/follow_count"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/white"
+                        android:textSize="15sp"
+                        android:textStyle="bold">
+
+                    </TextView>
+
+                    <View
+                        android:layout_width="1dp"
+                        android:layout_height="10dp"
+                        android:layout_marginStart="@dimen/sixteen_dp"
+                        android:layout_marginTop="@dimen/six_dp"
+                        android:layout_marginEnd="@dimen/sixteen_dp"
+                        android:background="@color/white">
+
+                    </View>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:text="@string/string_147"
+                        android:id="@+id/p_friend_s"
+                        android:textColor="@color/white"
+                        android:textSize="13sp">
+
+                    </TextView>
+
+                    <TextView
+                        android:id="@+id/p_friend"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=""
+                        android:textColor="@color/white"
+                        android:textSize="15sp"
+                        android:textStyle="bold">
+
+                    </TextView>
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <androidx.appcompat.widget.Toolbar
+                android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:layout_collapseMode="pin"
+                app:navigationIcon="@drawable/ic_arrow_back_white_shadow">
+
+                <TextView
+                    android:id="@+id/toolbar_title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginEnd="@dimen/sixteen_dp"
+                    android:alpha="0.0"
+                    android:ellipsize="end"
+                    android:singleLine="true"
+                    android:text="@string/string_422"
+                    android:textColor="@color/white"
+                    android:textSize="18sp">
+
+                </TextView>
+
+                <LinearLayout
+                    android:orientation="horizontal"
+                    android:layout_width="wrap_content"
+                    android:gravity="center_vertical"
+                    android:layout_gravity="end|center_vertical"
                     android:layout_height="wrap_content">
 
-                </ProgressBar>
+                    <FrameLayout
+                        android:layout_width="wrap_content"
+                        android:id="@+id/follow_layout"
+                        android:layout_alignParentEnd="true"
+                        android:layout_marginEnd="12dp"
+                        android:layout_centerVertical="true"
+                        android:layout_height="wrap_content">
 
-            </com.google.android.material.appbar.CollapsingToolbarLayout>
+                        <ceui.pixiv.widgets.ProgressTextButton
+                            android:id="@+id/follow"
+                            style="@style/BlueShiningButton"
+                            android:layout_width="wrap_content"
+                            android:visibility="gone"
+                            android:layout_height="32dp"
+                            android:paddingHorizontal="16dp"
+                            android:text="@string/follow"
+                            app:ptb_progress_stroke_width="3dp"
+                            app:ptb_progress_width="14dp" />
 
-        </com.google.android.material.appbar.AppBarLayout>
+                        <ceui.pixiv.widgets.ProgressTextButton
+                            android:id="@+id/unfollow"
+                            style="@style/RedShiningButton"
+                            android:visibility="gone"
+                            android:layout_width="wrap_content"
+                            android:layout_height="32dp"
+                            android:paddingHorizontal="16dp"
+                            android:text="@string/user_followed"
+                            app:ptb_progress_stroke_width="3dp"
+                            app:ptb_progress_width="14dp" />
+                    </FrameLayout>
 
-        <FrameLayout
-            android:id="@+id/fragment_container"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            app:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior">
+                    <ImageView
+                        android:id="@+id/more_action"
+                        android:layout_width="44dp"
+                        android:padding="9dp"
+                        android:src="@drawable/ic_more_vert_black_24dp"
+                        android:layout_height="44dp"/>
+                </LinearLayout>
 
-        </FrameLayout>
+            </androidx.appcompat.widget.Toolbar>
 
-    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+            <ProgressBar
+                android:layout_width="wrap_content"
+                android:id="@+id/progress"
+                android:visibility="invisible"
+                android:layout_gravity="center"
+                android:indeterminateTint="@color/white"
+                android:layout_height="wrap_content">
 
-</layout>
+            </ProgressBar>
 
+        </com.google.android.material.appbar.CollapsingToolbarLayout>
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <FrameLayout
+        android:id="@+id/fragment_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior">
+
+    </FrameLayout>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
