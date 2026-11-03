@@ -1702,6 +1702,7 @@
     <string name="novel_header_field_series_title">Seri başlığı</string>
     <string name="novel_header_field_series_index">Serideki sırası</string>
     <string name="save_image_failed">Görsel kaydedilemedi: %1$s</string>
+    <string name="save_image_cancelled">Kaydetme iptal edildi</string>
     <string name="save_novel_failed">Roman kaydedilemedi: %1$s</string>
     <string name="save_backup_failed">Yedek kaydedilemedi: %1$s</string>
     <string name="save_gif_failed">GIF kaydedilemedi: %1$s</string>

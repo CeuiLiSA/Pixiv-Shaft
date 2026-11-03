@@ -1702,6 +1702,7 @@
     <string name="novel_header_field_series_title">シリーズ総タイトル</string>
     <string name="novel_header_field_series_index">シリーズ内の順番</string>
     <string name="save_image_failed">画像の保存に失敗しました：%1$s</string>
+    <string name="save_image_cancelled">保存をキャンセルしました</string>
     <string name="save_novel_failed">小説の保存に失敗しました：%1$s</string>
     <string name="save_backup_failed">バックアップの保存に失敗しました：%1$s</string>
     <string name="save_gif_failed">GIF の保存に失敗しました：%1$s</string>

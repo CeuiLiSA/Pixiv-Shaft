@@ -1871,6 +1871,7 @@
     <string name="novel_header_field_series_index">系列中的序号</string>
 
     <string name="save_image_failed">图片保存失败：%1$s</string>
+    <string name="save_image_cancelled">已取消保存</string>
     <string name="save_novel_failed">小说保存失败：%1$s</string>
     <string name="save_backup_failed">备份保存失败：%1$s</string>
     <string name="save_gif_failed">GIF 保存失败：%1$s</string>

@@ -1750,6 +1750,7 @@
     <string name="novel_header_field_series_title">Judul seri</string>
     <string name="novel_header_field_series_index">Urutan dalam seri</string>
     <string name="save_image_failed">Gagal menyimpan gambar: %1$s</string>
+    <string name="save_image_cancelled">Penyimpanan dibatalkan</string>
     <string name="save_novel_failed">Gagal menyimpan novel: %1$s</string>
     <string name="save_backup_failed">Gagal menyimpan cadangan: %1$s</string>
     <string name="save_gif_failed">Gagal menyimpan GIF: %1$s</string>

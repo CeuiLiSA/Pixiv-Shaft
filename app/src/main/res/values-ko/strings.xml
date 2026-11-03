@@ -1702,6 +1702,7 @@
     <string name="novel_header_field_series_title">시리즈 제목</string>
     <string name="novel_header_field_series_index">시리즈 내 순서</string>
     <string name="save_image_failed">이미지 저장 실패: %1$s</string>
+    <string name="save_image_cancelled">저장을 취소했습니다</string>
     <string name="save_novel_failed">소설 저장 실패: %1$s</string>
     <string name="save_backup_failed">백업 저장 실패: %1$s</string>
     <string name="save_gif_failed">GIF 저장 실패: %1$s</string>

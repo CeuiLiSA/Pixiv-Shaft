@@ -1702,6 +1702,7 @@
     <string name="novel_header_field_series_title">Series title</string>
     <string name="novel_header_field_series_index">Position in series</string>
     <string name="save_image_failed">Failed to save image: %1$s</string>
+    <string name="save_image_cancelled">Save cancelled</string>
     <string name="save_novel_failed">Failed to save novel: %1$s</string>
     <string name="save_backup_failed">Failed to save backup: %1$s</string>
     <string name="save_gif_failed">Failed to save GIF: %1$s</string>

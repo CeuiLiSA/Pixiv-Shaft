@@ -22,15 +22,8 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.viewpager.widget.ViewPager
 import ceui.lisa.R
-import ceui.lisa.core.Manager
-import ceui.lisa.core.ManagerReactive
-import ceui.lisa.core.JavaAsync
-import ceui.lisa.database.AppDatabase
-import java.util.concurrent.ConcurrentHashMap
-import ceui.lisa.database.DownloadEntity
 import ceui.lisa.databinding.ActivityImageDetailBinding
 import ceui.lisa.databinding.ViewV3FabBarBinding
-import ceui.lisa.download.FileCreator
 import ceui.lisa.download.IllustDownload
 import ceui.lisa.fragments.FragmentImageDetail
 import ceui.lisa.helper.ImageViewerTransition
@@ -43,10 +36,6 @@ import ceui.lisa.view.DragDismissLayout
 import ceui.lisa.view.SeamlessCircularProgressIndicator
 import ceui.pixiv.api.model.Illust
 import ceui.pixiv.cache.ObjectPool
-import ceui.pixiv.download.DownloadsRegistry
-import ceui.pixiv.download.ExifKeywordWriter
-import ceui.pixiv.download.IllustCaptionExporter
-import ceui.pixiv.download.config.DownloadItems
 import ceui.pixiv.imageloader.PageImageSourceResolver
 import ceui.pixiv.imageloader.awaitFile
 import ceui.pixiv.ui.filter.openImageFilter
@@ -59,6 +48,7 @@ import ceui.pixiv.snapshot.SnapshotRuntimeCache
 import ceui.pixiv.snapshot.SnapshotViewerData
 import ceui.pixiv.snapshot.ViewerBrowsingTracker
 import ceui.pixiv.snapshot.localizeIllust
+import ceui.pixiv.download.ImagePageSaver
 import ceui.pixiv.ui.detail.DownloadFab
 import ceui.pixiv.ui.detail.V3FabBarController
 import ceui.pixiv.ui.detail.ViewerPageLink
@@ -94,15 +84,13 @@ import ceui.pixiv.ui.detail.OfflineUgoira
 import ceui.pixiv.ui.detail.frames.openUgoiraFrames
 import com.blankj.utilcode.util.BarUtils
 import java.io.File
-import java.io.FileInputStream
 import java.io.UnsupportedEncodingException
 import java.net.URLDecoder
 import java.util.Locale
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import dagger.hilt.android.AndroidEntryPoint
@@ -125,6 +113,8 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
     private val translationViewModel by viewModels<ImageTranslationViewModel>()
 
     @Inject lateinit var mangaBatchTranslateCenter: MangaBatchTranslateCenter
+
+    @Inject lateinit var imagePageSaver: ImagePageSaver
 
     private var localIllust: List<String>? = ArrayList()
     private var currentPage: TextView? = null
@@ -352,11 +342,19 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
             setupFabBar()
             if (mIllust!!.isGif()) setupUgoiraFramesEntry(mIllust!!)
             checkDownload(index)
-            // 保存跑在 appScope,发起它的可能是已经退出的上一个大图页:按钮的「保存中 / 存完」跟着进程级状态刷,
-            // 翻走再翻回、退出再进同一作品都能看到进度圈,存完也会变(#1312)。
+            // 保存跑在进程级的 imagePageSaver,发起它的可能是已经退出的上一个大图页:按钮的进度 / 失败 / 存完
+            // 跟着它的状态刷,翻走再翻回、退出再进同一作品都对得上(#1312)。只在当前页的状态变了时才刷,
+            // 别的页的进度不触发这一页的「已下载」查库。
             lifecycleScope.launch {
                 repeatOnLifecycle(Lifecycle.State.STARTED) {
-                    savingPages.collect { baseBind?.viewPager?.currentItem?.let(::checkDownload) }
+                    imagePageSaver.states
+                        .map { states ->
+                            val illustId = mIllust?.id ?: return@map null
+                            val page = baseBind?.viewPager?.currentItem ?: return@map null
+                            page to states[ImagePageSaver.PageKey(illustId, page)]
+                        }
+                        .distinctUntilChanged()
+                        .collect { it?.let { (page, _) -> checkDownload(page) } }
                 }
             }
             baseBind!!
@@ -865,47 +863,27 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         fabBind.fabDownloadContainer.setOnClick {
             val illust = likeTargetIllust() ?: return@setOnClick
             val page = baseBind!!.viewPager.currentItem
-            val saveKey = illust.id to page
             if (illust.isGif()) {
                 // ugoira/gif 要 zip→帧→gif 渲染,简单文件拷贝救不了,保留原下载链路(它做 unzipAndPlay)。
                 IllustDownload.downloadIllustCertainPage(illust, page, mContext as BaseActivity<*>)
                 autoLikeAfterDownloadIfNeeded(illust, fabBar)
                 return@setOnClick
             }
-            // 这一页正显示译图:保存的就是看到的那张(原分辨率译图),不是底下的原图
-            val translated = translatedFileOf(page)
-            // 下载按钮的进度圈 / 存完的样子都由 savingPages 的订阅刷新(见 checkDownload),这里只管标记和收尾
-            if (translated != null) {
-                if (!markSaving(saveKey)) return@setOnClick
-                JavaAsync.appScope.launch {
-                    try {
-                        if (saveTranslatedPage(illust, page, translated)) {
-                            savedTranslatedFiles.add(translated.path)
-                            Common.showToast(R.string.string_181)
-                            autoLikeAfterDownloadIfNeeded(illust, fabBar)
-                        }
-                    } finally {
-                        unmarkSaving(saveKey)
-                    }
-                }
+            // 按钮怎么画全由 checkDownload 按 imagePageSaver 的状态推导,这里只按状态分派:
+            // 保存中点一下 = 取消(开始写盘后不认,照常存完);其它(含上次失败的重试态)= 开始保存
+            val key = ImagePageSaver.PageKey(illust.id, page)
+            if (imagePageSaver.states.value[key] is ImagePageSaver.PageState.Saving) {
+                imagePageSaver.cancel(key)
                 return@setOnClick
             }
-            val imageUrl =
-                IllustDownload.getUrl(illust, page, Params.IMAGE_RESOLUTION_ORIGINAL)
-                    ?: IllustDownload.getUrl(illust, page, Params.IMAGE_RESOLUTION_LARGE)
+            // 这一页正显示译图:保存的就是看到的那张(原分辨率译图),不是底下的原图
+            val target =
+                translatedFileOf(page)?.let { ImagePageSaver.Target.Translated(it) }
+                    ?: (IllustDownload.getUrl(illust, page, Params.IMAGE_RESOLUTION_ORIGINAL)
+                        ?: IllustDownload.getUrl(illust, page, Params.IMAGE_RESOLUTION_LARGE))
+                        ?.let { ImagePageSaver.Target.Original(it) }
                     ?: return@setOnClick
-            if (!markSaving(saveKey)) return@setOnClick
-            JavaAsync.appScope.launch {
-                try {
-                    IllustCaptionExporter.export(illust)
-                    if (saveLoadedIllustPage(illust, page, imageUrl)) {
-                        Common.showToast(R.string.string_181)
-                        autoLikeAfterDownloadIfNeeded(illust, fabBar)
-                    }
-                } finally {
-                    unmarkSaving(saveKey)
-                }
-            }
+            imagePageSaver.save(illust, page, target)
         }
 
         fabBind.fabBookmark.setOnClick {
@@ -967,14 +945,26 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
 
     private fun checkDownload(i: Int) {
         val illust = mIllust ?: return
-        // 这一页还在保存(可能是上一个大图页发起的):显示进度圈。否则再点会被去重默默吞掉,看着像按钮失灵
-        if ((illust.id to i) in savingPages.value) {
-            fabBar?.renderDownload(DownloadFab.Downloading(0))
+        val key = ImagePageSaver.PageKey(illust.id, i)
+        val saveState = imagePageSaver.states.value[key]
+        // 这一页还在保存(可能是上一个大图页发起的):进度圈,点一下取消
+        if (saveState is ImagePageSaver.PageState.Saving) {
+            fabBar?.renderDownload(DownloadFab.Downloading(saveState.percent))
             return
         }
+        // 走到这里 saveState 只可能是 Failed 或 null。失败只对「存失败的那张」显示重试态:
+        // 存译图失败后取消勾选「显示译图」,按钮存的就换成原图了,不该亮重试。
+        val failedTarget = saveState?.target
         // 译图页的下载按钮保存的是译图,原图的「已下载」不代表译图存过,别亮绿勾误导;只认本进程存过的这张译图
-        translatedFileOf(i)?.let {
-            fabBar?.renderDownload(if (it.path in savedTranslatedFiles) DownloadFab.Done else DownloadFab.Idle)
+        translatedFileOf(i)?.let { file ->
+            fabBar?.renderDownload(
+                when {
+                    imagePageSaver.isTranslationSaved(file) -> DownloadFab.Done
+                    (failedTarget as? ImagePageSaver.Target.Translated)?.file?.path == file.path ->
+                        DownloadFab.Resume(0)
+                    else -> DownloadFab.Idle
+                }
+            )
             return
         }
         lifecycleScope.launch {
@@ -986,176 +976,23 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
             if (baseBind?.viewPager?.currentItem != i) return@launch
             // 探测期间这页的译图到位了(重进看图页时译图在 onStart 才投影过来):按钮已按译图刷好
             if (translatedFileOf(i) != null) return@launch
-            // 探测期间这页开始保存了:按钮已被订阅刷成进度圈,旧结果别盖掉
-            if ((illust.id to i) in savingPages.value) return@launch
-            // 对齐一级 V3 详情页:已下载的页显示绿色「已下载」勾,而不是把按钮藏起来
-            fabBar?.renderDownload(if (downloaded) DownloadFab.Done else DownloadFab.Idle)
+            // 探测期间这页的保存状态变了(开始存 / 失败 / 存完):订阅会再刷一次,旧结果别盖掉
+            if (imagePageSaver.states.value[key] != saveState) return@launch
+            // 对齐一级 V3 详情页:已下载的页显示绿色「已下载」勾,而不是把按钮藏起来。已下载优先于
+            // 上次的保存失败(之后批量下载可能已经把这页补上了);重试态与一级详情页「只剩失败页」同一个图标
+            fabBar?.renderDownload(
+                when {
+                    downloaded -> DownloadFab.Done
+                    failedTarget is ImagePageSaver.Target.Original -> DownloadFab.Resume(0)
+                    else -> DownloadFab.Idle
+                }
+            )
         }
     }
 
     /** 这一页当前显示的译图文件(有译图且勾着「显示译图」才替换显示);否则返回 null,按原图处理。 */
     private fun translatedFileOf(page: Int): File? =
         translationViewModel.displayedTranslatedPaths.value?.get(page)?.let(::File)?.takeIf { it.exists() }
-
-    /**
-     * 保存译图:按用户插画模板命名并加 [TRANSLATED_FILENAME_SUFFIX],与原图并存、互不覆盖。
-     * 译图是派生图片,不写「已下载」库 —— 那张表的记录会被详情页当原图本地副本复用。
-     */
-    private suspend fun saveTranslatedPage(illust: Illust, page: Int, file: File): Boolean =
-        withContext(Dispatchers.IO) {
-            val appContext = Shaft.getContext()
-            runCatching {
-                // open 返回 null = Skip 策略且同名译图已存在 → 视为已保存
-                val handle =
-                    DownloadsRegistry.downloads.openDerived(
-                        DownloadItems.illustTranslated(illust, page),
-                        TRANSLATED_FILENAME_SUFFIX,
-                    ) ?: return@runCatching true
-                try {
-                    handle.stream.use { out -> FileInputStream(file).use { it.copyTo(out) } }
-                    handle.onFinish()
-                } catch (t: Throwable) {
-                    handle.onAbort()
-                    throw t
-                }
-                true
-            }
-                .getOrElse { ex ->
-                    if (ex is CancellationException) throw ex
-                    Timber.e(ex, "[ImageDetail] saveTranslatedPage failed page=%d", page)
-                    withContext(Dispatchers.Main) {
-                        Common.showToast(
-                            appContext.getString(R.string.save_image_failed, ex.message ?: ex.javaClass.simpleName)
-                        )
-                    }
-                    false
-                }
-        }
-
-    /**
-     * 「保存这一张」：复用大图页已加载的原图(与显示层同一 imageloader 共享任务,不重新下载),走**新**下载后端 [DownloadsRegistry]
-     * 按用户命名模板/存储配置写盘;并记一条 [DownloadEntity]，让「已下载」列表与详情本地复用 (findDownloadedPageUri 仍查 DB)保持一致。按钮隐藏靠
-     * [Common.isIllustDownloaded] → 新后端 `exists()` 自动生效。 不再走旧 `IllustDownload` / 不重下原图。
-     */
-    private suspend fun saveLoadedIllustPage(illust: Illust, page: Int, imageUrl: String): Boolean =
-        withContext(Dispatchers.IO) {
-            val appContext = Shaft.getContext()
-            var resolveError: Throwable? = null
-            val file =
-                try {
-                    PageImageSourceResolver.resolve(appContext, illust, page, imageUrl)
-                        .awaitFile(appContext)
-                } catch (e: CancellationException) {
-                    throw e
-                } catch (e: Exception) {
-                    Timber.w(e, "[ImageDetail] save: await loaded file failed page=%d", page)
-                    resolveError = e
-                    null
-                }
-            if (file == null) {
-                val detail = resolveError?.message ?: resolveError?.javaClass?.simpleName
-                withContext(Dispatchers.Main) {
-                    Common.showToast(
-                        appContext.getString(R.string.save_image_failed, detail ?: "load error")
-                    )
-                }
-                return@withContext false
-            }
-
-            // 批量下载正在写同一张图时先等它收尾(#1312):两边写的是同一个模板目标,替换策略下同时写会
-            // 多出 " (1)" 副本,或一方补写完标签后被另一方剩下的字节改坏。借 Manager 的同 url 单主锁。
-            // 我们占着的那一小段写盘窗口里 Manager 刚好开传这张图,会按「stage key busy」把那一页判失败:
-            // 批量队列会自动重试,详情页「下载全部」直接进 Manager 的不会,停在失败等用户点重试
-            // (文件本身这边已经写好并记了账)。要在下面落副本之前拿到:本地来源可能正是队列在写的那个目标文件。
-            val manager = Manager.get()
-            while (!manager.tryAcquireUrlWrite(imageUrl)) delay(URL_WRITE_POLL_MS)
-            try {
-                // 这一页已下载时,本地来源可能正是这次要写的目标本身(同模板同路径)。替换策略下后端会先删 /
-                // 截断目标再写,边读边写就把用户的原图抹成 0 字节。私有目录之外的来源先落一份副本再写。
-                val staged =
-                    if (file.isInsideAppPrivateDir()) null
-                    else runCatching {
-                        File.createTempFile("save_src", null, appContext.cacheDir).also { file.copyTo(it, overwrite = true) }
-                    }.getOrElse {
-                        if (it is CancellationException) throw it
-                        Timber.w(it, "[ImageDetail] save: stage local source failed page=%d", page)
-                        withContext(Dispatchers.Main) {
-                            Common.showToast(
-                                appContext.getString(R.string.save_image_failed, it.message ?: it.javaClass.simpleName)
-                            )
-                        }
-                        return@withContext false
-                    }
-                val source = staged ?: file
-
-                runCatching {
-                    // open() 返回 null = Skip 策略且文件已存在 → 视为已保存,无需重写。
-                    val handle =
-                        DownloadsRegistry.downloads.open(DownloadItems.illustPage(illust, page))
-                            ?: return@runCatching true
-                    try {
-                        handle.stream.use { out -> FileInputStream(source).use { it.copyTo(out) } }
-                        handle.onFinish()
-                    } catch (t: Throwable) {
-                        handle.onAbort()
-                        throw t
-                    }
-                    // 可选:标签写进 JPEG XMP 关键词(issue #938)。放在 commit 之后、onAbort 作用域之外,
-                    // 免得写元数据抛错误删掉已成功的文件。整段再包一层 runCatching:即便标签取值意外抛错,
-                    // 也不能连累下面「已下载」写库(否则文件在盘上却不记账)。开关默认关时直接跳过,零开销。
-                    if (Shaft.sSettings.isWriteTagsToImageExif()) {
-                        runCatching {
-                            ExifKeywordWriter.writeIfEnabled(
-                                appContext,
-                                handle.uri,
-                                FileCreator.customFileName(illust, page),
-                                illust.tags.orEmpty().mapNotNull { it?.name },
-                            )
-                        }
-                    }
-                    // 与 Manager 成功分支一致地写库(fileName 用 FileCreator=模板命名,filePath 用写盘 uri)。
-                    val entity =
-                        DownloadEntity().apply {
-                            illustGson = ceui.pixiv.download.model.DownloadRecordSlim.createIllustJson(illust)
-                            fileName = FileCreator.customFileName(illust, page)
-                            downloadTime = System.currentTimeMillis()
-                            filePath = handle.uri.toString()
-                            // v41 的 page 列 —— 与 Manager 成功分支一致，让按 (illustId, page) 的
-                            // 查询也能命中「保存这一张」写下的记录。
-                            this.page = page
-                        }
-                    // insertDownload 会从 illustGson 顶层 id 补上 illustId（走 v38 索引）。
-                    AppDatabase.getAppDatabase(appContext).downloadDao().insertDownload(entity)
-                    ManagerReactive.pokeDoneTable()
-                    true
-                }
-                    .getOrElse { ex ->
-                        if (ex is CancellationException) throw ex
-                        Timber.e(ex, "[ImageDetail] saveLoadedIllustPage failed page=%d", page)
-                        withContext(Dispatchers.Main) {
-                            Common.showToast(
-                                appContext.getString(
-                                    R.string.save_image_failed,
-                                    ex.message ?: ex.javaClass.simpleName,
-                                )
-                            )
-                        }
-                        false
-                    }
-                    .also { staged?.delete() }
-            } finally {
-                manager.releaseUrlWrite(imageUrl)
-            }
-        }
-
-    /** 查看器缓存 / 快照存档都在私有目录里,不可能是下载后端的写入目标,无需另拷一份。 */
-    private fun File.isInsideAppPrivateDir(): Boolean {
-        val path = canonicalPath
-        val ctx = Shaft.getContext()
-        return listOfNotNull(ctx.cacheDir, ctx.filesDir, ctx.externalCacheDir).any {
-            path.startsWith(it.canonicalPath + File.separator)
-        }
-    }
 
     override fun initData() {
         // 返回键/返回手势与下拉收掉共用 dismissViewer 收场动画。targetSdk 35+ 后预测式返回
@@ -1791,31 +1628,5 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
     companion object {
         /** 进场缩略图矩形(屏幕坐标 [left, top, right, bottom]),发起端可选携带;没带则居中淡入。 */
         const val EXTRA_ENTER_BOUNDS = "enter_bounds"
-
-        /** 译图文件名后缀,插在用户模板文件名与扩展名之间,避免覆盖原图。 */
-        private const val TRANSLATED_FILENAME_SUFFIX = "_translated"
-
-        /**
-         * 正在保存的 (作品 id, 页)。进程级:保存跑在 appScope,退出大图再进同一作品时上一份可能还在写,
-         * 按页面实例去重挡不住第二份并发写同一个目标(#1312)。大图页在前台时订阅它刷新下载按钮。
-         */
-        private val savingPages = MutableStateFlow<Set<Pair<Long, Int>>>(emptySet())
-
-        /** 本进程存过的译图文件。译图每次产出都是新文件、也不进「已下载」库,译图页的「已保存」只能靠它判断。 */
-        private val savedTranslatedFiles = ConcurrentHashMap.newKeySet<String>()
-
-        /** 原子地占住这一页;已经在存了返回 false。 */
-        private fun markSaving(key: Pair<Long, Int>): Boolean {
-            while (true) {
-                val current = savingPages.value
-                if (key in current) return false
-                if (savingPages.compareAndSet(current, current + key)) return true
-            }
-        }
-
-        private fun unmarkSaving(key: Pair<Long, Int>) = savingPages.update { it - key }
-
-        /** 批量下载正占着同一张图时,保存隔多久再问一次能不能写。 */
-        private const val URL_WRITE_POLL_MS = 250L
     }
 }

@@ -1702,6 +1702,7 @@
     <string name="novel_header_field_series_title">Название серии</string>
     <string name="novel_header_field_series_index">Номер в серии</string>
     <string name="save_image_failed">Не удалось сохранить изображение: %1$s</string>
+    <string name="save_image_cancelled">Сохранение отменено</string>
     <string name="save_novel_failed">Не удалось сохранить роман: %1$s</string>
     <string name="save_backup_failed">Не удалось сохранить резервную копию: %1$s</string>
     <string name="save_gif_failed">Не удалось сохранить GIF: %1$s</string>

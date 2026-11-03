@@ -15,14 +15,15 @@ import java.io.File
  * - [PageImageSource.Local] 但只有 uri（`content://`）→ 拷进 `cacheDir/page_src/`；
  * - [PageImageSource.Remote] → `task.awaitFile()`，语义与今天完全一致（Error 会 retry 一次，
  *   最终仍失败时抛异常，调用方照旧自己 catch，并记得把 `CancellationException` 重抛出去）；
+ *   [onProgress] 只在这一支有意义：共享加载任务的下载百分比（本地来源不回调）；
  * - [PageImageSource.Unavailable] → null。
  *
  * **拷贝只发生在真正需要 `File` 的这一侧** —— 这正是渲染层能安心接入统一模型的原因：
  * 它拿的是 [PageImageSource.Local.renderModel]，全程零拷贝。
  */
-suspend fun PageImageSource.awaitFile(context: Context): File? = when (this) {
+suspend fun PageImageSource.awaitFile(context: Context, onProgress: (Int) -> Unit = {}): File? = when (this) {
     is PageImageSource.Local -> file ?: copyLocalUriToCache(context, uri)
-    is PageImageSource.Remote -> task.awaitFile()
+    is PageImageSource.Remote -> task.awaitFile(onProgress)
     PageImageSource.Unavailable -> null
 }
 

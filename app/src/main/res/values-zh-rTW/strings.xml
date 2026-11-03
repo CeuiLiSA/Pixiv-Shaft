@@ -1703,6 +1703,7 @@
     <string name="novel_header_field_series_title">系列總標題</string>
     <string name="novel_header_field_series_index">系列中的序號</string>
     <string name="save_image_failed">圖片儲存失敗：%1$s</string>
+    <string name="save_image_cancelled">已取消儲存</string>
     <string name="save_novel_failed">小說儲存失敗：%1$s</string>
     <string name="save_backup_failed">備份儲存失敗：%1$s</string>
     <string name="save_gif_failed">GIF 儲存失敗：%1$s</string>
