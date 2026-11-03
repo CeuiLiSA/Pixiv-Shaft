@@ -122,18 +122,22 @@ class DiscoverViewModel(application: Application) : AndroidViewModel(application
                 Timber.d("Discovery/Repo latest got ${illusts.size} items")
                 pool.collect(illusts, "latest:illust")
                 withContext(Dispatchers.Default) {
-                    illusts.filter { illust ->
+                    val filtered = illusts.filter { illust ->
                         // 过滤 user==null 的脏数据:RAdapter 直接取 user.name / 头像,null 会 NPE 崩。
                         // 货架卡片画不出遮罩 / 模糊层,「屏蔽此作品」与模糊级 AI 也一并滤掉(对齐旧 Mapper)。
                         illust.user != null &&
-                            IllustFeedItem.passesContentFilters(illust, skipR18Filter = false) &&
-                            !IllustNovelFilter.judgeID(illust) &&
-                            !IllustNovelFilter.shouldBlurAi(illust)
-                    }.take(RAIL_LIMIT).onEach { illust ->
-                        // 入池：货架点击进 VActivity/ArtworkV3 是按 id 读池的，不入池首屏就得先转圈拉
-                        // illust/detail（对齐旧 Mapper 与 feeds 侧 IllustFeedSync 的做法）。后台线程调用安全。
-                        ObjectPool.updateIllust(illust)
-                    }
+                                IllustFeedItem.passesContentFilters(
+                                    illust,
+                                    skipR18Filter = false
+                                ) &&
+                                !IllustNovelFilter.judgeID(illust) &&
+                                !IllustNovelFilter.shouldBlurAi(illust)
+                    }.take(RAIL_LIMIT)
+                    // 入池：货架点击进 VActivity/ArtworkV3 是按 id 读池的，不入池首屏就得先转圈拉
+                    // illust/detail（对齐旧 Mapper 与 feeds 侧 IllustFeedSync 的做法）。后台线程调用安全。
+                    // 批量事务单次加锁合池，自动执行作者去重。
+                    ObjectPool.updateIllusts(filtered)
+                    filtered
                 }
             } catch (e: CancellationException) {
                 throw e

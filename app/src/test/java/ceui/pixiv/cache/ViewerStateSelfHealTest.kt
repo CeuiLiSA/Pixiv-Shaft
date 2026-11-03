@@ -272,6 +272,37 @@ class ViewerStateSelfHealTest {
         assertEquals(true, ObjectPool.get<User>(authorId).value?.is_followed)
     }
 
+    @Test
+    fun `批量合池事务_多作品同批合入且同画师自动去重`() {
+        val illustId1 = 8_010L
+        val illustId2 = 8_011L
+        val illustId3 = 8_012L
+        val authorId1 = 9_020L
+        val authorId2 = 9_021L
+
+        val illust1 = illust(illustId1, authorId1, bookmarked = true, followed = true)
+        val illust2 = illust(illustId2, authorId1, bookmarked = false, followed = false)
+        val illust3 = illust(illustId3, authorId2, bookmarked = true, followed = false)
+
+        ObjectPool.updateIllustsTrusted(listOf(illust1, illust2, illust3))
+
+        // 全部作品均已入池且 viewer 态标为可信
+        assertTrue(ObjectPool.isIllustViewerStateTrusted(illustId1))
+        assertTrue(ObjectPool.isIllustViewerStateTrusted(illustId2))
+        assertTrue(ObjectPool.isIllustViewerStateTrusted(illustId3))
+        assertEquals(illustId1, poolIllust(illustId1).id)
+        assertEquals(illustId2, poolIllust(illustId2).id)
+        assertEquals(illustId3, poolIllust(illustId3).id)
+
+        // 作者均标为可信
+        assertTrue(ObjectPool.isViewerStateTrusted(authorId1, ceui.lisa.models.ObjectSpec.KUser))
+        assertTrue(ObjectPool.isViewerStateTrusted(authorId2, ceui.lisa.models.ObjectSpec.KUser))
+
+        // authorId1 在批次内自动去重：保留首次写入的 followed=true，未被 illust2 的 followed=false 覆盖
+        assertEquals(true, ObjectPool.get<User>(authorId1).value?.is_followed)
+        assertEquals(false, ObjectPool.get<User>(authorId2).value?.is_followed)
+    }
+
     private fun illust(
         id: Long,
         authorId: Long,

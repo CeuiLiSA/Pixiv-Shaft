@@ -117,6 +117,45 @@ object ObjectPool {
     }
 
     /**
+     * 作品列表批量合池。
+     *
+     * 内部自动处理：
+     *  - 批次内作者去重（同画师多张作品只合入一次 User 条目，避免同画师连发作品时反复 merge 与打池）；
+     *  - 统一调用 [updateObjects] 走单次加锁事务。
+     */
+    @JvmOverloads
+    fun updateIllusts(
+        illusts: Collection<Illust>,
+        updateUser: Boolean = true,
+        isTrusted: Boolean = false
+    ) {
+        if (illusts.isEmpty()) return
+        val items = ArrayList<ModelObject>(if (updateUser) illusts.size * 2 else illusts.size)
+        val seenAuthors = if (updateUser) HashSet<Long>() else null
+        for (illust in illusts) {
+            items.add(illust)
+            if (updateUser) {
+                val user = illust.user
+                if (user != null && user.id > 0L && seenAuthors!!.add(user.id)) {
+                    items.add(user)
+                }
+            }
+        }
+        updateObjects(items, isFullVersion = false, isTrusted = isTrusted)
+    }
+
+    /**
+     * 官方作品列表批量合池，并将作品与作者条目的 viewer 态重置为可信。
+     */
+    @JvmOverloads
+    fun updateIllustsTrusted(
+        illusts: Collection<Illust>,
+        updateUser: Boolean = true
+    ) {
+        updateIllusts(illusts, updateUser = updateUser, isTrusted = true)
+    }
+
+    /**
      * @param illustId The id of specified illustration
      * @return
      * */
@@ -208,6 +247,61 @@ object ObjectPool {
             }
         }
         Log.d("updateObjectPool", "对象池大小：$size")
+    }
+
+    /**
+     * 批量合池通用事务接口。
+     *
+     * 一次性加锁：
+     *  - 计算并写入新对象的 MutableLiveData；
+     *  - 收集已存在对象的 LiveData 引用（更新与 merge 留到锁外做，避免 observer 回调死锁）；
+     *  - 若 isTrusted / isFullVersion 为真，同步维护权威/可信度标记；
+     *  - 整个批次只在最后调用一次 [trimLocked]；
+     *  - 统一打印单条聚合日志，避免整页列表打池时产生几十条高频 Logcat。
+     */
+    @JvmOverloads
+    fun updateObjects(
+        objects: Collection<ModelObject>,
+        isFullVersion: Boolean = false,
+        isTrusted: Boolean = false
+    ) {
+        if (objects.isEmpty()) return
+        val toUpdateOutsideLock = ArrayList<Pair<MutableLiveData<Any>, ModelObject>>()
+        synchronized(lock) {
+            for (obj in objects) {
+                val key = ObjectKey(obj.objectUniqueId, obj.objectType)
+                if (isFullVersion) {
+                    fullVersionKeys.add(key)
+                    untrustedViewerKeys.remove(key)
+                } else if (isTrusted) {
+                    untrustedViewerKeys.remove(key)
+                }
+                val existing = store[key]
+                if (existing == null) {
+                    store[key] = MutableLiveData<Any>(obj)
+                } else {
+                    toUpdateOutsideLock.add(existing to obj)
+                }
+            }
+            trimLocked()
+        }
+        for ((storedObject, obj) in toUpdateOutsideLock) {
+            val lastValue = storedObject.value
+            val toSet = if (isFullVersion || lastValue == null || lastValue === obj) {
+                obj
+            } else {
+                mergeKeepingExisting(obj.javaClass, lastValue, obj)
+            }
+            try {
+                storedObject.value = toSet
+            } catch (ex: Exception) {
+                storedObject.postValue(toSet)
+            }
+        }
+        Log.d(
+            "updateObjectPool",
+            "批量事务合池完成：合入 ${objects.size} 个条目，当前对象池大小：$size"
+        )
     }
 
     /**
