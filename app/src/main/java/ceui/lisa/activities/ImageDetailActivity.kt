@@ -49,6 +49,7 @@ import ceui.pixiv.snapshot.SnapshotViewerData
 import ceui.pixiv.snapshot.ViewerBrowsingTracker
 import ceui.pixiv.snapshot.localizeIllust
 import ceui.pixiv.download.ImagePageSaver
+import ceui.pixiv.ui.download.PageDownloadSheet
 import ceui.pixiv.ui.detail.DownloadFab
 import ceui.pixiv.ui.detail.V3FabBarController
 import ceui.pixiv.ui.detail.ViewerPageLink
@@ -884,6 +885,14 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                         ?.let { ImagePageSaver.Target.Original(it) }
                     ?: return@setOnClick
             imagePageSaver.save(illust, page, target)
+        }
+
+        fabBind.fabDownloadContainer.setOnLongClickListener {
+            val illust = likeTargetIllust() ?: return@setOnLongClickListener true
+            if (!illust.isGif()) {
+                PageDownloadSheet.show(this, illust, baseBind?.viewPager?.currentItem ?: 0)
+            }
+            true
         }
 
         fabBind.fabBookmark.setOnClick {

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="dlmgr_section_downloads">ダウンロード</string>
+    <string name="dlmgr_section_saves">画像の保存</string>
+    <string name="dlmgr_section_count">%1$s  %2$d</string>
+    <string name="page_save_scope_hint">ビューアーから開始した元画像の保存です。ビューアーを閉じても続行され、ダウンロードの一括操作とは別に管理されます。</string>
+    <string name="page_save_empty">保存待ちの画像はありません\n保存した元画像は「完了」で確認できます</string>
+    <string name="page_save_page">%1$d / %2$d ページ</string>
+    <string name="page_save_retry">再試行</string>
+    <string name="page_save_cancel">保存をキャンセル</string>
+    <string name="page_save_remove">履歴を削除</string>
+    <string name="page_save_failed">保存に失敗：%1$s</string>
+    <string name="page_save_unknown_error">不明なエラー</string>
+    <string name="page_save_writing">保存中のためキャンセルできません</string>
+    <string name="page_save_waiting">他のダウンロードの書き込み完了を待機中</string>
+    <string name="page_save_loading">画像を待機中 · %1$d%%</string>
+    <string name="page_download_title">ページを選んでダウンロード</string>
+    <string name="page_download_hint">選択したページを既定の解像度でダウンロード管理に追加します。未選択ページのタスクは追加されません。</string>
+    <string name="page_download_current">現在のみ</string>
+    <string name="page_download_all">すべて選択</string>
+    <string name="page_download_clear">選択を解除</string>
+    <string name="page_download_missing">未保存を選択</string>
+    <string name="page_download_confirm">選択した %1$d 枚をダウンロード</string>
+    <string name="page_download_saved">保存済み</string>
+    <string name="page_download_queued">タスクあり</string>
+    <string name="page_download_unavailable">ページ情報を取得できません。作品を開き直してください。</string>
+    <string name="page_download_submitted">%1$d 枚を追加しました。情報を取得できないページ：%2$d 枚。既存タスクの重複は除外されます。</string>
+</resources>

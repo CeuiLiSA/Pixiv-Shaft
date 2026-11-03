@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="dlmgr_section_downloads">下載任務</string>
+    <string name="dlmgr_section_saves">單張儲存</string>
+    <string name="dlmgr_section_count">%1$s  %2$d</string>
+    <string name="page_save_scope_hint">大圖頁發起的原圖儲存。離開看圖後仍會繼續，不受下載任務的批次操作控制。</string>
+    <string name="page_save_empty">暫無待處理的單張儲存\n儲存成功後可在「已完成」查看</string>
+    <string name="page_save_page">第 %1$d / %2$d 張</string>
+    <string name="page_save_retry">重試</string>
+    <string name="page_save_cancel">取消儲存</string>
+    <string name="page_save_remove">移除紀錄</string>
+    <string name="page_save_failed">儲存失敗：%1$s</string>
+    <string name="page_save_unknown_error">未知錯誤</string>
+    <string name="page_save_writing">正在儲存，暫不可取消</string>
+    <string name="page_save_waiting">等待其他下載完成寫入</string>
+    <string name="page_save_loading">等待圖片就緒 · %1$d%%</string>
+    <string name="page_download_title">選擇頁面下載</string>
+    <string name="page_download_hint">所選頁面依設定中的預設解析度下載，交給下載管理；不會新增未選頁面的任務。</string>
+    <string name="page_download_current">僅目前頁</string>
+    <string name="page_download_all">全選</string>
+    <string name="page_download_clear">取消全選</string>
+    <string name="page_download_missing">選未下載</string>
+    <string name="page_download_confirm">下載所選 %1$d 張</string>
+    <string name="page_download_saved">已下載</string>
+    <string name="page_download_queued">已有任務</string>
+    <string name="page_download_unavailable">無法取得所選頁面的資訊，請重新開啟作品後再試</string>
+    <string name="page_download_submitted">已提交 %1$d 張下載，%2$d 張頁面資訊無法取得；已有任務會自動去重</string>
+</resources>

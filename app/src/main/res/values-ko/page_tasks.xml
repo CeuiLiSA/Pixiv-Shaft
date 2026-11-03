@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="dlmgr_section_downloads">다운로드 작업</string>
+    <string name="dlmgr_section_saves">이미지 저장</string>
+    <string name="dlmgr_section_count">%1$s  %2$d</string>
+    <string name="page_save_scope_hint">뷰어에서 시작한 원본 이미지 저장입니다. 뷰어를 닫아도 계속되며 다운로드 일괄 작업과 별도로 관리됩니다.</string>
+    <string name="page_save_empty">대기 중인 이미지 저장이 없습니다\n저장된 원본은 완료 목록에서 확인할 수 있습니다</string>
+    <string name="page_save_page">%1$d / %2$d 페이지</string>
+    <string name="page_save_retry">재시도</string>
+    <string name="page_save_cancel">저장 취소</string>
+    <string name="page_save_remove">기록 지우기</string>
+    <string name="page_save_failed">저장 실패: %1$s</string>
+    <string name="page_save_unknown_error">알 수 없는 오류</string>
+    <string name="page_save_writing">저장 중에는 취소할 수 없습니다</string>
+    <string name="page_save_waiting">다른 다운로드의 파일 쓰기가 끝나기를 기다리는 중</string>
+    <string name="page_save_loading">이미지 준비 대기 · %1$d%%</string>
+    <string name="page_download_title">페이지 선택 다운로드</string>
+    <string name="page_download_hint">선택한 페이지를 기본 해상도로 다운로드 관리에 추가합니다. 선택하지 않은 페이지의 작업은 추가하지 않습니다.</string>
+    <string name="page_download_current">현재 페이지만</string>
+    <string name="page_download_all">전체 선택</string>
+    <string name="page_download_clear">선택 해제</string>
+    <string name="page_download_missing">미저장 선택</string>
+    <string name="page_download_confirm">선택한 %1$d장 다운로드</string>
+    <string name="page_download_saved">다운로드됨</string>
+    <string name="page_download_queued">기존 작업 있음</string>
+    <string name="page_download_unavailable">페이지 정보를 가져올 수 없습니다. 작품을 다시 열어 주세요.</string>
+    <string name="page_download_submitted">%1$d장을 제출했습니다. 정보를 사용할 수 없는 페이지: %2$d장. 기존 작업의 중복은 제외됩니다.</string>
+</resources>

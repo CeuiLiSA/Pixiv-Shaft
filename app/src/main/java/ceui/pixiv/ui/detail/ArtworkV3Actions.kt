@@ -23,6 +23,7 @@ import ceui.lisa.utils.ShareIllust
 import ceui.pixiv.api.model.Illust
 import ceui.pixiv.cache.ObjectPool
 import ceui.pixiv.download.DownloadRecordStateSource
+import ceui.pixiv.ui.download.PageDownloadSheet
 import ceui.pixiv.snapshot.showSnapshotCreateDialog
 import ceui.pixiv.ui.bookmark.SelectTagBottomSheet
 import ceui.pixiv.ui.detail.frames.openUgoiraFrames
@@ -106,12 +107,14 @@ internal class ArtworkV3Actions(
             val illust = currentIllust() ?: return@setOnLongClickListener true
             val baseAct = fragment.requireActivity() as? BaseActivity<*>
             val resNames =
-                arrayOf(
+                mutableListOf(
                     context.getString(R.string.resolution_original),
                     context.getString(R.string.resolution_large),
                     context.getString(R.string.resolution_medium),
                     context.getString(R.string.resolution_square_medium),
-                )
+                ).apply {
+                    if (!illust.isGif()) add(context.getString(R.string.page_download_title))
+                }.toTypedArray()
             val resValues =
                 arrayOf(
                     Params.IMAGE_RESOLUTION_ORIGINAL,
@@ -121,6 +124,11 @@ internal class ArtworkV3Actions(
                 )
             WitDialog.MenuDialogBuilder(context)
                 .addItems(resNames) { dialog, which ->
+                    if (which == resValues.size) {
+                        dialog.dismiss()
+                        PageDownloadSheet.show(fragment.requireActivity(), illust, currentPageIndex())
+                        return@addItems
+                    }
                     if (illust.page_count == 1) {
                         IllustDownload.downloadIllustFirstPageWithResolution(
                             illust,

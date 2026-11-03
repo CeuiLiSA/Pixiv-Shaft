@@ -145,6 +145,51 @@ public class IllustDownload {
         });
     }
 
+    /** Selected static pages use Manager's existing page scheduler, not the whole-work queue. */
+    public static void downloadIllustPagesWithResolution(Illust illust, int[] pages,
+                                                        String resolution, BaseActivity<?> activity) {
+        if (illust == null || pages == null || pages.length == 0 || illust.isGif()) return;
+        if (activity == null) {
+            Common.showToast(R.string.page_download_unavailable);
+            return;
+        }
+        final int[] requested = pages.clone();
+        check(activity, () -> {
+            if (needsFullData(illust)) {
+                ensureFullThenRun(illust, full -> doDownloadSelectedPages(full, requested, resolution));
+            } else {
+                doDownloadSelectedPages(illust, requested, resolution);
+            }
+        });
+    }
+
+    private static void doDownloadSelectedPages(Illust illust, int[] pages, String resolution) {
+        java.util.SortedSet<Integer> unique = new java.util.TreeSet<>();
+        int total = Math.max(1, illust.getPage_count());
+        for (int page : pages) if (page >= 0 && page < total) unique.add(page);
+        List<DownloadItem> items = new ArrayList<>();
+        for (int page : unique) {
+            // Missing full metadata must never silently turn a selected page into the cover.
+            if (illust.getPage_count() > 1 && (illust.getMeta_pages() == null
+                    || page >= illust.getMeta_pages().size()
+                    || illust.getMeta_pages().get(page) == null
+                    || illust.getMeta_pages().get(page).getImage_urls() == null)) continue;
+            String url = getUrl(illust, page, resolution);
+            if (TextUtils.isEmpty(url)) continue;
+            DownloadItem item = buildDownloadItem(illust, page, resolution);
+            if (item != null) items.add(item);
+        }
+        if (items.isEmpty()) {
+            Common.showToast(R.string.page_download_unavailable);
+            return;
+        }
+        IllustCaptionExporter.export(illust);
+        Manager.get().addTasks(items); // Atomic URL dedup also covers a concurrent whole-work enqueue.
+        trackDownload(illust, items.size());
+        DownloadToasts.show(DownloadToastKind.ENQUEUED, Shaft.getContext().getString(
+                R.string.page_download_submitted, items.size(), unique.size() - items.size()));
+    }
+
     /**
      * 设置里的「默认下载分辨率」,没设过则原图。所有**不让用户当场选分辨率**的下载入口
      * (主下载按钮 / 收藏后自动下载)都该用它,而不是直接写死 IMAGE_RESOLUTION_ORIGINAL。

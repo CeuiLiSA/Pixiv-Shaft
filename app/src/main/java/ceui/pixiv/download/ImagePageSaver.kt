@@ -41,7 +41,7 @@ import timber.log.Timber
 /**
  * 二级大图页「保存这一张」的进程级执行者 + 状态源(#1312)。
  *
- * 刻意**不**进 QueueDownloadManager / 下载管理页:队列的语义是「整部作品」,单页入队会让人误以为整部都下完了。
+ * 不进入 QueueDownloadManager；下载管理的「单张保存」子页只展示本执行者的状态。
  * 这里只管三件事:
  * - **执行**:任务跑在进程级 [scope],退出大图页照样存完,也不捕获任何页面
  * - **状态**:[states] 按 (作品 id, 页) 给出「保存中(进度)/ 失败」,大图页订阅它画下载按钮。
@@ -58,6 +58,10 @@ class ImagePageSaver @Inject constructor(@ApplicationContext context: Context) {
 
     data class PageKey(val illustId: Long, val page: Int)
 
+    data class Request(val illust: Illust, val page: Int, val target: Target)
+
+    enum class Phase { LOADING, WAITING_TO_WRITE, WRITING }
+
     /** 存哪张图:原图(取大图页已加载的那份,不重下),或这一页当前显示的译图文件。 */
     sealed interface Target {
         data class Original(val imageUrl: String) : Target
@@ -69,15 +73,41 @@ class ImagePageSaver @Inject constructor(@ApplicationContext context: Context) {
         val target: Target
 
         /** [percent] 是原图加载进度;来源已在本地时直接是 100。 */
-        data class Saving(override val target: Target, val percent: Int) : PageState
+        data class Saving(
+            override val target: Target,
+            val percent: Int,
+            val phase: Phase = Phase.LOADING,
+        ) : PageState
 
-        data class Failed(override val target: Target) : PageState
+        data class Failed(override val target: Target, val error: String = "") : PageState
     }
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
     private val _states = MutableStateFlow<Map<PageKey, PageState>>(emptyMap())
     val states: StateFlow<Map<PageKey, PageState>> = _states.asStateFlow()
+
+    // Only model data is retained: never keep an Activity, View, or callback for a retry.
+    private val requests = ConcurrentHashMap<PageKey, Request>()
+    private val errors = ConcurrentHashMap<PageKey, String>()
+
+    fun request(key: PageKey): Request? = requests[key]
+
+    @MainThread
+    fun retry(key: PageKey): Boolean {
+        if (_states.value[key] !is PageState.Failed) return false
+        val request = requests[key] ?: return false
+        return save(request.illust, request.page, request.target)
+    }
+
+    @MainThread
+    fun dismissFailure(key: PageKey): Boolean {
+        if (_states.value[key] !is PageState.Failed) return false
+        requests.remove(key)
+        errors.remove(key)
+        _states.update { it - key }
+        return true
+    }
 
     /**
      * 还能取消的保存。[cancel] 与 [claimWrite] 谁先把条目摘掉谁说了算:取消先摘到就不写盘,
@@ -98,6 +128,8 @@ class ImagePageSaver @Inject constructor(@ApplicationContext context: Context) {
     fun save(illust: Illust, page: Int, target: Target): Boolean {
         val key = PageKey(illust.id, page)
         if (_states.value[key] is PageState.Saving) return false
+        requests[key] = Request(illust, page, target)
+        errors.remove(key)
         _states.update { it + (key to PageState.Saving(target, 0)) }
         // LAZY:先登记再开跑。Main.immediate 会当场执行到第一个挂起点,登记晚了取消就找不到它。
         val job =
@@ -124,9 +156,14 @@ class ImagePageSaver @Inject constructor(@ApplicationContext context: Context) {
                     failed = false
                     Common.showToast(R.string.save_image_cancelled)
                     throw e
+                } catch (e: Exception) {
+                    Timber.e(e, "[ImagePageSaver] unexpected save failure")
+                    toastFailure(key, e)
                 } finally {
                     cancellable.remove(key, coroutineContext.job)
-                    _states.update { if (failed) it + (key to PageState.Failed(target)) else it - key }
+                    val error = errors.remove(key).orEmpty()
+                    if (!failed) requests.remove(key)
+                    _states.update { if (failed) it + (key to PageState.Failed(target, error)) else it - key }
                 }
             }
         cancellable[key] = job
@@ -145,6 +182,14 @@ class ImagePageSaver @Inject constructor(@ApplicationContext context: Context) {
     /** 进入写盘:从此不再认取消。取消已经抢先时抛 [CancellationException],调用方不得写盘。 */
     private fun claimWrite(key: PageKey) {
         if (cancellable.remove(key) == null) throw CancellationException("save cancelled before writing")
+        publishPhase(key, Phase.WRITING)
+    }
+
+    private fun publishPhase(key: PageKey, phase: Phase) {
+        _states.update { states ->
+            val current = states[key]
+            if (current is PageState.Saving) states + (key to current.copy(phase = phase)) else states
+        }
     }
 
     private fun publishProgress(key: PageKey, percent: Int) {
@@ -158,8 +203,9 @@ class ImagePageSaver @Inject constructor(@ApplicationContext context: Context) {
         }
     }
 
-    private fun toastFailure(error: Throwable?) {
+    private fun toastFailure(key: PageKey, error: Throwable?) {
         val detail = error?.message ?: error?.javaClass?.simpleName ?: "load error"
+        errors[key] = detail
         Common.showToast(app.getString(R.string.save_image_failed, detail))
     }
 
@@ -189,7 +235,7 @@ class ImagePageSaver @Inject constructor(@ApplicationContext context: Context) {
                 .getOrElse { ex ->
                     if (ex is CancellationException) throw ex
                     Timber.e(ex, "[ImagePageSaver] saveTranslated failed page=%d", page)
-                    withContext(Dispatchers.Main) { toastFailure(ex) }
+                    withContext(Dispatchers.Main) { toastFailure(key, ex) }
                     false
                 }
         }
@@ -215,10 +261,11 @@ class ImagePageSaver @Inject constructor(@ApplicationContext context: Context) {
                     null
                 }
             if (file == null) {
-                withContext(Dispatchers.Main) { toastFailure(resolveError) }
+                withContext(Dispatchers.Main) { toastFailure(key, resolveError) }
                 return@withContext false
             }
             publishProgress(key, 100)
+            publishPhase(key, Phase.WAITING_TO_WRITE)
 
             // 批量下载正在写同一张图时先等它收尾(#1312):两边写的是同一个模板目标,替换策略下同时写会
             // 多出 " (1)" 副本,或一方补写完标签后被另一方剩下的字节改坏。借 Manager 的同 url 单主锁。
@@ -238,7 +285,7 @@ class ImagePageSaver @Inject constructor(@ApplicationContext context: Context) {
                     }.getOrElse {
                         if (it is CancellationException) throw it
                         Timber.w(it, "[ImagePageSaver] stage local source failed page=%d", page)
-                        withContext(Dispatchers.Main) { toastFailure(it) }
+                        withContext(Dispatchers.Main) { toastFailure(key, it) }
                         return@withContext false
                     }
                 val source = staged ?: file
@@ -287,7 +334,7 @@ class ImagePageSaver @Inject constructor(@ApplicationContext context: Context) {
                     .getOrElse { ex ->
                         if (ex is CancellationException) throw ex
                         Timber.e(ex, "[ImagePageSaver] saveOriginal failed page=%d", page)
-                        withContext(Dispatchers.Main) { toastFailure(ex) }
+                        withContext(Dispatchers.Main) { toastFailure(key, ex) }
                         false
                     }
                     .also { staged?.delete() }

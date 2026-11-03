@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="dlmgr_section_downloads">Unduhan</string>
+    <string name="dlmgr_section_saves">Simpan gambar</string>
+    <string name="dlmgr_section_count">%1$s  %2$d</string>
+    <string name="page_save_scope_hint">Penyimpanan gambar asli dari penampil tetap berjalan setelah penampil ditutup dan dikelola terpisah dari tindakan unduhan massal.</string>
+    <string name="page_save_empty">Tidak ada penyimpanan gambar tertunda\nGambar asli yang disimpan muncul di Selesai</string>
+    <string name="page_save_page">Halaman %1$d / %2$d</string>
+    <string name="page_save_retry">Coba lagi</string>
+    <string name="page_save_cancel">Batalkan simpan</string>
+    <string name="page_save_remove">Hapus catatan</string>
+    <string name="page_save_failed">Gagal menyimpan: %1$s</string>
+    <string name="page_save_unknown_error">Kesalahan tidak diketahui</string>
+    <string name="page_save_writing">Sedang menyimpan; tidak dapat dibatalkan</string>
+    <string name="page_save_waiting">Menunggu unduhan lain selesai menulis</string>
+    <string name="page_save_loading">Menunggu gambar · %1$d%%</string>
+    <string name="page_download_title">Unduh halaman pilihan</string>
+    <string name="page_download_hint">Halaman pilihan memakai resolusi unduhan bawaan dan pengelola unduhan. Halaman lain tidak ditambahkan.</string>
+    <string name="page_download_current">Halaman ini</string>
+    <string name="page_download_all">Pilih semua</string>
+    <string name="page_download_clear">Batal pilih</string>
+    <string name="page_download_missing">Pilih yang belum</string>
+    <string name="page_download_confirm">Unduh %1$d halaman pilihan</string>
+    <string name="page_download_saved">Terunduh</string>
+    <string name="page_download_queued">Tugas sudah ada</string>
+    <string name="page_download_unavailable">Informasi halaman tidak tersedia. Buka kembali karya dan coba lagi.</string>
+    <string name="page_download_submitted">%1$d halaman diajukan; %2$d tidak tersedia. Tugas yang sudah ada tidak diduplikasi.</string>
+</resources>

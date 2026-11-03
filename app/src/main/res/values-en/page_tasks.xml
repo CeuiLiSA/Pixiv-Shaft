@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="dlmgr_section_downloads">Downloads</string>
+    <string name="dlmgr_section_saves">Image saves</string>
+    <string name="dlmgr_section_count">%1$s  %2$d</string>
+    <string name="page_save_scope_hint">Original images saved from the viewer. Saves continue after leaving the viewer and have separate controls.</string>
+    <string name="page_save_empty">No pending image saves\nSaved originals appear in Completed</string>
+    <string name="page_save_page">Page %1$d / %2$d</string>
+    <string name="page_save_retry">Retry</string>
+    <string name="page_save_cancel">Cancel save</string>
+    <string name="page_save_remove">Dismiss</string>
+    <string name="page_save_failed">Save failed: %1$s</string>
+    <string name="page_save_unknown_error">Unknown error</string>
+    <string name="page_save_writing">Saving; cancellation is unavailable</string>
+    <string name="page_save_waiting">Waiting for another download to finish writing</string>
+    <string name="page_save_loading">Waiting for image · %1$d%%</string>
+    <string name="page_download_title">Download selected pages</string>
+    <string name="page_download_hint">Selected pages use your default download resolution and the download manager. Other pages are excluded.</string>
+    <string name="page_download_current">Current only</string>
+    <string name="page_download_all">Select all</string>
+    <string name="page_download_clear">Clear selection</string>
+    <string name="page_download_missing">Select missing</string>
+    <string name="page_download_confirm">Download %1$d selected pages</string>
+    <string name="page_download_saved">Downloaded</string>
+    <string name="page_download_queued">Task exists</string>
+    <string name="page_download_unavailable">Page information is unavailable. Please reopen the artwork and try again.</string>
+    <string name="page_download_submitted">Submitted %1$d pages; %2$d unavailable. Existing tasks are deduplicated.</string>
+</resources>

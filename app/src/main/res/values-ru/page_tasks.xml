@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="dlmgr_section_downloads">Загрузки</string>
+    <string name="dlmgr_section_saves">Сохранение</string>
+    <string name="dlmgr_section_count">%1$s  %2$d</string>
+    <string name="page_save_scope_hint">Сохранение оригиналов из просмотрщика продолжается после его закрытия и управляется отдельно от массовых загрузок.</string>
+    <string name="page_save_empty">Нет ожидающих сохранений\nСохранённые оригиналы доступны в разделе «Завершено»</string>
+    <string name="page_save_page">Страница %1$d / %2$d</string>
+    <string name="page_save_retry">Повторить</string>
+    <string name="page_save_cancel">Отменить</string>
+    <string name="page_save_remove">Убрать запись</string>
+    <string name="page_save_failed">Ошибка сохранения: %1$s</string>
+    <string name="page_save_unknown_error">Неизвестная ошибка</string>
+    <string name="page_save_writing">Идёт сохранение; отмена недоступна</string>
+    <string name="page_save_waiting">Ожидание завершения записи другой загрузки</string>
+    <string name="page_save_loading">Ожидание изображения · %1$d%%</string>
+    <string name="page_download_title">Загрузить выбранные страницы</string>
+    <string name="page_download_hint">Выбранные страницы добавляются в загрузки с разрешением по умолчанию. Задания для остальных страниц не добавляются.</string>
+    <string name="page_download_current">Текущая</string>
+    <string name="page_download_all">Выбрать всё</string>
+    <string name="page_download_clear">Снять выбор</string>
+    <string name="page_download_missing">Несохранённые</string>
+    <string name="page_download_confirm">Загрузить выбранные: %1$d</string>
+    <string name="page_download_saved">Загружено</string>
+    <string name="page_download_queued">Задание есть</string>
+    <string name="page_download_unavailable">Нет данных страниц. Откройте работу заново и повторите попытку.</string>
+    <string name="page_download_submitted">Отправлено страниц: %1$d; недоступно: %2$d. Существующие задания не дублируются.</string>
+</resources>

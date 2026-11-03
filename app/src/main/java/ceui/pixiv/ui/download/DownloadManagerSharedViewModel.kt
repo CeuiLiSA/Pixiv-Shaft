@@ -7,6 +7,7 @@ import ceui.lisa.database.DownloadDao
 import ceui.lisa.utils.Params
 import ceui.pixiv.db.queue.DownloadQueueDao
 import ceui.pixiv.db.queue.QueueStatus
+import ceui.pixiv.download.ImagePageSaver
 import ceui.pixiv.ui.bulk.QueueDownloadManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -49,7 +50,15 @@ class DownloadManagerSharedViewModel @Inject constructor(
     private val queueDao: Lazy<DownloadQueueDao>,
     /** 同理 Lazy：只有 [refreshDoneCardCount] 才去拿库。 */
     private val downloadDao: Lazy<DownloadDao>,
+    imagePageSaver: ImagePageSaver,
 ) : ViewModel() {
+
+    private val _activeSection = MutableStateFlow(0)
+    val activeSection: StateFlow<Int> get() = _activeSection
+
+    fun setActiveSection(section: Int) {
+        _activeSection.value = section.coerceIn(0, 1)
+    }
 
     data class Snapshot(
         val queuePending: Int,
@@ -62,9 +71,10 @@ class DownloadManagerSharedViewModel @Inject constructor(
      * progress invalidate 让上层 combine 频繁重算，无谓 setText。
      */
     private val activePageCountFlow: Flow<Int> =
-        ManagerReactive.contentFlow
-            .map { content -> content.count { it.state == DownloadItem.DownloadState.DOWNLOADING } }
-            .distinctUntilChanged()
+        combine(ManagerReactive.contentFlow, imagePageSaver.states) { content, saves ->
+            content.count { it.state == DownloadItem.DownloadState.DOWNLOADING } +
+                saves.values.count { it.target is ImagePageSaver.Target.Original }
+        }.distinctUntilChanged()
 
     /**
      * 队列计数 Flow：每次 [QueueDownloadManager.queueListInvalidations] tick
