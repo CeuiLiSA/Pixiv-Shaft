@@ -25,7 +25,7 @@ import ceui.pixiv.download.template.TemplateParser
 class TemplateMatcher private constructor(
     /** 编译来源，日志 / 调试用。 */
     val source: String,
-    /** 这条模板渲染页码时用的基准，决定 [NameMatch.page] 怎么换算回 0 基。 */
+    /** 捕获的页码变量使用的基准；`{page1}` 始终为 1 基，不受全局设置影响。 */
     val pageBase: PageBase,
     private val regex: Regex,
     private val idGroup: Int,
@@ -82,7 +82,7 @@ class TemplateMatcher private constructor(
                 if (builder.idGroup <= 0) return null
                 TemplateMatcher(
                     source = templateSource,
-                    pageBase = pageBase,
+                    pageBase = if (builder.pageIsOneBased) PageBase.ONE else pageBase,
                     regex = Regex(builder.build()),
                     idGroup = builder.idGroup,
                     pageGroup = builder.pageGroup,
@@ -150,6 +150,8 @@ class TemplateMatcher private constructor(
             private set
         var pageGroup = -1
             private set
+        var pageIsOneBased = false
+            private set
 
         fun append(node: TemplateNode) {
             when (node) {
@@ -175,6 +177,9 @@ class TemplateMatcher private constructor(
                 }
                 "page", "page1" -> {
                     pageGroup = ++groupCount
+                    // 与 TemplateContext 保持一致：旧别名 page1 永远 +1。
+                    // 跟随实际捕获的变量，避免混用别名时污染后面的普通 page。
+                    pageIsOneBased = node.name == "page1"
                     pattern.append("(\\d{1,6})")
                 }
                 "pages", "author_id", "w", "h", "series_order" -> pattern.append("(?:\\d{1,12})")
