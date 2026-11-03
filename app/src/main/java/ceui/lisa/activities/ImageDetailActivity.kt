@@ -17,7 +17,9 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentPagerAdapter
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.viewpager.widget.ViewPager
 import ceui.lisa.R
 import ceui.lisa.core.Manager
@@ -99,6 +101,8 @@ import java.util.Locale
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import dagger.hilt.android.AndroidEntryPoint
@@ -348,6 +352,13 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
             setupFabBar()
             if (mIllust!!.isGif()) setupUgoiraFramesEntry(mIllust!!)
             checkDownload(index)
+            // 保存跑在 appScope,发起它的可能是已经退出的上一个大图页:按钮的「保存中 / 存完」跟着进程级状态刷,
+            // 翻走再翻回、退出再进同一作品都能看到进度圈,存完也会变(#1312)。
+            lifecycleScope.launch {
+                repeatOnLifecycle(Lifecycle.State.STARTED) {
+                    savingPages.collect { baseBind?.viewPager?.currentItem?.let(::checkDownload) }
+                }
+            }
             baseBind!!
                 .viewPager
                 .addOnPageChangeListener(
@@ -863,24 +874,18 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
             }
             // 这一页正显示译图:保存的就是看到的那张(原分辨率译图),不是底下的原图
             val translated = translatedFileOf(page)
+            // 下载按钮的进度圈 / 存完的样子都由 savingPages 的订阅刷新(见 checkDownload),这里只管标记和收尾
             if (translated != null) {
-                if (!savingPages.add(saveKey)) return@setOnClick
-                fabBar.renderDownload(DownloadFab.Downloading(0))
+                if (!markSaving(saveKey)) return@setOnClick
                 JavaAsync.appScope.launch {
                     try {
                         if (saveTranslatedPage(illust, page, translated)) {
+                            savedTranslatedFiles.add(translated.path)
                             Common.showToast(R.string.string_181)
-                            if (!isFinishing && !isDestroyed && baseBind?.viewPager?.currentItem == page) {
-                                fabBar.renderDownload(DownloadFab.Done)
-                            }
                             autoLikeAfterDownloadIfNeeded(illust, fabBar)
-                        } else {
-                            if (!isFinishing && !isDestroyed && baseBind?.viewPager?.currentItem == page) {
-                                fabBar.renderDownload(DownloadFab.Idle)
-                            }
                         }
                     } finally {
-                        savingPages.remove(saveKey)
+                        unmarkSaving(saveKey)
                     }
                 }
                 return@setOnClick
@@ -889,25 +894,16 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                 IllustDownload.getUrl(illust, page, Params.IMAGE_RESOLUTION_ORIGINAL)
                     ?: IllustDownload.getUrl(illust, page, Params.IMAGE_RESOLUTION_LARGE)
                     ?: return@setOnClick
-            if (!savingPages.add(saveKey)) return@setOnClick
-            fabBar.renderDownload(DownloadFab.Downloading(0))
+            if (!markSaving(saveKey)) return@setOnClick
             JavaAsync.appScope.launch {
                 try {
                     IllustCaptionExporter.export(illust)
-                    val ok = saveLoadedIllustPage(illust, page, imageUrl)
-                    if (ok) {
+                    if (saveLoadedIllustPage(illust, page, imageUrl)) {
                         Common.showToast(R.string.string_181)
-                        if (!isFinishing && !isDestroyed) {
-                            checkDownload(page)
-                        }
                         autoLikeAfterDownloadIfNeeded(illust, fabBar)
-                    } else {
-                        if (!isFinishing && !isDestroyed) {
-                            checkDownload(page)
-                        }
                     }
                 } finally {
-                    savingPages.remove(saveKey)
+                    unmarkSaving(saveKey)
                 }
             }
         }
@@ -971,9 +967,14 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
 
     private fun checkDownload(i: Int) {
         val illust = mIllust ?: return
-        // 译图页的下载按钮保存的是译图,原图的「已下载」不代表译图存过,别亮绿勾误导
-        if (translatedFileOf(i) != null) {
-            fabBar?.renderDownload(DownloadFab.Idle)
+        // 这一页还在保存(可能是上一个大图页发起的):显示进度圈。否则再点会被去重默默吞掉,看着像按钮失灵
+        if ((illust.id to i) in savingPages.value) {
+            fabBar?.renderDownload(DownloadFab.Downloading(0))
+            return
+        }
+        // 译图页的下载按钮保存的是译图,原图的「已下载」不代表译图存过,别亮绿勾误导;只认本进程存过的这张译图
+        translatedFileOf(i)?.let {
+            fabBar?.renderDownload(if (it.path in savedTranslatedFiles) DownloadFab.Done else DownloadFab.Idle)
             return
         }
         lifecycleScope.launch {
@@ -983,8 +984,10 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                 }
             // 快速翻页时旧页的 DB 探测可能晚于新页返回,过期结果不能盖掉当前页的状态
             if (baseBind?.viewPager?.currentItem != i) return@launch
-            // 探测期间这页的译图到位了(重进看图页时译图在 onStart 才投影过来):按钮已按译图刷成 Idle
+            // 探测期间这页的译图到位了(重进看图页时译图在 onStart 才投影过来):按钮已按译图刷好
             if (translatedFileOf(i) != null) return@launch
+            // 探测期间这页开始保存了:按钮已被订阅刷成进度圈,旧结果别盖掉
+            if ((illust.id to i) in savingPages.value) return@launch
             // 对齐一级 V3 详情页:已下载的页显示绿色「已下载」勾,而不是把按钮藏起来
             fabBar?.renderDownload(if (downloaded) DownloadFab.Done else DownloadFab.Idle)
         }
@@ -1794,9 +1797,23 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
 
         /**
          * 正在保存的 (作品 id, 页)。进程级:保存跑在 appScope,退出大图再进同一作品时上一份可能还在写,
-         * 按页面实例去重挡不住第二份并发写同一个目标(#1312)。
+         * 按页面实例去重挡不住第二份并发写同一个目标(#1312)。大图页在前台时订阅它刷新下载按钮。
          */
-        private val savingPages = ConcurrentHashMap.newKeySet<Pair<Long, Int>>()
+        private val savingPages = MutableStateFlow<Set<Pair<Long, Int>>>(emptySet())
+
+        /** 本进程存过的译图文件。译图每次产出都是新文件、也不进「已下载」库,译图页的「已保存」只能靠它判断。 */
+        private val savedTranslatedFiles = ConcurrentHashMap.newKeySet<String>()
+
+        /** 原子地占住这一页;已经在存了返回 false。 */
+        private fun markSaving(key: Pair<Long, Int>): Boolean {
+            while (true) {
+                val current = savingPages.value
+                if (key in current) return false
+                if (savingPages.compareAndSet(current, current + key)) return true
+            }
+        }
+
+        private fun unmarkSaving(key: Pair<Long, Int>) = savingPages.update { it - key }
 
         /** 批量下载正占着同一张图时,保存隔多久再问一次能不能写。 */
         private const val URL_WRITE_POLL_MS = 250L
