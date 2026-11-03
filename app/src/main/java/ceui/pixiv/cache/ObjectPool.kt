@@ -1,6 +1,7 @@
 package ceui.pixiv.cache
 
-import android.util.Log
+import android.os.Looper
+import timber.log.Timber
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import ceui.lisa.models.ModelObject
@@ -48,6 +49,8 @@ data class ObjectKey(
  * （后台线程灌池的先例见 HistoryFeed：回主线程再喂）。
  */
 object ObjectPool {
+
+    const val TAG = "updateObjectPool"
 
     /** 见类注释「有界 + LRU」。 */
     private const val MAX_ENTRIES = 2048
@@ -242,20 +245,42 @@ object ObjectPool {
         if (!created) {
             // setValue 放在锁外：observer 回调里可能再 get/update，锁内回调会重入同一把锁
             // (synchronized 可重入不死锁，但没必要把 UI 回调关在锁里)。
-            try {
-                val lastValue = storedObject.value
-                // lastValue === obj:同一实例(典型 followUser 原地改字段后再 update),
-                // merge 自己跟自己无意义,直接赋值以保留 observer 通知,省掉 Gson 开销。
-                storedObject.value = if (isFullVersion || lastValue == null || lastValue === obj) {
-                    obj
-                } else {
-                    mergeKeepingExisting(obj.javaClass, lastValue, obj)
-                }
-            } catch (ex: Exception) {
-                storedObject.postValue(obj)
+            val lastValue = storedObject.value
+            // lastValue === obj:同一实例(典型 followUser 原地改字段后再 update),
+            // merge 自己跟自己无意义,直接赋值以保留 observer 通知,省掉 Gson 开销。
+            val toSet = if (isFullVersion || lastValue == null || lastValue === obj) {
+                obj
+            } else {
+                mergeKeepingExisting(obj.javaClass, lastValue, obj)
             }
+            dispatchValue(storedObject, toSet, isMainThread())
         }
-        Log.d("updateObjectPool", "对象池大小：$size")
+        Timber.tag(TAG).d("对象池大小：%d", size)
+    }
+
+    /**
+     * 判断当前调用线程是否为主线程。
+     * 在无 Looper 的纯单元测试环境下回退为 true，保证 InstantTaskExecutorRule 直接同步分发。
+     */
+    private fun isMainThread(): Boolean {
+        val mainLooper = runCatching { Looper.getMainLooper() }.getOrNull() ?: return true
+        return Looper.myLooper() == mainLooper
+    }
+
+    /**
+     * 分发 LiveData 值：主线程优先使用同步 setValue，后台线程直接走异步 postValue，
+     * 避免后台线程触发 IllegalStateException 产生高频异常调用栈开销。
+     */
+    private fun dispatchValue(storedObject: MutableLiveData<Any>, value: Any, isMain: Boolean) {
+        if (isMain) {
+            try {
+                storedObject.value = value
+            } catch (_: Exception) {
+                storedObject.postValue(value)
+            }
+        } else {
+            storedObject.postValue(value)
+        }
     }
 
     /**
@@ -302,6 +327,7 @@ object ObjectPool {
             }
             trimLocked()
         }
+        val isMain = isMainThread()
         for ((storedObject, obj) in toUpdateOutsideLock) {
             val lastValue = storedObject.value
             val toSet = if (isFullVersion || lastValue == null || lastValue === obj) {
@@ -309,15 +335,12 @@ object ObjectPool {
             } else {
                 mergeKeepingExisting(obj.javaClass, lastValue, obj)
             }
-            try {
-                storedObject.value = toSet
-            } catch (ex: Exception) {
-                storedObject.postValue(toSet)
-            }
+            dispatchValue(storedObject, toSet, isMain)
         }
-        Log.d(
-            "updateObjectPool",
-            "批量事务合池完成：合入 ${objects.size} 个条目，当前对象池大小：$size"
+        Timber.tag(TAG).d(
+            "批量事务合池完成：合入 %d 个条目，当前对象池大小：%d",
+            objects.size,
+            size
         )
     }
 
