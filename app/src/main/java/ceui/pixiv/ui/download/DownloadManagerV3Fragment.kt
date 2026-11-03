@@ -3,6 +3,7 @@ package ceui.pixiv.ui.download
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
+
 import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
@@ -22,9 +23,11 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
 import ceui.lisa.R
+import ceui.lisa.activities.Shaft
 import ceui.lisa.core.DownloadItem
 import ceui.lisa.core.Manager
 import ceui.lisa.core.ManagerReactive
@@ -66,13 +69,23 @@ class DownloadManagerV3Fragment : Fragment() {
      * 阻塞的 DB 调用返回时 Fragment 可能已 detach,再 requireContext 就崩。
      * 实例是应用级的,拿住没有泄漏问题。
      */
-    @Inject lateinit var queueDownloadManager: QueueDownloadManager
+    @Inject
+    lateinit var queueDownloadManager: QueueDownloadManager
 
     private val sharedVm: DownloadManagerSharedViewModel by activityViewModels()
 
     private var tabs: TabLayout? = null
     private var pager: ViewPager2? = null
     private var pageCallback: ViewPager2.OnPageChangeCallback? = null
+
+    /**
+     * 已完成列表的 ViewHolder 池，[DoneListV3Fragment] 绑到自己的列表上。池里是用本页 Context
+     * inflate 的 View，只能跟本 Fragment 同生命周期：放进 Activity 作用域的 ViewModel 会挺过
+     * 旋转 / 深浅色切换，新列表取出旧 Activity 的 View 后 Glide.with(view) 认出 Activity 已销毁，
+     * 直接抛 IllegalArgumentException。
+     */
+    internal val doneRecycledViewPool = RecyclerView.RecycledViewPool()
+    private var cancelDonePrewarm: (() -> Unit)? = null
 
     /** 「已完成」tab 的导入本地下载流程（issue #953）。 */
     private val importFlow by lazy { ImportLocalDownloadsFlow(this) }
@@ -119,6 +132,13 @@ class DownloadManagerV3Fragment : Fragment() {
             tab.text = baseLabel(pos)
         }.attach()
 
+        // 进入下载管理页时（在主线程空闲帧）按屏幕大小与当前布局模式动态预做首屏可见 Holder 的 XML inflate，避开切页滑行期间阻塞主线程
+        cancelDonePrewarm = DoneListV3Fragment.prewarmDoneHolders(
+            context = requireContext(),
+            pool = doneRecycledViewPool,
+            mode = DoneLayoutMode.fromInt(Shaft.sSettings.doneListLayoutMode),
+        )
+
         // toolbar 右侧 menu —— 2 个 action 按 tab 分发可见性:
         //   - 导出 (action_export):pos 0 (批量队列) / pos 2 (已完成),「正在下载」
         //     是瞬态进度页没稳定快照可导,隐藏避免误点。点击 emit 到 SharedVM,
@@ -143,6 +163,7 @@ class DownloadManagerV3Fragment : Fragment() {
         val pauseToggleItem = toolbar.menu.findItem(R.id.action_pause_toggle)
         val searchItem = toolbar.menu.findItem(R.id.action_search)
         val importItem = toolbar.menu.findItem(R.id.action_import)
+
         // 工具栏右侧按钮的动作 —— 图标与点击共用同一个现算值（口径 + 单测见 ActiveToolbarAction.kt /
         // ActivePauseToggle.kt）：只剩失败项时是「重试失败」，否则按 shouldResumeAll 定暂停 / 继续。
         fun currentToolbarAction(): ActiveToolbarAction = resolveActiveToolbarAction(
@@ -163,6 +184,7 @@ class DownloadManagerV3Fragment : Fragment() {
                     sharedVm.requestExport(pager.currentItem)
                     true
                 }
+
                 R.id.action_pause_toggle -> {
                     // 图标与动作同源：都用 currentToolbarAction() 现算（见 ActiveToolbarAction.kt），
                     // 不存第二份 UI 状态 —— 否则会出现「按钮显示继续、点下去却暂停」的错位。
@@ -170,11 +192,13 @@ class DownloadManagerV3Fragment : Fragment() {
                         ActiveToolbarAction.RETRY -> {
                             Manager.get().retryAllFailed()
                         }
+
                         ActiveToolbarAction.RESUME -> {
                             // resumeByUser：用户触发的操作忽略网络状态，不走自动闸门
                             Manager.get().startAll()
                             queueDownloadManager.resumeByUser()
                         }
+
                         ActiveToolbarAction.PAUSE -> {
                             Manager.get().stopAll()
                             queueDownloadManager.pause()
@@ -188,6 +212,7 @@ class DownloadManagerV3Fragment : Fragment() {
                     importFlow.start { intent -> launchImportPicker(intent) }
                     true
                 }
+
                 else -> false
             }
         }
@@ -203,8 +228,10 @@ class DownloadManagerV3Fragment : Fragment() {
             }
         }
         applyMenuVisibility(pager.currentItem)
+        sharedVm.setSelectedTab(pager.currentItem)
         pageCallback = object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
+                sharedVm.setSelectedTab(position)
                 applyMenuVisibility(position)
             }
         }.also { pager.registerOnPageChangeCallback(it) }
@@ -224,7 +251,11 @@ class DownloadManagerV3Fragment : Fragment() {
                     ManagerReactive.contentFlow,
                     queueDownloadManager.ugoiraInFlightFlow,
                 ) { paused, items, ugoiras ->
-                    resolveActiveToolbarAction(items.toPauseToggleItems(), paused, ugoiras.isNotEmpty())
+                    resolveActiveToolbarAction(
+                        items.toPauseToggleItems(),
+                        paused,
+                        ugoiras.isNotEmpty()
+                    )
                 }
                     .conflate()
                     .flowOn(Dispatchers.Default)
@@ -258,6 +289,8 @@ class DownloadManagerV3Fragment : Fragment() {
     }
 
     override fun onDestroyView() {
+        cancelDonePrewarm?.invoke()
+        cancelDonePrewarm = null
         pageCallback?.let { pager?.unregisterOnPageChangeCallback(it) }
         pageCallback = null
         pager = null
@@ -297,20 +330,22 @@ class DownloadManagerV3Fragment : Fragment() {
         }
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, backCallback)
 
-        MenuItemCompat.setOnActionExpandListener(item, object : MenuItemCompat.OnActionExpandListener {
-            override fun onMenuItemActionExpand(menuItem: MenuItem): Boolean {
-                sharedVm.setDoneSearchQuery("")
-                backCallback.isEnabled = true
-                return true
-            }
+        MenuItemCompat.setOnActionExpandListener(
+            item,
+            object : MenuItemCompat.OnActionExpandListener {
+                override fun onMenuItemActionExpand(menuItem: MenuItem): Boolean {
+                    sharedVm.setDoneSearchQuery("")
+                    backCallback.isEnabled = true
+                    return true
+                }
 
-            override fun onMenuItemActionCollapse(menuItem: MenuItem): Boolean {
-                searchDebounceJob?.cancel()
-                sharedVm.setDoneSearchQuery(null)
-                backCallback.isEnabled = false
-                return true
-            }
-        })
+                override fun onMenuItemActionCollapse(menuItem: MenuItem): Boolean {
+                    searchDebounceJob?.cancel()
+                    sharedVm.setDoneSearchQuery(null)
+                    backCallback.isEnabled = false
+                    return true
+                }
+            })
 
         sv.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
@@ -364,7 +399,7 @@ private fun List<DownloadItem>.toPauseToggleItems(): List<PauseToggleItem> {
         val state = item.state
         val illustId = item.illust?.id
         val willDispatch = state == DownloadItem.DownloadState.INIT && illustId != null &&
-            dispatchByIllust.getOrPut(illustId) { manager.willDispatch(illustId) }
+                dispatchByIllust.getOrPut(illustId) { manager.willDispatch(illustId) }
         PauseToggleItem(state, willDispatch)
     }
 }

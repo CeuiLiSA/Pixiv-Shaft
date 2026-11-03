@@ -1,8 +1,12 @@
 package ceui.pixiv.ui.download
 
+import android.content.Context
 import android.content.Intent
+import kotlin.math.ceil
 import android.net.Uri
 import android.os.Bundle
+import android.os.Looper
+import android.os.MessageQueue
 import android.util.LruCache
 import android.view.LayoutInflater
 import android.view.View
@@ -41,11 +45,13 @@ import ceui.loxia.Novel
 import ceui.pixiv.db.queue.QueueStatus
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.model.GlideUrl
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.hjq.toast.Toaster
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
@@ -84,7 +90,8 @@ class DoneListV3Fragment : Fragment() {
      * 阻塞的 DB 调用返回时 Fragment 可能已 detach,再 requireContext 就崩。
      * 实例是应用级的,拿住没有泄漏问题。
      */
-    @Inject lateinit var queueDownloadManager: QueueDownloadManager
+    @Inject
+    lateinit var queueDownloadManager: QueueDownloadManager
 
     private val dao: DownloadDao by lazy {
         AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao()
@@ -102,6 +109,7 @@ class DoneListV3Fragment : Fragment() {
             DoneAction.DELETE -> showDeleteConfirmDialog(R.string.dlmgr_delete_done_title) {
                 deleteOne(group)
             }
+
             DoneAction.OPEN_AUTHOR -> openAuthor(group)
         }
     }
@@ -113,11 +121,17 @@ class DoneListV3Fragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         val list = view.findViewById<RecyclerView>(R.id.list)
+        (parentFragment as? DownloadManagerV3Fragment)?.let {
+            list.setRecycledViewPool(it.doneRecycledViewPool)
+        }
         list.adapter = adapter
+        // 与 ActiveList / QueueList 及 V3 规范一致：关闭 DefaultItemAnimator，避免卡片与文字在刷新/上屏时整体淡入；仅保留缩略图自身的平滑过渡
+        list.itemAnimator = null
         applyLayoutMode(list, DoneLayoutMode.fromInt(Shaft.sSettings.doneListLayoutMode))
 
         val empty = view.findViewById<View>(R.id.emptyState)
-        view.findViewById<TextView>(R.id.emptyTitle).text = getString(R.string.dlmgr_done_empty_title)
+        view.findViewById<TextView>(R.id.emptyTitle).text =
+            getString(R.string.dlmgr_done_empty_title)
         view.findViewById<TextView>(R.id.emptyHint).text = getString(R.string.dlmgr_done_empty_hint)
 
         // btn1 改成"切换布局"按钮 —— 循环 LIST → GRID → COMPACT。
@@ -167,12 +181,15 @@ class DoneListV3Fragment : Fragment() {
         // sharedVm.doneSearchQuery（null=未进入搜索；""=已展开未输；非空=查询词）。
         // 切到搜索分支时数据源换成 dao.searchDownloads(query)。
         //
-        // RESUMED 而不是 STARTED：ViewPager2 把离屏 tab 停在 STARTED，用 STARTED 的话用户
-        // 只要访问过一次已完成 tab，下载期间它就一直在后台重查。离屏时 tab 上的数字由
-        // DownloadManagerSharedViewModel.refreshDoneCardCount 维护。
+        // 绑定在 STARTED 生命周期，并通过 sharedVm.selectedTab 精确闸门控制：
+        // 1. 用户点击 Tab 2 时（t=0），onPageSelected 立刻置 selectedTab=2，利用 ViewPager2
+        //    滑行的 360ms 黄金空窗期提前跑 DB 查询、聚合与首屏 ViewHolders 构建；
+        // 2. 切离 Tab 2 时（selectedTab != 2），内部 flatMapLatest 自动切换到 emptyFlow()，
+        //    彻底取消对 ManagerReactive.doneTableInvalidations 的收集，杜绝离屏期间被后台下载
+        //    高频无效唤醒。
         viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.RESUMED) {
-                runDoneListFlow(empty)
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                runDoneListFlow(empty, list)
             }
         }
 
@@ -199,20 +216,27 @@ class DoneListV3Fragment : Fragment() {
      * - query!=""   : 过滤列表 → dao.searchDownloads(query)
      */
     @OptIn(ExperimentalCoroutinesApi::class)
-    private suspend fun runDoneListFlow(empty: View) {
-        sharedVm.doneSearchQuery
-            .flatMapLatest { query ->
-                when {
-                    query == null -> ManagerReactive.doneTableInvalidations.map {
-                        val rows = runCatching { dao.getAll(PAGE_SIZE, 0) }
-                            .getOrDefault(emptyList())
-                        groupByIllust(rows)
-                    }
-                    query.isEmpty() -> flow { emit(emptyList<DownloadGroup>()) }
-                    else -> ManagerReactive.doneTableInvalidations.map {
-                        val rows = runCatching { dao.searchDownloads(query) }
-                            .getOrDefault(emptyList())
-                        groupByIllust(rows)
+    private suspend fun runDoneListFlow(empty: View, list: RecyclerView) {
+        sharedVm.selectedTab
+            .flatMapLatest { tab ->
+                if (tab != 2) {
+                    emptyFlow()
+                } else {
+                    sharedVm.doneSearchQuery.flatMapLatest { query ->
+                        when {
+                            query == null -> ManagerReactive.doneTableInvalidations.map {
+                                val rows = runCatching { dao.getAll(PAGE_SIZE, 0) }
+                                    .getOrDefault(emptyList())
+                                groupByIllust(rows)
+                            }
+
+                            query.isEmpty() -> flow { emit(emptyList<DownloadGroup>()) }
+                            else -> ManagerReactive.doneTableInvalidations.map {
+                                val rows = runCatching { dao.searchDownloads(query) }
+                                    .getOrDefault(emptyList())
+                                groupByIllust(rows)
+                            }
+                        }
                     }
                 }
             }
@@ -337,8 +361,8 @@ class DoneListV3Fragment : Fragment() {
     /** 切换布局：换 LayoutManager + 通知 adapter 切 viewType 重 inflate。 */
     private fun applyLayoutMode(list: RecyclerView, mode: DoneLayoutMode) {
         list.layoutManager = when (mode) {
-            DoneLayoutMode.LIST    -> LinearLayoutManager(requireContext())
-            DoneLayoutMode.GRID    -> GridLayoutManager(requireContext(), 2)
+            DoneLayoutMode.LIST -> LinearLayoutManager(requireContext())
+            DoneLayoutMode.GRID -> GridLayoutManager(requireContext(), 2)
             DoneLayoutMode.COMPACT -> GridLayoutManager(requireContext(), 4)
         }
         adapter.setMode(mode)
@@ -355,8 +379,88 @@ class DoneListV3Fragment : Fragment() {
 
     companion object {
         private const val PAGE_SIZE = DONE_LIST_WINDOW   // 一次取多点；分组后实际卡片数会少
+
         /** 导出时一次拉的硬上限 —— 5w 行 ≈ 2MB 文本，正常用户都装不了这么多 */
         private const val EXPORT_HARD_CAP = 50000
+
+        /**
+         * 根据当前设备屏幕可用高度和布局模式动态推算首屏所需的可见 Holder 数量。
+         *
+         * - LIST 模式：单列，单卡高约 96dp；
+         * - GRID 模式：双列，单卡高约 240dp；
+         * - COMPACT 模式：四列，单卡高约 104dp。
+         * 向上取整加 1 行露头/滑动缓冲行，动态适配手机、平板、折叠屏及横屏。
+         */
+        internal fun estimateFirstScreenHolders(
+            context: Context,
+            mode: DoneLayoutMode,
+        ): Int {
+            val metrics = context.resources.displayMetrics
+            val screenHeightDp = metrics.heightPixels / metrics.density
+            val visibleHeightDp = (screenHeightDp - 150f).coerceAtLeast(300f)
+
+            val (estimatedItemHeightDp, spanCount) = when (mode) {
+                DoneLayoutMode.LIST -> 96f to 1
+                DoneLayoutMode.GRID -> 240f to 2
+                DoneLayoutMode.COMPACT -> 104f to 4
+            }
+
+            val visibleRows = ceil(visibleHeightDp / estimatedItemHeightDp).toInt() + 1
+            return (visibleRows * spanCount).coerceIn(4, 32)
+        }
+
+        /**
+         * 预构建首屏已完成项的 ViewHolder 并存入 pool，避开切页动画时的布局与 XML inflate 开销。
+         * 在主线程空闲（IdleHandler）时分批（每次 2~4 个）构建，建满首屏可见数量后自动注销。
+         * 返回值撤销尚未跑完的预热，调用方在 view 销毁时调用。
+         */
+        internal fun prewarmDoneHolders(
+            context: Context,
+            pool: RecyclerView.RecycledViewPool,
+            mode: DoneLayoutMode,
+            totalCount: Int = estimateFirstScreenHolders(context, mode),
+            perBatch: Int = if (mode == DoneLayoutMode.COMPACT) 4 else 2,
+        ): () -> Unit {
+            val viewType = mode.ordinal
+            pool.setMaxRecycledViews(viewType, maxOf(12, totalCount + 4))
+            val dummyParent = RecyclerView(context).apply {
+                layoutManager = when (mode) {
+                    DoneLayoutMode.LIST -> LinearLayoutManager(context)
+                    DoneLayoutMode.GRID -> GridLayoutManager(context, 2)
+                    DoneLayoutMode.COMPACT -> GridLayoutManager(context, 4)
+                }
+            }
+            var remaining = totalCount
+            val layoutRes = when (mode) {
+                DoneLayoutMode.LIST -> R.layout.cell_download_done_v3_list
+                DoneLayoutMode.GRID -> R.layout.cell_download_done_v3
+                DoneLayoutMode.COMPACT -> R.layout.cell_download_done_v3_compact
+            }
+            val inflater = LayoutInflater.from(context)
+            // 必须使用 Adapter.createViewHolder，系统才会为 ViewHolder 赋予正确的 mItemViewType（否则默认为 -1 INVALID_TYPE，导致放入 pool 的是 -1 号桶而切页时取不出）
+            val prewarmAdapter = object : RecyclerView.Adapter<DoneAdapterV3.VH>() {
+                override fun onCreateViewHolder(parent: ViewGroup, vt: Int): DoneAdapterV3.VH {
+                    val v = inflater.inflate(layoutRes, parent, false)
+                    return DoneAdapterV3.VH(v)
+                }
+                override fun onBindViewHolder(holder: DoneAdapterV3.VH, position: Int) {}
+                override fun getItemCount(): Int = 0
+            }
+            val idleHandler = MessageQueue.IdleHandler {
+                runCatching {
+                    val batch = minOf(perBatch, remaining)
+                    repeat(batch) {
+                        val vh = prewarmAdapter.createViewHolder(dummyParent, viewType)
+                        pool.putRecycledView(vh)
+                    }
+                    remaining -= batch
+                    remaining > 0
+                }.getOrDefault(false)
+            }
+            val queue = Looper.myQueue()
+            queue.addIdleHandler(idleHandler)
+            return { queue.removeIdleHandler(idleHandler) }
+        }
     }
 }
 
@@ -481,8 +585,8 @@ private class DoneAdapterV3(
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
         val layoutRes = when (DoneLayoutMode.fromInt(viewType)) {
-            DoneLayoutMode.LIST    -> R.layout.cell_download_done_v3_list
-            DoneLayoutMode.GRID    -> R.layout.cell_download_done_v3
+            DoneLayoutMode.LIST -> R.layout.cell_download_done_v3_list
+            DoneLayoutMode.GRID -> R.layout.cell_download_done_v3
             DoneLayoutMode.COMPACT -> R.layout.cell_download_done_v3_compact
         }
         val v = LayoutInflater.from(parent.context).inflate(layoutRes, parent, false)
@@ -614,11 +718,14 @@ private class DoneAdapterV3(
         } else {
             Glide.with(view).load(glideUrlOf(networkUrl.orEmpty()))
         }
+        val crossFade = DrawableTransitionOptions.withCrossFade()
         // 本地文件丢了/无权限读时回退网图（与原逻辑一致）
         if (localUri != null && !networkUrl.isNullOrEmpty()) {
-            request = request.error(Glide.with(view).load(glideUrlOf(networkUrl)))
+            request =
+                request.error(Glide.with(view).load(glideUrlOf(networkUrl)).transition(crossFade))
         }
-        request.into(view)
+        // 缩略图淡入过渡：磁盘缓存（本地/外置存储）与网络加载时柔和显现，避免深色模式下亮色图突现引发明暗跳跃；内存缓存命中时 Glide 自动跳过过渡
+        request.transition(crossFade).into(view)
     }
 
     class VH(v: View) : RecyclerView.ViewHolder(v) {
