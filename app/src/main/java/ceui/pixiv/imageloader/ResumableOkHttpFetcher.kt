@@ -1,0 +1,186 @@
+package ceui.pixiv.imageloader
+
+import android.content.Context
+import ceui.lisa.activities.Shaft
+import ceui.lisa.http.ImageHostManager
+import ceui.lisa.http.PixivHeaders
+import ceui.lisa.utils.Params
+import ceui.pixiv.cache.OriginalImageCacheManager
+import ceui.pixiv.download.StageStore
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runInterruptible
+import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.Response
+import timber.log.Timber
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
+
+/**
+ * 原图断点续传加载器：基于原生 OkHttp 支持 Range 请求头与 .part 临时文件追加写入，
+ * 完成后原子提交至原图专属缓存目录。
+ */
+class ResumableOkHttpFetcher(
+    private val clientProvider: () -> OkHttpClient = { (Shaft.getContext() as Shaft).okHttpClient },
+    private val contextProvider: () -> Context = { Shaft.getContext() },
+    private val cacheDirProvider: () -> File = { OriginalImageCacheManager.getCacheDir(contextProvider()) },
+    private val stagingDirProvider: () -> File = { OriginalImageCacheManager.getStagingDir(contextProvider()) },
+) : ImageFetcher {
+
+    companion object : ImageFetcher {
+        private val defaultInstance = ResumableOkHttpFetcher()
+
+        override suspend fun fetch(url: String, onProgress: (Int) -> Unit): File =
+            defaultInstance.fetch(url, onProgress)
+    }
+
+    override suspend fun fetch(url: String, onProgress: (Int) -> Unit): File {
+        val context = contextProvider()
+        val cached = OriginalImageCacheManager.find(context, url)
+        if (cached != null) {
+            Timber.d("[ResumableFetcher] cache hit url=${url.substringAfterLast('/')}")
+            return cached
+        }
+
+        val stagingDir = stagingDirProvider()
+        if (!stagingDir.exists()) {
+            stagingDir.mkdirs()
+        }
+
+        val key = StageStore.keyForUrl(url)
+        val partFile = StageStore.partFile(stagingDir, key)
+        val metaFile = StageStore.metaFile(stagingDir, key)
+
+        var existingLen = if (partFile.isFile) partFile.length() else 0L
+        var manifest = if (existingLen > 0) StageStore.readManifest(metaFile) else null
+
+        if (manifest != null && manifest.total > 0 && existingLen > manifest.total) {
+            Timber.w("[ResumableFetcher] stage overshoot existing=$existingLen total=${manifest.total}, reset")
+            StageStore.clear(stagingDir, key)
+            existingLen = 0L
+            manifest = null
+        }
+
+        val networkUrl = ImageHostManager.rewrite(url)
+        val pixivHeaders = PixivHeaders()
+
+        val reqBuilder = Request.Builder()
+            .url(networkUrl)
+            .header(Params.MAP_KEY_SMALL, Params.IMAGE_REFERER)
+            .header(Params.USER_AGENT, Params.PHONE_MODEL)
+            .header("x-client-time", pixivHeaders.xClientTime)
+            .header("x-client-hash", pixivHeaders.xClientHash)
+
+        if (existingLen > 0) {
+            reqBuilder.header("Range", "bytes=$existingLen-")
+            if (manifest != null && manifest.validator != null &&
+                (manifest.validatorType == StageStore.VALIDATOR_ETAG ||
+                        manifest.validatorType == StageStore.VALIDATOR_LASTMOD)
+            ) {
+                reqBuilder.header("If-Range", manifest.validator)
+            }
+        }
+
+        val request = reqBuilder.build()
+        val client = clientProvider()
+
+        return withContext(Dispatchers.IO) {
+            val call = client.newCall(request)
+            var response: Response? = null
+            try {
+                response = runInterruptible { call.execute() }
+                val code = response.code
+                if (!response.isSuccessful && code != 416) {
+                    throw IOException("HTTP $code ${response.message}")
+                }
+
+                val body = response.body
+                val contentLength = body?.contentLength() ?: -1L
+                val contentRange = response.header("Content-Range")
+
+                val decision = StageStore.decideWrite(code, contentRange, contentLength, existingLen)
+                Timber.d(
+                    "[ResumableFetcher] url=${url.substringAfterLast('/')} code=$code mode=${decision.mode} start=${decision.startOffset} total=${decision.total}"
+                )
+
+                when (decision.mode) {
+                    StageStore.WriteMode.ABORT -> {
+                        StageStore.clear(stagingDir, key)
+                        throw IOException("Resume aborted (code=$code), restart fresh")
+                    }
+
+                    StageStore.WriteMode.ALREADY_COMPLETE -> {
+                        response.close()
+                        OriginalImageCacheManager.commit(context, url, partFile)
+                    }
+
+                    StageStore.WriteMode.FRESH, StageStore.WriteMode.APPEND -> {
+                        val responseBody = body ?: throw IOException("Empty response body")
+                        StageStore.writeManifest(
+                            metaFile,
+                            StageStore.buildManifest(
+                                url,
+                                response.header("ETag"),
+                                response.header("Last-Modified"),
+                                decision.total
+                            )
+                        )
+
+                        val append = decision.mode == StageStore.WriteMode.APPEND
+                        var written = if (append) decision.startOffset else 0L
+                        val total = decision.total
+                        var lastReportedPercent = -1
+
+                        if (total > 0 && written > 0) {
+                            lastReportedPercent = ((written * 100) / total).toInt().coerceIn(0, 99)
+                            onProgress(lastReportedPercent)
+                        }
+
+                        val inputStream = responseBody.byteStream()
+                        val outputStream = FileOutputStream(partFile, append)
+
+                        try {
+                            runInterruptible {
+                                val buffer = ByteArray(16384)
+                                var bytesRead: Int
+                                while (inputStream.read(buffer).also { bytesRead = it } != -1) {
+                                    outputStream.write(buffer, 0, bytesRead)
+                                    written += bytesRead
+                                    if (total > 0) {
+                                        val percent = ((written * 100) / total).toInt().coerceIn(0, 99)
+                                        if (percent != lastReportedPercent) {
+                                            lastReportedPercent = percent
+                                            onProgress(percent)
+                                        }
+                                    }
+                                }
+                                outputStream.flush()
+                            }
+                        } finally {
+                            runCatching { outputStream.close() }
+                            runCatching { inputStream.close() }
+                        }
+
+                        if (decision.total >= 0) {
+                            val stagedLen = partFile.length()
+                            if (stagedLen != decision.total) {
+                                StageStore.clear(stagingDir, key)
+                                throw IOException("Stage length mismatch: stagedLen=$stagedLen != expected=${decision.total}")
+                            }
+                        }
+
+                        OriginalImageCacheManager.commit(context, url, partFile)
+                    }
+                }
+            } catch (ce: CancellationException) {
+                call.cancel()
+                throw ce
+            } finally {
+                response?.close()
+            }
+        }
+    }
+}

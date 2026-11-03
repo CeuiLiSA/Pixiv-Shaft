@@ -57,7 +57,7 @@ object SnapshotGenerator {
     private const val PROBE_PARALLELISM = 8
 
     /** 一页的落盘计划：序号、要取的 URL、目标相对路径。纯数据，构造它不产生任何 IO。 */
-    private data class SnapshotPage(val index: Int, val url: String, val rel: String)
+    private data class SnapshotPage(val index: Int, val url: String, val rel: String, val isOriginal: Boolean = false)
 
     /**
      * @param freshDetail [illust] 是调用方刚从 v1/illust/detail 拉到的完整版。为真时不再回源：
@@ -171,7 +171,7 @@ object SnapshotGenerator {
                     ?: throw SnapshotException(
                         appContext.getString(R.string.snapshot_error_page_url_missing, i + 1)
                     )
-                SnapshotPage(index = i, url = url, rel = "images/p$i${url.snapshotExtension()}")
+                SnapshotPage(index = i, url = url, rel = "images/p$i${url.snapshotExtension()}", isOriginal = includeOriginal)
             }
 
             // 进度按「已完成页数」报，第一页落盘前不会有下一条；先报 0/N 切到图片阶段，
@@ -202,7 +202,7 @@ object SnapshotGenerator {
                 // 不会一次性把 N 页请求全打出去。
                 val pendingJobs = pendingPages.map { plan ->
                     async {
-                        val source = downloadGate.withPermit { fetchFile(appContext, plan.url) }
+                        val source = downloadGate.withPermit { fetchFile(appContext, plan.url, plan.isOriginal) }
                         copyGate.withPermit { copyPage(plan, source) }
                         progress(R.string.snapshot_progress_images, donePages.incrementAndGet(), pageCount)
                     }
@@ -411,8 +411,8 @@ object SnapshotGenerator {
      * 失败统一包成 [SnapshotException]；取消照旧往上抛 —— 页面销毁导致的取消不是「下载失败」，
      * 包成异常会让上层把一次取消当错误处理。
      */
-    private suspend fun fetchFile(context: Context, url: String): File = try {
-        ImageLoaderV3.obtain(url).awaitFile()
+    private suspend fun fetchFile(context: Context, url: String, isOriginal: Boolean = false): File = try {
+        ImageLoaderV3.obtain(url, isOriginal = isOriginal).awaitFile()
     } catch (ce: CancellationException) {
         throw ce
     } catch (e: Exception) {

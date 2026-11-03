@@ -56,12 +56,13 @@ object PageImageSourceResolver {
         page: Int,
         url: String?,
         allowNetwork: Boolean = true,
+        isOriginal: Boolean = true,
     ): PageImageSource {
         if (url.isNullOrEmpty()) return PageImageSource.Unavailable
 
         localUrlSource(url)?.let { return it }
 
-        ImageLoaderV3.peekFile(url)?.let { file ->
+        ImageLoaderV3.peekFile(url, isOriginal)?.let { file ->
             return PageImageSource.Local(Uri.fromFile(file), file, PageImageSource.Origin.Cached)
         }
 
@@ -72,7 +73,7 @@ object PageImageSourceResolver {
         }
 
         if (!allowNetwork) return PageImageSource.Unavailable
-        return PageImageSource.Remote(ImageLoaderV3.obtain(url))
+        return PageImageSource.Remote(ImageLoaderV3.obtain(url, isOriginal = isOriginal))
     }
 
     /**
@@ -82,10 +83,10 @@ object PageImageSourceResolver {
      * 存在的理由是**渲染热路径**：B 已经用 [DownloadedPageIndex.pages] 批量扫过整部作品，
      * 逐页再查一次库纯属浪费；它只需要「快照 url / 已经下好」这两条。
      */
-    fun resolveCheap(url: String?): PageImageSource.Local? {
+    fun resolveCheap(url: String?, isOriginal: Boolean = false): PageImageSource.Local? {
         if (url.isNullOrEmpty()) return null
         localUrlSource(url)?.let { return it }
-        val file = ImageLoaderV3.peekFile(url) ?: return null
+        val file = ImageLoaderV3.peekFile(url, isOriginal) ?: return null
         return PageImageSource.Local(Uri.fromFile(file), file, PageImageSource.Origin.Cached)
     }
 

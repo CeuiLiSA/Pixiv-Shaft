@@ -17,7 +17,25 @@ public class LegacyFile {
 
     private static final String GIF_CACHE = "/gif cache";
     private static final String IMAGE_CACHE = "/image_manager_disk_cache";
+    private static final String ORIGINAL_IMAGE_CACHE = "/original_cache";
+    private static final String ORIGINAL_STAGING = "/original_staging";
     private static final String REVERSE_SEARCH_CACHE = "/reverse_search";
+
+    public static File originalImageCacheFolder(Context context) {
+        File cacheDir = new File(context.getCacheDir().getPath() + ORIGINAL_IMAGE_CACHE);
+        if (!cacheDir.exists()) {
+            cacheDir.mkdirs();
+        }
+        return cacheDir;
+    }
+
+    public static File originalStagingFolder(Context context) {
+        File cacheDir = new File(context.getCacheDir().getPath() + ORIGINAL_STAGING);
+        if (!cacheDir.exists()) {
+            cacheDir.mkdirs();
+        }
+        return cacheDir;
+    }
 
     public static File imageCacheFolder(Context context) {
         File cacheDir = new File(context.getCacheDir().getPath() + IMAGE_CACHE);

@@ -57,6 +57,8 @@ import ceui.pixiv.download.DownloadsRegistry;
 import ceui.pixiv.download.config.DownloadItems;
 import ceui.pixiv.download.model.RelativePath;
 import ceui.pixiv.cache.ImageCacheQuota;
+import ceui.pixiv.cache.OriginalImageCacheQuota;
+import ceui.pixiv.cache.OriginalImageCacheManager;
 import ceui.pixiv.cache.ImageCacheQuotaState;
 import ceui.pixiv.session.SessionManager;
 import ceui.pixiv.ui.bulk.UgoiraEngine;
@@ -197,6 +199,23 @@ public class FragmentSettingsData extends SettingsPageFragment<FragmentSettingsD
             loadCacheSizeAsync(baseBind.imageCacheSize, LegacyFile.imageCacheFolder(mContext));
         });
 
+        loadCacheSizeAsync(baseBind.originalCacheSize, LegacyFile.originalImageCacheFolder(mContext));
+        baseBind.clearOriginalCache.setOnClickListener(v -> {
+            final File originalCache = LegacyFile.originalImageCacheFolder(mContext);
+            final TextView sizeText = baseBind.originalCacheSize;
+            sizeText.setText("…");
+            new Thread(() -> {
+                OriginalImageCacheManager.clearAll(mContext);
+                sizeText.post(() -> {
+                    if (!isAdded()) {
+                        return;
+                    }
+                    Common.showToast(getString(R.string.success_clear_original_cache), 2);
+                    loadCacheSizeAsync(sizeText, originalCache);
+                });
+            }, "orig-cache-clear").start();
+        });
+
         loadCacheSizeAsync(baseBind.gifCacheSize, LegacyFile.gifCacheFolder(mContext));
         baseBind.clearGifCache.setOnClickListener(v -> {
             // 删除走子线程:gif 缓存一条动图就是 zip + 上百张解压帧 + 成品 gif 三份,
@@ -230,6 +249,8 @@ public class FragmentSettingsData extends SettingsPageFragment<FragmentSettingsD
         // 改完必须重启 App 才生效（与图片加速代理同款限制），所以提示重启而不是「设置成功」。
         refreshImageCacheQuotaLabel();
         baseBind.imageCacheQuotaRela.setOnClickListener(v -> showImageCacheQuotaDialog());
+        refreshOriginalCacheQuotaLabel();
+        baseBind.originalCacheQuotaRela.setOnClickListener(v -> showOriginalCacheQuotaDialog());
     }
 
     @Override
@@ -353,6 +374,7 @@ public class FragmentSettingsData extends SettingsPageFragment<FragmentSettingsD
                     if (result != null) {
                         // 备份已替换 Settings；同步额度及其重启前未生效状态。
                         refreshImageCacheQuotaLabel();
+                        refreshOriginalCacheQuotaLabel();
                         Common.showToast(getString(R.string.restore_success));
                         if (!SessionManager.INSTANCE.isLoggedIn()) {
                             maybePromptRestoreAccount(result.getUserEntityList());
@@ -430,6 +452,45 @@ public class FragmentSettingsData extends SettingsPageFragment<FragmentSettingsD
      * 右侧显示的当前「预期上限」：不足 1 GB 写 MB，正好 1 GB 写 GB；
      * 改过但还没重启时加「未生效」后缀。
      */
+    private void refreshOriginalCacheQuotaLabel() {
+        int current = Shaft.sSettings.getOriginalImageCacheMaxMb();
+        String label = originalCacheQuotaLabel(mContext, current);
+        baseBind.originalCacheQuota.setText(label);
+    }
+
+    private static String originalCacheQuotaLabel(Context context, int limitMb) {
+        if (limitMb < 1024) {
+            return context.getString(R.string.setting_image_cache_quota_value, limitMb);
+        }
+        String gb = new DecimalFormat("0.##").format(limitMb / 1024d);
+        return context.getString(R.string.setting_image_cache_quota_value_gb, gb);
+    }
+
+    private void showOriginalCacheQuotaDialog() {
+        OriginalImageCacheQuotaDialogBuilder builder = new OriginalImageCacheQuotaDialogBuilder(mActivity);
+        builder.setTitle(R.string.setting_original_cache_quota);
+        builder.addAction(R.string.string_cancel, (dialog, which) -> dialog.dismiss());
+        builder.addAction(0, R.string.sure, WitDialogAction.ACTION_PROP_POSITIVE, (dialog, which) -> {
+            SeekBar slider = builder.slider;
+            if (slider == null) {
+                dialog.dismiss();
+                return;
+            }
+            int chosen = builder.sliderTouched
+                    ? OriginalImageCacheQuota.limitMbForProgress(
+                            slider.getProgress(), OriginalImageCacheQuota.SLIDER_STEPS)
+                    : builder.initialLimitMb;
+            if (chosen != Shaft.sSettings.getOriginalImageCacheMaxMb()) {
+                Shaft.sSettings.setOriginalImageCacheMaxMb(chosen);
+                Local.setSettings(Shaft.sSettings);
+                refreshOriginalCacheQuotaLabel();
+                OriginalImageCacheManager.trimAsync(mContext, chosen);
+            }
+            dialog.dismiss();
+        });
+        builder.show();
+    }
+
     private void refreshImageCacheQuotaLabel() {
         int current = Shaft.sSettings.getImageCacheMaxMb();
         String label = imageCacheQuotaLabel(mContext, current);
@@ -694,6 +755,55 @@ public class FragmentSettingsData extends SettingsPageFragment<FragmentSettingsD
     }
 
     /** WitDialog 的自定义内容：标题下的大数值 + V3 滑条 + 两端说明。结构对齐自动快照配额弹窗。 */
+    private static final class OriginalImageCacheQuotaDialogBuilder extends WitDialog.CustomDialogBuilder {
+
+        private SeekBar slider;
+        private TextView valueText;
+        private int initialLimitMb;
+        private boolean sliderTouched;
+
+        private OriginalImageCacheQuotaDialogBuilder(Context context) {
+            super(context);
+        }
+
+        @Override
+        protected View onCreateContent(WitDialog dialog, WitDialogView parent, Context context) {
+            View content = LayoutInflater.from(context)
+                    .inflate(R.layout.dialog_original_cache_quota, parent, false);
+            slider = content.findViewById(R.id.dialog_original_cache_quota_slider);
+            valueText = content.findViewById(R.id.dialog_original_cache_quota_value);
+            valueText.setTextColor(V3Palette.from(context).getTextAccent());
+
+            int current = Shaft.sSettings.getOriginalImageCacheMaxMb();
+            initialLimitMb = current;
+            slider.setMax(OriginalImageCacheQuota.SLIDER_STEPS);
+            slider.setProgress(OriginalImageCacheQuota.progressForLimitMb(
+                    current, OriginalImageCacheQuota.SLIDER_STEPS));
+            valueText.setText(originalCacheQuotaLabel(context, current));
+
+            slider.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                @Override
+                public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                    if (fromUser) {
+                        sliderTouched = true;
+                    }
+                    valueText.setText(originalCacheQuotaLabel(context,
+                            OriginalImageCacheQuota.limitMbForProgress(
+                                    progress, OriginalImageCacheQuota.SLIDER_STEPS)));
+                }
+
+                @Override
+                public void onStartTrackingTouch(SeekBar seekBar) {
+                }
+
+                @Override
+                public void onStopTrackingTouch(SeekBar seekBar) {
+                }
+            });
+            return content;
+        }
+    }
+
     private static final class ImageCacheQuotaDialogBuilder extends WitDialog.CustomDialogBuilder {
 
         private SeekBar slider;

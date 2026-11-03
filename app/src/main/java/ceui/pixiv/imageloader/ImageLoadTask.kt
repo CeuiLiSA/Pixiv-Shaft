@@ -43,11 +43,18 @@ class ImageLoadTask(
      * 「图片加载也容许一次断流超时并静默重试」；单测注入假实现。
      */
     private val shouldRetryStall: (Throwable) -> Boolean = ::shouldSilentlyRetryImageStall,
+    initialFile: File? = null,
 ) {
 
     private val shortUrl = request.url.substringAfterLast('/')
 
-    private val _state = MutableStateFlow<ImageLoadState>(ImageLoadState.Idle)
+    private val _state = MutableStateFlow<ImageLoadState>(
+        if (initialFile != null && initialFile.isUsableImageFile()) {
+            ImageLoadState.Success(initialFile)
+        } else {
+            ImageLoadState.Idle
+        }
+    )
     val state: StateFlow<ImageLoadState> = _state.asStateFlow()
 
     /**
@@ -72,7 +79,7 @@ class ImageLoadTask(
             // 磁盘缓存文件还在就直接复用;被清了(exists=false)才落到下面重抓。
             is ImageLoadState.Success -> {
                 if (current.file.isUsableImageFile()) return
-                // Glide 磁盘缓存可能被系统/用户清掉。必须先离开旧 Success,否则 awaitFile()
+                // 磁盘缓存可能被系统/用户清掉。必须先离开旧 Success,否则 awaitFile()
                 // 会立刻读到 stale terminal state,把不存在的 File 交给保存/AI 流程。
                 _state.value = ImageLoadState.Loading(0)
             }
@@ -156,7 +163,9 @@ class ImageLoadTask(
         }
     }
 
-    private fun File.isUsableImageFile(): Boolean = exists() && length() > 0
+    companion object {
+        internal fun File.isUsableImageFile(): Boolean = exists() && length() > 0
+    }
 }
 
 /**
@@ -169,7 +178,7 @@ class ImageLoadTask(
  *
  * 设置值每次失败时现取，所以开关改完立即生效、不用重启。
  *
- * 读超时要从 Glide 的异常包装里找（见 [GlideImageFetcher.isReadTimeout]），不能只沿 cause 链。
+ * 读超时要从异常包装里找（见 [GlideImageFetcher.isReadTimeout]），不能只沿 cause 链。
  */
 internal fun shouldSilentlyRetryImageStall(error: Throwable): Boolean =
     GlideImageFetcher.isReadTimeout(error) &&

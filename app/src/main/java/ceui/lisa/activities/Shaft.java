@@ -733,6 +733,8 @@ public class Shaft extends Application implements ServicesProvider {
         // 留下几百 MB 中间 PNG 且没有任何东西会去收。后台跑、失败静默。
         step("UgoiraEngine.sweep", () -> ceui.pixiv.ui.bulk.UgoiraEngine.sweepStaleRifeWork(this));
 
+        step("OriginalImageCache.sweep", () -> ceui.pixiv.cache.OriginalImageCacheManager.sweepAndTrim(this));
+
         // 社区榜单事件上报（shaft-api-v2）。完全 fire-and-forget，失败静默，
         // 任何崩溃都被它自己捕获。安全顺序：必须在 MMKV.initialize 之后。
         step("EventReporter", eventReporter::start);
