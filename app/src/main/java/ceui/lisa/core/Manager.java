@@ -1967,7 +1967,8 @@ public class Manager {
     /**
      * 队列外写同一张图的入口（大图页「保存这一张」）借用 {@link #activeStageKeys} 的同 url
      * 单主锁，免得和这里的传输同时写同一个模板目标（#1312）。抢到返回 true，用完必须
-     * {@link #releaseUrlWrite}；占着期间队列派到这条 url 会走「stage key busy」失败、由队列重试。
+     * {@link #releaseUrlWrite}。占着期间这条 url 开传会走「stage key busy」判失败：QueueDownloadManager
+     * 派的页由队列自动重试，直接 addTask(s) 进来的（详情页「下载全部」）停在 FAILED 等用户重试。
      */
     public boolean tryAcquireUrlWrite(String url) {
         return activeStageKeys.add(StageStore.keyForUrl(url));

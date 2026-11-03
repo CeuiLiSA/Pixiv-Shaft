@@ -1058,9 +1058,10 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
             }
 
             // 批量下载正在写同一张图时先等它收尾(#1312):两边写的是同一个模板目标,替换策略下同时写会
-            // 多出 " (1)" 副本,或一方补写完标签后被另一方剩下的字节改坏。借 Manager 的同 url 单主锁,
-            // 我们占着时队列派到这张图会按「stage key busy」失败、由队列重试。要在下面落副本之前拿到:
-            // 本地来源可能正是队列在写的那个目标文件。
+            // 多出 " (1)" 副本,或一方补写完标签后被另一方剩下的字节改坏。借 Manager 的同 url 单主锁。
+            // 我们占着的那一小段写盘窗口里 Manager 刚好开传这张图,会按「stage key busy」把那一页判失败:
+            // 批量队列会自动重试,详情页「下载全部」直接进 Manager 的不会,停在失败等用户点重试
+            // (文件本身这边已经写好并记了账)。要在下面落副本之前拿到:本地来源可能正是队列在写的那个目标文件。
             val manager = Manager.get()
             while (!manager.tryAcquireUrlWrite(imageUrl)) delay(URL_WRITE_POLL_MS)
             try {
