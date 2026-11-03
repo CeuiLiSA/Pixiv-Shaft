@@ -121,7 +121,9 @@ class DoneListV3Fragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         val list = view.findViewById<RecyclerView>(R.id.list)
-        list.setRecycledViewPool(sharedVm.doneRecycledViewPool)
+        (parentFragment as? DownloadManagerV3Fragment)?.let {
+            list.setRecycledViewPool(it.doneRecycledViewPool)
+        }
         list.adapter = adapter
         // 与 ActiveList / QueueList 及 V3 规范一致：关闭 DefaultItemAnimator，避免卡片与文字在刷新/上屏时整体淡入；仅保留缩略图自身的平滑过渡
         list.itemAnimator = null
@@ -410,6 +412,7 @@ class DoneListV3Fragment : Fragment() {
         /**
          * 预构建首屏已完成项的 ViewHolder 并存入 pool，避开切页动画时的布局与 XML inflate 开销。
          * 在主线程空闲（IdleHandler）时分批（每次 2~4 个）构建，建满首屏可见数量后自动注销。
+         * 返回值撤销尚未跑完的预热，调用方在 view 销毁时调用。
          */
         internal fun prewarmDoneHolders(
             context: Context,
@@ -417,7 +420,7 @@ class DoneListV3Fragment : Fragment() {
             mode: DoneLayoutMode,
             totalCount: Int = estimateFirstScreenHolders(context, mode),
             perBatch: Int = if (mode == DoneLayoutMode.COMPACT) 4 else 2,
-        ) {
+        ): () -> Unit {
             val viewType = mode.ordinal
             pool.setMaxRecycledViews(viewType, maxOf(12, totalCount + 4))
             val dummyParent = RecyclerView(context).apply {
@@ -454,7 +457,9 @@ class DoneListV3Fragment : Fragment() {
                     remaining > 0
                 }.getOrDefault(false)
             }
-            Looper.myQueue().addIdleHandler(idleHandler)
+            val queue = Looper.myQueue()
+            queue.addIdleHandler(idleHandler)
+            return { queue.removeIdleHandler(idleHandler) }
         }
     }
 }

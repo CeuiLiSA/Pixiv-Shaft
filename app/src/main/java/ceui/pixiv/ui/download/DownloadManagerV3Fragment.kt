@@ -23,6 +23,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
 import ceui.lisa.R
@@ -77,6 +78,15 @@ class DownloadManagerV3Fragment : Fragment() {
     private var pager: ViewPager2? = null
     private var pageCallback: ViewPager2.OnPageChangeCallback? = null
 
+    /**
+     * 已完成列表的 ViewHolder 池，[DoneListV3Fragment] 绑到自己的列表上。池里是用本页 Context
+     * inflate 的 View，只能跟本 Fragment 同生命周期：放进 Activity 作用域的 ViewModel 会挺过
+     * 旋转 / 深浅色切换，新列表取出旧 Activity 的 View 后 Glide.with(view) 认出 Activity 已销毁，
+     * 直接抛 IllegalArgumentException。
+     */
+    internal val doneRecycledViewPool = RecyclerView.RecycledViewPool()
+    private var cancelDonePrewarm: (() -> Unit)? = null
+
     /** 「已完成」tab 的导入本地下载流程（issue #953）。 */
     private val importFlow by lazy { ImportLocalDownloadsFlow(this) }
 
@@ -123,14 +133,11 @@ class DownloadManagerV3Fragment : Fragment() {
         }.attach()
 
         // 进入下载管理页时（在主线程空闲帧）按屏幕大小与当前布局模式动态预做首屏可见 Holder 的 XML inflate，避开切页滑行期间阻塞主线程
-        if (!sharedVm.donePrewarmStarted) {
-            sharedVm.donePrewarmStarted = true
-            DoneListV3Fragment.prewarmDoneHolders(
-                context = requireContext(),
-                pool = sharedVm.doneRecycledViewPool,
-                mode = DoneLayoutMode.fromInt(Shaft.sSettings.doneListLayoutMode),
-            )
-        }
+        cancelDonePrewarm = DoneListV3Fragment.prewarmDoneHolders(
+            context = requireContext(),
+            pool = doneRecycledViewPool,
+            mode = DoneLayoutMode.fromInt(Shaft.sSettings.doneListLayoutMode),
+        )
 
         // toolbar 右侧 menu —— 2 个 action 按 tab 分发可见性:
         //   - 导出 (action_export):pos 0 (批量队列) / pos 2 (已完成),「正在下载」
@@ -282,6 +289,8 @@ class DownloadManagerV3Fragment : Fragment() {
     }
 
     override fun onDestroyView() {
+        cancelDonePrewarm?.invoke()
+        cancelDonePrewarm = null
         pageCallback?.let { pager?.unregisterOnPageChangeCallback(it) }
         pageCallback = null
         pager = null

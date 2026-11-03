@@ -1,7 +1,6 @@
 package ceui.pixiv.ui.download
 
 import androidx.lifecycle.ViewModel
-import androidx.recyclerview.widget.RecyclerView
 import ceui.lisa.core.DownloadItem
 import ceui.lisa.core.ManagerReactive
 import ceui.lisa.database.DownloadDao
@@ -51,14 +50,6 @@ class DownloadManagerSharedViewModel @Inject constructor(
     /** 同理 Lazy：只有 [refreshDoneCardCount] 才去拿库。 */
     private val downloadDao: Lazy<DownloadDao>,
 ) : ViewModel() {
-
-    /**
-     * 已完成列表专属的 RecycledViewPool。
-     * 在进入下载管理页时（在宿主空闲帧）预先创建首屏 6 个 Holder 塞入池中，
-     * 供 [DoneListV3Fragment] 首次布局时 0ms 秒出，避免占死主线程卡顿切页动画。
-     */
-    val doneRecycledViewPool = RecyclerView.RecycledViewPool()
-    var donePrewarmStarted = false
 
     data class Snapshot(
         val queuePending: Int,
