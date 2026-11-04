@@ -206,6 +206,8 @@ cd Pixiv-Shaft
 
 **要求：** JDK 17+、Android SDK 36 · 最低 Android 7.0（Min SDK 24），目标 Android 16（Target SDK 36）
 
+> **Windows 构建提示：** 若将项目克隆到非系统盘（如 `D:\`、`R:\` 等），KSP 编译可能会因跨盘符抛出 `different roots` 错误。排查与解决方法见 [Windows 跨盘符构建排查指南](../docs/windows-ksp-cross-drive-troubleshooting.md)。
+
 ## 💎 订阅
 
 Shaft 本体永远免费、开源、无广告，全部功能不上锁 —— 包括 AI 超分、抠图、漫画翻译与动图补帧。只有「任意关键字按热度排序」这一项要占用公共搜索资源，才做了额度 —— 订阅只是把额度加倍，不解锁任何独占功能。
