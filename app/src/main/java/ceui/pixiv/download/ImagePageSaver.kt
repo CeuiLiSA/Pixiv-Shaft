@@ -192,7 +192,11 @@ class ImagePageSaver @Inject constructor(@ApplicationContext context: Context) {
         return true
     }
 
-    /** 暂停这一页的保存（#1316）。原图下载断点保存在临时文件中，可随时 [resume] 继续下载。 */
+    /**
+     * 暂停这一页的保存（#1316）：只停「等原图 → 写盘」这条保存协程，不写盘。
+     * 共享的原图加载任务（[ceui.pixiv.imageloader.ImageLoadTask]）不归这里管，会照常继续下载；
+     * [resume] 时复用它的结果。开始写盘后返回 false。
+     */
     @MainThread
     fun pause(key: PageKey): Boolean {
         val current = _states.value[key] as? PageState.Saving ?: return false
@@ -227,17 +231,18 @@ class ImagePageSaver @Inject constructor(@ApplicationContext context: Context) {
     /** 取消这一页的保存。已经开始写盘时返回 false，保存照常走完；未写盘或已暂停/失败时直接移除。 */
     @MainThread
     fun cancel(key: PageKey): Boolean {
-        pausedKeys.remove(key)
         val job = cancellable.remove(key)
         if (job != null) {
             job.cancel()
             return true
         }
-        if (_states.value.containsKey(key)) {
-            _states.update { it - key }
-            return true
-        }
-        return false
+        // 没有可取消的协程却仍是 Saving = claimWrite 已摘走条目、正在写盘:不认取消。
+        // 这里若把状态删掉,写盘照常完成,界面却回到「未保存」,再点一次就会重复写一份。
+        val current = _states.value[key]
+        if (current !is PageState.Paused && current !is PageState.Failed) return false
+        pausedKeys.remove(key)
+        _states.update { if (it[key] is PageState.Saving) it else it - key }
+        return true
     }
 
     /** 进入写盘:从此不再认取消。取消已经抢先时抛 [CancellationException],调用方不得写盘。 */

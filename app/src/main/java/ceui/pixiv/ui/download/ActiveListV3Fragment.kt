@@ -785,7 +785,8 @@ private class ActiveAdapterV3 : ListAdapter<ActiveSnapshot, ActiveAdapterV3.VH>(
 
     private fun bindFullSinglePage(h: VH, snap: ActiveSnapshot.SinglePageEntry) {
         val title = snap.illust.title.orEmpty().ifEmpty { snap.illust.id.toString() }
-        h.taskName.text = "${title} · P${snap.page}"
+        // page 是 0 起的下标；标签与大图页「第 N/M P」一致按 1 起显示
+        h.taskName.text = "${title} · P${snap.page + 1}"
         bindSinglePageStateAndProgress(h, snap)
 
         val metaPage = snap.illust.meta_pages?.getOrNull(snap.page)
