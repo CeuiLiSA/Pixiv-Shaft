@@ -29,7 +29,7 @@ java.lang.IllegalArgumentException: this and base files have different roots: C:
    - 在 Windows 文件系统中，每个驱动器盘符（如 `C:`、`D:`、`R:`）都是独立的文件系统根（Root）。
    - Java NIO 与 Kotlin 标准库明确规定：**当两个路径属于不同的根（Root）时，无法计算相对路径**。此时调用 `pathA.relativeTo(pathB)` 会直接抛出 `IllegalArgumentException("this and base files have different roots")`。
 3. **上游官方 Issue**：
-   - 该问题是 Google KSP 官方仓库已知且长期挂起的 Bug：[google/ksp#1079](https://github.com/google/ksp/issues/1079)（及关联 issues [#1538](https://github.com/google/ksp/issues/1538)、[#1637](https://github.com/google/ksp/issues/1637)）。在 KSP 官方彻底重构 Windows 跨盘符虚拟路径映射之前，只要工程与 Gradle 缓存跨盘，该问题必然触发。
+   - 该问题是 Google KSP 官方仓库已知且长期挂起的 Bug：[google/ksp#1079](https://github.com/google/ksp/issues/1079)（重复报告见 [#2815](https://github.com/google/ksp/issues/2815)）。在 KSP 官方彻底重构 Windows 跨盘符虚拟路径映射之前，只要工程与 Gradle 缓存跨盘，该问题必然触发。
 
 ---
 
