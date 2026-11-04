@@ -1582,12 +1582,34 @@
     <string name="novel_author_name_copied">Yazar adı kopyalandı</string>
     <string name="novel_author_id_copied">Yazar UID numarası kopyalandı</string>
     <string name="novel_header_series_prefix">Seri: %1$s</string>
-    <string name="novel_meta_type">Roman</string>
     <string name="novel_meta_word_count">%1$s kelime</string>
     <!-- 小说详情 V3（2026-11-04）：元信息里的预计阅读时长按每分钟 500 字，同 pixiv 网页端 -->
     <plurals name="novel_reading_minutes">
         <item quantity="one">Yaklaşık %d dk</item>
         <item quantity="other">Yaklaşık %d dk</item>
+    </plurals>
+    <!-- 小说系列页（V3，docs「小说系列」） -->
+    <string name="novel_series_eyebrow">Roman serisi</string>
+    <string name="novel_series_ongoing">Devam ediyor</string>
+    <string name="novel_series_concluded">Tamamlandı</string>
+    <string name="novel_series_updated_on">%1$s güncellendi</string>
+    <string name="novel_series_read_first">Baştan oku</string>
+    <string name="novel_series_continue_at">Devam et · #%1$d</string>
+    <string name="novel_series_continue">Okumaya devam et</string>
+    <string name="novel_series_stat_chapters">Bölüm</string>
+    <string name="novel_series_stat_characters">Karakter</string>
+    <string name="novel_series_stat_reading_time">Okuma süresi</string>
+    <string name="novel_series_latest_chapter">En yeni · #%1$d</string>
+    <string name="novel_series_toc">İçindekiler</string>
+    <string name="novel_series_info_started">İlk yayın</string>
+    <string name="novel_info_series_id">Seri ID</string>
+    <plurals name="novel_reading_hours">
+        <item quantity="one">Yaklaşık %d sa</item>
+        <item quantity="other">Yaklaşık %d sa</item>
+    </plurals>
+    <plurals name="novel_series_toc_count">
+        <item quantity="one">%d bölüm</item>
+        <item quantity="other">%d bölüm</item>
     </plurals>
     <string name="novel_continue_reading">Okumaya devam · %%%d</string>
     <string name="novel_section_info">Bilgi</string>
@@ -1597,7 +1619,6 @@
     <string name="novel_author_other_works">Diğer eserleri</string>
     <string name="action_open">Aç</string>
     <string name="novel_cover">Kapak</string>
-    <string name="novel_meta_chapter_count">%1$d bölüm</string>
     <string name="manga_series_meta_type">Manga</string>
     <string name="manga_series_episode_count">%1$d bölüm</string>
     <string name="manga_series_chip_content_count">Bölüm  %1$s</string>
@@ -1751,8 +1772,6 @@
     <string name="novel_chip_series_id">Seri ID  %1$s</string>
     <string name="novel_chip_series_link">Seri bağlantısı</string>
     <string name="novel_chip_open_series_link">Seri bağlantısını aç</string>
-    <string name="novel_chip_series_content_count">Bölüm sayısı  %1$s</string>
-    <string name="novel_chip_series_char_count">Toplam karakter  %1$s</string>
     <string name="setting_default_novel_format">Varsayılan roman indirme biçimi</string>
     <string name="setting_novel_epub_on_images">Roman içinde çizim varsa EPUB olarak kaydet</string>
     <string name="setting_novel_epub_on_images_desc">Varsayılan biçim TXT olduğunda, metinde çizim algılanırsa otomatik olarak EPUB olarak dışa aktar</string>

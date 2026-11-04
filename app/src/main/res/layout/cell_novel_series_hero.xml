@@ -1,76 +1,432 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  小说系列页头（V3「小说系列」，见 docs/v3-design-philosophy.md）。和小说详情共用设计语言
+  （V3Palette、字级、细线、图标容器、胶囊操作），但构图刻意不同，一眼能分出「这是一套书」：
+  - 详情是通栏模糊封面 + 居中大封面；系列是一张 30dp 圆角的 Hero 卡片（主题色浅染，不铺模糊图），
+    左边是「叠起来的书」——封面后面按篇数露出 0–2 张主题色书页，右边是「小说系列」小标 / 标题 /
+    作者 / 连载状态；卡片下半是篇数 · 字数 · 阅读时长三格。
+  - 卡片下面是操作行（继续阅读 / 从第 1 篇开始 + 追更 + 下载）和「最新一篇」行。
+  - 字级：小标 12sp SemiBold textAccent → 标题 20sp Bold v3_text_1 → 作者 14sp Medium v3_text_2 →
+    状态 12sp Medium v3_text_2；统计数字 18sp SemiBold tnum（单位由代码缩到 12sp）、标签 12sp。
+  - 颜色全部由 NovelSeriesFeed 里的 V3Palette 注入。宽屏留白由 NovelSeriesDecoration 给。
+  - padding 一律四向拆开写：paddingHorizontal/Vertical 是 API 26+，minSdk 24 上会被忽略。
+-->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:paddingHorizontal="20dp"
-    android:paddingTop="10dp"
-    android:paddingBottom="16dp">
+    android:orientation="vertical">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <!-- 高度 = 状态栏 inset（代码给）：列表顶不留 padding，页头自己让位。 -->
+    <Space
+        android:id="@+id/status_spacer"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="0dp" />
 
-        <TextView
-            android:id="@+id/title"
+    <!-- 顶部一行只放分享：48dp 热区，图标视觉右缘与卡片内容对齐。 -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp">
+
+        <ImageView
+            android:id="@+id/share"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="end"
+            android:contentDescription="@string/novel_actions_share"
+            android:padding="12dp"
+            android:src="@drawable/ic_share_black_24dp" />
+    </FrameLayout>
+
+    <!-- ═══ Hero 卡片：30dp 圆角，底色由代码给（cardFill + 主题色斜向浅染 + hairline） ═══ -->
+    <LinearLayout
+        android:id="@+id/hero_card"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginEnd="16dp"
+        android:orientation="vertical"
+        android:paddingStart="20dp"
+        android:paddingTop="20dp"
+        android:paddingEnd="20dp"
+        android:paddingBottom="8dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:baselineAligned="false"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <!-- 叠放的书：两张书页在后、封面在前，书页向结束侧依次错开 10dp、矮 12dp。 -->
+            <FrameLayout
+                android:id="@+id/cover_stack"
+                android:layout_width="116dp"
+                android:layout_height="136dp">
+
+                <View
+                    android:id="@+id/stack_page_2"
+                    android:layout_width="96dp"
+                    android:layout_height="112dp"
+                    android:layout_gravity="end|center_vertical"
+                    android:importantForAccessibility="no" />
+
+                <View
+                    android:id="@+id/stack_page_1"
+                    android:layout_width="96dp"
+                    android:layout_height="124dp"
+                    android:layout_gravity="end|center_vertical"
+                    android:layout_marginEnd="10dp"
+                    android:importantForAccessibility="no" />
+
+                <ImageView
+                    android:id="@+id/cover"
+                    android:layout_width="96dp"
+                    android:layout_height="136dp"
+                    android:layout_gravity="start|center_vertical"
+                    android:contentDescription="@string/novel_cover"
+                    android:elevation="4dp"
+                    android:scaleType="centerCrop" />
+            </FrameLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/eyebrow"
+                    style="@style/textMontserratSemiBold"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:letterSpacing="0.04"
+                    android:text="@string/novel_series_eyebrow"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/title"
+                    style="@style/textMontserratBold"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:breakStrategy="balanced"
+                    android:ellipsize="end"
+                    android:maxLines="5"
+                    android:textColor="@color/v3_text_1"
+                    android:textSize="20sp"
+                    tools:text="誰だと思ってんだオマエ、斉藤くんだぞ" />
+
+                <!-- 作者行：48dp 热区（内容只有 20dp 头像 + 一行名字），点进画师页。 -->
+                <LinearLayout
+                    android:id="@+id/author_row"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="-8dp"
+                    android:layout_marginTop="2dp"
+                    android:background="?attr/selectableItemBackground"
+                    android:gravity="center_vertical"
+                    android:minHeight="48dp"
+                    android:orientation="horizontal"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="8dp">
+
+                    <de.hdodenhof.circleimageview.CircleImageView
+                        android:id="@+id/author_avatar"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:importantForAccessibility="no" />
+
+                    <!-- weight 只为名字超长时从名字上扣宽度（省略号），行本身仍是 wrap_content -->
+                    <TextView
+                        android:id="@+id/author_name"
+                        style="@style/textMontserratMedium"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:layout_weight="1"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:textColor="@color/v3_text_2"
+                        android:textSize="14sp"
+                        tools:ignore="InefficientWeight"
+                        tools:text="T羽" />
+
+                    <ImageView
+                        android:id="@+id/author_chevron"
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:layout_marginStart="2dp"
+                        android:importantForAccessibility="no"
+                        android:src="@drawable/ic_v3_chevron_24" />
+                </LinearLayout>
+
+                <!-- 连载状态：语义色圆点（连载中 = 主题强调色，已完结 = 绿）+ 「连载中 · 2026-11-03 更新」。
+                     顶对齐、圆点由代码按首行中线下移：字体放大后状态会折行，居中会落在两行之间 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="top"
+                    android:orientation="horizontal">
+
+                    <View
+                        android:id="@+id/status_dot"
+                        android:layout_width="6dp"
+                        android:layout_height="6dp"
+                        android:importantForAccessibility="no" />
+
+                    <TextView
+                        android:id="@+id/status"
+                        style="@style/textMontserratMedium"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="6dp"
+                        android:layout_weight="1"
+                        android:fontFeatureSettings="tnum"
+                        android:textColor="@color/v3_text_2"
+                        android:textSize="12sp"
+                        tools:text="连载中 · 2026-11-03 更新" />
+                </LinearLayout>
+
+                <!-- 作品标记：只在有时出现（原创 / AI），底色由代码按 V3Palette 给。 -->
+                <LinearLayout
+                    android:id="@+id/badges"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:orientation="horizontal"
+                    android:visibility="gone"
+                    tools:visibility="visible">
+
+                    <TextView
+                        android:id="@+id/badge_original"
+                        style="@style/NovelDetailBadge"
+                        android:text="@string/v3_novel_original" />
+
+                    <TextView
+                        android:id="@+id/badge_ai"
+                        style="@style/NovelDetailBadge"
+                        android:layout_marginStart="6dp"
+                        android:text="@string/v3_detail_ai" />
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+
+        <View
+            android:id="@+id/stats_line"
+            android:layout_width="match_parent"
+            android:layout_height="1px"
+            android:layout_marginTop="20dp" />
+
+        <!-- 三格统计：起始对齐、不画竖线（详情页的统计条是居中 + 竖线，这里刻意不同） -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:baselineAligned="false"
+            android:orientation="horizontal">
+
+            <LinearLayout style="@style/NovelSeriesStatCell">
+
+                <TextView
+                    android:id="@+id/stat_chapters"
+                    style="@style/NovelSeriesStatValue"
+                    tools:text="46" />
+
+                <TextView
+                    style="@style/NovelDetailStatLabel"
+                    android:text="@string/novel_series_stat_chapters" />
+            </LinearLayout>
+
+            <LinearLayout style="@style/NovelSeriesStatCell">
+
+                <TextView
+                    android:id="@+id/stat_characters"
+                    style="@style/NovelSeriesStatValue"
+                    tools:text="533,368" />
+
+                <TextView
+                    style="@style/NovelDetailStatLabel"
+                    android:text="@string/novel_series_stat_characters" />
+            </LinearLayout>
+
+            <LinearLayout style="@style/NovelSeriesStatCell">
+
+                <TextView
+                    android:id="@+id/stat_reading_time"
+                    style="@style/NovelSeriesStatValue"
+                    tools:text="约 18 小时" />
+
+                <TextView
+                    style="@style/NovelDetailStatLabel"
+                    android:text="@string/novel_series_stat_reading_time" />
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- ═══ 操作行：主操作实色胶囊（唯一最强）+ 追更 / 下载两颗 48dp 浅色圆钮，左右与卡片同沿 ═══ -->
+    <LinearLayout
+        android:id="@+id/cta_row"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:baselineAligned="false"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <!-- 胶囊撑满剩余宽度，图标 + 文案作为一组居中。文案最多两行：「继续阅读 · 第 12 篇」在
+             最大字体下单行放不下，截成「第 1…」就成了错的篇号，宁可胶囊变高。 -->
+        <FrameLayout
+            android:id="@+id/read"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:background="?attr/selectableItemBackground"
-            android:letterSpacing="-0.03"
-            android:lineSpacingMultiplier="1.2"
-            android:textColor="@color/v3_text_1"
-            android:textSize="23sp"
-            android:textStyle="bold"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/bookmark"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            tools:text="ある小説シリーズ" />
+            android:layout_weight="1"
+            android:clickable="true"
+            android:focusable="true"
+            android:minHeight="48dp"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp">
 
-        <ceui.pixiv.widgets.ProgressImageButton
-            android:id="@+id/bookmark"
-            android:layout_width="@dimen/min_widget_size"
-            android:layout_height="@dimen/min_widget_size"
-            android:padding="8dp"
-            android:src="@drawable/icon_not_liked"
-            app:layout_constraintBottom_toBottomOf="@+id/title"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/title"
-            app:ptb_progress_stroke_width="3dp"
-            app:ptb_progress_width="14dp" />
-    </androidx.constraintlayout.widget.ConstraintLayout>
+            <TextView
+                android:id="@+id/read_label"
+                style="@style/textMontserratSemiBold"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:drawablePadding="8dp"
+                android:ellipsize="end"
+                android:gravity="center"
+                android:maxLines="2"
+                android:paddingTop="12dp"
+                android:paddingBottom="12dp"
+                android:text="@string/novel_series_read_first"
+                android:textSize="15sp" />
+        </FrameLayout>
 
-    <!-- Meta badge: 醒目一点的 V3 胶囊（type · 篇数 · 字数），底色/文字色跑
-         V3Palette 主题色 tint，日夜自适应。文案由 ViewHolder 拼。 -->
-    <TextView
-        android:id="@+id/meta_badge"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:letterSpacing="0.01"
-        android:paddingHorizontal="12dp"
-        android:paddingVertical="5dp"
-        android:singleLine="true"
-        android:textSize="13sp"
-        android:textStyle="bold"
-        tools:text="Novel · 19篇 · 136,969字" />
+        <!-- 追更（收藏系列）：与小说详情的收藏钮、阅读器的「加入追更列表」同一颗心 -->
+        <FrameLayout
+            android:id="@+id/watchlist"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="10dp"
+            android:clickable="true"
+            android:focusable="true">
 
-    <!-- "阅读最新一话(#N)" — 旧 FragmentNovelSeriesDetail 里很显眼的入口，
-         迁到新页 hero 卡片底部。仅当系列有最新章节时（latestNovelChapterIndex
-         非 null）由 ViewHolder 切换可见。 -->
-    <TextView
-        android:id="@+id/read_latest"
+            <ceui.pixiv.widgets.ProgressImageButton
+                android:id="@+id/watchlist_icon"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_gravity="center"
+                android:background="@null"
+                android:clickable="false"
+                android:focusable="false"
+                android:importantForAccessibility="no"
+                android:scaleType="fitCenter"
+                android:src="@drawable/icon_not_liked"
+                app:ptb_progress_stroke_width="2dp"
+                app:ptb_progress_width="14dp" />
+        </FrameLayout>
+
+        <FrameLayout
+            android:id="@+id/download"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="10dp"
+            android:clickable="true"
+            android:contentDescription="@string/series_download_action"
+            android:focusable="true">
+
+            <ImageView
+                android:id="@+id/download_icon"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_gravity="center"
+                android:importantForAccessibility="no"
+                android:src="@drawable/ic_file_download_black_24dp" />
+        </FrameLayout>
+    </LinearLayout>
+
+    <!-- ═══ 最新一篇：一行普通列表项（≥2 篇才出现），区块细线由装饰画 ═══ -->
+    <LinearLayout
+        android:id="@+id/latest_row"
         android:layout_width="match_parent"
-        android:layout_height="40dp"
-        android:layout_marginTop="14dp"
-        android:background="@drawable/v3_glass_surface"
-        android:gravity="center"
-        android:textColor="@color/v3_text_1"
-        android:textSize="13sp"
-        android:textStyle="bold"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginEnd="20dp"
+        android:background="?attr/selectableItemBackground"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center_vertical"
+        android:minHeight="64dp"
+        android:orientation="horizontal"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp"
         android:visibility="gone"
-        tools:text="阅读最新一话(#12)"
-        tools:visibility="visible" />
+        tools:visibility="visible">
+
+        <FrameLayout
+            android:id="@+id/latest_icon"
+            android:layout_width="40dp"
+            android:layout_height="40dp">
+
+            <ImageView
+                android:id="@+id/latest_icon_image"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:layout_gravity="center"
+                android:importantForAccessibility="no"
+                android:src="@drawable/ic_fiber_new_black_24dp" />
+        </FrameLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="8dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/latest_label"
+                style="@style/textMontserratMedium"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:fontFeatureSettings="tnum"
+                android:maxLines="1"
+                android:textColor="@color/v3_text_2"
+                android:textSize="12sp"
+                tools:text="最新 · 第 46 篇 · 1 天前" />
+
+            <TextView
+                android:id="@+id/latest_title"
+                style="@style/textMontserratSemiBold"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="@color/v3_text_1"
+                android:textSize="15sp"
+                tools:text="推しとのチェキでキメ顔キープ出来るのは才能だよ、誇れ" />
+        </LinearLayout>
+
+        <ImageView
+            android:id="@+id/latest_chevron"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:importantForAccessibility="no"
+            android:src="@drawable/ic_v3_chevron_24" />
+    </LinearLayout>
+
+    <Space
+        android:layout_width="match_parent"
+        android:layout_height="8dp" />
 </LinearLayout>

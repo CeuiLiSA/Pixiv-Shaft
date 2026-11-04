@@ -1582,12 +1582,34 @@
     <string name="novel_author_name_copied">Author name copied</string>
     <string name="novel_author_id_copied">Author UID copied</string>
     <string name="novel_header_series_prefix">Series: %1$s</string>
-    <string name="novel_meta_type">Novel</string>
     <string name="novel_meta_word_count">%1$s words</string>
     <!-- 小说详情 V3（2026-11-04）：元信息里的预计阅读时长按每分钟 500 字，同 pixiv 网页端 -->
     <plurals name="novel_reading_minutes">
         <item quantity="one">About %d min</item>
         <item quantity="other">About %d min</item>
+    </plurals>
+    <!-- 小说系列页（V3，docs「小说系列」） -->
+    <string name="novel_series_eyebrow">Novel series</string>
+    <string name="novel_series_ongoing">Ongoing</string>
+    <string name="novel_series_concluded">Completed</string>
+    <string name="novel_series_updated_on">Updated %1$s</string>
+    <string name="novel_series_read_first">Start from #1</string>
+    <string name="novel_series_continue_at">Continue · #%1$d</string>
+    <string name="novel_series_continue">Continue reading</string>
+    <string name="novel_series_stat_chapters">Chapters</string>
+    <string name="novel_series_stat_characters">Characters</string>
+    <string name="novel_series_stat_reading_time">Reading time</string>
+    <string name="novel_series_latest_chapter">Latest · #%1$d</string>
+    <string name="novel_series_toc">Contents</string>
+    <string name="novel_series_info_started">First published</string>
+    <string name="novel_info_series_id">Series ID</string>
+    <plurals name="novel_reading_hours">
+        <item quantity="one">About %d hr</item>
+        <item quantity="other">About %d hrs</item>
+    </plurals>
+    <plurals name="novel_series_toc_count">
+        <item quantity="one">%d chapter</item>
+        <item quantity="other">%d chapters</item>
     </plurals>
     <string name="novel_continue_reading">Continue · %d%%</string>
     <string name="novel_section_info">Information</string>
@@ -1597,7 +1619,6 @@
     <string name="novel_author_other_works">More by this author</string>
     <string name="action_open">Open</string>
     <string name="novel_cover">Cover</string>
-    <string name="novel_meta_chapter_count">%1$d chapters</string>
     <string name="manga_series_meta_type">Manga</string>
     <string name="manga_series_episode_count">%1$d eps</string>
     <string name="manga_series_chip_content_count">Episodes  %1$s</string>
@@ -1751,8 +1772,6 @@
     <string name="novel_chip_series_id">Series ID  %1$s</string>
     <string name="novel_chip_series_link">Series link</string>
     <string name="novel_chip_open_series_link">Open series link</string>
-    <string name="novel_chip_series_content_count">Chapters  %1$s</string>
-    <string name="novel_chip_series_char_count">Total length  %1$s</string>
     <string name="setting_default_novel_format">Default novel download format</string>
     <string name="setting_novel_epub_on_images">Save as EPUB when novel has illustrations</string>
     <string name="setting_novel_epub_on_images_desc">When default format is TXT, automatically export EPUB if the text contains illustrations</string>

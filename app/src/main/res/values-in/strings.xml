@@ -1618,11 +1618,31 @@
     <string name="novel_author_name_copied">Nama pembuat disalin</string>
     <string name="novel_author_id_copied">UID pembuat disalin</string>
     <string name="novel_header_series_prefix">Seri: %1$s</string>
-    <string name="novel_meta_type">Novel</string>
     <string name="novel_meta_word_count">%1$s karakter</string>
     <!-- 小说详情 V3（2026-11-04）：元信息里的预计阅读时长按每分钟 500 字，同 pixiv 网页端 -->
     <plurals name="novel_reading_minutes">
         <item quantity="other">Sekitar %d menit</item>
+    </plurals>
+    <!-- 小说系列页（V3，docs「小说系列」） -->
+    <string name="novel_series_eyebrow">Seri novel</string>
+    <string name="novel_series_ongoing">Berlanjut</string>
+    <string name="novel_series_concluded">Tamat</string>
+    <string name="novel_series_updated_on">Diperbarui %1$s</string>
+    <string name="novel_series_read_first">Mulai dari awal</string>
+    <string name="novel_series_continue_at">Lanjutkan · #%1$d</string>
+    <string name="novel_series_continue">Lanjutkan membaca</string>
+    <string name="novel_series_stat_chapters">Bab</string>
+    <string name="novel_series_stat_characters">Karakter</string>
+    <string name="novel_series_stat_reading_time">Waktu baca</string>
+    <string name="novel_series_latest_chapter">Terbaru · #%1$d</string>
+    <string name="novel_series_toc">Daftar isi</string>
+    <string name="novel_series_info_started">Mulai terbit</string>
+    <string name="novel_info_series_id">ID seri</string>
+    <plurals name="novel_reading_hours">
+        <item quantity="other">Sekitar %d jam</item>
+    </plurals>
+    <plurals name="novel_series_toc_count">
+        <item quantity="other">%d bab</item>
     </plurals>
     <string name="novel_continue_reading">Lanjutkan · %d%%</string>
     <string name="novel_section_info">Informasi</string>
@@ -1632,7 +1652,6 @@
     <string name="novel_author_other_works">Karya lainnya</string>
     <string name="action_open">Buka</string>
     <string name="novel_cover">Sampul</string>
-    <string name="novel_meta_chapter_count">%1$d judul</string>
     <string name="manga_series_meta_type">Manga</string>
     <string name="manga_series_episode_count">%1$d episode</string>
     <string name="manga_series_chip_content_count">Episode  %1$s</string>
@@ -1786,8 +1805,6 @@
     <string name="novel_chip_series_id">ID seri  %1$s</string>
     <string name="novel_chip_series_link">Tautan seri</string>
     <string name="novel_chip_open_series_link">Buka tautan seri</string>
-    <string name="novel_chip_series_content_count">Jumlah bab  %1$s</string>
-    <string name="novel_chip_series_char_count">Total karakter  %1$s</string>
     <string name="setting_default_novel_format">Format unduhan novel default</string>
     <string name="setting_novel_epub_on_images">Simpan sebagai EPUB jika novel berilustrasi</string>
     <string name="setting_novel_epub_on_images_desc">Jika format ekspor default adalah TXT, otomatis ekspor sebagai EPUB saat terdeteksi ilustrasi di dalam teks</string>

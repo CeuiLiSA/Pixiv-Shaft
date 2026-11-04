@@ -1728,11 +1728,31 @@
     <string name="novel_author_id_copied">已复制作者 UID</string>
     <!-- 小说详情页一级页面 UI 重构（任务 #2–#4） -->
     <string name="novel_header_series_prefix">系列：%1$s</string>
-    <string name="novel_meta_type">Novel</string>
     <string name="novel_meta_word_count">%1$s字</string>
     <!-- 小说详情 V3（2026-11-04）：元信息里的预计阅读时长按每分钟 500 字，同 pixiv 网页端 -->
     <plurals name="novel_reading_minutes">
         <item quantity="other">约 %d 分钟</item>
+    </plurals>
+    <!-- 小说系列页（V3，docs「小说系列」） -->
+    <string name="novel_series_eyebrow">小说系列</string>
+    <string name="novel_series_ongoing">连载中</string>
+    <string name="novel_series_concluded">已完结</string>
+    <string name="novel_series_updated_on">%1$s 更新</string>
+    <string name="novel_series_read_first">从第 1 篇开始</string>
+    <string name="novel_series_continue_at">继续阅读 · 第\u00A0%1$d\u00A0篇</string>
+    <string name="novel_series_continue">继续阅读</string>
+    <string name="novel_series_stat_chapters">篇数</string>
+    <string name="novel_series_stat_characters">字数</string>
+    <string name="novel_series_stat_reading_time">阅读时长</string>
+    <string name="novel_series_latest_chapter">最新 · 第 %1$d 篇</string>
+    <string name="novel_series_toc">目录</string>
+    <string name="novel_series_info_started">开始连载</string>
+    <string name="novel_info_series_id">系列 ID</string>
+    <plurals name="novel_reading_hours">
+        <item quantity="other">约 %d 小时</item>
+    </plurals>
+    <plurals name="novel_series_toc_count">
+        <item quantity="other">共 %d 篇</item>
     </plurals>
     <string name="novel_continue_reading">继续阅读 · %d%%</string>
     <string name="novel_section_info">信息</string>
@@ -1743,7 +1763,6 @@
     <string name="action_open">打开</string>
     <string name="novel_cover">封面</string>
     <string name="v3_novel_r18g" translatable="false">R-18G</string>
-    <string name="novel_meta_chapter_count">%1$d篇</string>
     <string name="manga_series_meta_type">Manga</string>
     <string name="manga_series_episode_count">%1$d话</string>
     <string name="manga_series_chip_content_count">话数  %1$s</string>
@@ -1907,8 +1926,6 @@
     <string name="novel_chip_series_id">系列ID  %1$s</string>
     <string name="novel_chip_series_link">系列链接</string>
     <string name="novel_chip_open_series_link">打开系列链接</string>
-    <string name="novel_chip_series_content_count">章节数  %1$s</string>
-    <string name="novel_chip_series_char_count">总字数  %1$s</string>
 
     <string name="setting_default_novel_format">默认小说下载格式</string>
     <string name="setting_novel_epub_on_images">小说有插图时存EPUB</string>

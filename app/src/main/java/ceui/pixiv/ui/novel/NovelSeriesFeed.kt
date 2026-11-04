@@ -1,58 +1,84 @@
 package ceui.pixiv.ui.novel
 
+import android.content.Context
 import android.content.res.ColorStateList
-import android.view.MotionEvent
+import android.graphics.Color
+import android.graphics.Outline
+import android.graphics.drawable.GradientDrawable
+import android.text.SpannableString
+import android.text.Spanned
+import android.text.style.RelativeSizeSpan
 import android.view.View
-import androidx.core.text.HtmlCompat
+import android.view.ViewGroup
+import android.view.ViewOutlineProvider
+import androidx.appcompat.content.res.AppCompatResources
+import androidx.appcompat.widget.TooltipCompat
+import androidx.core.graphics.ColorUtils
+import androidx.core.graphics.drawable.toDrawable
+import androidx.core.view.ViewCompat
 import androidx.core.view.isVisible
+import androidx.core.view.updateLayoutParams
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
+import ceui.lisa.databinding.CellNovelCaptionBinding
+import ceui.lisa.databinding.CellNovelInfoBinding
 import ceui.lisa.databinding.CellNovelSeriesHeroBinding
-import ceui.lisa.databinding.CellNovelSeriesProfileBinding
-import ceui.lisa.databinding.CellNovelV3Binding
-import ceui.lisa.helper.IllustNovelFilter
+import ceui.lisa.databinding.CellNovelSeriesTocHeaderBinding
+import ceui.lisa.helper.WebLinkHelper
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.ShareIllust
-import ceui.pixiv.witstudio.theme.V3Palette
-import ceui.pixiv.api.Client
-import ceui.pixiv.utils.DateParse
 import ceui.loxia.Novel
+import ceui.pixiv.api.Client
 import ceui.pixiv.api.model.NovelSeriesDetail
 import ceui.pixiv.api.model.NovelSeriesResp
 import ceui.pixiv.cache.ObjectPool
-import ceui.pixiv.widgets.ProgressImageButton
-import ceui.pixiv.widgets.ProgressIndicator
-import ceui.pixiv.ui.common.findActionReceiverOrNull
+import ceui.pixiv.feeds.FeedCell
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.FeedPage
 import ceui.pixiv.feeds.FeedRenderer
 import ceui.pixiv.feeds.FeedSource
 import ceui.pixiv.feeds.feedRenderer
-import ceui.pixiv.ui.common.NovelActionReceiver
-import ceui.pixiv.ui.common.NovelMultiSelectReceiver
-import ceui.pixiv.ui.common.bindCopyChip
-import ceui.pixiv.ui.common.bindCopyLinkChip
-import ceui.pixiv.ui.common.bindOpenLinkChip
-import ceui.pixiv.ui.detail.SeriesAuthorFeedItem
-import ceui.pixiv.ui.detail.SeriesCaptionFeedItem
-import ceui.pixiv.ui.detail.SeriesSectionLabelFeedItem
+import ceui.pixiv.ui.common.NovelFeedItem
+import ceui.pixiv.ui.common.findActionReceiverOrNull
+import ceui.pixiv.ui.common.realCoverUrl
+import ceui.pixiv.ui.detail.applyDetailPanelExpanded
+import ceui.pixiv.ui.novel.reader.ReaderProgressStore
 import ceui.pixiv.ui.user.UserActionReceiver
-import ceui.pixiv.utils.clearGlideOnRecycle
+import ceui.pixiv.utils.DateParse
 import ceui.pixiv.utils.setOnClick
-import com.bumptech.glide.Glide
+import ceui.pixiv.widgets.ProgressImageButton
+import ceui.pixiv.witstudio.theme.V3Palette
+import ceui.pixiv.witstudio.theme.color
+import ceui.pixiv.witstudio.theme.dp
+import ceui.pixiv.witstudio.theme.dpF
+import ceui.pixiv.witstudio.theme.hairlinePx
+import ceui.pixiv.witstudio.theme.pressScale
+import ceui.pixiv.witstudio.theme.ripple
+import ceui.pixiv.witstudio.theme.shape
+import com.bumptech.glide.RequestManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.text.NumberFormat
 
-// ── 从旧 NovelSeriesHeaderHolder.kt 迁来的契约（同包，FQN 不变，slice-1/NovelSeries 的 import 无需改）──
+// ── 从旧 NovelSeriesHeaderHolder.kt 迁来的契约（同包，FQN 不变；漫画系列页也实现它）──
 
 interface NovelSeriesHeaderActionReceiver {
     fun onClickToggleWatchlist(progressView: ProgressImageButton)
     fun onClickReadLatestEpisode(novelId: Long)
+}
+
+/** 小说系列页头上只有小说系列才有的操作（漫画系列页不实现）。 */
+interface NovelSeriesHeroActionReceiver {
+    /** 主按钮：继续阅读 / 从第 1 篇开始。 */
+    fun onClickSeriesRead(sender: View)
+    fun onClickSeriesDownload(sender: View)
+    fun onClickShareSeries(sender: View)
+    fun onClickSeriesCover(sender: View)
 }
 
 // ── 多选状态（跨配置存活，与旧 NovelSeriesViewModel 的多选字段等价）───────────
@@ -83,33 +109,45 @@ class NovelSeriesSelectionViewModel : ViewModel() {
 
 data class NovelSeriesHeroFeedItem(
     val series: NovelSeriesDetail,
+    /** 系列封面（缩略图 URL，见 [pickSeriesCoverUrl]）；作者谁都没设封面时为 null。 */
+    val coverUrl: String?,
+    val firstNovelId: Long?,
     val latestNovelId: Long?,
-    val latestNovelChapterIndex: Int?,
+    val latestTitle: String?,
+    val latestCreateDate: String?,
+    /** 最新一篇是第几篇（= content_count）。 */
+    val latestIndex: Int?,
 ) : FeedItem {
     override val feedKey: Any get() = series.id
 }
 
-data class NovelSeriesProfileFeedItem(val series: NovelSeriesDetail) : FeedItem {
+data class NovelSeriesCaptionFeedItem(val seriesId: Long, val caption: String) : FeedItem {
+    override val feedKey: Any get() = seriesId
+}
+
+/** 「信息」区块（取代旧「作品档案」chip 墙）；[startedAt] 是第 1 篇的发布时间。 */
+data class NovelSeriesInfoFeedItem(val series: NovelSeriesDetail, val startedAt: String?) : FeedItem {
     override val feedKey: Any get() = series.id
 }
 
-data class NovelSeriesCardFeedItem(
-    val novel: Novel,
-    val isMultiSelectMode: Boolean,
-    val isSelected: Boolean,
-) : FeedItem {
-    override val feedKey: Any get() = novel.id
+data class NovelSeriesTocHeaderFeedItem(val seriesId: Long, val count: Int) : FeedItem {
+    override val feedKey: Any get() = seriesId
 }
 
-/** 多选态变化（进入/退出多选、勾选/取消勾选）的增量刷新 payload，避免重绑图片。 */
-internal object NovelSeriesSelectionPayload {
-    fun canBindSelectionOnly(payloads: List<Any>): Boolean =
-        payloads.isNotEmpty() && payloads.all { it === this }
-}
+/** 单篇的阅读进度，读阅读器的本地存档（MMKV，内存映射，逐行读不贵）。 */
+internal fun novelSeriesReadPercent(novel: Novel): Int? = novelReadingPercent(
+    charIndex = ReaderProgressStore.loadCharIndex(novel.id),
+    pageIndex = ReaderProgressStore.loadLastPageIndex(novel.id),
+    totalPages = ReaderProgressStore.loadTotalPages(novel.id),
+    textLength = novel.text_length,
+)
 
-// ── FeedSource：首页 = 头部条目 + 章节卡；后续页 = 仅章节卡（游标 = next_url）──
+internal fun novelSeriesUrl(seriesId: Long): String = "https://www.pixiv.net/novel/series/$seriesId"
+
+// ── FeedSource：首页 = 页头条目 + 章节；后续页 = 仅章节（游标 = next_url）──────
 
 class NovelSeriesFeedSource(private val seriesId: Long) : FeedSource<String> {
+
     override suspend fun load(cursor: String?): FeedPage<String> {
         val resp: NovelSeriesResp = if (cursor == null) {
             Client.appApi.getNovelSeries(seriesId)
@@ -122,266 +160,435 @@ class NovelSeriesFeedSource(private val seriesId: Long) : FeedSource<String> {
         }
         val items = mutableListOf<FeedItem>()
         if (cursor == null) {
-            resp.novel_series_detail?.let { detail ->
-                detail.user?.let { user -> ObjectPool.update(user) }
-                val latestNovel = resp.novel_series_latest_novel
-                val latestIdx = if (latestNovel != null && detail.content_count > 0) {
-                    detail.content_count
-                } else null
-                items.add(NovelSeriesHeroFeedItem(detail, latestNovel?.id, latestIdx))
-                detail.user?.let { items.add(SeriesAuthorFeedItem(it)) }
-                items.add(NovelSeriesProfileFeedItem(detail))
-                if (!detail.caption.isNullOrBlank()) {
-                    items.add(SeriesCaptionFeedItem(detail.caption, detail.id))
-                }
-            }
-            items.add(
-                SeriesSectionLabelFeedItem(
-                    Shaft.getContext().getString(R.string.novel_series_section_works)
+            // 顺序同 V3「小说系列」：页头（Hero 卡 + 操作 + 最新一篇）→ 简介 → 作者 → 信息 → 目录。
+            // 目录分页往下追加，必须放最后。
+            val detail = resp.novel_series_detail
+            if (detail != null) {
+                detail.user?.let { ObjectPool.update(it) }
+                val first = resp.novel_series_first_novel
+                val latest = resp.novel_series_latest_novel
+                val coverUrl = pickSeriesCoverUrl(
+                    detail.id,
+                    (listOf(first, latest) + resp.displayList).map { it?.realCoverUrl },
                 )
-            )
+                items.add(
+                    NovelSeriesHeroFeedItem(
+                        series = detail,
+                        coverUrl = coverUrl,
+                        firstNovelId = first?.id ?: resp.displayList.firstOrNull()?.id,
+                        latestNovelId = latest?.id,
+                        latestTitle = latest?.title,
+                        latestCreateDate = latest?.create_date,
+                        latestIndex = detail.content_count.takeIf { latest != null && it > 0 },
+                    )
+                )
+                detail.caption?.takeIf { it.isNotBlank() }?.let {
+                    items.add(NovelSeriesCaptionFeedItem(detail.id, it))
+                }
+                detail.user?.let { items.add(NovelAuthorFeedItem(it)) }
+                items.add(NovelSeriesInfoFeedItem(detail, first?.create_date))
+            }
+            items.add(NovelSeriesTocHeaderFeedItem(seriesId, detail?.content_count ?: 0))
         }
+        // 目录用全 app 通用的小说卡（recy_novel）。不过内容过滤：系列是用户点进来的，滤掉会让目录缺篇、
+        // 篇号对不上；屏蔽 / AI 打码由卡片自己按现行设置遮盖（同其它小说列表）。
         resp.displayList.forEach { novel ->
             ObjectPool.update(novel)
             novel.user?.let { ObjectPool.update(it) }
-            items.add(NovelSeriesCardFeedItem(novel, isMultiSelectMode = false, isSelected = false))
+            items.add(NovelFeedItem(novel))
         }
         return FeedPage(items, resp.next_url)
     }
 }
 
-// ── Renderers ───────────────────────────────────────────────────────────
+// ── 页头 ────────────────────────────────────────────────────────────────
 
-fun novelSeriesHeroRenderer(): FeedRenderer<NovelSeriesHeroFeedItem, CellNovelSeriesHeroBinding> =
-    feedRenderer(
+/** 页头的状态栏让位：列表顶不留 padding，页头从这条 spacer 之下开始。 */
+internal fun CellNovelSeriesHeroBinding.applyStatusBarInset(top: Int) {
+    if (statusSpacer.layoutParams.height != top) statusSpacer.updateLayoutParams { height = top }
+}
+
+/** 主按钮文案：没读过「从第 1 篇开始」，读过「继续阅读 · 第 N 篇」（不知道第几篇时只写「继续阅读」）。 */
+internal fun novelSeriesReadLabel(context: Context, target: SeriesReadTarget?): String = when {
+    target == null -> context.getString(R.string.novel_series_read_first)
+    target.index != null -> context.getString(R.string.novel_series_continue_at, target.index)
+    else -> context.getString(R.string.novel_series_continue)
+}
+
+/**
+ * 小说系列页头：Hero 卡（叠放封面 + 小标 / 标题 / 作者 / 连载状态 + 三格统计）→ 操作行 → 最新一篇。
+ * 和小说详情同一套设计语言，但构图不同（见 cell_novel_series_hero 的注释）。颜色全部从
+ * [V3Palette] 派生，换主题色 / 日夜即跟随。
+ */
+fun novelSeriesHeroRenderer(
+    lifecycleOwner: LifecycleOwner,
+    glide: RequestManager,
+    readTarget: LiveData<SeriesReadTarget?>,
+    statusBarInset: () -> Int,
+): FeedRenderer<NovelSeriesHeroFeedItem, CellNovelSeriesHeroBinding> {
+    val targetSlots = HashMap<FeedCell<*, *>, CellObserverSlot<SeriesReadTarget?>>()
+    val numbers = NumberFormat.getInstance()
+    return feedRenderer(
         inflate = CellNovelSeriesHeroBinding::inflate,
         fullSpan = true,
-    ) { cell ->
-        val b = cell.binding
-        val series = cell.item.series
-        val ctx = b.root.context
-        val fmt = NumberFormat.getInstance()
-
-        b.title.text = series.title ?: ""
-        b.title.setOnClick { Common.copy(it.context, series.title) }
-        b.title.setOnLongClickListener { Common.copy(it.context, series.title); true }
-
-        val added = series.watchlist_added == true
-        b.bookmark.setImageResource(if (added) R.drawable.icon_liked else R.drawable.icon_not_liked)
-        b.bookmark.imageTintList = if (added) null
-            else ColorStateList.valueOf(ctx.getColor(R.color.v3_text_3))
-        b.bookmark.setOnClick { v ->
-            v.findActionReceiverOrNull<NovelSeriesHeaderActionReceiver>()
-                ?.onClickToggleWatchlist(v)
-        }
-
-        val parts = mutableListOf(
-            ctx.getString(R.string.novel_meta_type),
-            ctx.getString(R.string.novel_meta_chapter_count, series.content_count),
-        )
-        if (series.total_character_count > 0) {
-            parts.add(ctx.getString(R.string.novel_meta_word_count, fmt.format(series.total_character_count)))
-        }
-        val density = ctx.resources.displayMetrics.density
-        val palette = V3Palette.from(ctx)
-        b.metaBadge.text = parts.joinToString("  ·  ")
-        b.metaBadge.background = palette.pillSecondary(999f, (1 * density).toInt())
-        b.metaBadge.setTextColor(palette.textAccent)
-
-        val latestId = cell.item.latestNovelId
-        val latestIdx = cell.item.latestNovelChapterIndex
-        if (latestId != null && latestIdx != null) {
-            b.readLatest.isVisible = true
-            b.readLatest.text = ctx.getString(R.string.read_latest_episode_with_num, latestIdx)
-            b.readLatest.setOnClick { v ->
-                v.findActionReceiverOrNull<NovelSeriesHeaderActionReceiver>()
-                    ?.onClickReadLatestEpisode(latestId)
+        create = { cell ->
+            val b = cell.binding
+            styleNovelSeriesHero(b)
+            // 监听只挂一次，点击那一刻经 cell.itemOrNull 取当下条目
+            b.share.setOnClick { v ->
+                v.findActionReceiverOrNull<NovelSeriesHeroActionReceiver>()?.onClickShareSeries(v)
             }
-        } else {
-            b.readLatest.isVisible = false
-            b.readLatest.setOnClickListener(null)
-        }
-    }
-
-fun novelSeriesProfileRenderer(): FeedRenderer<NovelSeriesProfileFeedItem, CellNovelSeriesProfileBinding> =
-    feedRenderer(
-        inflate = CellNovelSeriesProfileBinding::inflate,
-        fullSpan = true,
-    ) { cell ->
-        val b = cell.binding
-        val series = cell.item.series
-
-        b.chipSeriesId.bindCopyChip(R.string.novel_chip_series_id, series.id.toString(), series.id.toString())
-        series.user?.let { user ->
-            val name = user.name.orEmpty()
-            b.chipAuthor.bindCopyChip(R.string.novel_chip_author, name, name)
-            b.chipAuthorId.bindCopyChip(R.string.novel_chip_author_id, user.id.toString(), user.id.toString())
-            b.chipUserLink.bindOpenLinkChip(R.string.novel_chip_user_link, ShareIllust.USER_URL_Head + user.id)
-        } ?: run {
-            b.chipAuthor.isVisible = false
-            b.chipAuthorId.isVisible = false
-            b.chipUserLink.isVisible = false
-        }
-        if (series.content_count > 0) {
-            b.chipContentCount.bindCopyChip(R.string.novel_chip_series_content_count,
-                series.content_count.toString(), series.content_count.toString())
-        } else {
-            b.chipContentCount.isVisible = false
-        }
-        if (series.total_character_count > 0) {
-            b.chipCharCount.bindCopyChip(R.string.novel_chip_series_char_count,
-                series.total_character_count.toString(), series.total_character_count.toString())
-        } else {
-            b.chipCharCount.isVisible = false
-        }
-        val seriesUrl = "https://www.pixiv.net/novel/series/${series.id}"
-        b.chipSeriesLink.bindCopyLinkChip(R.string.novel_chip_series_link, seriesUrl)
-        b.chipOpenSeriesLink.bindOpenLinkChip(R.string.novel_chip_open_series_link, seriesUrl)
-    }
-
-fun novelSeriesCardRenderer(): FeedRenderer<NovelSeriesCardFeedItem, CellNovelV3Binding> =
-    feedRenderer(
-        inflate = CellNovelV3Binding::inflate,
+            b.cover.setOnClick { v ->
+                if (cell.itemOrNull?.coverUrl == null) return@setOnClick
+                v.findActionReceiverOrNull<NovelSeriesHeroActionReceiver>()?.onClickSeriesCover(v)
+            }
+            val copyTitle = { Common.copy(b.root.context, cell.itemOrNull?.series?.title) }
+            b.title.setOnClick { copyTitle() }
+            b.title.setOnLongClickListener { copyTitle(); true }
+            b.authorRow.setOnClick { v ->
+                val userId = cell.itemOrNull?.series?.user?.id?.takeIf { it > 0 } ?: return@setOnClick
+                v.findActionReceiverOrNull<UserActionReceiver>()?.onClickUser(userId)
+            }
+            b.read.setOnClick { v ->
+                v.findActionReceiverOrNull<NovelSeriesHeroActionReceiver>()?.onClickSeriesRead(v)
+            }
+            // sender 传圆钮里的 ProgressImageButton：请求在飞时原地转圈
+            b.watchlist.setOnClick {
+                b.watchlistIcon.findActionReceiverOrNull<NovelSeriesHeaderActionReceiver>()
+                    ?.onClickToggleWatchlist(b.watchlistIcon)
+            }
+            b.download.setOnClick { v ->
+                v.findActionReceiverOrNull<NovelSeriesHeroActionReceiver>()?.onClickSeriesDownload(v)
+            }
+            b.latestRow.setOnClick { v ->
+                val id = cell.itemOrNull?.latestNovelId ?: return@setOnClick
+                v.findActionReceiverOrNull<NovelSeriesHeaderActionReceiver>()?.onClickReadLatestEpisode(id)
+            }
+        },
         recycle = { cell ->
-            cell.binding.novelCover.clearGlideOnRecycle()
-            cell.binding.authorAvatar.clearGlideOnRecycle()
+            targetSlots[cell]?.detach()
+            val b = cell.binding
+            glide.clear(b.cover)
+            glide.clear(b.authorAvatar)
+            b.cover.setTag(R.id.novel_header_cover_key, null)
+            b.authorAvatar.setTag(R.id.novel_header_avatar_key, null)
         },
-        changePayload = { oldItem, newItem ->
-            if (oldItem.novel == newItem.novel) NovelSeriesSelectionPayload else null
-        },
-        bindPayloads = { cell, payloads ->
-            // RecyclerView 会合并多次更新；混入全量刷新标记时必须回退，不能漏绑小说内容。
-            if (NovelSeriesSelectionPayload.canBindSelectionOnly(payloads)) {
-                bindNovelSeriesCardSelection(cell.binding, cell.item)
-                true
-            } else {
-                false
-            }
-        },
+        // 从 RV 缓存直接 re-attach 的页头不会重绑；状态栏高度在它离屏期间变了也要跟上
+        attach = { cell -> cell.binding.applyStatusBarInset(statusBarInset()) },
     ) { cell ->
         val b = cell.binding
-        val novel = cell.item.novel
-        val ctx = b.root.context
-        val palette = V3Palette.from(ctx)
-        val fmt = NumberFormat.getInstance()
-
-        // cover
-        val coverUrl = novel.resolvedCoverUrl()
-        Glide.with(ctx).load(GlideUtil.getUrl(coverUrl))
-            .placeholder(R.color.v3_surface_2).error(R.color.v3_surface_2)
-            .centerCrop().into(b.novelCover)
-
-        b.novelTitle.text = novel.title ?: ""
-
-        val user = novel.user
-        if (user != null) {
-            b.authorRow.isVisible = true
-            b.authorName.text = user.name ?: ""
-            Glide.with(ctx).load(GlideUtil.getUrl(user.profile_image_urls?.medium))
-                .placeholder(R.drawable.no_profile).error(R.drawable.no_profile).into(b.authorAvatar)
-            b.authorRow.setOnClick { sender ->
-                sender.findActionReceiverOrNull<UserActionReceiver>()?.onClickUser(user.id)
-            }
-        } else {
-            b.authorRow.isVisible = false
-        }
-
-        val wordCount = novel.text_length
-        if (wordCount != null && wordCount > 0) {
-            b.wordCount.isVisible = true
-            b.wordCount.text = ctx.getString(R.string.v3_novel_word_count, fmt.format(wordCount))
-        } else {
-            b.wordCount.isVisible = false
-        }
-        b.publishDate.text = DateParse.getTimeAgo(ctx, novel.create_date)
-
-        b.badgeR18.isVisible = novel.is_x_restricted == true || (novel.x_restrict ?: 0) > 0
-        b.badgeOriginal.isVisible = novel.is_original == true
-        // AI 角标：官方 novel_ai_type==2 或标签命中（issue #1252，与屏蔽/详情页同口径）
-        b.badgeAi.isVisible = IllustNovelFilter.isAiWork(novel)
-
-        bindNovelCardTags(b, novel)
-        // 绑定时从 ObjectPool 读最新收藏态/收藏数：卡片回收复用后不会回退成加载时的旧值。
-        val pooled = ObjectPool.get<Novel>(novel.id).value ?: novel
-        bindNovelCardBookmark(b, pooled.is_bookmarked == true, pooled.total_bookmarks, fmt)
-        b.bookmarkBtn.setOnClick { sender ->
-            // 乐观切态：先本地翻心 + 收藏数 ±1，再交给 receiver 走网络 + ObjectPool。
-            val now = ObjectPool.get<Novel>(novel.id).value ?: novel
-            val nowBookmarked = now.is_bookmarked == true
-            val nextCount = now.total_bookmarks?.let {
-                (if (nowBookmarked) it - 1 else it + 1).coerceAtLeast(0)
-            }
-            bindNovelCardBookmark(b, !nowBookmarked, nextCount, fmt)
-            sender.findActionReceiverOrNull<NovelActionReceiver>()
-                ?.onClickBookmarkNovel(sender as ProgressIndicator, novel.id)
-        }
-
-        // multi-select indicator
-        bindNovelSeriesCardSelection(b, cell.item)
-
-        b.root.setOnClick { sender ->
-            if (cell.item.isMultiSelectMode) {
-                sender.findActionReceiverOrNull<NovelMultiSelectReceiver>()
-                    ?.onToggleNovelSelection(novel.id)
-                return@setOnClick
-            }
-            sender.findActionReceiverOrNull<NovelActionReceiver>()?.onClickNovel(novel.id)
-        }
-        applyCardTouchScale(b.root, 0.98f)
-    }
-
-private fun bindNovelSeriesCardSelection(b: CellNovelV3Binding, item: NovelSeriesCardFeedItem) {
-    b.selectIndicator.isVisible = item.isMultiSelectMode
-    if (item.isMultiSelectMode) {
-        if (item.isSelected) {
-            b.selectIndicator.setImageResource(R.drawable.ic_check_circle_black_24dp)
-            b.selectIndicator.clearColorFilter()
-        } else {
-            b.selectIndicator.setImageResource(R.drawable.ic_checkbox_off)
-            b.selectIndicator.setColorFilter(b.root.context.getColor(R.color.v3_text_3))
-        }
+        b.applyStatusBarInset(statusBarInset())
+        bindNovelSeriesHero(b, cell.item, glide, numbers)
+        targetSlots.getOrPut(cell) { CellObserverSlot(lifecycleOwner) }
+            .rebind(readTarget) { target -> b.readLabel.text = novelSeriesReadLabel(b.root.context, target) }
     }
 }
 
-private fun bindNovelCardBookmark(
-    b: CellNovelV3Binding,
-    bookmarked: Boolean,
-    totalBookmarks: Int?,
-    fmt: NumberFormat,
+/** 页头里不随数据变的部分：卡片底、书页、细线、图标着色。只在 create 跑一次。 */
+private fun styleNovelSeriesHero(b: CellNovelSeriesHeroBinding) {
+    val ctx = b.root.context
+    val p = V3Palette.from(ctx)
+    val text2 = ctx.color(R.color.v3_text_2)
+    // 涟漪 mask 每个 View 一份：同一个 Drawable 实例只能挂一个 callback
+    fun round() = shape(999f, Color.WHITE)
+
+    // 状态圆点对齐首行中线（字号随字体缩放，create 时按画笔度量算一次）
+    val fm = b.status.paint.fontMetricsInt
+    val firstBaseline = if (b.status.includeFontPadding) -fm.top else -fm.ascent
+    val firstLineCenter = firstBaseline + (fm.ascent + fm.descent) / 2
+    b.statusDot.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+        topMargin = (firstLineCenter - ctx.dp(6) / 2).coerceAtLeast(0)
+    }
+
+    // Hero 卡：30dp 圆角，cardFill 上从起始角斜向晕开一层主题色 15%，一圈 hairline（不铺模糊封面）
+    b.heroCard.background = GradientDrawable(
+        GradientDrawable.Orientation.TL_BR,
+        intArrayOf(ColorUtils.compositeColors(p.alpha15, p.cardFill), p.cardFill),
+    ).apply {
+        cornerRadius = ctx.dpF(30f)
+        setStroke(ctx.hairlinePx(), p.cardHairline)
+    }
+
+    // 叠放的书：后两张书页是主题色压在卡底上的不透明色（50% / 28%），8dp 圆角 + hairline
+    val pageRadius = ctx.dpF(8f)
+    b.stackPage1.background = shape(
+        pageRadius, ColorUtils.compositeColors(V3Palette.withAlpha(p.primary, 0.50f), p.cardFill),
+        p.cardHairline, ctx.hairlinePx(),
+    )
+    b.stackPage2.background = shape(
+        pageRadius, ColorUtils.compositeColors(V3Palette.withAlpha(p.primary, 0.28f), p.cardFill),
+        p.cardHairline, ctx.hairlinePx(),
+    )
+    // 封面：8dp 圆角裁切 + 细描边（浅色封面在浅底上也有边）+ 阴影
+    b.cover.outlineProvider = object : ViewOutlineProvider() {
+        override fun getOutline(view: View, outline: Outline) {
+            outline.setRoundRect(0, 0, view.width, view.height, pageRadius)
+        }
+    }
+    b.cover.clipToOutline = true
+    b.cover.foreground = shape(
+        pageRadius,
+        Color.TRANSPARENT,
+        V3Palette.withAlpha(ctx.color(R.color.v3_text_1), if (p.isDark) 0.14f else 0.10f),
+        ctx.hairlinePx(),
+    )
+
+    b.eyebrow.setTextColor(p.textAccent)
+    ViewCompat.setAccessibilityHeading(b.title, true)
+    b.authorChevron.setImageDrawable(chevron(ctx, text2))
+    b.statsLine.setBackgroundColor(p.cardHairline)
+
+    // 待操作图标：哑光主题色（浅色）/ 白（深色），不用主题正色也不用黑灰
+    b.share.background = ctx.ripple(null, round())
+    b.share.imageTintList = ColorStateList.valueOf(p.floatingPillContent)
+
+    // 主操作：实色主题胶囊（全页唯一最强的元素），字和书本图标用 onPrimary
+    b.read.background = ctx.ripple(p.pillPrimary(999f), round())
+    b.readLabel.setTextColor(p.onPrimary)
+    AppCompatResources.getDrawable(ctx, R.drawable.ic_baseline_menu_book_24)?.mutate()?.let {
+        it.setTint(p.onPrimary)
+        it.setBounds(0, 0, ctx.dp(20), ctx.dp(20))
+        b.readLabel.setCompoundDrawablesRelative(it, null, null, null)
+    }
+    b.read.pressScale()
+    for (circle in listOf(b.watchlist, b.download)) {
+        circle.background = ctx.ripple(p.pillSecondary(999f, ctx.hairlinePx()), round())
+        circle.pressScale()
+    }
+    b.downloadIcon.imageTintList = ColorStateList.valueOf(p.floatingPillContent)
+    TooltipCompat.setTooltipText(b.download, ctx.getString(R.string.series_download_action))
+
+    // 最新一篇：40dp、17/17/17/7 的类别图标容器，主题色 alpha20 底
+    val big = ctx.dpF(17f)
+    val small = ctx.dpF(7f)
+    b.latestIcon.background = GradientDrawable().apply {
+        cornerRadii = floatArrayOf(big, big, big, big, big, big, small, small)
+        setColor(p.alpha20)
+    }
+    b.latestIconImage.imageTintList = ColorStateList.valueOf(p.textSecondary)
+    b.latestChevron.setImageDrawable(chevron(ctx, text2))
+
+    // 标记：主题色 alpha10 底 + 正文色（同小说详情）
+    val badgeRadius = ctx.dpF(6f)
+    for (badge in listOf(b.badgeOriginal, b.badgeAi)) {
+        badge.background = shape(badgeRadius, p.alpha10)
+        badge.setTextColor(ctx.color(R.color.v3_text_1))
+    }
+}
+
+private fun bindNovelSeriesHero(
+    b: CellNovelSeriesHeroBinding,
+    item: NovelSeriesHeroFeedItem,
+    glide: RequestManager,
+    numbers: NumberFormat,
 ) {
-    b.bookmarkBtn.setImageResource(if (bookmarked) R.drawable.icon_liked else R.drawable.icon_not_liked)
-    b.bookmarkBtn.imageTintList = if (bookmarked) null
-        else ColorStateList.valueOf(b.root.context.getColor(R.color.v3_text_3))
-    // 收藏数字段缺失时整条隐藏，不显示 0 —— 0 会被读成「没人收藏」而不是「不知道」。
-    b.bookmarkCount.isVisible = totalBookmarks != null
-    if (totalBookmarks != null) b.bookmarkCount.text = fmt.format(totalBookmarks)
+    val ctx = b.root.context
+    val p = V3Palette.from(ctx)
+    val series = item.series
+
+    loadSeriesCover(b, item.coverUrl, glide, p)
+    // 叠在封面后面的书页随篇数露出：1 篇不叠，2 篇一张，3 篇及以上两张
+    b.stackPage1.isVisible = series.content_count >= 2
+    b.stackPage2.isVisible = series.content_count >= 3
+
+    b.title.text = series.title
+
+    val user = series.user
+    b.authorRow.isVisible = user != null
+    if (user != null) {
+        b.authorName.text = user.name
+        val avatar = user.profile_image_urls?.medium
+        if (b.authorAvatar.getTag(R.id.novel_header_avatar_key) != avatar) {
+            b.authorAvatar.setTag(R.id.novel_header_avatar_key, avatar)
+            glide.load(GlideUtil.getHead(user)).error(R.drawable.no_profile).into(b.authorAvatar)
+        }
+    }
+
+    // 连载状态：语义色圆点 + 「连载中 · 2026-11-03 更新」
+    val concluded = series.is_concluded == true
+    b.statusDot.background = GradientDrawable().apply {
+        shape = GradientDrawable.OVAL
+        setColor(if (concluded) ctx.color(R.color.v3_green) else p.textAccent)
+    }
+    val status = ctx.getString(if (concluded) R.string.novel_series_concluded else R.string.novel_series_ongoing)
+    val updated = item.latestCreateDate?.take(10)?.takeIf { it.isNotEmpty() }
+    b.status.text = if (updated == null) status
+    else status + " · " + ctx.getString(R.string.novel_series_updated_on, updated)
+
+    b.badgeOriginal.isVisible = series.is_original == true
+    // 系列的 AI 口径同单篇：novel_ai_type == 2 才算 AI 作品
+    b.badgeAi.isVisible = series.novel_ai_type == 2
+    b.badges.isVisible = b.badgeOriginal.isVisible || b.badgeAi.isVisible
+
+    b.statChapters.text = numbers.format(series.content_count)
+    b.statCharacters.text =
+        series.total_character_count.takeIf { it > 0 }?.let(numbers::format) ?: STAT_UNKNOWN
+    b.statReadingTime.text = when (val d = seriesReadingDuration(series.total_character_count)) {
+        is SeriesReadingDuration.Minutes ->
+            withSmallUnits(ctx.resources.getQuantityString(R.plurals.novel_reading_minutes, d.value, d.value))
+        is SeriesReadingDuration.Hours ->
+            withSmallUnits(ctx.resources.getQuantityString(R.plurals.novel_reading_hours, d.value, d.value))
+        null -> STAT_UNKNOWN
+    }
+
+    bindWatchlist(b, series.watchlist_added == true, p)
+
+    // 最新一篇：两篇以上才有意义（只有一篇时它就是目录里那一行）
+    val latestId = item.latestNovelId
+    val latestIndex = item.latestIndex
+    b.latestRow.isVisible = latestId != null && latestIndex != null && series.content_count >= 2
+    if (b.latestRow.isVisible && latestIndex != null) {
+        val label = ctx.getString(R.string.novel_series_latest_chapter, latestIndex)
+        val ago = item.latestCreateDate?.let { DateParse.getTimeAgo(ctx, it) }
+        b.latestLabel.text = if (ago.isNullOrEmpty()) label else "$label · $ago"
+        b.latestTitle.text = item.latestTitle
+    }
 }
 
-private fun bindNovelCardTags(b: CellNovelV3Binding, novel: Novel) {
-    val tags = novel.tags
-    // 与主力小说卡同一套设置（#982/#1047/#1089）：「小说列表显示标签」关闭时整体隐藏；
-    // 译文默认关闭、可单独开启；「小说列表标签折叠」开启时超 6 个折叠成「+N」。
-    if (tags.isNullOrEmpty() || !Shaft.sSettings.isShowNovelCardTags) {
-        b.tagsSection.isVisible = false
+private fun bindWatchlist(b: CellNovelSeriesHeroBinding, added: Boolean, p: V3Palette) {
+    val ctx = b.root.context
+    // 同小说详情的收藏钮：未追是哑光主题色的空心，已追是原色红心（阅读器「加入追更列表」也是这颗心）
+    b.watchlistIcon.setImageResource(if (added) R.drawable.icon_liked else R.drawable.icon_not_liked)
+    b.watchlistIcon.imageTintList = if (added) null else ColorStateList.valueOf(p.floatingPillContent)
+    val description = ctx.getString(
+        if (added) R.string.reader_menu_watchlist_remove else R.string.add_to_watchlist,
+    )
+    b.watchlist.contentDescription = description
+    TooltipCompat.setTooltipText(b.watchlist, description)
+}
+
+/**
+ * 封面优先拿母图（[novelCoverMasterUrl]，240 宽缩略图在 96dp 的封面上发糊），缩略图当 thumbnail 先出、
+ * 母图失败时兜底。没有封面时留一块主题色浅底（和书页同色系），不画灰占位图。
+ */
+private fun loadSeriesCover(b: CellNovelSeriesHeroBinding, coverUrl: String?, glide: RequestManager, p: V3Palette) {
+    if (b.cover.getTag(R.id.novel_header_cover_key) == (coverUrl ?: NO_COVER)) return
+    b.cover.setTag(R.id.novel_header_cover_key, coverUrl ?: NO_COVER)
+    val placeholder = ColorUtils.compositeColors(p.alpha20, p.cardFill).toDrawable()
+    if (coverUrl == null) {
+        glide.clear(b.cover)
+        b.cover.setImageDrawable(placeholder)
         return
     }
-    b.tagsSection.isVisible = true
-    b.tagsFlow.apply {
-        compact = true
-        searchIndex = 1
-        showTranslation = Shaft.sSettings.isShowNovelCardTagTranslations
-        maxTags = if (Shaft.sSettings.isCollapseNovelCardTags) 6 else -1
-        setTags(tags)
+    val master = novelCoverMasterUrl(coverUrl)
+    if (master == null) {
+        glide.load(GlideUtil.getUrl(coverUrl)).placeholder(placeholder).error(placeholder).into(b.cover)
+        return
+    }
+    glide.load(GlideUtil.getUrl(master))
+        .thumbnail(glide.load(GlideUtil.getUrl(coverUrl)))
+        .error(glide.load(GlideUtil.getUrl(coverUrl)))
+        .placeholder(placeholder)
+        .into(b.cover)
+}
+
+private const val NO_COVER = "<none>"
+private const val STAT_UNKNOWN = "—"
+
+/** 统计数字 18sp，夹在数字前后的单位文字（「约」「小时」「min」）缩到 12sp：数字大于数字单位。 */
+private fun withSmallUnits(text: String): CharSequence {
+    val out = SpannableString(text)
+    fun isNumberPart(i: Int): Boolean {
+        val c = text[i]
+        if (c.isDigit()) return true
+        // 千分位 / 小数点只有夹在两个数字之间才算数字的一部分
+        return c in ",.  " && i > 0 && i < text.length - 1 &&
+            text[i - 1].isDigit() && text[i + 1].isDigit()
+    }
+    var i = 0
+    while (i < text.length) {
+        if (isNumberPart(i)) {
+            i++
+            continue
+        }
+        val start = i
+        while (i < text.length && !isNumberPart(i)) i++
+        out.setSpan(RelativeSizeSpan(12f / 18f), start, i, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+    }
+    return out
+}
+
+// ── 简介 / 信息 / 目录标题 ───────────────────────────────────────────────
+
+/** 系列简介：同小说详情的简介格（链接、超长折叠、点按复制），数据就是系列详情里那段 caption。 */
+fun novelSeriesCaptionRenderer(
+    collapse: NovelCaptionCollapse,
+    onCollapsed: (View) -> Unit,
+): FeedRenderer<NovelSeriesCaptionFeedItem, CellNovelCaptionBinding> =
+    feedRenderer(
+        inflate = CellNovelCaptionBinding::inflate,
+        fullSpan = true,
+        create = { cell -> setupNovelCaptionCell(cell.binding, collapse, onCollapsed) },
+        recycle = { cell -> recycleNovelCaptionCell(cell.binding) },
+    ) { cell ->
+        renderNovelCaption(cell.binding, cell.item.caption, collapse)
+    }
+
+/**
+ * 「信息」区块：复用小说详情的信息表（cell_novel_info），三行标签换成「开始连载 / 系列 ID / 系列链接」。
+ * 折叠态归本 renderer（= 本页面实例），初始值随设置（#1044）。
+ */
+fun novelSeriesInfoRenderer(): FeedRenderer<NovelSeriesInfoFeedItem, CellNovelInfoBinding> {
+    var expanded = !Shaft.sSettings.isDetailPanelCollapsedByDefault
+    return feedRenderer(
+        inflate = CellNovelInfoBinding::inflate,
+        fullSpan = true,
+        create = { cell ->
+            val b = cell.binding
+            val ctx = b.root.context
+            styleNovelInfoCell(b)
+            b.labelPublished.setText(R.string.novel_series_info_started)
+            b.labelNovelId.setText(R.string.novel_info_series_id)
+            b.labelNovelLink.setText(R.string.novel_chip_series_link)
+            b.infoHeader.setOnClickListener {
+                expanded = !expanded
+                applyDetailPanelExpanded(b.infoRows, b.infoArrow, expanded, animate = true)
+            }
+            fun item(): NovelSeriesInfoFeedItem? = cell.itemOrNull
+            b.rowPublished.setOnClick { Common.copy(ctx, item()?.startedAt ?: return@setOnClick) }
+            b.rowNovelId.setOnClick { Common.copy(ctx, item()?.series?.id?.toString() ?: return@setOnClick) }
+            b.rowUserId.setOnClick { Common.copy(ctx, item()?.series?.user?.id?.toString() ?: return@setOnClick) }
+            b.novelLinkCopy.setOnClick { Common.copy(ctx, novelSeriesUrl(item()?.series?.id ?: return@setOnClick)) }
+            b.novelLinkOpen.setOnClick {
+                WebLinkHelper.openInCustomTab(ctx, novelSeriesUrl(item()?.series?.id ?: return@setOnClick))
+            }
+            b.userLinkCopy.setOnClick {
+                Common.copy(ctx, ShareIllust.USER_URL_Head + (item()?.series?.user?.id ?: return@setOnClick))
+            }
+            b.userLinkOpen.setOnClick {
+                WebLinkHelper.openInCustomTab(
+                    ctx, ShareIllust.USER_URL_Head + (item()?.series?.user?.id ?: return@setOnClick),
+                )
+            }
+        },
+    ) { cell ->
+        val b = cell.binding
+        val item = cell.item
+        applyDetailPanelExpanded(b.infoRows, b.infoArrow, expanded, animate = false)
+        val started = item.startedAt?.replace('T', ' ')?.take(16)
+        b.rowPublished.isVisible = !started.isNullOrEmpty()
+        b.line1.isVisible = b.rowPublished.isVisible
+        b.valuePublished.text = started
+        b.valueNovelId.text = item.series.id.toString()
+        val userId = item.series.user?.id?.takeIf { it > 0 }
+        b.rowUserId.isVisible = userId != null
+        b.line3.isVisible = userId != null
+        b.line4.isVisible = userId != null
+        b.rowUserLink.isVisible = userId != null
+        b.valueUserId.text = userId?.toString()
     }
 }
 
-private fun applyCardTouchScale(view: View, scale: Float) {
-    view.setOnTouchListener { v, event ->
-        when (event.action) {
-            MotionEvent.ACTION_DOWN -> v.animate().scaleX(scale).scaleY(scale).setDuration(200).start()
-            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL ->
-                v.animate().scaleX(1f).scaleY(1f).setDuration(200).start()
+fun novelSeriesTocHeaderRenderer(): FeedRenderer<NovelSeriesTocHeaderFeedItem, CellNovelSeriesTocHeaderBinding> =
+    feedRenderer(
+        inflate = CellNovelSeriesTocHeaderBinding::inflate,
+        fullSpan = true,
+        create = { cell -> ViewCompat.setAccessibilityHeading(cell.binding.tocTitle, true) },
+    ) { cell ->
+        val b = cell.binding
+        val count = cell.item.count
+        b.tocCount.isVisible = count > 0
+        if (count > 0) {
+            b.tocCount.text = b.root.resources.getQuantityString(R.plurals.novel_series_toc_count, count, count)
         }
-        false
     }
-}

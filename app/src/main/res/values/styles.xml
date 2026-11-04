@@ -714,6 +714,30 @@
         <item name="android:layout_height">1px</item>
     </style>
 
+    <!-- 小说系列 Hero 卡的三格统计：起始对齐（详情页的统计条是居中 + 竖线）。 -->
+    <style name="NovelSeriesStatCell">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:gravity">start</item>
+        <item name="android:minHeight">48dp</item>
+        <item name="android:orientation">vertical</item>
+        <item name="android:paddingTop">14dp</item>
+        <item name="android:paddingBottom">12dp</item>
+    </style>
+
+    <!-- 数字 18sp；单位文字由代码用 RelativeSizeSpan 缩到 12sp（数字大于数字单位）。
+         三格挤在 Hero 卡内边距里（窄屏每格不到 100dp）：百万字的长系列 + 字体放大时一行放不下，
+         整格按比例缩字（最小 12sp，同样随系统字体缩放），不把数字截成「1,234,…」。 -->
+    <style name="NovelSeriesStatValue" parent="NovelDetailStatValue">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:ellipsize">end</item>
+        <item name="autoSizeTextType">uniform</item>
+        <item name="autoSizeMinTextSize">12sp</item>
+        <item name="autoSizeMaxTextSize">18sp</item>
+        <item name="autoSizeStepGranularity">1sp</item>
+    </style>
+
     <!-- Chat subsystem (borrowed from Peanut; see ceui.pixiv.chat.*). -->
     <style name="ShapeAppearance.Chat.Avatar" parent="">
         <item name="cornerFamily">rounded</item>

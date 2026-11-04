@@ -1588,7 +1588,6 @@
     <string name="novel_author_name_copied">Имя автора скопировано</string>
     <string name="novel_author_id_copied">UID автора скопирован</string>
     <string name="novel_header_series_prefix">Серия: %1$s</string>
-    <string name="novel_meta_type">Роман</string>
     <string name="novel_meta_word_count">%1$s слов</string>
     <!-- 小说详情 V3（2026-11-04）：元信息里的预计阅读时长按每分钟 500 字，同 pixiv 网页端 -->
     <plurals name="novel_reading_minutes">
@@ -1596,6 +1595,33 @@
         <item quantity="few">≈ %d минуты</item>
         <item quantity="many">≈ %d минут</item>
         <item quantity="other">≈ %d минуты</item>
+    </plurals>
+    <!-- 小说系列页（V3，docs「小说系列」） -->
+    <string name="novel_series_eyebrow">Серия новелл</string>
+    <string name="novel_series_ongoing">Выходит</string>
+    <string name="novel_series_concluded">Завершена</string>
+    <string name="novel_series_updated_on">Обновлено %1$s</string>
+    <string name="novel_series_read_first">Читать с начала</string>
+    <string name="novel_series_continue_at">Продолжить · #%1$d</string>
+    <string name="novel_series_continue">Продолжить</string>
+    <string name="novel_series_stat_chapters">Частей</string>
+    <string name="novel_series_stat_characters">Символов</string>
+    <string name="novel_series_stat_reading_time">Время чтения</string>
+    <string name="novel_series_latest_chapter">Новая · #%1$d</string>
+    <string name="novel_series_toc">Содержание</string>
+    <string name="novel_series_info_started">Начало</string>
+    <string name="novel_info_series_id">ID серии</string>
+    <plurals name="novel_reading_hours">
+        <item quantity="one">≈ %d час</item>
+        <item quantity="few">≈ %d часа</item>
+        <item quantity="many">≈ %d часов</item>
+        <item quantity="other">≈ %d часа</item>
+    </plurals>
+    <plurals name="novel_series_toc_count">
+        <item quantity="one">%d часть</item>
+        <item quantity="few">%d части</item>
+        <item quantity="many">%d частей</item>
+        <item quantity="other">%d части</item>
     </plurals>
     <string name="novel_continue_reading">Продолжить · %d%%</string>
     <string name="novel_section_info">Информация</string>
@@ -1605,7 +1631,6 @@
     <string name="novel_author_other_works">Другие работы</string>
     <string name="action_open">Открыть</string>
     <string name="novel_cover">Обложка</string>
-    <string name="novel_meta_chapter_count">%1$d глав</string>
     <string name="manga_series_meta_type">Manga</string>
     <string name="manga_series_episode_count">%1$d ч.</string>
     <string name="manga_series_chip_content_count">Частей  %1$s</string>
@@ -1759,8 +1784,6 @@
     <string name="novel_chip_series_id">ID серии  %1$s</string>
     <string name="novel_chip_series_link">Ссылка на серию</string>
     <string name="novel_chip_open_series_link">Открыть ссылку на серию</string>
-    <string name="novel_chip_series_content_count">Глав  %1$s</string>
-    <string name="novel_chip_series_char_count">Общий объём  %1$s</string>
     <string name="setting_default_novel_format">Формат загрузки романов по умолчанию</string>
     <string name="setting_novel_epub_on_images">Сохранять как EPUB, если в новелле есть иллюстрации</string>
     <string name="setting_novel_epub_on_images_desc">Если формат по умолчанию TXT, при наличии иллюстраций в тексте автоматически экспортировать в EPUB</string>

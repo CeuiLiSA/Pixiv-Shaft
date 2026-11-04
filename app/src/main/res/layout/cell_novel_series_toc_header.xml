@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  小说系列「目录」区块标题：20sp Bold（同小说详情的区块标题）+ 末端「共 46 篇」14sp Medium v3_text_2。
+  上方细线由 NovelSeriesDecoration 画；下面直接接目录行。
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:baselineAligned="true"
+    android:orientation="horizontal"
+    android:paddingStart="20dp"
+    android:paddingTop="24dp"
+    android:paddingEnd="20dp"
+    android:paddingBottom="8dp">
+
+    <TextView
+        android:id="@+id/toc_title"
+        style="@style/NovelDetailSectionTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="@string/novel_series_toc" />
+
+    <TextView
+        android:id="@+id/toc_count"
+        style="@style/textMontserratMedium"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:fontFeatureSettings="tnum"
+        android:maxLines="1"
+        android:textColor="@color/v3_text_2"
+        android:textSize="14sp"
+        tools:text="共 46 篇" />
+</LinearLayout>

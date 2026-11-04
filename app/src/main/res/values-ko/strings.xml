@@ -1579,11 +1579,31 @@
     <string name="novel_author_name_copied">작가 이름을 복사했습니다</string>
     <string name="novel_author_id_copied">작가 UID를 복사했습니다</string>
     <string name="novel_header_series_prefix">시리즈: %1$s</string>
-    <string name="novel_meta_type">소설</string>
     <string name="novel_meta_word_count">%1$s자</string>
     <!-- 小说详情 V3（2026-11-04）：元信息里的预计阅读时长按每分钟 500 字，同 pixiv 网页端 -->
     <plurals name="novel_reading_minutes">
         <item quantity="other">약 %d분</item>
+    </plurals>
+    <!-- 小说系列页（V3，docs「小说系列」） -->
+    <string name="novel_series_eyebrow">소설 시리즈</string>
+    <string name="novel_series_ongoing">연재 중</string>
+    <string name="novel_series_concluded">완결</string>
+    <string name="novel_series_updated_on">%1$s 업데이트</string>
+    <string name="novel_series_read_first">1화부터 읽기</string>
+    <string name="novel_series_continue_at">이어 읽기 · %1$d화</string>
+    <string name="novel_series_continue">이어 읽기</string>
+    <string name="novel_series_stat_chapters">편수</string>
+    <string name="novel_series_stat_characters">글자 수</string>
+    <string name="novel_series_stat_reading_time">읽는 시간</string>
+    <string name="novel_series_latest_chapter">최신 · %1$d화</string>
+    <string name="novel_series_toc">목차</string>
+    <string name="novel_series_info_started">연재 시작</string>
+    <string name="novel_info_series_id">시리즈 ID</string>
+    <plurals name="novel_reading_hours">
+        <item quantity="other">약 %d시간</item>
+    </plurals>
+    <plurals name="novel_series_toc_count">
+        <item quantity="other">총 %d편</item>
     </plurals>
     <string name="novel_continue_reading">이어 읽기 · %d%%</string>
     <string name="novel_section_info">정보</string>
@@ -1593,7 +1613,6 @@
     <string name="novel_author_other_works">다른 작품</string>
     <string name="action_open">열기</string>
     <string name="novel_cover">표지</string>
-    <string name="novel_meta_chapter_count">%1$d편</string>
     <string name="manga_series_meta_type">Manga</string>
     <string name="manga_series_episode_count">%1$d화</string>
     <string name="manga_series_chip_content_count">화수  %1$s</string>
@@ -1747,8 +1766,6 @@
     <string name="novel_chip_series_id">시리즈 ID  %1$s</string>
     <string name="novel_chip_series_link">시리즈 링크</string>
     <string name="novel_chip_open_series_link">시리즈 링크 열기</string>
-    <string name="novel_chip_series_content_count">챕터 수  %1$s</string>
-    <string name="novel_chip_series_char_count">총 글자 수  %1$s</string>
     <string name="setting_default_novel_format">기본 소설 다운로드 형식</string>
     <string name="setting_novel_epub_on_images">소설에 일러스트가 있으면 EPUB로 저장</string>
     <string name="setting_novel_epub_on_images_desc">기본 형식이 TXT인 경우 본문에 일러스트가 있으면 자동으로 EPUB로 내보냅니다</string>
