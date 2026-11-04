@@ -70,6 +70,7 @@ class V3MenuDialog : DialogFragment() {
         val d = resources.displayMetrics.density
         view.background = V3Palette.from(requireContext())
             .settingsCardBg(24f * d, (1 * d).roundToInt())
+        view.clipToOutline = true
         if (items.isEmpty()) return
 
         val container = view.findViewById<LinearLayout>(R.id.menu_container)
