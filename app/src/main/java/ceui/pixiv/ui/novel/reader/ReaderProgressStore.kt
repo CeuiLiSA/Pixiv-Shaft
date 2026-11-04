@@ -29,6 +29,17 @@ object ReaderProgressStore {
 
     fun loadLastReadTime(novelId: Long): Long = store.decodeLong("time_$novelId", 0L)
 
+    /**
+     * 系列里最后在阅读器打开的那一篇：系列页的「继续阅读 · 第 N 篇」靠它。只按单篇进度推不出来 ——
+     * 超长系列的后几页章节系列页还没翻到，看不到它们的进度。
+     */
+    fun saveSeriesLastNovel(seriesId: Long, novelId: Long) {
+        store.encode("series_last_$seriesId", novelId)
+    }
+
+    /** 没记过返回 0。 */
+    fun loadSeriesLastNovel(seriesId: Long): Long = store.decodeLong("series_last_$seriesId", 0L)
+
     fun clear(novelId: Long) {
         store.removeValueForKey("char_$novelId")
         store.removeValueForKey("page_$novelId")

@@ -625,6 +625,10 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
                 val seriesId = state.novel?.series?.id
                 bb.setSeriesVisible(seriesId != null)
                 loadWatchlistStateForSeries(seriesId)
+                // 系列页「继续阅读」要去的那一篇
+                state.novel?.let { novel ->
+                    if (seriesId != null) ReaderProgressStore.saveSeriesLastNovel(seriesId, novel.id)
+                }
                 pushStyleAndGeometryIfReady()
                 rebindScrollViewIfActive()
                 // A restored query may have been opened before the text arrived.
