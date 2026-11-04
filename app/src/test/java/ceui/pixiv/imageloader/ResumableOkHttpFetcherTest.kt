@@ -174,6 +174,76 @@ class ResumableOkHttpFetcherTest {
         assertArrayEquals(payload, file.readBytes())
     }
 
+    // 字节进度是「正在下载」单张保存卡「已下载 / 总大小」的唯一来源（#1316）。
+
+    @Test
+    fun `byte progress reports bytes read against declared total`() = runTest {
+        server.dispatcher = object : Dispatcher() {
+            override fun dispatch(request: RecordedRequest): MockResponse {
+                return MockResponse()
+                    .setResponseCode(200)
+                    .setHeader("ETag", etag)
+                    .setHeader("Content-Length", payload.size)
+                    .setBody(Buffer().write(payload))
+            }
+        }
+
+        val progress = mutableListOf<ImageFetcher.Progress>()
+        testFetcher().fetchWithProgress(testUrl()) { progress.add(it) }
+
+        assertTrue(progress.isNotEmpty())
+        assertTrue(progress.all { it.totalBytes == 1000L })
+        assertEquals(progress.map { it.bytesRead }.sorted(), progress.map { it.bytesRead })
+        assertEquals(1000L, progress.last().bytesRead)
+        assertTrue(progress.all { it.percent in 0..99 })
+    }
+
+    @Test
+    fun `byte progress without content length keeps total unknown and percent at zero`() = runTest {
+        server.dispatcher = object : Dispatcher() {
+            override fun dispatch(request: RecordedRequest): MockResponse {
+                return MockResponse()
+                    .setResponseCode(200)
+                    .setChunkedBody(Buffer().write(payload), 128)
+            }
+        }
+
+        val progress = mutableListOf<ImageFetcher.Progress>()
+        val file = testFetcher().fetchWithProgress(testUrl()) { progress.add(it) }
+
+        assertEquals(1000L, file.length())
+        assertTrue(progress.all { it.totalBytes < 0 })
+        assertTrue(progress.all { it.percent == 0 })
+        assertEquals(1000L, progress.last().bytesRead)
+    }
+
+    @Test
+    fun `byte progress on resume starts from the partial offset`() = runTest {
+        val url = testUrl()
+        val key = StageStore.keyForUrl(url)
+        val half = 500
+        FileOutputStream(StageStore.partFile(stagingDir, key)).use { it.write(payload, 0, half) }
+        StageStore.writeManifest(StageStore.metaFile(stagingDir, key), StageStore.buildManifest(url, etag, null, 1000L))
+
+        server.dispatcher = object : Dispatcher() {
+            override fun dispatch(request: RecordedRequest): MockResponse {
+                val tail = payload.copyOfRange(half, payload.size)
+                return MockResponse()
+                    .setResponseCode(206)
+                    .setHeader("ETag", etag)
+                    .setHeader("Content-Range", "bytes 500-999/1000")
+                    .setHeader("Content-Length", tail.size)
+                    .setBody(Buffer().write(tail))
+            }
+        }
+
+        val progress = mutableListOf<ImageFetcher.Progress>()
+        testFetcher().fetchWithProgress(url) { progress.add(it) }
+
+        assertEquals(ImageFetcher.Progress(50, 500L, 1000L), progress.first())
+        assertEquals(1000L, progress.last().bytesRead)
+    }
+
     @Test
     fun `read timeout retains partial bytes for subsequent resume`() = runTest {
         val url = testUrl()

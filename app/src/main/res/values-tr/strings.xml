@@ -1959,7 +1959,6 @@
     <string name="dlmgr_active_size_stalled">Akış koptu %1$d/%2$ds</string>
     <string name="single_image_save_title">Tek Görsel Kaydetme</string>
     <string name="single_image_save_help_desc">Büyük görsel sayfasından başlatılan tek bir orijinal görsel kaydetme görevidir.\nİndirme kuyruğundan bağımsızdır ve indirme yöneticisinin genel başlatma ve duraklatma denetimlerinden etkilenmez.\nTamamlandığında listeden otomatik olarak kaybolur.</string>
-    <string name="single_image_saving_desc">Orijinal görsel kaydediliyor…</string>
     <string name="single_image_save_failed_desc">Kaydetme başarısız, yeniden denemek için dokunun</string>
     <string name="dlmgr_open_novel_failed">Roman kimliği tanımlanamadı. Lütfen tekrar indirin.</string>
     <string name="dlmgr_done_empty_title">Henüz tamamlanmış indirme yok</string>

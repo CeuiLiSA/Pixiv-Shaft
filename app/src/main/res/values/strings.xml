@@ -2143,8 +2143,7 @@
     <string name="dlmgr_active_size_unknown">未知大小</string>
     <string name="dlmgr_active_size_stalled">已断流%1$d/%2$ds</string>
     <string name="single_image_save_title">单张保存</string>
-    <string name="single_image_save_help_desc">大图页发起的单张原图保存任务。\n独立于下载队列，不受下载管理全局的启停。\n完成后会自动从列表中消失。</string>
-    <string name="single_image_saving_desc">正在保存原图…</string>
+    <string name="single_image_save_help_desc">大图页发起的单张原图保存任务。\n独立于下载队列，不受下载管理全局启停影响。\n完成后会自动从列表中消失。</string>
     <string name="single_image_save_failed_desc">保存失败，点击重试</string>
 
     <string name="dlmgr_open_novel_failed">无法识别小说 ID，请重新下载该小说</string>

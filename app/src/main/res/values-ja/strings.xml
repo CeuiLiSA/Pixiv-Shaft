@@ -1956,7 +1956,6 @@
     <string name="dlmgr_active_size_stalled">通信停止 %1$d/%2$ds</string>
     <string name="single_image_save_title">単一画像の保存</string>
     <string name="single_image_save_help_desc">画像詳細画面から開始された原画像1枚の保存タスクです。\nダウンロードキューとは独立しており、ダウンロード管理の一括開始・停止の影響を受けません。\n完了すると自動的にリストから消えます。</string>
-    <string name="single_image_saving_desc">元画像を保存中…</string>
     <string name="single_image_save_failed_desc">保存に失敗しました。タップして再試行</string>
     <string name="dlmgr_open_novel_failed">小説 ID を識別できません。再ダウンロードしてください。</string>
     <string name="dlmgr_done_empty_title">まだ完了したダウンロードはありません</string>

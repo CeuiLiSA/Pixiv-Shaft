@@ -1965,7 +1965,6 @@
     <string name="dlmgr_active_size_stalled">Обрыв %1$d/%2$ds</string>
     <string name="single_image_save_title">Сохранение одного изображения</string>
     <string name="single_image_save_help_desc">Сохранение одного оригинального изображения запущено со страницы просмотра.\nЗадача не зависит от очереди загрузок и общих кнопок запуска и паузы в менеджере загрузок.\nПосле завершения она автоматически исчезнет из списка.</string>
-    <string name="single_image_saving_desc">Сохранение оригинала…</string>
     <string name="single_image_save_failed_desc">Не удалось сохранить. Нажмите, чтобы повторить</string>
     <string name="dlmgr_open_novel_failed">Не удалось определить ID новеллы. Скачайте её заново.</string>
     <string name="dlmgr_done_empty_title">Завершённых загрузок пока нет</string>

@@ -1996,7 +1996,6 @@
     <string name="dlmgr_active_size_stalled">Terputus %1$d/%2$ds</string>
     <string name="single_image_save_title">Simpan Satu Gambar</string>
     <string name="single_image_save_help_desc">Tugas menyimpan satu gambar asli yang dimulai dari tampilan gambar penuh.\nTugas ini terpisah dari antrean unduhan dan tidak terpengaruh oleh kontrol mulai dan jeda global di pengelola unduhan.\nTugas ini otomatis hilang dari daftar setelah selesai.</string>
-    <string name="single_image_saving_desc">Menyimpan gambar asli…</string>
     <string name="single_image_save_failed_desc">Gagal menyimpan, ketuk untuk mencoba lagi</string>
     <string name="dlmgr_open_novel_failed">ID novel tidak dikenali, silakan unduh ulang novel ini</string>
     <string name="dlmgr_done_empty_title">Belum ada unduhan yang selesai</string>

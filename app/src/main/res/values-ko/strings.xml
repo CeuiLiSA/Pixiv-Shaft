@@ -1956,7 +1956,6 @@
     <string name="dlmgr_active_size_stalled">전송 끊김 %1$d/%2$ds</string>
     <string name="single_image_save_title">이미지 한 장 저장</string>
     <string name="single_image_save_help_desc">큰 이미지 화면에서 시작한 원본 이미지 한 장 저장 작업입니다.\n다운로드 대기열과 독립적이며 다운로드 관리의 전체 시작·일시 정지에 영향을 받지 않습니다.\n완료되면 목록에서 자동으로 사라집니다.</string>
-    <string name="single_image_saving_desc">원본 이미지 저장 중…</string>
     <string name="single_image_save_failed_desc">저장 실패, 탭하여 다시 시도</string>
     <string name="dlmgr_open_novel_failed">소설 ID를 식별할 수 없습니다. 다시 다운로드하세요.</string>
     <string name="dlmgr_done_empty_title">아직 완료된 다운로드가 없습니다</string>

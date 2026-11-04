@@ -1959,7 +1959,6 @@
     <string name="dlmgr_active_size_stalled">Stalled %1$d/%2$ds</string>
     <string name="single_image_save_title">Single Save</string>
     <string name="single_image_save_help_desc">An original image save task started from the full image viewer.\nIt runs independently of the download queue and is unaffected by Download Manager’s global start and pause controls.\nIt disappears from the list automatically when complete.</string>
-    <string name="single_image_saving_desc">Saving original image…</string>
     <string name="single_image_save_failed_desc">Save failed, tap to retry</string>
     <string name="dlmgr_open_novel_failed">Failed to identify novel ID. Please re-download.</string>
     <string name="dlmgr_done_empty_title">No completed downloads yet</string>
