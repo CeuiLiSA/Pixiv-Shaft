@@ -17,7 +17,7 @@ public class GlideUtil {
 
     public static GlideUrl getMediumImg(Illust illustsBean) {
         ImageUrls urls = illustsBean.getImage_urls();
-        return urls == null ? null : new GlideUrlChild((urls.getMedium()));
+        return urls == null ? null : getUrl(urls.getMedium());
     }
 
     public static GlideUrl getUrl(String url) {
@@ -31,7 +31,7 @@ public class GlideUtil {
 
     public static GlideUrl getLargeImage(Illust illustsBean) {
         ImageUrls urls = illustsBean.getImage_urls();
-        return urls == null ? null : new GlideUrlChild((urls.getLarge()));
+        return urls == null ? null : getUrl(urls.getLarge());
     }
 
     public static final String DEFAULT_HEAD_IMAGE = "https://s.pximg.net/common/images/no_profile.png";
@@ -47,19 +47,12 @@ public class GlideUtil {
         }
 
         String image = urls.findMaxSizeUrl();
-        if (image == null) {
-            return null;
-        }
-
-        if (TextUtils.equals(image, DEFAULT_HEAD_IMAGE)) {
-            return new GlideUrlChild(image);
-        } else {
-            return new GlideUrlChild((image));
-        }
+        return getUrl(image);
     }
 
     public static GlideUrl getSquare(Illust illustsBean) {
-        return new GlideUrlChild((illustsBean.getImage_urls().getSquare_medium()));
+        ImageUrls urls = illustsBean.getImage_urls();
+        return urls == null ? null : getUrl(urls.getSquare_medium());
     }
 
     public static GlideUrl getLargeImage(Illust illustsBean, int i) {
@@ -72,7 +65,10 @@ public class GlideUtil {
         if (mp == null || i < 0 || i >= mp.size()) {
             return getLargeImage(illustsBean);
         }
-        return new GlideUrlChild((mp.get(i).getImage_urls().getLarge()));
+        MetaPage page = mp.get(i);
+        ImageUrls urls = page == null ? null : page.getImage_urls();
+        GlideUrl pageUrl = urls == null ? null : getUrl(urls.getLarge());
+        return pageUrl == null ? getLargeImage(illustsBean) : pageUrl;
     }
 
     public static GlideUrl getOriginalImage(Illust illustsBean, int i) {
@@ -82,12 +78,15 @@ public class GlideUtil {
                     || TextUtils.isEmpty(illustsBean.getMeta_single_page().getOriginal_image_url())) {
                 return getLargeImage(illustsBean);
             }
-            return new GlideUrlChild(illustsBean.getMeta_single_page().getOriginal_image_url());
+            return getUrl(illustsBean.getMeta_single_page().getOriginal_image_url());
         }
         List<MetaPage> mp = illustsBean.getMeta_pages();
         if (mp == null || i < 0 || i >= mp.size()) {
             return getLargeImage(illustsBean);
         }
-        return new GlideUrlChild(mp.get(i).getImage_urls().getOriginal());
+        MetaPage page = mp.get(i);
+        ImageUrls urls = page == null ? null : page.getImage_urls();
+        GlideUrl pageUrl = urls == null ? null : getUrl(urls.getOriginal());
+        return pageUrl == null ? getLargeImage(illustsBean, i) : pageUrl;
     }
 }
