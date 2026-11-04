@@ -1584,6 +1584,19 @@
     <string name="novel_header_series_prefix">Seri: %1$s</string>
     <string name="novel_meta_type">Roman</string>
     <string name="novel_meta_word_count">%1$s kelime</string>
+    <!-- 小说详情 V3（2026-11-04）：元信息里的预计阅读时长按每分钟 500 字，同 pixiv 网页端 -->
+    <plurals name="novel_reading_minutes">
+        <item quantity="one">Yaklaşık %d dk</item>
+        <item quantity="other">Yaklaşık %d dk</item>
+    </plurals>
+    <string name="novel_continue_reading">Okumaya devam · %%%d</string>
+    <string name="novel_section_info">Bilgi</string>
+    <string name="novel_info_user_id">Yazar ID</string>
+    <string name="novel_info_user_link">Yazar profili</string>
+    <string name="novel_section_author">Yazar</string>
+    <string name="novel_author_other_works">Diğer eserleri</string>
+    <string name="action_open">Aç</string>
+    <string name="novel_cover">Kapak</string>
     <string name="novel_meta_chapter_count">%1$d bölüm</string>
     <string name="manga_series_meta_type">Manga</string>
     <string name="manga_series_episode_count">%1$d bölüm</string>
@@ -1594,7 +1607,6 @@
     <string name="novel_section_caption">Açıklama</string>
     <string name="novel_profile_title">Eser bilgisi</string>
     <string name="novel_actions_share">Paylaş</string>
-    <string name="novel_actions_comments">Yorumlar</string>
     <string name="novel_actions_download">İndir</string>
     <string name="msg_jump_next_in_series">Sonraki bölüme geçildi: %1$s</string>
     <string name="msg_jump_prev_in_series">Önceki bölüme geçildi: %1$s</string>
@@ -1732,15 +1744,9 @@
     <string name="download_settings_save_failed">İndirme ayarları kaydedilemedi: %1$s</string>
     <string name="download_enqueue_failed">İndirme görevi oluşturulamadı: %1$s</string>
     <string name="header_preset_save_failed">Başlık ön ayarı kaydedilemedi: %1$s</string>
-    <string name="novel_chip_id">Eser ID  %1$s</string>
     <string name="novel_chip_author">Yazar  %1$s</string>
     <string name="novel_chip_author_id">Yazar ID  %1$s</string>
-    <string name="novel_chip_create_date">Yayın  %1$s</string>
-    <string name="novel_chip_text_length">Karakter sayısı  %1$s</string>
-    <string name="novel_chip_total_view">Görüntülenme  %1$s</string>
-    <string name="novel_chip_total_bookmarks">Favori  %1$s</string>
     <string name="novel_chip_novel_link">Eser bağlantısı</string>
-    <string name="novel_chip_open_novel_link">Eser bağlantısını aç</string>
     <string name="novel_chip_user_link">Yazar sayfasını aç</string>
     <string name="novel_chip_series_id">Seri ID  %1$s</string>
     <string name="novel_chip_series_link">Seri bağlantısı</string>

@@ -1581,6 +1581,18 @@
     <string name="novel_header_series_prefix">シリーズ：%1$s</string>
     <string name="novel_meta_type">小説</string>
     <string name="novel_meta_word_count">%1$s 文字</string>
+    <!-- 小说详情 V3（2026-11-04）：元信息里的预计阅读时长按每分钟 500 字，同 pixiv 网页端 -->
+    <plurals name="novel_reading_minutes">
+        <item quantity="other">約 %d 分</item>
+    </plurals>
+    <string name="novel_continue_reading">続きを読む · %d%%</string>
+    <string name="novel_section_info">情報</string>
+    <string name="novel_info_user_id">作者 ID</string>
+    <string name="novel_info_user_link">作者ページ</string>
+    <string name="novel_section_author">作者</string>
+    <string name="novel_author_other_works">その他の作品</string>
+    <string name="action_open">開く</string>
+    <string name="novel_cover">表紙</string>
     <string name="novel_meta_chapter_count">%1$d 件</string>
     <string name="manga_series_meta_type">Manga</string>
     <string name="manga_series_episode_count">%1$d話</string>
@@ -1591,7 +1603,6 @@
     <string name="novel_section_caption">キャプション</string>
     <string name="novel_profile_title">作品情報</string>
     <string name="novel_actions_share">共有</string>
-    <string name="novel_actions_comments">コメント</string>
     <string name="novel_actions_download">ダウンロード</string>
     <string name="msg_jump_next_in_series">次の章へ移動しました：%1$s</string>
     <string name="msg_jump_prev_in_series">前の章へ移動しました：%1$s</string>
@@ -1729,15 +1740,9 @@
     <string name="download_settings_save_failed">ダウンロード設定の保存に失敗しました：%1$s</string>
     <string name="download_enqueue_failed">ダウンロードタスクの作成に失敗しました：%1$s</string>
     <string name="header_preset_save_failed">ヘッダープリセットの保存に失敗しました：%1$s</string>
-    <string name="novel_chip_id">作品ID  %1$s</string>
     <string name="novel_chip_author">作者  %1$s</string>
     <string name="novel_chip_author_id">作者ID  %1$s</string>
-    <string name="novel_chip_create_date">投稿日  %1$s</string>
-    <string name="novel_chip_text_length">文字数  %1$s</string>
-    <string name="novel_chip_total_view">閲覧数  %1$s</string>
-    <string name="novel_chip_total_bookmarks">ブックマーク  %1$s</string>
     <string name="novel_chip_novel_link">作品リンク</string>
-    <string name="novel_chip_open_novel_link">作品リンクを開く</string>
     <string name="novel_chip_user_link">作者ページを開く</string>
     <string name="novel_chip_series_id">シリーズID  %1$s</string>
     <string name="novel_chip_series_link">シリーズリンク</string>

@@ -1,48 +1,50 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  小说详情「简介」区块（V3，docs「小说详情」）：区块上下各 24dp，上方细线由 NovelDetailDecoration 画。
+  标题 20sp Bold v3_text_1 → 正文 15sp Regular v3_text_1（行距用倍数，不写死行高；
+  1.15 倍落在中日文回退字体上约 1.6 倍字号，与原型一致）→
+  「展开 / 收起」14sp SemiBold 主题强调色（textAccent，代码注入）。链接色同为 textAccent。
+-->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:paddingHorizontal="12dp">
+    android:paddingStart="20dp"
+    android:paddingTop="24dp"
+    android:paddingEnd="20dp"
+    android:paddingBottom="24dp">
 
     <TextView
         android:id="@+id/caption_label"
+        style="@style/NovelDetailSectionTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="10dp"
-        android:letterSpacing="0.12"
-        android:text="@string/novel_section_caption"
-        android:textAllCaps="true"
-        android:textColor="@color/v3_text_3"
-        android:textSize="12sp"
-        android:textStyle="bold" />
+        android:layout_marginBottom="12dp"
+        android:text="@string/novel_section_caption" />
 
     <TextView
         android:id="@+id/caption"
+        style="@style/textMontserratRegular"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:alpha="0.78"
         android:background="?attr/selectableItemBackground"
-        android:lineSpacingMultiplier="1.65"
-        android:paddingHorizontal="8dp"
+        android:lineSpacingMultiplier="1.15"
         android:textColor="@color/v3_text_1"
-        android:textColorLink="@color/v3_blue"
         android:textIsSelectable="true"
-        android:textSize="14sp" />
+        android:textSize="15sp" />
 
-    <!-- issue #1005: 超长简介折叠开关（样式对齐插画详情 section_v3_description 的 desc_toggle）
-         #1053: 点击区拉满整行（48dp 高 + 波纹） -->
+    <!-- 超长简介折叠开关（issue #1005）。#1053：点击区拉满整横行（48dp 高 + 波纹），
+         和插画详情 desc_toggle 一致 —— 别改回 wrap_content，那样又只有文字那么大一块可点 -->
     <TextView
         android:id="@+id/caption_toggle"
+        style="@style/textMontserratSemiBold"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
         android:background="?attr/selectableItemBackground"
         android:gravity="center_vertical"
         android:minHeight="48dp"
-        android:paddingHorizontal="8dp"
         android:text="@string/v3_desc_expand"
-        android:textColor="@color/v3_blue"
-        android:textSize="13sp"
-        android:textStyle="bold"
+        android:textSize="14sp"
         android:visibility="gone" />
 </LinearLayout>

@@ -24,6 +24,9 @@ object ReaderProgressStore {
 
     fun loadLastPageIndex(novelId: Long): Int = store.decodeInt("page_$novelId", 0)
 
+    /** 保存那一刻的总页数；滚动模式存的是 0（它没有页的概念）。 */
+    fun loadTotalPages(novelId: Long): Int = store.decodeInt("total_$novelId", 0)
+
     fun loadLastReadTime(novelId: Long): Long = store.decodeLong("time_$novelId", 0L)
 
     fun clear(novelId: Long) {

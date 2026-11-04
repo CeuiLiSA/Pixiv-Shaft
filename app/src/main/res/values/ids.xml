@@ -83,4 +83,8 @@
     <item name="referral_scroll" type="id"/>
     <!-- UserFeedFragment：用户卡关注胶囊当前画的是哪一态（只在翻转时换 drawable） -->
     <item type="id" name="user_card_follow_state"/>
+    <!-- 小说详情头卡：封面 / 作者头像当前加载的是哪个地址。ObjectPool 每次发射（收藏切换最常见）
+         都会重跑头卡绑定，地址没变就不再发 Glide 请求 -->
+    <item type="id" name="novel_header_cover_key"/>
+    <item type="id" name="novel_header_avatar_key"/>
 </resources>

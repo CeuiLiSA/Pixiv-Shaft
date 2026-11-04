@@ -197,6 +197,29 @@ ID、URL、作者搜索记录仍保留自己的路由与菜单，不按标签处
 - **图区**：标题下 10dp，16dp 圆角。宫格格间真留 2dp 缝（`TimelineGridGapDecoration`），格子保持正方形，每格按下有涟漪。浏览·收藏数与页数是图上 60% 黑的胶囊玻璃小标（12sp SemiBold `tnum` 白字），不再给整张图压底部渐变；白底插画上合成后对比度约 5.7:1。
 - **骨架**：`FeedTimelineSkeletonView` 按上面的几何画；改卡片尺寸时同步改它和 `CARD_HORIZONTAL_PADDING_DP`。
 
+### 小说详情（2026-11-04 起）
+
+`NovelTextFragment` 参考豆瓣读书 / Apple 图书：hero 以下是一整张 `v3_bg` 底，区块之间只有左右缩进 20dp 的 `cardHairline` 细线（`NovelDetailDecoration`），不套卡片。宽屏把内容列收到 720dp 居中，hero 背景仍通栏。
+
+- **Hero**：小说封面缩略图模糊后铺满顶部（连状态栏，`CpuBlurTransformation(25, 4)`），上面盖页面底色渐变：深色模式 50→66→86→100%，浅色模式 40→60→86→100%，色标位置 0 / 42% / 80% / 100%。默认封面不做模糊，只用主题色 alpha20 打底。列表顶不留 padding，hero 用 `status_spacer` 给状态栏让位；hero 滚走后，状态栏下的页面底色条在 48dp 行程内渐显。
+- **封面**：居中 140×198dp，10dp 圆角，带细描边（`v3_text_1` 深色模式 14%、浅色模式 10%）和阴影。加载时去掉缩略图 URL 里的 `/c/<尺寸>/` 取母图（`novelCoverMasterUrl`），缩略图作 thumbnail 和失败兜底。
+- **字级**：
+  - 标题 22sp Bold `v3_text_1`，平衡换行。
+  - 作者 14sp Medium `v3_text_2`。
+  - 元信息 12sp Medium `v3_text_2`，格式为「字数 · 约 N 分钟 · 日期」；阅读时长按每分钟 500 字算，同 pixiv 网页端。
+  - 区块标题 20sp Bold。
+  - 简介正文 15sp Regular `v3_text_1`，行距 1.15 倍。落在中日文回退字体上约等于 1.6 倍字号，所以不能抄 CSS 的 1.6。
+  - 信息表：标签 14sp `v3_text_2`，值 14sp Medium `tnum`。
+  - 作者名 16sp SemiBold。
+  - 统计数字 18sp SemiBold `tnum`，下面的文字 12sp。
+  - `v3_text_3` 不承载信息。
+- **操作行**：主操作是 48dp 实色主题胶囊（`pillPrimary` + `onPrimary`，15sp SemiBold，图标和文字作为一组居中）。没读过显示「阅读正文」，读过显示「继续阅读 · N%」（`novelReadingPercent`）。收藏 / 下载是 48dp `pillSecondary` 圆钮，待操作图标用 `floatingPillContent`，已收藏是不着色的红心。
+- **悬浮阅读胶囊**：只在头卡主按钮滚到状态栏之下之后才浮出，同一屏不会有两个阅读入口；往下滑时让开、往上滑放回（#1177，别挡长简介）。
+- **简介「展开 / 收起」**：点击区是整横行（#1053），文字左对齐正文。
+- **系列行**：40dp 类别图标容器（圆角 17/17/17/7，alpha20 底）+「系列」12sp + 系列名 15sp SemiBold。
+- **作者区块**：44dp 头像 + 1.5dp 主题色描边。关注胶囊与用户卡共用 `renderFollowPill`。「其他作品」是区块内的 16sp 子行，上方不画线；「相关作品」是独立区块。
+- 简介、标签只在有内容时出现。「信息」默认折叠与否跟设置 `isDetailPanelCollapsedByDefault` 走。
+
 ## 哪些是固定的，哪些可以变化
 
 | 固定关系 | 可以随页面变化 |

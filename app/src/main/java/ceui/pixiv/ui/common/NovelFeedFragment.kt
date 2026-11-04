@@ -36,6 +36,7 @@ import ceui.pixiv.feeds.FeedSkeletonView
 import ceui.pixiv.feeds.FeedViewModel
 import ceui.pixiv.feeds.feedRenderer
 import ceui.pixiv.ui.novel.NovelSeriesFragment
+import ceui.pixiv.ui.novel.novelCoverMasterUrl
 import ceui.pixiv.ui.novel.reader.export.ExportFormat
 import ceui.pixiv.ui.novel.reader.export.NovelExportManager
 import ceui.pixiv.ui.novel.reader.ui.ExportFormatCallback
@@ -145,7 +146,7 @@ abstract class NovelFeedFragment(
      * 承载 view 的 fragment，一张卡 fling 时要跑好几次，全在帧路径上。`Glide.with(Fragment)`
      * 直接命中、无查找，解析出的又是同一个 RequestManager（view 本就在本 Fragment 里），行为等价。
      */
-    private val novelGlide: RequestManager by lazy { Glide.with(this) }
+    protected val novelGlide: RequestManager by lazy { Glide.with(this) }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -605,11 +606,15 @@ abstract class NovelFeedFragment(
         })
     }
 
-    /** 封面点击看封面大图（对齐 NAdapter 的「图片详情」，取最大图，priority 同 ImageUrlsBean.getMaxImage）。 */
-    private fun openCoverImage(novel: Novel) {
-        val url = novel.image_urls?.let {
-            it.original ?: it.large ?: it.medium ?: it.square_medium
-        } ?: return
+    /**
+     * 封面点击看封面大图（对齐 NAdapter 的「图片详情」）。app-api 的小说 image_urls 没有 original，
+     * large 也只是 240 宽的缩略图，所以先试母图（[novelCoverMasterUrl]），
+     * 再按 ImageUrlsBean.getMaxImage 的顺序回落。
+     */
+    protected fun openCoverImage(novel: Novel) {
+        val url = novelCoverMasterUrl(novel.resolvedCoverUrl())
+            ?: novel.image_urls?.let { it.original ?: it.large ?: it.medium ?: it.square_medium }
+            ?: return
         startActivity(Intent(requireContext(), TemplateActivity::class.java).apply {
             putExtra(Params.URL, GlideUtil.getUrl(url).toStringUrl())
             putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.IMAGE_DETAIL.key)

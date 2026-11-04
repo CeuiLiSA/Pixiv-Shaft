@@ -1590,6 +1590,21 @@
     <string name="novel_header_series_prefix">Серия: %1$s</string>
     <string name="novel_meta_type">Роман</string>
     <string name="novel_meta_word_count">%1$s слов</string>
+    <!-- 小说详情 V3（2026-11-04）：元信息里的预计阅读时长按每分钟 500 字，同 pixiv 网页端 -->
+    <plurals name="novel_reading_minutes">
+        <item quantity="one">≈ %d минута</item>
+        <item quantity="few">≈ %d минуты</item>
+        <item quantity="many">≈ %d минут</item>
+        <item quantity="other">≈ %d минуты</item>
+    </plurals>
+    <string name="novel_continue_reading">Продолжить · %d%%</string>
+    <string name="novel_section_info">Информация</string>
+    <string name="novel_info_user_id">ID автора</string>
+    <string name="novel_info_user_link">Профиль автора</string>
+    <string name="novel_section_author">Автор</string>
+    <string name="novel_author_other_works">Другие работы</string>
+    <string name="action_open">Открыть</string>
+    <string name="novel_cover">Обложка</string>
     <string name="novel_meta_chapter_count">%1$d глав</string>
     <string name="manga_series_meta_type">Manga</string>
     <string name="manga_series_episode_count">%1$d ч.</string>
@@ -1600,7 +1615,6 @@
     <string name="novel_section_caption">Описание</string>
     <string name="novel_profile_title">О произведении</string>
     <string name="novel_actions_share">Поделиться</string>
-    <string name="novel_actions_comments">Комментарии</string>
     <string name="novel_actions_download">Скачать</string>
     <string name="msg_jump_next_in_series">Переход к следующей главе: %1$s</string>
     <string name="msg_jump_prev_in_series">Переход к предыдущей главе: %1$s</string>
@@ -1738,15 +1752,9 @@
     <string name="download_settings_save_failed">Не удалось сохранить настройки загрузки: %1$s</string>
     <string name="download_enqueue_failed">Не удалось создать задачу загрузки: %1$s</string>
     <string name="header_preset_save_failed">Не удалось сохранить пресет заголовка: %1$s</string>
-    <string name="novel_chip_id">ID новеллы  %1$s</string>
     <string name="novel_chip_author">Автор  %1$s</string>
     <string name="novel_chip_author_id">ID автора  %1$s</string>
-    <string name="novel_chip_create_date">Опубликовано  %1$s</string>
-    <string name="novel_chip_text_length">Объём  %1$s</string>
-    <string name="novel_chip_total_view">Просмотры  %1$s</string>
-    <string name="novel_chip_total_bookmarks">Закладки  %1$s</string>
     <string name="novel_chip_novel_link">Ссылка на новеллу</string>
-    <string name="novel_chip_open_novel_link">Открыть ссылку на новеллу</string>
     <string name="novel_chip_user_link">Открыть страницу автора</string>
     <string name="novel_chip_series_id">ID серии  %1$s</string>
     <string name="novel_chip_series_link">Ссылка на серию</string>

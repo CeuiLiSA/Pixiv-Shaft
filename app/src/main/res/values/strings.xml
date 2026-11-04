@@ -1730,6 +1730,19 @@
     <string name="novel_header_series_prefix">系列：%1$s</string>
     <string name="novel_meta_type">Novel</string>
     <string name="novel_meta_word_count">%1$s字</string>
+    <!-- 小说详情 V3（2026-11-04）：元信息里的预计阅读时长按每分钟 500 字，同 pixiv 网页端 -->
+    <plurals name="novel_reading_minutes">
+        <item quantity="other">约 %d 分钟</item>
+    </plurals>
+    <string name="novel_continue_reading">继续阅读 · %d%%</string>
+    <string name="novel_section_info">信息</string>
+    <string name="novel_info_user_id">作者 ID</string>
+    <string name="novel_info_user_link">作者主页</string>
+    <string name="novel_section_author">作者</string>
+    <string name="novel_author_other_works">其他作品</string>
+    <string name="action_open">打开</string>
+    <string name="novel_cover">封面</string>
+    <string name="v3_novel_r18g" translatable="false">R-18G</string>
     <string name="novel_meta_chapter_count">%1$d篇</string>
     <string name="manga_series_meta_type">Manga</string>
     <string name="manga_series_episode_count">%1$d话</string>
@@ -1740,7 +1753,6 @@
     <string name="novel_section_caption">简介</string>
     <string name="novel_profile_title">作品档案</string>
     <string name="novel_actions_share">分享</string>
-    <string name="novel_actions_comments">评论</string>
     <string name="novel_actions_download">下载</string>
     <string name="msg_jump_next_in_series">已跳到下一篇：%1$s</string>
     <string name="msg_jump_prev_in_series">已跳到上一篇：%1$s</string>
@@ -1888,15 +1900,9 @@
     <string name="download_enqueue_failed">下载任务创建失败：%1$s</string>
     <string name="header_preset_save_failed">信息头预设保存失败：%1$s</string>
 
-    <string name="novel_chip_id">作品ID  %1$s</string>
     <string name="novel_chip_author">作者  %1$s</string>
     <string name="novel_chip_author_id">作者ID  %1$s</string>
-    <string name="novel_chip_create_date">发布  %1$s</string>
-    <string name="novel_chip_text_length">字数  %1$s</string>
-    <string name="novel_chip_total_view">浏览  %1$s</string>
-    <string name="novel_chip_total_bookmarks">收藏  %1$s</string>
     <string name="novel_chip_novel_link">作品链接</string>
-    <string name="novel_chip_open_novel_link">打开作品链接</string>
     <string name="novel_chip_user_link">打开作者主页</string>
     <string name="novel_chip_series_id">系列ID  %1$s</string>
     <string name="novel_chip_series_link">系列链接</string>

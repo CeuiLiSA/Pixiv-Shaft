@@ -1620,6 +1620,18 @@
     <string name="novel_header_series_prefix">Seri: %1$s</string>
     <string name="novel_meta_type">Novel</string>
     <string name="novel_meta_word_count">%1$s karakter</string>
+    <!-- 小说详情 V3（2026-11-04）：元信息里的预计阅读时长按每分钟 500 字，同 pixiv 网页端 -->
+    <plurals name="novel_reading_minutes">
+        <item quantity="other">Sekitar %d menit</item>
+    </plurals>
+    <string name="novel_continue_reading">Lanjutkan · %d%%</string>
+    <string name="novel_section_info">Informasi</string>
+    <string name="novel_info_user_id">ID penulis</string>
+    <string name="novel_info_user_link">Profil penulis</string>
+    <string name="novel_section_author">Penulis</string>
+    <string name="novel_author_other_works">Karya lainnya</string>
+    <string name="action_open">Buka</string>
+    <string name="novel_cover">Sampul</string>
     <string name="novel_meta_chapter_count">%1$d judul</string>
     <string name="manga_series_meta_type">Manga</string>
     <string name="manga_series_episode_count">%1$d episode</string>
@@ -1630,7 +1642,6 @@
     <string name="novel_section_caption">Deskripsi</string>
     <string name="novel_profile_title">Arsip karya</string>
     <string name="novel_actions_share">Bagikan</string>
-    <string name="novel_actions_comments">Komentar</string>
     <string name="novel_actions_download">Unduh</string>
     <string name="msg_jump_next_in_series">Pindah ke judul berikutnya: %1$s</string>
     <string name="msg_jump_prev_in_series">Pindah ke judul sebelumnya: %1$s</string>
@@ -1768,15 +1779,9 @@
     <string name="download_settings_save_failed">Gagal menyimpan pengaturan unduhan: %1$s</string>
     <string name="download_enqueue_failed">Gagal membuat tugas unduhan: %1$s</string>
     <string name="header_preset_save_failed">Gagal menyimpan preset header: %1$s</string>
-    <string name="novel_chip_id">ID karya  %1$s</string>
     <string name="novel_chip_author">Pembuat  %1$s</string>
     <string name="novel_chip_author_id">ID pembuat  %1$s</string>
-    <string name="novel_chip_create_date">Dipublikasikan  %1$s</string>
-    <string name="novel_chip_text_length">Karakter  %1$s</string>
-    <string name="novel_chip_total_view">Dilihat  %1$s</string>
-    <string name="novel_chip_total_bookmarks">Bookmark  %1$s</string>
     <string name="novel_chip_novel_link">Tautan karya</string>
-    <string name="novel_chip_open_novel_link">Buka tautan karya</string>
     <string name="novel_chip_user_link">Buka profil pembuat</string>
     <string name="novel_chip_series_id">ID seri  %1$s</string>
     <string name="novel_chip_series_link">Tautan seri</string>

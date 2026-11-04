@@ -610,6 +610,110 @@
         <item name="android:visibility">gone</item>
     </style>
 
+    <!--
+      小说详情页（V3，docs/v3-design-philosophy.md「小说详情」）的文字角色：字号 / 字重 / 文字色
+      在这里定死，一个角色一套，页面里不再各写各的。主题色派生的颜色（强调、细线、胶囊底）
+      由 NovelTextFeed 按 V3Palette 注入，所以这里只放日夜资源色 v3_text_1 / v3_text_2。
+    -->
+    <style name="NovelDetailSectionTitle" parent="textMontserratBold">
+        <item name="android:textSize">20sp</item>
+        <item name="android:textColor">@color/v3_text_1</item>
+    </style>
+
+    <style name="NovelDetailBadge" parent="textMontserratSemiBold">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:paddingStart">8dp</item>
+        <item name="android:paddingEnd">8dp</item>
+        <item name="android:paddingTop">2dp</item>
+        <item name="android:paddingBottom">2dp</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:visibility">gone</item>
+    </style>
+
+    <style name="NovelDetailStatCell">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:gravity">center</item>
+        <item name="android:minHeight">48dp</item>
+        <item name="android:orientation">vertical</item>
+        <item name="android:paddingTop">8dp</item>
+        <item name="android:paddingBottom">8dp</item>
+    </style>
+
+    <style name="NovelDetailStatValue" parent="textMontserratSemiBold">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:fontFeatureSettings">tnum</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:textColor">@color/v3_text_1</item>
+        <item name="android:textSize">18sp</item>
+    </style>
+
+    <style name="NovelDetailStatLabel" parent="textMontserratMedium">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">2dp</item>
+        <item name="android:drawablePadding">2dp</item>
+        <item name="android:ellipsize">end</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:textColor">@color/v3_text_2</item>
+        <item name="android:textSize">12sp</item>
+    </style>
+
+    <!-- 信息表一行：至少 48dp，左标签右值；行与行之间的细线由代码按 cardHairline 上色。 -->
+    <style name="NovelDetailInfoRow">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:minHeight">48dp</item>
+        <item name="android:orientation">horizontal</item>
+        <item name="android:paddingTop">6dp</item>
+        <item name="android:paddingBottom">6dp</item>
+    </style>
+
+    <style name="NovelDetailInfoLabel" parent="textMontserratRegular">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">@color/v3_text_2</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
+    <style name="NovelDetailInfoValue" parent="textMontserratMedium">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginStart">16dp</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:ellipsize">end</item>
+        <item name="android:fontFeatureSettings">tnum</item>
+        <item name="android:gravity">end|center_vertical</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:textColor">@color/v3_text_1</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
+    <!-- 信息表里的「复制 / 打开」：文字按钮，48dp 热区，颜色由代码给 textAccent。 -->
+    <style name="NovelDetailInfoAction" parent="textMontserratSemiBold">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:background">?attr/selectableItemBackground</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+        <item name="android:gravity">center</item>
+        <item name="android:minWidth">48dp</item>
+        <item name="android:minHeight">48dp</item>
+        <item name="android:paddingStart">8dp</item>
+        <item name="android:paddingEnd">8dp</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
+    <style name="NovelDetailInfoLine">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">1px</item>
+    </style>
+
     <!-- Chat subsystem (borrowed from Peanut; see ceui.pixiv.chat.*). -->
     <style name="ShapeAppearance.Chat.Avatar" parent="">
         <item name="cornerFamily">rounded</item>

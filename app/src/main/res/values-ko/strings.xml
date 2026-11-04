@@ -1581,6 +1581,18 @@
     <string name="novel_header_series_prefix">시리즈: %1$s</string>
     <string name="novel_meta_type">소설</string>
     <string name="novel_meta_word_count">%1$s자</string>
+    <!-- 小说详情 V3（2026-11-04）：元信息里的预计阅读时长按每分钟 500 字，同 pixiv 网页端 -->
+    <plurals name="novel_reading_minutes">
+        <item quantity="other">약 %d분</item>
+    </plurals>
+    <string name="novel_continue_reading">이어 읽기 · %d%%</string>
+    <string name="novel_section_info">정보</string>
+    <string name="novel_info_user_id">작가 ID</string>
+    <string name="novel_info_user_link">작가 페이지</string>
+    <string name="novel_section_author">작가</string>
+    <string name="novel_author_other_works">다른 작품</string>
+    <string name="action_open">열기</string>
+    <string name="novel_cover">표지</string>
     <string name="novel_meta_chapter_count">%1$d편</string>
     <string name="manga_series_meta_type">Manga</string>
     <string name="manga_series_episode_count">%1$d화</string>
@@ -1591,7 +1603,6 @@
     <string name="novel_section_caption">소개</string>
     <string name="novel_profile_title">작품 정보</string>
     <string name="novel_actions_share">공유</string>
-    <string name="novel_actions_comments">댓글</string>
     <string name="novel_actions_download">다운로드</string>
     <string name="msg_jump_next_in_series">다음 편으로 이동했습니다: %1$s</string>
     <string name="msg_jump_prev_in_series">이전 편으로 이동했습니다: %1$s</string>
@@ -1729,15 +1740,9 @@
     <string name="download_settings_save_failed">다운로드 설정 저장 실패: %1$s</string>
     <string name="download_enqueue_failed">다운로드 작업 생성 실패: %1$s</string>
     <string name="header_preset_save_failed">헤더 프리셋 저장 실패: %1$s</string>
-    <string name="novel_chip_id">작품 ID  %1$s</string>
     <string name="novel_chip_author">작가  %1$s</string>
     <string name="novel_chip_author_id">작가 ID  %1$s</string>
-    <string name="novel_chip_create_date">게시일  %1$s</string>
-    <string name="novel_chip_text_length">글자 수  %1$s</string>
-    <string name="novel_chip_total_view">조회수  %1$s</string>
-    <string name="novel_chip_total_bookmarks">북마크  %1$s</string>
     <string name="novel_chip_novel_link">작품 링크</string>
-    <string name="novel_chip_open_novel_link">작품 링크 열기</string>
     <string name="novel_chip_user_link">작가 페이지 열기</string>
     <string name="novel_chip_series_id">시리즈 ID  %1$s</string>
     <string name="novel_chip_series_link">시리즈 링크</string>

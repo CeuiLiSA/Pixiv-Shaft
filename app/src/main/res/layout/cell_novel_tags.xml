@@ -1,21 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  小说详情「标签」区块：标题按区块标题角色（20sp Bold），标签流沿用统一的 V3TagFlowView，不改。
+-->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:paddingHorizontal="12dp">
+    android:paddingStart="20dp"
+    android:paddingTop="24dp"
+    android:paddingEnd="20dp"
+    android:paddingBottom="24dp">
 
     <TextView
+        android:id="@+id/tags_label"
+        style="@style/NovelDetailSectionTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="10dp"
-        android:letterSpacing="0.12"
-        android:text="@string/novel_section_tags"
-        android:textAllCaps="true"
-        android:textColor="@color/v3_text_3"
-        android:textSize="12sp"
-        android:textStyle="bold" />
+        android:layout_marginBottom="12dp"
+        android:text="@string/novel_section_tags" />
 
     <ceui.pixiv.widgets.V3TagFlowView
         android:id="@+id/tags_flow"

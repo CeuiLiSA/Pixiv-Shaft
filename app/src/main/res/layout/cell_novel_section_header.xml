@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  小说详情的懒加载区块头（issue #1005）。和插画详情共用的 section_v3_related_header 分开：
+  小说页的字级层级不同（V3「小说详情」），改这里不影响插画详情。
+  - 作者往期（AUTHOR_WORKS）是「作者」区块里的子行：16sp SemiBold +「查看更多」，上方不画细线；
+  - 相关作品（RELATED）是独立区块：20sp Bold 区块标题，上方由 NovelDetailDecoration 画细线。
+  字号由 renderer 按区块类型切，这里给的是子行的默认值。转圈 / 空态同插画侧语义。
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingStart="20dp"
+    android:paddingEnd="20dp">
+
+    <LinearLayout
+        android:id="@+id/section_title_row"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:minHeight="48dp"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/section_title"
+            style="@style/textMontserratSemiBold"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:maxLines="2"
+            android:textColor="@color/v3_text_1"
+            android:textSize="16sp"
+            tools:text="其他作品" />
+
+        <TextView
+            android:id="@+id/section_see_more"
+            style="@style/NovelDetailInfoAction"
+            android:layout_marginEnd="-8dp"
+            android:text="@string/see_more"
+            android:visibility="gone" />
+    </LinearLayout>
+
+    <FrameLayout
+        android:id="@+id/section_loading"
+        android:layout_width="match_parent"
+        android:layout_height="96dp"
+        android:visibility="gone">
+
+        <ProgressBar
+            android:id="@+id/section_spinner"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_gravity="center"
+            android:indeterminate="true" />
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/section_empty"
+        style="@style/textMontserratRegular"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:minHeight="48dp"
+        android:paddingBottom="12dp"
+        android:text="@string/v3_no_related_works"
+        android:textColor="@color/v3_text_2"
+        android:textSize="14sp"
+        android:visibility="gone" />
+</LinearLayout>

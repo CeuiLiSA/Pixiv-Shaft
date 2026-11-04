@@ -1,196 +1,475 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!--
+  小说详情页头（V3「作品 / 阅读」配方 + Hero，见 docs/v3-design-philosophy.md「小说详情」）：
+  - Hero 带：封面模糊后铺满顶部（连状态栏，status_spacer 的高度 = 状态栏 inset，由代码给），
+    上面盖一层页面底色渐变（hero_scrim，深 50→86→100%、浅 40→86→100%），底部融进页面，不留接缝。
+    默认封面 / 没加载出来时底色是主题色 alpha20，不是写死的色值。
+  - 内容列宽屏收到 720dp 居中（constraintWidth_max），hero 背景本身仍然通栏。
+  - 字级（严格按 V3 层级）：标题 22sp Bold v3_text_1 → 作者 14sp Medium v3_text_2 →
+    元信息 12sp Medium v3_text_2；主按钮 15sp SemiBold onPrimary；统计数字 18sp SemiBold
+    v3_text_1、标签 12sp Medium v3_text_2；系列名 15sp SemiBold。v3_text_3（33%）不承载信息。
+  - 颜色全部由 NovelTextFeed 里的 V3Palette 注入（主按钮实色、圆钮浅色、细线 cardHairline），
+    换主题色即跟随。
+  - padding 一律四向拆开写：paddingHorizontal/Vertical 是 API 26+，minSdk 24 上会被忽略。
+-->
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="vertical">
+    android:layout_height="wrap_content">
 
-    <!-- Hero: Title + Bookmark -->
-    <LinearLayout
-        android:layout_width="match_parent"
+    <!-- ═══ Hero 背景：模糊封面 + 页面底色渐变 ═══ -->
+    <ImageView
+        android:id="@+id/hero_backdrop"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:importantForAccessibility="no"
+        android:scaleType="centerCrop"
+        app:layout_constraintBottom_toBottomOf="@id/hero_band_end"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <View
+        android:id="@+id/hero_scrim"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:importantForAccessibility="no"
+        app:layout_constraintBottom_toBottomOf="@id/hero_band_end"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Space
+        android:id="@+id/status_spacer"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- 顶部一行只放分享：48dp 热区，图标视觉右缘与内容列对齐（8dp 外边距 + 12dp 图标内缩）。 -->
+    <FrameLayout
+        android:id="@+id/top_row"
+        android:layout_width="0dp"
+        android:layout_height="48dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/status_spacer"
+        app:layout_constraintWidth_max="736dp">
+
+        <ceui.pixiv.widgets.ProgressImageButton
+            android:id="@+id/share"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="end"
+            android:contentDescription="@string/novel_actions_share"
+            android:padding="12dp"
+            android:src="@drawable/ic_share_black_24dp"
+            app:ptb_progress_stroke_width="3dp"
+            app:ptb_progress_width="14dp" />
+    </FrameLayout>
+
+    <!-- ═══ 封面：140×198（pixiv 封面约 1:1.41），10dp 圆角 + 细描边 + 阴影 ═══ -->
+    <ImageView
+        android:id="@+id/cover"
+        android:layout_width="140dp"
+        android:layout_height="198dp"
+        android:layout_marginTop="4dp"
+        android:contentDescription="@string/novel_cover"
+        android:elevation="8dp"
+        android:scaleType="centerCrop"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/top_row" />
+
+    <TextView
+        android:id="@+id/title"
+        style="@style/textMontserratBold"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:paddingHorizontal="20dp"
-        android:paddingTop="10dp"
-        android:paddingBottom="4dp">
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="20dp"
+        android:breakStrategy="balanced"
+        android:gravity="center_horizontal"
+        android:textColor="@color/v3_text_1"
+        android:textSize="22sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/cover"
+        app:layout_constraintWidth_max="720dp"
+        tools:text="現場復帰許可が降りたけど、先生も隊長も様子がおかしい。" />
 
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
-            <TextView
-                android:id="@+id/title"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:background="?attr/selectableItemBackground"
-                android:letterSpacing="-0.03"
-                android:lineSpacingMultiplier="1.2"
-                android:textColor="@color/v3_text_1"
-                android:textSize="23sp"
-                android:textStyle="bold"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toStartOf="@+id/share"
-                app:layout_constraintHorizontal_bias="0.0"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                tools:text="ある小説のタイトル" />
-
-            <!-- issue #1005: 收藏心移入下方三大按钮，此处与插画详情对齐放「分享」 -->
-            <ceui.pixiv.widgets.ProgressImageButton
-                android:id="@+id/share"
-                android:layout_width="@dimen/min_widget_size"
-                android:layout_height="@dimen/min_widget_size"
-                android:contentDescription="@string/novel_actions_share"
-                android:padding="8dp"
-                android:src="@drawable/ic_share_black_24dp"
-                app:layout_constraintBottom_toBottomOf="@+id/title"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="@+id/title"
-                app:ptb_progress_stroke_width="3dp"
-                app:ptb_progress_width="14dp"
-                app:tint="@color/v3_text_1" />
-        </androidx.constraintlayout.widget.ConstraintLayout>
-
-        <!-- Meta line: Novel · date · word count -->
-        <LinearLayout
-            android:id="@+id/meta_row"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
-
-            <TextView
-                android:id="@+id/meta_type"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/novel_meta_type"
-                android:textColor="@color/v3_text_2"
-                android:textSize="12sp"
-                android:textStyle="bold" />
-
-            <View
-                android:layout_width="3dp"
-                android:layout_height="3dp"
-                android:layout_marginHorizontal="8dp"
-                android:background="@drawable/v3_nav_btn_bg" />
-
-            <TextView
-                android:id="@+id/meta_date"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textColor="@color/v3_text_3"
-                android:textSize="11sp"
-                tools:text="2024-01-15 18:00" />
-
-            <View
-                android:id="@+id/meta_dot_2"
-                android:layout_width="3dp"
-                android:layout_height="3dp"
-                android:layout_marginHorizontal="8dp"
-                android:background="@drawable/v3_nav_btn_bg" />
-
-            <TextView
-                android:id="@+id/meta_word_count"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textColor="@color/v3_text_3"
-                android:textSize="11sp"
-                tools:text="5,000字" />
-
-            <!-- AI badge: shown only for AI-generated novels (novel_ai_type == 2) -->
-            <View
-                android:id="@+id/meta_dot_ai"
-                android:layout_width="3dp"
-                android:layout_height="3dp"
-                android:layout_marginHorizontal="8dp"
-                android:background="@drawable/v3_nav_btn_bg"
-                android:visibility="gone"
-                tools:visibility="visible" />
-
-            <TextView
-                android:id="@+id/meta_ai"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@drawable/v3_novel_ai_badge_bg"
-                android:paddingHorizontal="6dp"
-                android:paddingVertical="2dp"
-                android:text="@string/v3_detail_ai"
-                android:textColor="@android:color/white"
-                android:textSize="9sp"
-                android:textStyle="bold"
-                android:visibility="gone"
-                tools:visibility="visible" />
-        </LinearLayout>
-    </LinearLayout>
-
-    <!-- Series strip (conditional) -->
+    <!-- 作者行：48dp 热区，点进画师页；长名字在列宽内省略。 -->
     <LinearLayout
-        android:id="@+id/series_strip"
-        android:layout_width="match_parent"
+        android:id="@+id/author_row"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="12dp"
-        android:layout_marginTop="12dp"
-        android:background="@drawable/v3_series_strip_bg"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="20dp"
+        android:background="?attr/selectableItemBackground"
         android:gravity="center_vertical"
+        android:minHeight="48dp"
         android:orientation="horizontal"
-        android:padding="12dp"
-        android:visibility="gone">
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        app:layout_constrainedWidth="true"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/title"
+        app:layout_constraintWidth_max="720dp">
 
-        <FrameLayout
-            android:id="@+id/series_icon"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_marginEnd="12dp"
-            android:background="@drawable/v3_series_icon_bg">
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/author_avatar"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:importantForAccessibility="no" />
 
-            <ImageView
-                android:layout_width="16dp"
-                android:layout_height="16dp"
-                android:layout_gravity="center"
-                android:contentDescription="@null"
-                android:src="@drawable/ic_baseline_menu_book_24"
-                app:tint="@color/white" />
-        </FrameLayout>
-
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical">
-
-            <TextView
-                android:id="@+id/series_label"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:alpha="0.7"
-                android:letterSpacing="0.1"
-                android:text="@string/v3_label_series"
-                android:textAllCaps="true"
-                android:textColor="@android:color/white"
-                android:textSize="9sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/series_name"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="1dp"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:textColor="@android:color/white"
-                android:textSize="14sp"
-                android:textStyle="bold" />
-        </LinearLayout>
-
+        <!-- 行本身 wrap_content 居中；weight 只为名字超长时把多出的宽度从名字上扣（省略号），不是分配空间 -->
         <TextView
-            android:id="@+id/series_chevron"
+            android:id="@+id/author_name"
+            style="@style/textMontserratMedium"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
-            android:text="›"
-            android:textColor="@android:color/white"
-            android:textSize="16sp" />
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="@color/v3_text_2"
+            android:textSize="14sp"
+            tools:ignore="InefficientWeight"
+            tools:text="そっとじ@10/11" />
+
+        <ImageView
+            android:id="@+id/author_chevron"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:layout_marginStart="2dp"
+            android:importantForAccessibility="no"
+            android:src="@drawable/ic_v3_chevron_24" />
     </LinearLayout>
-</LinearLayout>
+
+    <TextView
+        android:id="@+id/meta"
+        style="@style/textMontserratMedium"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="20dp"
+        android:fontFeatureSettings="tnum"
+        android:gravity="center_horizontal"
+        android:textColor="@color/v3_text_2"
+        android:textSize="12sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/author_row"
+        app:layout_constraintWidth_max="720dp"
+        tools:text="6,940 字 · 约 14 分钟 · 2026-10-26" />
+
+    <!-- 作品标记：只在有时出现（原创 / R-18 / R-18G / AI），底色由代码按 V3Palette 给。 -->
+    <LinearLayout
+        android:id="@+id/badges"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:orientation="horizontal"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/meta"
+        tools:visibility="visible">
+
+        <TextView
+            android:id="@+id/badge_original"
+            style="@style/NovelDetailBadge"
+            android:text="@string/v3_novel_original" />
+
+        <TextView
+            android:id="@+id/badge_restrict"
+            style="@style/NovelDetailBadge"
+            android:layout_marginStart="6dp"
+            tools:text="R-18" />
+
+        <TextView
+            android:id="@+id/badge_ai"
+            style="@style/NovelDetailBadge"
+            android:layout_marginStart="6dp"
+            android:text="@string/v3_detail_ai" />
+    </LinearLayout>
+
+    <!-- ═══ 操作行：主操作实色胶囊（唯一最强）+ 收藏 / 下载两颗 48dp 浅色圆钮 ═══ -->
+    <LinearLayout
+        android:id="@+id/cta_row"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:baselineAligned="false"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="20dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/badges"
+        app:layout_constraintWidth_max="720dp">
+
+        <!-- 胶囊本身撑满剩余宽度，图标 + 文案作为一组居中（直接给 TextView drawableStart 的话图标会贴左边）。 -->
+        <FrameLayout
+            android:id="@+id/read"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:clickable="true"
+            android:focusable="true"
+            android:minHeight="48dp"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp">
+
+            <TextView
+                android:id="@+id/read_label"
+                style="@style/textMontserratSemiBold"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:drawablePadding="8dp"
+                android:ellipsize="end"
+                android:gravity="center_vertical"
+                android:maxLines="1"
+                android:paddingTop="12dp"
+                android:paddingBottom="12dp"
+                android:text="@string/action_start_reading"
+                android:textSize="15sp" />
+        </FrameLayout>
+
+        <FrameLayout
+            android:id="@+id/bookmark"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="10dp"
+            android:clickable="true"
+            android:contentDescription="@string/v3_label_bookmarks"
+            android:focusable="true">
+
+            <!-- ProgressImageButton：请求在飞时原地转圈；clickable=false 让点击落在圆钮上 -->
+            <ceui.pixiv.widgets.ProgressImageButton
+                android:id="@+id/bookmark_icon"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_gravity="center"
+                android:background="@null"
+                android:clickable="false"
+                android:focusable="false"
+                android:importantForAccessibility="no"
+                android:scaleType="fitCenter"
+                android:src="@drawable/icon_not_liked"
+                app:ptb_progress_stroke_width="2dp"
+                app:ptb_progress_width="14dp" />
+        </FrameLayout>
+
+        <FrameLayout
+            android:id="@+id/download"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="10dp"
+            android:clickable="true"
+            android:contentDescription="@string/novel_actions_download"
+            android:focusable="true">
+
+            <ImageView
+                android:id="@+id/download_icon"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_gravity="center"
+                android:importantForAccessibility="no"
+                android:src="@drawable/ic_file_download_black_24dp" />
+        </FrameLayout>
+    </LinearLayout>
+
+    <Space
+        android:id="@+id/hero_band_end"
+        android:layout_width="0dp"
+        android:layout_height="28dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/cta_row" />
+
+    <!-- ═══ 统计条：上下细线、竖线分隔，数字不上色 ═══ -->
+    <LinearLayout
+        android:id="@+id/stats"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="20dp"
+        android:orientation="vertical"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/hero_band_end"
+        app:layout_constraintWidth_max="720dp">
+
+        <View
+            android:id="@+id/stats_line_top"
+            android:layout_width="match_parent"
+            android:layout_height="1px" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp">
+
+            <LinearLayout
+                android:id="@+id/stat_views_cell"
+                style="@style/NovelDetailStatCell">
+
+                <TextView
+                    android:id="@+id/stat_views"
+                    style="@style/NovelDetailStatValue"
+                    tools:text="6,000" />
+
+                <TextView
+                    style="@style/NovelDetailStatLabel"
+                    android:text="@string/v3_label_views" />
+            </LinearLayout>
+
+            <View
+                android:id="@+id/stats_divider_1"
+                android:layout_width="1px"
+                android:layout_height="26dp" />
+
+            <LinearLayout
+                android:id="@+id/stat_bookmarks_cell"
+                style="@style/NovelDetailStatCell"
+                android:clickable="true"
+                android:focusable="true">
+
+                <TextView
+                    android:id="@+id/stat_bookmarks"
+                    style="@style/NovelDetailStatValue"
+                    tools:text="441" />
+
+                <TextView
+                    android:id="@+id/stat_bookmarks_label"
+                    style="@style/NovelDetailStatLabel"
+                    android:text="@string/v3_label_bookmarks" />
+            </LinearLayout>
+
+            <View
+                android:id="@+id/stats_divider_2"
+                android:layout_width="1px"
+                android:layout_height="26dp" />
+
+            <LinearLayout
+                android:id="@+id/stat_comments_cell"
+                style="@style/NovelDetailStatCell"
+                android:clickable="true"
+                android:focusable="true">
+
+                <TextView
+                    android:id="@+id/stat_comments"
+                    style="@style/NovelDetailStatValue"
+                    tools:text="12" />
+
+                <TextView
+                    android:id="@+id/stat_comments_label"
+                    style="@style/NovelDetailStatLabel"
+                    android:text="@string/v3_label_comments" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <View
+            android:id="@+id/stats_line_bottom"
+            android:layout_width="match_parent"
+            android:layout_height="1px" />
+    </LinearLayout>
+
+    <!-- ═══ 系列：一行普通列表项（有系列才出现），底下一条细线 ═══ -->
+    <LinearLayout
+        android:id="@+id/series_block"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="20dp"
+        android:orientation="vertical"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/stats"
+        app:layout_constraintWidth_max="720dp"
+        tools:visibility="visible">
+
+        <LinearLayout
+            android:id="@+id/series_row"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="?attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center_vertical"
+            android:minHeight="64dp"
+            android:orientation="horizontal"
+            android:paddingTop="12dp"
+            android:paddingBottom="12dp">
+
+            <FrameLayout
+                android:id="@+id/series_icon"
+                android:layout_width="40dp"
+                android:layout_height="40dp">
+
+                <ImageView
+                    android:id="@+id/series_icon_image"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_gravity="center"
+                    android:importantForAccessibility="no"
+                    android:src="@drawable/ic_baseline_menu_book_24" />
+            </FrameLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    style="@style/textMontserratMedium"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/v3_label_series"
+                    android:textColor="@color/v3_text_2"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/series_name"
+                    style="@style/textMontserratSemiBold"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textColor="@color/v3_text_1"
+                    android:textSize="15sp"
+                    tools:text="現場復帰許可が降りたけど、なんだか皆の様子がおかしい" />
+            </LinearLayout>
+
+            <ImageView
+                android:id="@+id/series_chevron"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:importantForAccessibility="no"
+                android:src="@drawable/ic_v3_chevron_24" />
+        </LinearLayout>
+
+        <View
+            android:id="@+id/series_line"
+            android:layout_width="match_parent"
+            android:layout_height="1px" />
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
