@@ -6,8 +6,10 @@ import ceui.lisa.utils.GlideUrlChild
 import com.bumptech.glide.Glide
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.runInterruptible
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import java.io.File
 import java.util.function.IntConsumer
 
@@ -60,6 +62,18 @@ object ImageLoaderV3 {
 
     /**
      * 无副作用地探一次「这个 url 现在能不能**不联网**拿到文件」，供批量写盘场景先分拣再决定并发。
+     *
+     * 两层，成本从低到高：
+     * 1. [peekFile]：进程内共享任务已成功 → 直接给文件，零 IO；[isOriginal] 时再查原图独立缓存池；
+     * 2. 非原图：Glide 磁盘缓存的 cache-only 请求：命中给文件，**未命中立即失败、不发网络请求**
+     *    （与 [ceui.lisa.adapters.IllustAdapter] 拿 large 当占位时同一手法）。原图不进 Glide，不查这一层。
+     *
+     * 请求形状刻意与 [GlideImageFetcher.fetch] 对齐（`asFile()` + [GlideUrlChild]）：缓存键一致，
+     * 「探到有」才等价于「fetch 会命中」。换成 asBitmap 之类会因变换后的缓存键不同而系统性假阴性。
+     *
+     * ⚠️ 只当**乐观前置**用：返回 null 只说明「这次按联网路径处理」，不保证真的会走网络
+     * （fetch 自己还会命中磁盘缓存）；返回文件后该文件仍可能在复制前被缓存淘汰。任何调用方
+     * 都不得把它当正确性依据，只能拿它排并发。
      */
     @JvmStatic
     @JvmOverloads
@@ -79,6 +93,7 @@ object ImageLoaderV3 {
             } catch (ce: CancellationException) {
                 throw ce
             } catch (e: Exception) {
+                // 未命中是常态：cache-only 的 miss 就是一次「不适用」的答复，不是错误。
                 null
             } finally {
                 if (!future.isDone) future.cancel(true)
@@ -87,7 +102,9 @@ object ImageLoaderV3 {
     }
 
     /**
-     * Blocking bridge for Manager's DownloadTask IO worker.
+     * Blocking bridge for Manager's DownloadTask IO worker. Join the display fetch, then copy its
+     * completed file through the normal save backend. A miss keeps Manager's own resumable path.
+     * Interrupting this waiter cancels only its collection, never the process-owned image task.
      */
     @JvmStatic
     @WorkerThread
@@ -98,19 +115,31 @@ object ImageLoaderV3 {
             ImageLoadState.Idle, is ImageLoadState.Error -> return null
             else -> Unit
         }
-        val file = task.currentFile
-        if (file != null) return file
+        return awaitExistingFile(task, onProgress)
+    }
 
-        return kotlinx.coroutines.runBlocking {
-            try {
+    internal fun awaitExistingFile(task: ImageLoadTask, onProgress: IntConsumer): File {
+        val url = task.request.url
+        Timber.tag("SharedImageDownload").d(
+            "JOIN image=%s state=%s", url.substringAfterLast('/'), task.state.value,
+        )
+        try {
+            return runBlocking {
                 task.awaitFile { onProgress.accept(it) }
-            } catch (ie: InterruptedException) {
-                throw ie
-            } catch (ce: CancellationException) {
-                throw InterruptedException("download interrupted").apply { initCause(ce) }
-            } catch (e: Exception) {
-                null
+            }.also {
+                Timber.tag("SharedImageDownload").d(
+                    "READY image=%s bytes=%d", url.substringAfterLast('/'), it.length(),
+                )
             }
+        } catch (cancelled: InterruptedException) {
+            Timber.tag("SharedImageDownload").d("WAIT_CANCELLED image=%s", url.substringAfterLast('/'))
+            throw cancelled
+        } catch (cancelled: CancellationException) {
+            Timber.tag("SharedImageDownload").d("WAIT_CANCELLED image=%s", url.substringAfterLast('/'))
+            throw cancelled
+        } catch (error: Exception) {
+            Timber.tag("SharedImageDownload").w(error, "WAIT_FAILED image=%s", url.substringAfterLast('/'))
+            throw error
         }
     }
 }

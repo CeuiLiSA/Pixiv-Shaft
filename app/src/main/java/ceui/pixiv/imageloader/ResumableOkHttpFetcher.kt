@@ -37,12 +37,13 @@ class ResumableOkHttpFetcher(
             defaultInstance.fetch(url, onProgress)
     }
 
-    override suspend fun fetch(url: String, onProgress: (Int) -> Unit): File {
-        val context = contextProvider()
-        val cached = OriginalImageCacheManager.find(context, url)
+    // 调用方是 ImageTaskRegistry.scope（Main.immediate）：从查缓存、读 .part / manifest 起就全在 IO 上做。
+    override suspend fun fetch(url: String, onProgress: (Int) -> Unit): File = withContext(Dispatchers.IO) {
+        val cacheDir = cacheDirProvider()
+        val cached = OriginalImageCacheManager.find(cacheDir, url)
         if (cached != null) {
             Timber.d("[ResumableFetcher] cache hit url=${url.substringAfterLast('/')}")
-            return cached
+            return@withContext cached
         }
 
         val stagingDir = stagingDirProvider()
@@ -87,100 +88,98 @@ class ResumableOkHttpFetcher(
         val request = reqBuilder.build()
         val client = clientProvider()
 
-        return withContext(Dispatchers.IO) {
-            val call = client.newCall(request)
-            var response: Response? = null
-            try {
-                response = runInterruptible { call.execute() }
-                val code = response.code
-                if (!response.isSuccessful && code != 416) {
-                    throw IOException("HTTP $code ${response.message}")
+        val call = client.newCall(request)
+        var response: Response? = null
+        try {
+            response = runInterruptible { call.execute() }
+            val code = response.code
+            if (!response.isSuccessful && code != 416) {
+                throw IOException("HTTP $code ${response.message}")
+            }
+
+            val body = response.body
+            val contentLength = body?.contentLength() ?: -1L
+            val contentRange = response.header("Content-Range")
+
+            val decision = StageStore.decideWrite(code, contentRange, contentLength, existingLen)
+            Timber.d(
+                "[ResumableFetcher] url=${url.substringAfterLast('/')} code=$code mode=${decision.mode} start=${decision.startOffset} total=${decision.total}"
+            )
+
+            when (decision.mode) {
+                StageStore.WriteMode.ABORT -> {
+                    StageStore.clear(stagingDir, key)
+                    throw IOException("Resume aborted (code=$code), restart fresh")
                 }
 
-                val body = response.body
-                val contentLength = body?.contentLength() ?: -1L
-                val contentRange = response.header("Content-Range")
+                StageStore.WriteMode.ALREADY_COMPLETE -> {
+                    response.close()
+                    OriginalImageCacheManager.commit(cacheDir, stagingDir, url, partFile)
+                }
 
-                val decision = StageStore.decideWrite(code, contentRange, contentLength, existingLen)
-                Timber.d(
-                    "[ResumableFetcher] url=${url.substringAfterLast('/')} code=$code mode=${decision.mode} start=${decision.startOffset} total=${decision.total}"
-                )
-
-                when (decision.mode) {
-                    StageStore.WriteMode.ABORT -> {
-                        StageStore.clear(stagingDir, key)
-                        throw IOException("Resume aborted (code=$code), restart fresh")
-                    }
-
-                    StageStore.WriteMode.ALREADY_COMPLETE -> {
-                        response.close()
-                        OriginalImageCacheManager.commit(context, url, partFile)
-                    }
-
-                    StageStore.WriteMode.FRESH, StageStore.WriteMode.APPEND -> {
-                        val responseBody = body ?: throw IOException("Empty response body")
-                        StageStore.writeManifest(
-                            metaFile,
-                            StageStore.buildManifest(
-                                url,
-                                response.header("ETag"),
-                                response.header("Last-Modified"),
-                                decision.total
-                            )
+                StageStore.WriteMode.FRESH, StageStore.WriteMode.APPEND -> {
+                    val responseBody = body ?: throw IOException("Empty response body")
+                    StageStore.writeManifest(
+                        metaFile,
+                        StageStore.buildManifest(
+                            url,
+                            response.header("ETag"),
+                            response.header("Last-Modified"),
+                            decision.total
                         )
+                    )
 
-                        val append = decision.mode == StageStore.WriteMode.APPEND
-                        var written = if (append) decision.startOffset else 0L
-                        val total = decision.total
-                        var lastReportedPercent = -1
+                    val append = decision.mode == StageStore.WriteMode.APPEND
+                    var written = if (append) decision.startOffset else 0L
+                    val total = decision.total
+                    var lastReportedPercent = -1
 
-                        if (total > 0 && written > 0) {
-                            lastReportedPercent = ((written * 100) / total).toInt().coerceIn(0, 99)
-                            onProgress(lastReportedPercent)
-                        }
+                    if (total > 0 && written > 0) {
+                        lastReportedPercent = ((written * 100) / total).toInt().coerceIn(0, 99)
+                        onProgress(lastReportedPercent)
+                    }
 
-                        val inputStream = responseBody.byteStream()
-                        val outputStream = FileOutputStream(partFile, append)
+                    val inputStream = responseBody.byteStream()
+                    val outputStream = FileOutputStream(partFile, append)
 
-                        try {
-                            runInterruptible {
-                                val buffer = ByteArray(16384)
-                                var bytesRead: Int
-                                while (inputStream.read(buffer).also { bytesRead = it } != -1) {
-                                    outputStream.write(buffer, 0, bytesRead)
-                                    written += bytesRead
-                                    if (total > 0) {
-                                        val percent = ((written * 100) / total).toInt().coerceIn(0, 99)
-                                        if (percent != lastReportedPercent) {
-                                            lastReportedPercent = percent
-                                            onProgress(percent)
-                                        }
+                    try {
+                        runInterruptible {
+                            val buffer = ByteArray(16384)
+                            var bytesRead: Int
+                            while (inputStream.read(buffer).also { bytesRead = it } != -1) {
+                                outputStream.write(buffer, 0, bytesRead)
+                                written += bytesRead
+                                if (total > 0) {
+                                    val percent = ((written * 100) / total).toInt().coerceIn(0, 99)
+                                    if (percent != lastReportedPercent) {
+                                        lastReportedPercent = percent
+                                        onProgress(percent)
                                     }
                                 }
-                                outputStream.flush()
                             }
-                        } finally {
-                            runCatching { outputStream.close() }
-                            runCatching { inputStream.close() }
+                            outputStream.flush()
                         }
-
-                        if (decision.total >= 0) {
-                            val stagedLen = partFile.length()
-                            if (stagedLen != decision.total) {
-                                StageStore.clear(stagingDir, key)
-                                throw IOException("Stage length mismatch: stagedLen=$stagedLen != expected=${decision.total}")
-                            }
-                        }
-
-                        OriginalImageCacheManager.commit(context, url, partFile)
+                    } finally {
+                        runCatching { outputStream.close() }
+                        runCatching { inputStream.close() }
                     }
+
+                    if (decision.total >= 0) {
+                        val stagedLen = partFile.length()
+                        if (stagedLen != decision.total) {
+                            StageStore.clear(stagingDir, key)
+                            throw IOException("Stage length mismatch: stagedLen=$stagedLen != expected=${decision.total}")
+                        }
+                    }
+
+                    OriginalImageCacheManager.commit(cacheDir, stagingDir, url, partFile)
                 }
-            } catch (ce: CancellationException) {
-                call.cancel()
-                throw ce
-            } finally {
-                response?.close()
             }
+        } catch (ce: CancellationException) {
+            call.cancel()
+            throw ce
+        } finally {
+            response?.close()
         }
     }
 }

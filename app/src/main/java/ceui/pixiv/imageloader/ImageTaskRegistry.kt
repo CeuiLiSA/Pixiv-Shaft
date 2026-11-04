@@ -1,6 +1,5 @@
 package ceui.pixiv.imageloader
 
-import androidx.annotation.VisibleForTesting
 import ceui.lisa.activities.Shaft
 import ceui.pixiv.cache.OriginalImageCacheManager
 import kotlinx.coroutines.CoroutineScope
@@ -29,13 +28,13 @@ object ImageTaskRegistry {
     /** 下载协程的宿主作用域,进程级、不随 UI 销毁。 */
     val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
-    @VisibleForTesting
-    internal var customFetcherResolver: ((ImageRequest) -> ImageFetcher)? = null
-
-    private fun resolveFetcher(request: ImageRequest): ImageFetcher {
-        customFetcherResolver?.let { return it(request) }
-        return if (request.isOriginal) ResumableOkHttpFetcher else GlideImageFetcher
-    }
+    /**
+     * 按 [ImageRequest.isOriginal] 选抓字节的实现,任务本身不认识 Glide/OkHttp。
+     *
+     * 不留可写的全局注入点:要测 [ImageLoadTask],直接 new 一个传假 [ImageFetcher] 即可,不必经过本表。
+     */
+    private fun resolveFetcher(request: ImageRequest): ImageFetcher =
+        if (request.isOriginal) ResumableOkHttpFetcher else GlideImageFetcher
 
     // 访问序 LinkedHashMap 实现 LRU
     private val taskMap: LinkedHashMap<String, ImageLoadTask> =

@@ -139,7 +139,7 @@ class ResumableOkHttpFetcherTest {
         }
 
         val fetcher = testFetcher()
-        val file = fetcher.fetch(url)
+        val file = fetcher.fetch(url) {}
 
         assertTrue(file.exists())
         assertEquals(1000L, file.length())
@@ -167,7 +167,7 @@ class ResumableOkHttpFetcherTest {
         }
 
         val fetcher = testFetcher()
-        val file = fetcher.fetch(url)
+        val file = fetcher.fetch(url) {}
 
         assertTrue(file.exists())
         assertEquals(1000L, file.length())
@@ -194,7 +194,7 @@ class ResumableOkHttpFetcherTest {
         val fetcher = testFetcher()
         var failed = false
         try {
-            fetcher.fetch(url)
+            fetcher.fetch(url) {}
         } catch (e: IOException) {
             failed = true
         }

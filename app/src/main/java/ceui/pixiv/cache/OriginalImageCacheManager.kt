@@ -32,30 +32,17 @@ object OriginalImageCacheManager {
      * 查询指定原图 URL 是否已缓存在本地。若命中则更新访问时间（LRU）并返回文件。
      */
     @JvmStatic
-    fun find(context: Context, url: String): File? {
-        val key = keyForUrl(url)
-        val cacheDir = getCacheDir(context)
-        val ext = fileExtensionForUrl(url)
-        val directFile = File(cacheDir, "$key.$ext")
-        if (directFile.isFile && directFile.length() > 0) {
-            directFile.setLastModified(System.currentTimeMillis())
-            return directFile
-        }
+    fun find(context: Context, url: String): File? = find(getCacheDir(context), url)
 
-        val datFile = File(cacheDir, "$key.dat")
-        if (datFile.isFile && datFile.length() > 0) {
-            datFile.setLastModified(System.currentTimeMillis())
-            return datFile
-        }
-
-        val matched = cacheDir.listFiles { _, name -> name.startsWith(key) }
-            ?.firstOrNull { it.isFile && it.length() > 0 }
-        if (matched != null) {
-            matched.setLastModified(System.currentTimeMillis())
-            return matched
-        }
-
-        return null
+    /**
+     * 文件名由 [commit] 按 `key.ext` 确定性生成，只需 stat 这一个路径。
+     * [ceui.pixiv.imageloader.ImageTaskRegistry.obtain] 在主线程上调用本函数，不得在这里列目录。
+     */
+    internal fun find(cacheDir: File, url: String): File? {
+        val file = cacheFileFor(cacheDir, url)
+        if (!file.isFile || file.length() <= 0) return null
+        file.setLastModified(System.currentTimeMillis())
+        return file
     }
 
     /**
@@ -63,11 +50,12 @@ object OriginalImageCacheManager {
      */
     @JvmStatic
     @Throws(IOException::class)
-    fun commit(context: Context, url: String, partFile: File): File {
-        val key = keyForUrl(url)
-        val cacheDir = getCacheDir(context)
-        val ext = fileExtensionForUrl(url)
-        val targetFile = File(cacheDir, "$key.$ext")
+    fun commit(context: Context, url: String, partFile: File): File =
+        commit(getCacheDir(context), getStagingDir(context), url, partFile)
+
+    @Throws(IOException::class)
+    internal fun commit(cacheDir: File, stagingDir: File, url: String, partFile: File): File {
+        val targetFile = cacheFileFor(cacheDir, url)
 
         if (targetFile.exists()) {
             targetFile.delete()
@@ -81,10 +69,9 @@ object OriginalImageCacheManager {
 
         targetFile.setLastModified(System.currentTimeMillis())
 
-        val stagingDir = getStagingDir(context)
-        StageStore.clear(stagingDir, key)
+        StageStore.clear(stagingDir, keyForUrl(url))
 
-        trimAsync(context)
+        trimDirAsync(cacheDir, currentLimitMb())
 
         return targetFile
     }
@@ -95,10 +82,13 @@ object OriginalImageCacheManager {
     @JvmStatic
     fun trimToQuota(
         context: Context,
-        maxMb: Int = Shaft.sSettings?.originalImageCacheMaxMb ?: OriginalImageCacheQuota.DEFAULT_LIMIT_MB,
+        maxMb: Int = currentLimitMb(),
     ) {
-        val maxBytes = OriginalImageCacheQuota.maxBytesForLimit(maxMb)
-        val cacheDir = getCacheDir(context)
+        trimDir(getCacheDir(context), OriginalImageCacheQuota.maxBytesForLimit(maxMb))
+    }
+
+    /** 按 lastModified 从旧到新删，直到 [cacheDir] 总大小不超过 [maxBytes]。 */
+    internal fun trimDir(cacheDir: File, maxBytes: Long) {
         val files = cacheDir.listFiles()?.filter { it.isFile } ?: return
 
         var totalSize = files.sumOf { it.length() }
@@ -124,7 +114,7 @@ object OriginalImageCacheManager {
     @JvmStatic
     fun trimAsync(
         context: Context,
-        maxMb: Int = Shaft.sSettings?.originalImageCacheMaxMb ?: OriginalImageCacheQuota.DEFAULT_LIMIT_MB,
+        maxMb: Int = currentLimitMb(),
     ) {
         val appContext = context.applicationContext
         scope.launch {
@@ -135,6 +125,19 @@ object OriginalImageCacheManager {
             }
         }
     }
+
+    private fun trimDirAsync(cacheDir: File, maxMb: Int) {
+        scope.launch {
+            try {
+                trimDir(cacheDir, OriginalImageCacheQuota.maxBytesForLimit(maxMb))
+            } catch (e: Throwable) {
+                Timber.w(e, "[OriginalCache] async trim failed")
+            }
+        }
+    }
+
+    private fun currentLimitMb(): Int =
+        Shaft.sSettings?.originalImageCacheMaxMb ?: OriginalImageCacheQuota.DEFAULT_LIMIT_MB
 
     /**
      * 清理超过指定时间未活动的孤儿分片（.part 与 .part.meta）。
@@ -185,6 +188,9 @@ object OriginalImageCacheManager {
         val cacheDir = getCacheDir(context)
         return cacheDir.listFiles()?.filter { it.isFile }?.sumOf { it.length() } ?: 0L
     }
+
+    private fun cacheFileFor(cacheDir: File, url: String): File =
+        File(cacheDir, "${keyForUrl(url)}.${fileExtensionForUrl(url)}")
 
     private fun fileExtensionForUrl(url: String): String {
         val cleaned = url.substringBefore('?').substringBefore('#')

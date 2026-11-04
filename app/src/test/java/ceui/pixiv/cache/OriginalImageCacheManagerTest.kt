@@ -56,20 +56,7 @@ class OriginalImageCacheManagerTest {
 
         assertEquals(9L * 1024 * 1024, cacheDir.listFiles()?.filter { it.isFile }?.sumOf { it.length() })
 
-        // Manually trigger trimming with custom quota
-        val maxBytes = 5L * 1024 * 1024 // 5 MB quota
-        val files = cacheDir.listFiles()?.filter { it.isFile } ?: emptyList()
-        var total = files.sumOf { it.length() }
-        if (total > maxBytes) {
-            val sorted = files.sortedBy { it.lastModified() }
-            for (f in sorted) {
-                val len = f.length()
-                if (f.delete()) {
-                    total -= len
-                }
-                if (total <= maxBytes) break
-            }
-        }
+        OriginalImageCacheManager.trimDir(cacheDir, 5L * 1024 * 1024) // 5 MB quota
 
         // f1 was oldest (1000L) -> deleted first, reducing to 7MB.
         // f2 was next oldest (2000L) -> deleted next, reducing to 4MB <= 5MB.
@@ -77,5 +64,22 @@ class OriginalImageCacheManagerTest {
         assertFalse(f1.exists())
         assertFalse(f2.exists())
         assertTrue(f3.exists())
+    }
+
+    @Test
+    fun `find hits only the committed file name and misses otherwise`() {
+        val url = "https://i.pximg.net/img-original/img/2026/01/01/00/00/00/12345_p0.png"
+        assertNull(OriginalImageCacheManager.find(cacheDir, url))
+
+        val key = OriginalImageCacheManager.keyForUrl(url)
+        val part = StageStore.partFile(stagingDir, key).apply { writeBytes(ByteArray(16)) }
+        val committed = OriginalImageCacheManager.commit(cacheDir, stagingDir, url, part)
+
+        assertEquals("$key.png", committed.name)
+        assertFalse(part.exists())
+        assertEquals(committed, OriginalImageCacheManager.find(cacheDir, url))
+
+        committed.writeBytes(ByteArray(0))
+        assertNull(OriginalImageCacheManager.find(cacheDir, url))
     }
 }

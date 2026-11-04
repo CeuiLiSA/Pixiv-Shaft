@@ -180,7 +180,7 @@ object SnapshotGenerator {
 
             // 分拣：现在就能不联网拿到的（本地复制，可以并行）vs 要联网取回的（宽度压窄）。
             // 探测只是**乐观前置**：判「要联网」的页最终也可能命中 Glide 磁盘缓存、一个请求都不发。
-            val localFiles = parallelMapOrdered(pages, PROBE_PARALLELISM) { ImageLoaderV3.peekCachedFile(it.url) }
+            val localFiles = parallelMapOrdered(pages, PROBE_PARALLELISM) { ImageLoaderV3.peekCachedFile(it.url, it.isOriginal) }
             val readyPages = mutableListOf<Pair<SnapshotPage, File>>()
             val pendingPages = mutableListOf<SnapshotPage>()
             pages.forEachIndexed { i, plan ->
