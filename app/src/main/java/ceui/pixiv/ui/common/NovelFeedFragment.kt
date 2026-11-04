@@ -23,6 +23,8 @@ import ceui.lisa.databinding.RecyNovelBinding
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
 import ceui.pixiv.witstudio.theme.V3Palette
+import ceui.pixiv.witstudio.theme.dpF
+import ceui.pixiv.witstudio.theme.shape
 import ceui.pixiv.api.Client
 import ceui.loxia.Novel
 import ceui.pixiv.actions.PixivActions
@@ -59,6 +61,12 @@ private val PAYLOAD_NOVEL_BOOKMARK = Any()
 
 /** 屏蔽态局部重绑的 payload 标记（对齐插画侧 PAYLOAD_ILLUST_SPOILER_CHANGED）。 */
 private val PAYLOAD_NOVEL_SPOILER_CHANGED = Any()
+
+/**
+ * 多选态局部重绑的 payload 标记。勾选态不进 [NovelFeedItem]（它是全 app 共用的条目），
+ * 由接了多选的宿主页在状态变化时经 [NovelFeedFragment.notifyNovelCardSelectionChanged] 发。
+ */
+private val PAYLOAD_NOVEL_SELECTION = Any()
 
 /** 封面 Glide 请求去重 key（存在 ImageView.tag 上）：url + 请求尺寸 + 是否模糊。 */
 private data class NovelImageRequestKey(
@@ -180,11 +188,30 @@ abstract class NovelFeedFragment(
      *
      * [showTags]：本页是否渲染标签流（issue #1005 小说详情的区块卡不展示标签，避免区块过长）。
      * true 时仍受用户的「显示标签」设置约束。
+     *
+     * [showSeries]：是否显示「系列：xxx」行。小说系列页传 false——整页都是同一个系列，每张卡都写一遍
+     * 还点回本页。
+     *
+     * [multiSelect]：接了多选的页面（小说系列「选择下载」）传自己。多选时整张卡（含封面 / 头像 / 作者）
+     * 的点按都改成勾选，收藏爱心换成勾选框；勾选态变化后宿主调 [notifyNovelCardSelectionChanged]。
+     * 不传（其它所有列表）时不碰任何多选相关的 View。
      */
-    protected fun novelCardRenderer(showTags: Boolean = true) = feedRenderer<NovelFeedItem, RecyNovelBinding>(
+    protected fun novelCardRenderer(
+        showTags: Boolean = true,
+        showSeries: Boolean = true,
+        multiSelect: NovelMultiSelectReceiver? = null,
+    ) = feedRenderer<NovelFeedItem, RecyNovelBinding>(
         inflate = RecyNovelBinding::inflate,
         create = { cell ->
+            /** 多选中就把这次点按记成勾选并吞掉，返回 true。 */
+            fun toggleIfSelecting(): Boolean {
+                if (multiSelect?.isNovelMultiSelectMode() != true) return false
+                val tapped = cell.itemOrNull ?: return true
+                multiSelect.onToggleNovelSelection(tapped.novel.id)
+                return true
+            }
             cell.binding.root.setOnClick {
+                if (toggleIfSelecting()) return@setOnClick
                 val tapped = cell.itemOrNull ?: return@setOnClick
                 // 已屏蔽的卡：点一下 = 取消屏蔽，再点才打开（对齐插画卡）。不直接打开——
                 // 否则「屏蔽」等于没屏蔽，手一滑就把刚盖住的东西整屏铺开了。
@@ -215,14 +242,17 @@ abstract class NovelFeedFragment(
             // 封面 / 头像 / 作者名都有独立点击，屏蔽态同样是先取消屏蔽——否则点封面会直接
             // 打开未模糊的大图、点作者会进作者页，等于把刚盖住的东西整屏铺开。
             cell.binding.cover.setOnClick {
+                if (toggleIfSelecting()) return@setOnClick
                 val tapped = cell.itemOrNull ?: return@setOnClick
                 unmuteOr(tapped.novel) { openCoverImage(tapped.novel) }
             }
             cell.binding.userHead.setOnClick {
+                if (toggleIfSelecting()) return@setOnClick
                 val tapped = cell.itemOrNull ?: return@setOnClick
                 unmuteOr(tapped.novel) { openNovelAuthor(tapped.novel) }
             }
             cell.binding.author.setOnClick {
+                if (toggleIfSelecting()) return@setOnClick
                 val tapped = cell.itemOrNull ?: return@setOnClick
                 unmuteOr(tapped.novel) { openNovelAuthor(tapped.novel) }
             }
@@ -267,7 +297,8 @@ abstract class NovelFeedFragment(
         },
         bindPayloads = { cell, payloads ->
             val known = payloads.all {
-                it === PAYLOAD_NOVEL_BOOKMARK || it === PAYLOAD_NOVEL_SPOILER_CHANGED
+                it === PAYLOAD_NOVEL_BOOKMARK || it === PAYLOAD_NOVEL_SPOILER_CHANGED ||
+                    it === PAYLOAD_NOVEL_SELECTION
             }
             if (known) {
                 if (payloads.any { it === PAYLOAD_NOVEL_BOOKMARK }) {
@@ -281,16 +312,59 @@ abstract class NovelFeedFragment(
                     loadNovelCover(cell.binding.cover, novel, spoilered)
                     renderSpoilerParticles(cell.binding.spoilerParticles, show = spoilered, animate = true)
                     // 掩码涉及多个 view（文字换占位条/次级信息隐藏），跟全量绑定共用同一分支。
-                    bindNovelCardContent(cell.binding, novel, cell.item.trendingScore, spoilered, showTags)
+                    bindNovelCardContent(cell.binding, novel, cell.item.trendingScore, spoilered, showTags, showSeries)
                 }
+                // 掩码分支会重设爱心可见性，勾选态放最后覆盖
+                bindNovelCardSelection(cell.binding, cell.item.novel, multiSelect)
                 true
             } else {
                 false
             }
         },
-    ) { cell -> bindNovelCard(cell, showTags) }
+    ) { cell ->
+        bindNovelCard(cell, showTags, showSeries)
+        bindNovelCardSelection(cell.binding, cell.item.novel, multiSelect)
+    }
 
-    private fun bindNovelCard(cell: FeedCell<NovelFeedItem, RecyNovelBinding>, showTags: Boolean) {
+    /**
+     * 勾选态变了（进出多选 / 勾选 / 全选）：只重绑屏上与 RecyclerView 缓存里的小说卡的勾选框，
+     * 不碰页面上的其它条目。勾选态不在条目里，DiffUtil 看不见，必须宿主显式通知。
+     */
+    protected fun notifyNovelCardSelectionChanged() = rebindAllNovelCards(PAYLOAD_NOVEL_SELECTION)
+
+    /** 多选时爱心换成勾选框、选中卡铺一层主题色 10% 的圆角底；没接多选的页面直接返回。 */
+    private fun bindNovelCardSelection(b: RecyNovelBinding, novel: Novel, multiSelect: NovelMultiSelectReceiver?) {
+        multiSelect ?: return
+        val selecting = multiSelect.isNovelMultiSelectMode()
+        val selected = selecting && multiSelect.isNovelSelected(novel.id)
+        b.selectIndicator.isVisible = selecting
+        // 标签胶囊自己吃点击（默认进标签搜索）：多选时点在标签上也算勾这张卡，退出后交还默认行为
+        b.novelTag.onTagClick = if (selecting) { _ -> multiSelect.onToggleNovelSelection(novel.id) } else null
+        if (selecting) {
+            // 屏蔽态下爱心本来就藏着；多选时一律让位给勾选框
+            b.like.isVisible = false
+            val palette = V3Palette.from(b.root.context)
+            b.selectIndicator.setImageResource(
+                if (selected) R.drawable.ic_check_circle_black_24dp else R.drawable.ic_checkbox_off,
+            )
+            b.selectIndicator.imageTintList =
+                ColorStateList.valueOf(if (selected) palette.primary else palette.floatingPillContent)
+        } else {
+            val spoilered = NovelMuteStore.isMuted(novel.id) || IllustNovelFilter.shouldBlurAi(novel)
+            b.like.isVisible = !spoilered
+        }
+        b.root.background = if (selected) {
+            shape(b.root.context.dpF(16f), V3Palette.from(b.root.context).alpha10)
+        } else {
+            null
+        }
+    }
+
+    private fun bindNovelCard(
+        cell: FeedCell<NovelFeedItem, RecyNovelBinding>,
+        showTags: Boolean,
+        showSeries: Boolean,
+    ) {
         val b = cell.binding
         val novel = cell.item.novel
         // 打码与否的真源是本地屏蔽名单 + AI 屏蔽强度，bind 时现读：其它页面改了屏蔽/设置，
@@ -299,7 +373,7 @@ abstract class NovelFeedFragment(
         val spoilered = NovelMuteStore.isMuted(novel.id) || IllustNovelFilter.shouldBlurAi(novel)
         loadNovelCover(b.cover, novel, spoilered)
         renderSpoilerParticles(b.spoilerParticles, show = spoilered, animate = false)
-        bindNovelCardContent(b, novel, cell.item.trendingScore, spoilered, showTags)
+        bindNovelCardContent(b, novel, cell.item.trendingScore, spoilered, showTags, showSeries)
     }
 
     /** 内容区绑定的两分支入口：屏蔽态走掩码（占位条 + 隐藏次级信息），否则走正常文本。 */
@@ -309,10 +383,11 @@ abstract class NovelFeedFragment(
         trendingScore: Float?,
         spoilered: Boolean,
         showTags: Boolean,
+        showSeries: Boolean,
     ) {
-        applyNovelSpoilerMask(b, novel, masked = spoilered)
+        applyNovelSpoilerMask(b, novel, masked = spoilered, showSeries = showSeries)
         if (!spoilered) {
-            renderNovelCardText(b, novel, trendingScore, showTags)
+            renderNovelCardText(b, novel, trendingScore, showTags, showSeries)
         }
     }
 
@@ -321,12 +396,13 @@ abstract class NovelFeedFragment(
         novel: Novel,
         trendingScore: Float?,
         showTags: Boolean,
+        showSeries: Boolean,
     ) {
         val ctx = b.root.context
         val palette = V3Palette.from(ctx)
 
         // 系列：强调色文本 + 点击进小说系列页
-        val series = novel.series
+        val series = novel.series?.takeIf { showSeries }
         if (series != null && !series.title.isNullOrEmpty()) {
             b.series.isVisible = true
             b.series.setTextColor(palette.textAccent)
@@ -374,11 +450,11 @@ abstract class NovelFeedFragment(
      * [masked]=false：把这些复位（正常分支随后会重新赋真实文本与可见性）。
      * 封面仍由 [loadNovelCover] 出模糊位图，整卡粒子层由调用方铺。
      */
-    private fun applyNovelSpoilerMask(b: RecyNovelBinding, novel: Novel, masked: Boolean) {
+    private fun applyNovelSpoilerMask(b: RecyNovelBinding, novel: Novel, masked: Boolean, showSeries: Boolean) {
         if (masked) {
             // 系列这一行的可见性平时由 renderNovelCardText 按有无系列切；屏蔽分支不管的话，
             // 同一本小说长什么样就取决于这个 holder 上一条是谁——复用到有系列的卡就凭空多一根条。
-            val series = novel.series
+            val series = novel.series?.takeIf { showSeries }
             b.series.isVisible = series != null && !series.title.isNullOrEmpty()
             // 屏蔽态下系列不再跳系列页，但也不能只 setOnClickListener(null)：那不会把
             // clickable 复位回 false，view 会继续吃掉触摸事件又什么都不做，root 的 unmuteOr
@@ -498,11 +574,12 @@ abstract class NovelFeedFragment(
         NovelMuteStore.revisionLive.observe(viewLifecycleOwner) { revision ->
             if (revision == lastMuteRevision) return@observe
             lastMuteRevision = revision
-            rebindAllNovelCards()
+            rebindAllNovelCards(PAYLOAD_NOVEL_SPOILER_CHANGED)
         }
     }
 
-    private fun rebindAllNovelCards() {
+    /** 只重绑小说卡（按连续区段通知），页面上的其它条目不动。 */
+    private fun rebindAllNovelCards(payload: Any) {
         val adapter = feedAdapter ?: return
         val items = adapter.currentList
         var start = -1
@@ -510,14 +587,12 @@ abstract class NovelFeedFragment(
             if (item is NovelFeedItem) {
                 if (start < 0) start = index
             } else if (start >= 0) {
-                adapter.notifyItemRangeChanged(start, index - start, PAYLOAD_NOVEL_SPOILER_CHANGED)
+                adapter.notifyItemRangeChanged(start, index - start, payload)
                 start = -1
             }
         }
         if (start >= 0) {
-            adapter.notifyItemRangeChanged(
-                start, items.size - start, PAYLOAD_NOVEL_SPOILER_CHANGED,
-            )
+            adapter.notifyItemRangeChanged(start, items.size - start, payload)
         }
     }
 

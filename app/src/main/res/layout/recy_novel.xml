@@ -159,6 +159,18 @@
                         android:src="@drawable/ic_like_illust_6"
                         app:tint="@color/not_bookmarked"
                         tools:tint="@color/has_bookmarked" />
+
+                    <!-- 多选勾选态：只有接了多选的页面（小说系列「选择下载」）会显示，显示时顶替收藏爱心 -->
+                    <ImageView
+                        android:id="@+id/select_indicator"
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:layout_marginStart="4dp"
+                        android:importantForAccessibility="no"
+                        android:padding="6dp"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/ic_checkbox_off"
+                        android:visibility="gone" />
                 </LinearLayout>
 
                 <!-- 系列:强调色 + medium 字重,是整条目唯一常驻的彩色文本,打破灰阶单调 -->
