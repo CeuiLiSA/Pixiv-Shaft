@@ -682,6 +682,16 @@ public class FragmentSettingsViewing extends SettingsPageFragment<FragmentSettin
     public void onResume() {
         super.onResume();
         settlePendingRifeToggle();
+        if (rootView != null) {
+            // 作品菜单也能改同一份设备本地设置；返回设置页时按真实状态回写。
+            if (ceui.pixiv.ui.interpolate.RifePrefs.isEnabled()
+                    && !ceui.pixiv.ui.interpolate.RifeInterpolator.INSTANCE.isAvailable(mContext)) {
+                applyUgoiraRifeEnable(false);
+            }
+            rifeSuppressToggleCallback = true;
+            baseBind.ugoiraRifeEnable.setChecked(ceui.pixiv.ui.interpolate.RifePrefs.isEnabled());
+            rifeSuppressToggleCallback = false;
+        }
     }
 
     /**

@@ -12,6 +12,7 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.annotation.DrawableRes
+import androidx.appcompat.widget.SwitchCompat
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
 import ceui.lisa.R
@@ -20,13 +21,26 @@ import kotlin.math.roundToInt
 
 class V3MenuDialog : DialogFragment() {
 
-    data class MenuItem(
-        val label: String,
-        @DrawableRes val icon: Int,
-        val onClick: () -> Unit
-    )
+    sealed interface MenuItem {
+        val label: String
+        val icon: Int
+
+        data class Action(
+            override val label: String,
+            @DrawableRes override val icon: Int,
+            val onClick: () -> Unit,
+        ) : MenuItem
+
+        data class Toggle(
+            override val label: String,
+            @DrawableRes override val icon: Int,
+            val isChecked: () -> Boolean,
+            val onToggle: (Boolean) -> Unit,
+        ) : MenuItem
+    }
 
     private val items = mutableListOf<MenuItem>()
+    private val toggles = mutableListOf<Pair<SwitchCompat, MenuItem.Toggle>>()
 
     fun setItems(newItems: List<MenuItem>): V3MenuDialog {
         items.clear()
@@ -35,7 +49,7 @@ class V3MenuDialog : DialogFragment() {
     }
 
     fun addItem(label: String, @DrawableRes icon: Int, onClick: () -> Unit): V3MenuDialog {
-        items.add(MenuItem(label, icon, onClick))
+        items.add(MenuItem.Action(label, icon, onClick))
         return this
     }
 
@@ -76,19 +90,45 @@ class V3MenuDialog : DialogFragment() {
         val inflater = LayoutInflater.from(requireContext())
 
         items.forEach { item ->
-            val row = inflater.inflate(R.layout.item_v3_menu_row, container, false)
+            val rowLayout = if (item is MenuItem.Toggle) R.layout.item_v3_menu_switch_row
+                else R.layout.item_v3_menu_row
+            val row = inflater.inflate(rowLayout, container, false)
             val icon = row.findViewById<ImageView>(R.id.menu_icon)
             icon.setImageResource(item.icon)
             icon.imageTintList = android.content.res.ColorStateList.valueOf(
                 requireContext().getColor(R.color.v3_text_2)
             )
             row.findViewById<TextView>(R.id.menu_label).text = item.label
-            row.setOnClickListener {
-                dismiss()
-                item.onClick()
+            when (item) {
+                is MenuItem.Action -> row.setOnClickListener {
+                    dismiss()
+                    item.onClick()
+                }
+                is MenuItem.Toggle -> {
+                    val toggle = row.findViewById<SwitchCompat>(R.id.menu_switch)
+                    toggle.contentDescription = item.label
+                    toggle.isChecked = item.isChecked()
+                    toggle.setOnClickListener {
+                        item.onToggle(toggle.isChecked)
+                        toggle.isChecked = item.isChecked()
+                    }
+                    row.setOnClickListener { toggle.performClick() }
+                    row.importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+                    toggles.add(toggle to item)
+                }
             }
             container.addView(row)
         }
+    }
+
+    override fun onDestroyView() {
+        toggles.clear()
+        super.onDestroyView()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        toggles.forEach { (toggle, item) -> toggle.isChecked = item.isChecked() }
     }
 
     override fun onStart() {
@@ -104,7 +144,16 @@ class V3MenuBuilder {
     private val items = mutableListOf<V3MenuDialog.MenuItem>()
 
     fun item(label: String, @DrawableRes icon: Int, onClick: () -> Unit) {
-        items.add(V3MenuDialog.MenuItem(label, icon, onClick))
+        items.add(V3MenuDialog.MenuItem.Action(label, icon, onClick))
+    }
+
+    fun switchItem(
+        label: String,
+        @DrawableRes icon: Int,
+        isChecked: () -> Boolean,
+        onToggle: (Boolean) -> Unit,
+    ) {
+        items.add(V3MenuDialog.MenuItem.Toggle(label, icon, isChecked, onToggle))
     }
 
     internal fun build(): List<V3MenuDialog.MenuItem> = items.toList()
