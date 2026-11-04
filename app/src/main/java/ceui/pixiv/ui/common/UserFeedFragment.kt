@@ -1,9 +1,5 @@
 package ceui.pixiv.ui.common
 
-import android.graphics.Color
-import android.graphics.Rect
-import android.graphics.drawable.Drawable
-import android.graphics.drawable.InsetDrawable
 import android.os.Bundle
 import android.view.View
 import androidx.annotation.LayoutRes
@@ -11,7 +7,6 @@ import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
 import ceui.lisa.R
-import ceui.lisa.activities.followedLabelRes
 import ceui.lisa.databinding.RecyUserPreviewBinding
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
@@ -31,11 +26,7 @@ import ceui.pixiv.utils.pinHostGlide
 import ceui.pixiv.utils.playToggleHaptic
 import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.pixiv.witstudio.theme.cardSurface
-import ceui.pixiv.witstudio.theme.dp
-import ceui.pixiv.witstudio.theme.hairlinePx
 import ceui.pixiv.witstudio.theme.pressScale
-import ceui.pixiv.witstudio.theme.ripple
-import ceui.pixiv.witstudio.theme.shape
 import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestManager
 
@@ -187,38 +178,10 @@ abstract class UserFeedFragment(
         renderFollow(b, user?.id ?: 0L, user?.is_followed == true)
     }
 
-    /**
-     * 关注胶囊，同画师主页：未关注 = 主题实色 +「关注」；已关注 = 浅色胶囊 +「已关注 / 悄悄关注中」
-     * （可见性见 [followedLabelRes]）。底只在关注态翻转时换 —— 这是 fling 帧路径，复用的格子大多
-     * 和上一张卡同态，不必每次都新建一套 drawable。
-     */
+    /** 关注胶囊（与小说详情作者行共用，见 [renderFollowPill]）。 */
     private fun renderFollow(b: RecyUserPreviewBinding, userId: Long, followed: Boolean) {
-        val pill = b.postLikeUser
-        pill.text = getString(if (followed) followedLabelRes(userId) else R.string.follow)
-        if (pill.getTag(R.id.user_card_follow_state) == followed) return
-        pill.setTag(R.id.user_card_follow_state, followed)
-        pill.background = followPillBackground(pill, followed)
-        pill.setTextColor(if (followed) palette.textSecondary else palette.onPrimary)
+        b.postLikeUser.renderFollowPill(palette, userId, followed)
     }
-
-    /**
-     * 48dp 热区里画 36dp 可见胶囊：上下各 6dp 透明沿。⚠️ InsetDrawable 默认把 inset 报成 View
-     * 内边距，会覆盖布局里的 padding（标签流踩过，见 `WitTagFlowView`），所以把 getPadding 置空。
-     */
-    private fun followPillBackground(pill: View, followed: Boolean): Drawable {
-        val ctx = pill.context
-        val edge = ctx.dp(6)
-        val fill = if (followed) palette.pillSecondary(999f, ctx.hairlinePx()) else palette.pillPrimary(999f)
-        return ctx.ripple(insetPill(fill, edge), insetPill(shape(999f, Color.WHITE), edge))
-    }
-
-    private fun insetPill(pill: Drawable, edge: Int): Drawable =
-        object : InsetDrawable(pill, 0, edge, 0, edge) {
-            override fun getPadding(padding: Rect): Boolean {
-                padding.setEmpty()
-                return false
-            }
-        }
 
     /** 屏幕上这位用户的卡（若在）按 VM 当前关注态重画胶囊；只改了可见性时用。 */
     private fun refreshFollowPill(userId: Long) {
