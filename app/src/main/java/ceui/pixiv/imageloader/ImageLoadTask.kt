@@ -105,12 +105,18 @@ class ImageLoadTask(
      * 挂起直到成功拿到文件;已成功则立即返回,失败则抛出原因。
      * 供「保存到相册」等下游用例复用**同一个**共享任务的结果,不重复下载。
      */
-    suspend fun awaitFile(onProgress: (Int) -> Unit = {}): File {
+    suspend fun awaitFile(
+        onDetailedProgress: ((ImageLoadState.Loading) -> Unit)? = null,
+        onProgress: (Int) -> Unit = {},
+    ): File {
         // 上一次失败就重来一次(对齐旧 TaskPool「取到 errored 任务即换新重下」的行为);否则幂等启动。
         // 这是显式「我要这个文件」的取用点(保存/AI),不是列表滚动,重试一次不会造成风暴。
         if (_state.value is ImageLoadState.Error) retry() else start()
         return when (val terminal = state.onEach {
-            if (it is ImageLoadState.Loading) onProgress(it.percent)
+            if (it is ImageLoadState.Loading) {
+                onProgress(it.percent)
+                onDetailedProgress?.invoke(it)
+            }
         }.first { it.isTerminal }) {
             is ImageLoadState.Success -> {
                 // Cache eviction can race Success delivery. It will not produce another state,
@@ -134,9 +140,13 @@ class ImageLoadTask(
         var stallRetryUsed = false
         while (true) {
             try {
-                val file = fetcher.fetch(request.url) { percent ->
+                val file = fetcher.fetchWithProgress(request.url) { progress ->
                     // 只在下载中推进百分比,原子 CAS 避免覆盖已到来的终态。
-                    _state.update { if (it is ImageLoadState.Loading) ImageLoadState.Loading(percent) else it }
+                    _state.update {
+                        if (it is ImageLoadState.Loading) {
+                            ImageLoadState.Loading(progress.percent, progress.bytesRead, progress.totalBytes)
+                        } else it
+                    }
                 }
                 // Success 的契约是「文件可用」:空文件(镜像站回 200 空 body 之类)若也进 Success,
                 // awaitFile() 的可用性谓词永远等不到终态、保存/AI/壁纸流程会无声挂死。这里改走 Error,可 retry。

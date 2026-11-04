@@ -14,6 +14,9 @@ import java.io.File
  */
 interface ImageFetcher {
 
+    /** 实际已接收字节数与响应声明的总长；负值表示这一项尚不可知。 */
+    data class Progress(val percent: Int, val bytesRead: Long = -1L, val totalBytes: Long = -1L)
+
     /**
      * 下载 [url] 到本地文件。[onProgress] 在下载途中被回调,携带 0..99 的百分比
      * (100% 只在真正拿到文件那一刻由上层置终态,避免「进度到头图还没出来」)。
@@ -21,4 +24,8 @@ interface ImageFetcher {
      * 协程被取消时,实现应尽快中断底层请求、释放线程,并让 [kotlinx.coroutines.CancellationException] 透传。
      */
     suspend fun fetch(url: String, onProgress: (percent: Int) -> Unit): File
+
+    /** 需要字节进度的调用方走这里；旧实现仍可只提供百分比。 */
+    suspend fun fetchWithProgress(url: String, onProgress: (Progress) -> Unit): File =
+        fetch(url) { onProgress(Progress(it)) }
 }

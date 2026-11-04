@@ -35,14 +35,21 @@ class ResumableOkHttpFetcher(
 
         override suspend fun fetch(url: String, onProgress: (Int) -> Unit): File =
             defaultInstance.fetch(url, onProgress)
+
+        override suspend fun fetchWithProgress(url: String, onProgress: (ImageFetcher.Progress) -> Unit): File =
+            defaultInstance.fetchWithProgress(url, onProgress)
     }
 
+    override suspend fun fetch(url: String, onProgress: (Int) -> Unit): File =
+        fetchWithProgress(url) { onProgress(it.percent) }
+
     // 调用方是 ImageTaskRegistry.scope（Main.immediate）：从查缓存、读 .part / manifest 起就全在 IO 上做。
-    override suspend fun fetch(url: String, onProgress: (Int) -> Unit): File = withContext(Dispatchers.IO) {
+    override suspend fun fetchWithProgress(url: String, onProgress: (ImageFetcher.Progress) -> Unit): File = withContext(Dispatchers.IO) {
         val cacheDir = cacheDirProvider()
         val cached = OriginalImageCacheManager.find(cacheDir, url)
         if (cached != null) {
             Timber.d("[ResumableFetcher] cache hit url=${url.substringAfterLast('/')}")
+            onProgress(ImageFetcher.Progress(99, cached.length(), cached.length()))
             return@withContext cached
         }
 
@@ -113,6 +120,7 @@ class ResumableOkHttpFetcher(
                 }
 
                 StageStore.WriteMode.ALREADY_COMPLETE -> {
+                    onProgress(ImageFetcher.Progress(99, existingLen, decision.total))
                     response.close()
                     OriginalImageCacheManager.commit(cacheDir, stagingDir, url, partFile)
                 }
@@ -133,11 +141,10 @@ class ResumableOkHttpFetcher(
                     var written = if (append) decision.startOffset else 0L
                     val total = decision.total
                     var lastReportedPercent = -1
+                    var lastReportedBytes = written
 
-                    if (total > 0 && written > 0) {
-                        lastReportedPercent = ((written * 100) / total).toInt().coerceIn(0, 99)
-                        onProgress(lastReportedPercent)
-                    }
+                    lastReportedPercent = if (total > 0) ((written * 100) / total).toInt().coerceIn(0, 99) else 0
+                    onProgress(ImageFetcher.Progress(lastReportedPercent, written, total))
 
                     val inputStream = responseBody.byteStream()
                     val outputStream = FileOutputStream(partFile, append)
@@ -149,15 +156,17 @@ class ResumableOkHttpFetcher(
                             while (inputStream.read(buffer).also { bytesRead = it } != -1) {
                                 outputStream.write(buffer, 0, bytesRead)
                                 written += bytesRead
-                                if (total > 0) {
-                                    val percent = ((written * 100) / total).toInt().coerceIn(0, 99)
-                                    if (percent != lastReportedPercent) {
-                                        lastReportedPercent = percent
-                                        onProgress(percent)
-                                    }
+                                val percent = if (total > 0) ((written * 100) / total).toInt().coerceIn(0, 99) else 0
+                                if (percent != lastReportedPercent || written - lastReportedBytes >= 64 * 1024) {
+                                    lastReportedPercent = percent
+                                    lastReportedBytes = written
+                                    onProgress(ImageFetcher.Progress(percent, written, total))
                                 }
                             }
                             outputStream.flush()
+                        }
+                        if (written != lastReportedBytes) {
+                            onProgress(ImageFetcher.Progress(lastReportedPercent, written, total))
                         }
                     } finally {
                         runCatching { outputStream.close() }

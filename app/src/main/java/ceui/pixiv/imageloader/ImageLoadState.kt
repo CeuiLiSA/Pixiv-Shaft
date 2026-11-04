@@ -15,7 +15,11 @@ sealed interface ImageLoadState {
 
     data object Idle : ImageLoadState
 
-    data class Loading(val percent: Int) : ImageLoadState
+    data class Loading(
+        val percent: Int,
+        val bytesRead: Long = -1L,
+        val totalBytes: Long = -1L,
+    ) : ImageLoadState
 
     data class Success(val file: File) : ImageLoadState
 
