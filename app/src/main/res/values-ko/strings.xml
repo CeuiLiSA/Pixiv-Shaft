@@ -1042,6 +1042,15 @@
     <string name="comments">댓글</string>
     <string name="new_tag">새 태그</string>
     <string name="date_minute_plurals_zero">방금</string>
+    <plurals name="date_hour">
+        <item quantity="other">%d시간 전</item>
+    </plurals>
+    <plurals name="recent_visits_date_minute">
+        <item quantity="other">%d분 전</item>
+    </plurals>
+    <plurals name="date_day">
+        <item quantity="other">%d일 전</item>
+    </plurals>
     <string name="type_user">사용자</string>
     <string name="add_keyword">키워드 추가</string>
     <string name="my_bookmarked_illusts">북마크한 일러스트/만화</string>

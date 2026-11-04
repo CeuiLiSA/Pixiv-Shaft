@@ -1042,6 +1042,18 @@
     <string name="comments">Yorumlar</string>
     <string name="new_tag">Yeni etiket</string>
     <string name="date_minute_plurals_zero">Az önce</string>
+    <plurals name="date_hour">
+        <item quantity="one">%d saat önce</item>
+        <item quantity="other">%d saat önce</item>
+    </plurals>
+    <plurals name="recent_visits_date_minute">
+        <item quantity="one">%d dakika önce</item>
+        <item quantity="other">%d dakika önce</item>
+    </plurals>
+    <plurals name="date_day">
+        <item quantity="one">%d gün önce</item>
+        <item quantity="other">%d gün önce</item>
+    </plurals>
     <string name="type_user">Kullanıcı</string>
     <string name="add_keyword">Anahtar kelime ekle</string>
     <string name="my_bookmarked_illusts">Yer imlerine eklenen illüstrasyon/manga</string>

@@ -1042,6 +1042,18 @@
     <string name="comments">Comments</string>
     <string name="new_tag">New tag</string>
     <string name="date_minute_plurals_zero">Just now</string>
+    <plurals name="date_hour">
+        <item quantity="one">%d hour ago</item>
+        <item quantity="other">%d hours ago</item>
+    </plurals>
+    <plurals name="recent_visits_date_minute">
+        <item quantity="one">%d minute ago</item>
+        <item quantity="other">%d minutes ago</item>
+    </plurals>
+    <plurals name="date_day">
+        <item quantity="one">%d day ago</item>
+        <item quantity="other">%d days ago</item>
+    </plurals>
     <string name="type_user">User</string>
     <string name="add_keyword">Add keyword</string>
     <string name="my_bookmarked_illusts">Bookmarked illustrations/manga</string>

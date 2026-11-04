@@ -1043,6 +1043,15 @@
     <string name="comments">評論</string>
     <string name="new_tag">新標籤</string>
     <string name="date_minute_plurals_zero">剛剛</string>
+    <plurals name="date_hour">
+        <item quantity="other">%d 小時前</item>
+    </plurals>
+    <plurals name="recent_visits_date_minute">
+        <item quantity="other">%d 分鐘前</item>
+    </plurals>
+    <plurals name="date_day">
+        <item quantity="other">%d 天前</item>
+    </plurals>
     <string name="type_user">用戶</string>
     <string name="add_keyword">添加關鍵字</string>
     <string name="my_bookmarked_illusts">收藏的插畫漫畫</string>

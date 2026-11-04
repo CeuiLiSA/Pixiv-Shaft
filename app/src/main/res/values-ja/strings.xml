@@ -1042,6 +1042,15 @@
     <string name="comments">コメント</string>
     <string name="new_tag">タグを追加</string>
     <string name="date_minute_plurals_zero">たった今</string>
+    <plurals name="date_hour">
+        <item quantity="other">%d時間前</item>
+    </plurals>
+    <plurals name="recent_visits_date_minute">
+        <item quantity="other">%d分前</item>
+    </plurals>
+    <plurals name="date_day">
+        <item quantity="other">%d日前</item>
+    </plurals>
     <string name="type_user">ユーザー</string>
     <string name="add_keyword">キーワードを追加</string>
     <string name="my_bookmarked_illusts">ブックマークしたイラスト</string>

@@ -1075,18 +1075,16 @@
     <string name="show_reply">查看回复</string>
     <string name="comments">评论</string>
     <string name="new_tag">New Tag</string>
-    <string name="date_minute_plurals_zero" platforms="all" synced="58038e" targets="widget,app">Just now</string>
-    <plurals name="date_hour" platforms="all" synced_one="f9ed7d" synced_other="56508e" targets="widget,app">
-        <item quantity="one">%d hour ago</item>
-        <item quantity="other">%d hours ago</item>
+    <!-- 相对时间（DateParse.getTimeAgo）。默认语言是简体中文，这四条以前误写成英文，中文界面显示成「1 days ago」；英文在 values-en。 -->
+    <string name="date_minute_plurals_zero">刚刚</string>
+    <plurals name="date_hour">
+        <item quantity="other">%d 小时前</item>
     </plurals>
-    <plurals name="recent_visits_date_minute" platforms="all" synced_one="ff2e35" synced_other="9085a0" targets="widget,app">
-        <item quantity="one">%d minute ago</item>
-        <item quantity="other">%d minutes ago</item>
+    <plurals name="recent_visits_date_minute">
+        <item quantity="other">%d 分钟前</item>
     </plurals>
-    <plurals name="date_day" platforms="all" synced_one="ece421" synced_other="2ed691" targets="widget,app">
-        <item quantity="one">%d day ago</item>
-        <item quantity="other">%d days ago</item>
+    <plurals name="date_day">
+        <item quantity="other">%d 天前</item>
     </plurals>
     <string name="type_user">用户</string>
     <string name="add_keyword">添加关键字</string>

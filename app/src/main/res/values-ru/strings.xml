@@ -1042,6 +1042,24 @@
     <string name="comments">Комментарии</string>
     <string name="new_tag">Новый тег</string>
     <string name="date_minute_plurals_zero">Только что</string>
+    <plurals name="date_hour">
+        <item quantity="one">%d час назад</item>
+        <item quantity="few">%d часа назад</item>
+        <item quantity="many">%d часов назад</item>
+        <item quantity="other">%d часа назад</item>
+    </plurals>
+    <plurals name="recent_visits_date_minute">
+        <item quantity="one">%d минуту назад</item>
+        <item quantity="few">%d минуты назад</item>
+        <item quantity="many">%d минут назад</item>
+        <item quantity="other">%d минуты назад</item>
+    </plurals>
+    <plurals name="date_day">
+        <item quantity="one">%d день назад</item>
+        <item quantity="few">%d дня назад</item>
+        <item quantity="many">%d дней назад</item>
+        <item quantity="other">%d дня назад</item>
+    </plurals>
     <string name="type_user">Пользователь</string>
     <string name="add_keyword">Добавить ключевое слово</string>
     <string name="my_bookmarked_illusts">Иллюстрации/манга в закладках</string>
