@@ -356,7 +356,13 @@
     <string name="string_98">/storage/emulated/0/Shaft/SingleImages</string>
     <string name="string_99">/storage/emulated/0/Shaft/SingleImages</string>
     <string name="string_100">快取</string>
-    <string name="string_101">清除圖片快取</string>
+    <string name="string_101">清除縮圖快取</string>
+    <string name="clear_original_cache">清除原圖快取</string>
+    <string name="success_clear_original_cache">原圖快取清除成功！</string>
+    <string name="setting_original_cache_quota">原圖快取上限</string>
+    <string name="setting_original_cache_quota_dialog_hint">超出上限後按最近最少使用（LRU）自動清理舊的原圖快取</string>
+    <string name="setting_original_cache_quota_range_min">200 MB</string>
+    <string name="setting_original_cache_quota_range_max">4 GB</string>
     <string name="string_102">清除 GIF 快取</string>
     <string name="clear_bulk_download_cache">管理下載關聯資料</string>
     <string name="clear_bulk_download_cache_message">下載管理裡的「已完成」「佇列」清單會被清空，跟第一次打開 app 一樣。\n（已下載到本機的圖片和小說不會被刪除。）</string>
@@ -982,7 +988,7 @@
     <string name="female">女性</string>
     <string name="unknown_gender">未知性別</string>
     <string name="singlePage_isAdd_p0">單頁作品，文件名加上 p0</string>
-    <string name="success_clearImageCache">圖片快取清除成功！</string>
+    <string name="success_clearImageCache">縮圖快取清除成功！</string>
     <string name="success_clearGifCache">GIF 快取清除成功！</string>
     <string name="success_clear_bulk_download_cache">下載關聯資料已清除</string>
     <string name="restore_success">還原成功</string>
@@ -3069,10 +3075,10 @@
     <string name="snapshot_quota_size_mb_decimal">%1$s MB</string>
     <string name="setting_auto_snapshot_quota_dialog_hint">以整數 MB 調整；拖到最右表示不限制。調小後會立即清理超出的舊自動快照</string>
     <string name="setting_auto_snapshot_quota_range_min">10 MB</string>
-    <string name="setting_image_cache_quota">圖片快取預期上限</string>
+    <string name="setting_image_cache_quota">縮圖快取預期上限</string>
     <string name="setting_image_cache_quota_value">%1$d MB</string>
     <string name="setting_image_cache_quota_value_gb">%1$s GB</string>
-    <string name="setting_image_cache_quota_dialog_hint">重啟 App 後生效，超出上限後將自動清理舊的圖片快取</string>
+    <string name="setting_image_cache_quota_dialog_hint">重啟 App 後生效，超出上限後將自動清理舊的縮圖快取</string>
     <string name="setting_image_cache_quota_range_min">100 MB</string>
     <string name="setting_image_cache_quota_range_max">1 GB</string>
     <string name="setting_image_cache_quota_pending">%1$s（未生效）</string>

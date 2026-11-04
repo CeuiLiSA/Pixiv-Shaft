@@ -354,7 +354,13 @@
     <string name="string_98">/storage/emulated/0/Shaft/SingleImages</string>
     <string name="string_99">/storage/emulated/0/Shaft/SingleImages</string>
     <string name="string_100">Кэш</string>
-    <string name="string_101">Очистить кэш изображений</string>
+    <string name="string_101">Очистить кэш миниатюр</string>
+    <string name="clear_original_cache">Очистить кэш исходных изображений</string>
+    <string name="success_clear_original_cache">Кэш исходных изображений очищен</string>
+    <string name="setting_original_cache_quota">Лимит кэша исходных изображений</string>
+    <string name="setting_original_cache_quota_dialog_hint">Старый кэш исходных изображений сверх лимита удаляется автоматически (LRU)</string>
+    <string name="setting_original_cache_quota_range_min">200 MB</string>
+    <string name="setting_original_cache_quota_range_max">4 GB</string>
     <string name="string_102">Очистить кэш GIF</string>
     <string name="clear_bulk_download_cache">Управление данными загрузок</string>
     <string name="clear_bulk_download_cache_message">Списки «Готово» и «Очередь» в менеджере загрузок будут очищены, как после чистой установки.\n(Уже сохранённые на устройстве файлы не удаляются.)</string>
@@ -981,7 +987,7 @@
     <string name="female">Женский</string>
     <string name="unknown_gender">Пол не указан</string>
     <string name="singlePage_isAdd_p0">Добавлять p0 в имя файла для одностраничных работ</string>
-    <string name="success_clearImageCache">Кэш изображений очищен</string>
+    <string name="success_clearImageCache">Кэш миниатюр очищен</string>
     <string name="success_clearGifCache">Кэш GIF очищен</string>
     <string name="success_clear_bulk_download_cache">Данные загрузок очищены</string>
     <string name="restore_success">Восстановлено</string>
@@ -3054,10 +3060,10 @@
     <string name="snapshot_quota_size_mb_decimal">%1$s МБ</string>
     <string name="setting_auto_snapshot_quota_dialog_hint">Целые МБ; перетащите вправо до конца, чтобы снять ограничение. При уменьшении старые автоснимки сверх нового лимита удаляются сразу</string>
     <string name="setting_auto_snapshot_quota_range_min">10 МБ</string>
-    <string name="setting_image_cache_quota">Ожидаемый лимит кэша изображений</string>
+    <string name="setting_image_cache_quota">Ожидаемый лимит кэша миниатюр</string>
     <string name="setting_image_cache_quota_value">%1$d МБ</string>
     <string name="setting_image_cache_quota_value_gb">%1$s ГБ</string>
-    <string name="setting_image_cache_quota_dialog_hint">Вступает в силу после перезапуска приложения; старый кэш изображений сверх лимита удаляется автоматически</string>
+    <string name="setting_image_cache_quota_dialog_hint">Вступает в силу после перезапуска приложения; старый кэш миниатюр сверх лимита удаляется автоматически</string>
     <string name="setting_image_cache_quota_range_min">100 МБ</string>
     <string name="setting_image_cache_quota_range_max">1 ГБ</string>
     <string name="setting_image_cache_quota_pending">%1$s (не применено)</string>

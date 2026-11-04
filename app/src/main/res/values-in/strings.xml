@@ -350,7 +350,13 @@
     <string name="string_96">10000</string>
     <string name="string_97">Bahasa Indonesia</string>
     <string name="string_100">Cache</string>
-    <string name="string_101">Hapus cache gambar</string>
+    <string name="string_101">Hapus cache thumbnail</string>
+    <string name="clear_original_cache">Hapus cache gambar asli</string>
+    <string name="success_clear_original_cache">Cache gambar asli berhasil dihapus!</string>
+    <string name="setting_original_cache_quota">Batas cache gambar asli</string>
+    <string name="setting_original_cache_quota_dialog_hint">Cache gambar asli lama yang melebihi batas akan dibersihkan otomatis (LRU)</string>
+    <string name="setting_original_cache_quota_range_min">200 MB</string>
+    <string name="setting_original_cache_quota_range_max">4 GB</string>
     <string name="string_102">Hapus cache GIF</string>
     <string name="clear_bulk_download_cache">Kelola data terkait unduhan</string>
     <string name="clear_bulk_download_cache_message">Daftar «Selesai» dan «Antrean» di pengelola unduhan akan dikosongkan, seperti saat pertama kali membuka aplikasi.\n(Gambar dan novel yang sudah diunduh ke perangkat tidak akan dihapus.)</string>
@@ -976,7 +982,7 @@
     <string name="female">Wanita</string>
     <string name="unknown_gender">Jenis kelamin tidak diketahui</string>
     <string name="singlePage_isAdd_p0">Karya satu halaman, nama file tetap memakai p0</string>
-    <string name="success_clearImageCache">Cache gambar berhasil dihapus!</string>
+    <string name="success_clearImageCache">Cache thumbnail berhasil dihapus!</string>
     <string name="success_clearGifCache">Cache GIF berhasil dihapus!</string>
     <string name="success_clear_bulk_download_cache">Data terkait unduhan telah dihapus</string>
     <string name="restore_success">Berhasil dipulihkan</string>
@@ -3070,10 +3076,10 @@
     <string name="snapshot_quota_size_mb_decimal">%1$s MB</string>
     <string name="setting_auto_snapshot_quota_dialog_hint">Diatur per MB bulat; seret ke paling kanan untuk tanpa batas. Jika diperkecil, snapshot otomatis lama yang melebihi batas langsung dibersihkan</string>
     <string name="setting_auto_snapshot_quota_range_min">10 MB</string>
-    <string name="setting_image_cache_quota">Batas perkiraan cache gambar</string>
+    <string name="setting_image_cache_quota">Batas perkiraan cache thumbnail</string>
     <string name="setting_image_cache_quota_value">%1$d MB</string>
     <string name="setting_image_cache_quota_value_gb">%1$s GB</string>
-    <string name="setting_image_cache_quota_dialog_hint">Berlaku setelah aplikasi dimulai ulang; cache gambar lama dibersihkan otomatis jika melebihi batas</string>
+    <string name="setting_image_cache_quota_dialog_hint">Berlaku setelah aplikasi dimulai ulang; cache thumbnail lama dibersihkan otomatis jika melebihi batas</string>
     <string name="setting_image_cache_quota_range_min">100 MB</string>
     <string name="setting_image_cache_quota_range_max">1 GB</string>
     <string name="setting_image_cache_quota_pending">%1$s (belum berlaku)</string>

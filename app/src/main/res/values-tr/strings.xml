@@ -354,7 +354,13 @@
     <string name="string_98">/storage/emulated/0/Shaft/SingleImages</string>
     <string name="string_99">/storage/emulated/0/Shaft/SingleImages</string>
     <string name="string_100">Önbellek</string>
-    <string name="string_101">Resim önbelleğini temizle</string>
+    <string name="string_101">Küçük resim önbelleğini temizle</string>
+    <string name="clear_original_cache">Orijinal resim önbelleğini temizle</string>
+    <string name="success_clear_original_cache">Orijinal resim önbelleği temizlendi!</string>
+    <string name="setting_original_cache_quota">Orijinal resim önbelleği sınırı</string>
+    <string name="setting_original_cache_quota_dialog_hint">Sınırı aşan eski orijinal görsel önbelleği otomatik olarak temizlenir (LRU)</string>
+    <string name="setting_original_cache_quota_range_min">200 MB</string>
+    <string name="setting_original_cache_quota_range_max">4 GB</string>
     <string name="string_102">GIF önbelleğini temizle</string>
     <string name="clear_bulk_download_cache">İndirme verilerini yönet</string>
     <string name="clear_bulk_download_cache_message">İndirme yöneticisindeki «Tamamlandı» ve «Sıra» listeleri temizlenecek — uygulamayı ilk açtığınız andaki gibi.\n(Cihaza zaten indirilmiş dosyalar silinmez.)</string>
@@ -981,7 +987,7 @@
     <string name="female">Kadın</string>
     <string name="unknown_gender">Bilinmeyen cinsiyet</string>
     <string name="singlePage_isAdd_p0">Tek sayfalı eserlerde dosya adına p0 ekle</string>
-    <string name="success_clearImageCache">Görüntü önbelleği temizlendi!</string>
+    <string name="success_clearImageCache">Küçük resim önbelleği temizlendi!</string>
     <string name="success_clearGifCache">GIF önbelleği temizlendi!</string>
     <string name="success_clear_bulk_download_cache">İndirme verileri temizlendi</string>
     <string name="restore_success">Geri yükleme başarılı</string>
@@ -3054,10 +3060,10 @@
     <string name="snapshot_quota_size_mb_decimal">%1$s MB</string>
     <string name="setting_auto_snapshot_quota_dialog_hint">Tam sayı MB olarak ayarlayın; sınırsız için en sağa sürükleyin. Değeri düşürürseniz yeni sınırı aşan eski otomatik anlık görüntüler hemen silinir</string>
     <string name="setting_auto_snapshot_quota_range_min">10 MB</string>
-    <string name="setting_image_cache_quota">Beklenen görsel önbelleği sınırı</string>
+    <string name="setting_image_cache_quota">Beklenen küçük resim önbelleği sınırı</string>
     <string name="setting_image_cache_quota_value">%1$d MB</string>
     <string name="setting_image_cache_quota_value_gb">%1$s GB</string>
-    <string name="setting_image_cache_quota_dialog_hint">Uygulama yeniden başlatıldıktan sonra geçerli olur; sınırı aşan eski görsel önbelleği otomatik olarak temizlenir</string>
+    <string name="setting_image_cache_quota_dialog_hint">Uygulama yeniden başlatıldıktan sonra geçerli olur; sınırı aşan eski küçük resim önbelleği otomatik olarak temizlenir</string>
     <string name="setting_image_cache_quota_range_min">100 MB</string>
     <string name="setting_image_cache_quota_range_max">1 GB</string>
     <string name="setting_image_cache_quota_pending">%1$s (henüz uygulanmadı)</string>

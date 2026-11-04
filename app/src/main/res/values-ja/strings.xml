@@ -354,7 +354,13 @@
     <string name="string_98">/storage/emulated/0/Shaft/SingleImages</string>
     <string name="string_99">/storage/emulated/0/Shaft/SingleImages</string>
     <string name="string_100">キャッシュ</string>
-    <string name="string_101">画像キャッシュを削除</string>
+    <string name="string_101">サムネイルキャッシュを削除</string>
+    <string name="clear_original_cache">原寸画像キャッシュを削除</string>
+    <string name="success_clear_original_cache">原寸画像キャッシュを削除しました</string>
+    <string name="setting_original_cache_quota">原寸画像キャッシュの上限</string>
+    <string name="setting_original_cache_quota_dialog_hint">上限を超えた古い原寸画像キャッシュは自動的に削除されます（LRU）</string>
+    <string name="setting_original_cache_quota_range_min">200 MB</string>
+    <string name="setting_original_cache_quota_range_max">4 GB</string>
     <string name="string_102">GIFキャッシュを削除</string>
     <string name="clear_bulk_download_cache">ダウンロード関連データを管理</string>
     <string name="clear_bulk_download_cache_message">「ダウンロード管理」の「完了」「キュー」リストが空になります。初回起動時と同じ状態です。\n（端末に保存済みの画像・小説は削除されません。）</string>
@@ -981,7 +987,7 @@
     <string name="female">女性</string>
     <string name="unknown_gender">性別不明</string>
     <string name="singlePage_isAdd_p0">単一ページの作品の場合はファイル名にp0を追加する</string>
-    <string name="success_clearImageCache">画像キャッシュを削除しました</string>
+    <string name="success_clearImageCache">サムネイルキャッシュを削除しました</string>
     <string name="success_clearGifCache">GIFキャッシュを削除しました</string>
     <string name="success_clear_bulk_download_cache">ダウンロード関連データを削除しました</string>
     <string name="restore_success">復元しました</string>
@@ -3054,10 +3060,10 @@
     <string name="snapshot_quota_size_mb_decimal">%1$s MB</string>
     <string name="setting_auto_snapshot_quota_dialog_hint">整数 MB 単位で調整。右端までドラッグすると無制限。小さくすると超過分の古い自動スナップショットをすぐに削除します</string>
     <string name="setting_auto_snapshot_quota_range_min">10 MB</string>
-    <string name="setting_image_cache_quota">画像キャッシュの想定上限</string>
+    <string name="setting_image_cache_quota">サムネイルキャッシュの想定上限</string>
     <string name="setting_image_cache_quota_value">%1$d MB</string>
     <string name="setting_image_cache_quota_value_gb">%1$s GB</string>
-    <string name="setting_image_cache_quota_dialog_hint">アプリ再起動後に有効になり、上限を超えた古い画像キャッシュは自動的に削除されます</string>
+    <string name="setting_image_cache_quota_dialog_hint">アプリ再起動後に有効になり、上限を超えた古いサムネイルキャッシュは自動的に削除されます</string>
     <string name="setting_image_cache_quota_range_min">100 MB</string>
     <string name="setting_image_cache_quota_range_max">1 GB</string>
     <string name="setting_image_cache_quota_pending">%1$s（未反映）</string>

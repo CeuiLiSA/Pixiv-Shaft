@@ -15,6 +15,7 @@ import ceui.lisa.helper.NavigationLocationHelper;
 import ceui.lisa.helper.ThemeHelper;
 import ceui.lisa.http.ImageReadTimeout;
 import ceui.pixiv.cache.ImageCacheQuota;
+import ceui.pixiv.cache.OriginalImageCacheQuota;
 import ceui.pixiv.download.toast.DownloadToastKind;
 import ceui.pixiv.snapshot.AutoSnapshotQuota;
 /**
@@ -419,6 +420,9 @@ public class Settings {
 
     /** 图片缓存「预期上限」（MB）；只在 Glide 初始化时生效，改完需重启 App。默认 = Glide 原生 250 MB。 */
     private volatile int imageCacheMaxMb = ImageCacheQuota.DEFAULT_LIMIT_MB;
+
+    /** 原图缓存上限（MB）；默认 1024 MB。 */
+    private volatile int originalImageCacheMaxMb = OriginalImageCacheQuota.DEFAULT_LIMIT_MB;
 
     /**
      * 图片「加载」与「下载」共用的读超时（秒）。分直连 / 非直连两种模式，各自默认 = 该模式滑动条
@@ -1377,6 +1381,14 @@ public class Settings {
 
     public void setImageCacheMaxMb(int imageCacheMaxMb) {
         this.imageCacheMaxMb = ImageCacheQuota.clampLimitMb(imageCacheMaxMb);
+    }
+
+    public int getOriginalImageCacheMaxMb() {
+        return OriginalImageCacheQuota.clampLimitMb(originalImageCacheMaxMb);
+    }
+
+    public void setOriginalImageCacheMaxMb(int originalImageCacheMaxMb) {
+        this.originalImageCacheMaxMb = OriginalImageCacheQuota.clampLimitMb(originalImageCacheMaxMb);
     }
 
     public int getImageReadTimeoutSeconds() {

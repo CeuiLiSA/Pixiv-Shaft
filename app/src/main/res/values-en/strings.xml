@@ -354,7 +354,13 @@
     <string name="string_98">/storage/emulated/0/Shaft/SingleImages</string>
     <string name="string_99">/storage/emulated/0/Shaft/SingleImages</string>
     <string name="string_100">Cache</string>
-    <string name="string_101">Clear image cache</string>
+    <string name="string_101">Clear thumbnail cache</string>
+    <string name="clear_original_cache">Clear original image cache</string>
+    <string name="success_clear_original_cache">Original image cache cleared successfully!</string>
+    <string name="setting_original_cache_quota">Original image cache limit</string>
+    <string name="setting_original_cache_quota_dialog_hint">Old original image cache over the limit is cleaned up automatically (LRU)</string>
+    <string name="setting_original_cache_quota_range_min">200 MB</string>
+    <string name="setting_original_cache_quota_range_max">4 GB</string>
     <string name="string_102">Clear gif cache</string>
     <string name="clear_bulk_download_cache">Manage download data</string>
     <string name="clear_bulk_download_cache_message">The Done / Queue lists in Download Manager will be wiped — just like a fresh install.\n(Files already saved to your device are not deleted.)</string>
@@ -981,7 +987,7 @@
     <string name="female">female</string>
     <string name="unknown_gender">Unknown gender</string>
     <string name="singlePage_isAdd_p0">Add p0 to filenames for single-page works</string>
-    <string name="success_clearImageCache">Image cache cleared successfully!</string>
+    <string name="success_clearImageCache">Thumbnail cache cleared successfully!</string>
     <string name="success_clearGifCache">GIF cache cleared successfully!</string>
     <string name="success_clear_bulk_download_cache">Download data cleared</string>
     <string name="restore_success">Restore successful</string>
@@ -3072,10 +3078,10 @@
     <string name="snapshot_quota_size_mb_decimal">%1$s MB</string>
     <string name="setting_auto_snapshot_quota_dialog_hint">Adjust in whole MB; drag fully right for unlimited. Lowering it removes the oldest auto snapshots over the new limit right away</string>
     <string name="setting_auto_snapshot_quota_range_min">10 MB</string>
-    <string name="setting_image_cache_quota">Expected image cache limit</string>
+    <string name="setting_image_cache_quota">Expected thumbnail cache limit</string>
     <string name="setting_image_cache_quota_value">%1$d MB</string>
     <string name="setting_image_cache_quota_value_gb">%1$s GB</string>
-    <string name="setting_image_cache_quota_dialog_hint">Takes effect after restarting the app; old image cache over the limit is cleaned up automatically</string>
+    <string name="setting_image_cache_quota_dialog_hint">Takes effect after restarting the app; old thumbnail cache over the limit is cleaned up automatically</string>
     <string name="setting_image_cache_quota_range_min">100 MB</string>
     <string name="setting_image_cache_quota_range_max">1 GB</string>
     <string name="setting_image_cache_quota_pending">%1$s (not applied yet)</string>

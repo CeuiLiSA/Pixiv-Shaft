@@ -16,17 +16,9 @@ import java.util.function.IntConsumer
 /**
  * V3 图片加载系统的对外门面(entry point)。
  *
- * 设计目标:详情页 B 与大图页 C 请求同一张图(同一 url / 同分辨率)时,共享**同一个下载任务**——
- * 同一条进度、同一份结果,不各下一次;且任务由进程级 [ImageTaskRegistry] 持有,B 返回列表再进 B/C,
- * 进度与已下文件都保留。瀑布流 A 分辨率低、url 不同,天然是另一个任务,不与 B/C 共享(也无需共享)。
- *
- * 抓取与解码全程复用 Glide,进度来自 :progressmanager 的 ProgressTracker(挂在 Shaft 的 OkHttp 客户端上)。
- *
- * 典型用法(渲染层的 ImageView 绑定扩展后续加入本包):
- * ```
- * val task = ImageLoaderV3.obtain(url)            // C:original;B:large 或 original
- * // 观察 task.state 更新进度条,Success 时把 task.currentFile 交给 Glide/Sketch 渲染
- * ```
+ * 显式指明原图与非原图通道：
+ * - 原图请求通过 [obtainOriginal] 或传 `isOriginal = true` 显式路由到专用断点续传加载器；
+ * - 非原图请求走通用 Glide 加载，不污染原图缓存池。
  */
 object ImageLoaderV3 {
 
@@ -35,26 +27,46 @@ object ImageLoaderV3 {
     fun obtain(request: ImageRequest, autoStart: Boolean = true): ImageLoadTask =
         ImageTaskRegistry.obtain(request, autoStart)
 
-    /** 便捷重载:直接用 url 取任务(Java 侧 `ImageLoaderV3.obtain(url)` 即可)。 */
+    /** 便捷重载:直接用 url 取任务。 */
     @JvmStatic
     @JvmOverloads
     fun obtain(
         url: String,
         name: String = url.substringAfterLast('/'),
         autoStart: Boolean = true,
-    ): ImageLoadTask = obtain(ImageRequest(url, name), autoStart)
+        isOriginal: Boolean = false,
+    ): ImageLoadTask = obtain(ImageRequest(url, name, isOriginal), autoStart)
+
+    /** 显式声明 isOriginal 的便捷重载。 */
+    @JvmStatic
+    @JvmOverloads
+    fun obtain(
+        url: String,
+        isOriginal: Boolean,
+        autoStart: Boolean = true,
+    ): ImageLoadTask = obtain(ImageRequest(url, isOriginal = isOriginal), autoStart)
+
+    /** 获取原图任务入口。 */
+    @JvmStatic
+    @JvmOverloads
+    fun obtainOriginal(
+        url: String,
+        autoStart: Boolean = true,
+    ): ImageLoadTask = obtain(ImageRequest(url, isOriginal = true), autoStart)
 
     /** 无副作用窥探某 url 已下好的文件(占位链/缓存命中用)。 */
     @JvmStatic
-    fun peekFile(url: String): File? = ImageTaskRegistry.peekFile(url)
+    @JvmOverloads
+    fun peekFile(url: String, isOriginal: Boolean = false): File? =
+        ImageTaskRegistry.peekFile(url, isOriginal)
 
     /**
      * 无副作用地探一次「这个 url 现在能不能**不联网**拿到文件」，供批量写盘场景先分拣再决定并发。
      *
      * 两层，成本从低到高：
-     * 1. [peekFile]：进程内共享任务已成功 → 直接给文件，零 IO；
-     * 2. Glide 磁盘缓存的 cache-only 请求：命中给文件，**未命中立即失败、不发网络请求**
-     *    （与 [ceui.lisa.adapters.IllustAdapter] 拿 large 当占位时同一手法）。
+     * 1. [peekFile]：进程内共享任务已成功 → 直接给文件，零 IO；[isOriginal] 时再查原图独立缓存池；
+     * 2. 非原图：Glide 磁盘缓存的 cache-only 请求：命中给文件，**未命中立即失败、不发网络请求**
+     *    （与 [ceui.lisa.adapters.IllustAdapter] 拿 large 当占位时同一手法）。原图不进 Glide，不查这一层。
      *
      * 请求形状刻意与 [GlideImageFetcher.fetch] 对齐（`asFile()` + [GlideUrlChild]）：缓存键一致，
      * 「探到有」才等价于「fetch 会命中」。换成 asBitmap 之类会因变换后的缓存键不同而系统性假阴性。
@@ -64,8 +76,12 @@ object ImageLoaderV3 {
      * 都不得把它当正确性依据，只能拿它排并发。
      */
     @JvmStatic
-    suspend fun peekCachedFile(url: String): File? {
-        peekFile(url)?.let { return it }
+    @JvmOverloads
+    suspend fun peekCachedFile(url: String, isOriginal: Boolean = false): File? {
+        peekFile(url, isOriginal)?.let { return it }
+        if (isOriginal) {
+            return null
+        }
         return withContext(Dispatchers.IO) {
             val future = Glide.with(Shaft.getContext())
                 .asFile()

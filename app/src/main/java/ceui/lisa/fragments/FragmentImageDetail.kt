@@ -810,7 +810,7 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
     private fun loadFromNetwork(imageUrl: String, isUrlMode: Boolean) {
         val shortUrl = imageUrl.substringAfterLast('/')
         // V3 imageloader：同一 url 与一级详情页 IllustAdapter 共享同一个进程级任务/进度/结果，不各下一次。
-        val task = ImageLoaderV3.obtain(imageUrl)
+        val task = ImageLoaderV3.obtainOriginal(imageUrl)
         // 上一次(可能在一级详情)失败的话，打开大图时重来一次——对齐旧 TaskPool「取到 errored 任务即换新重下」。
         if (task.state.value is ImageLoadState.Error) task.retry()
         Timber.d(

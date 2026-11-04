@@ -354,7 +354,13 @@
     <string name="string_98">/storage/emulated/0/Shaft/SingleImages</string>
     <string name="string_99">/storage/emulated/0/Shaft/SingleImages</string>
     <string name="string_100">캐 시 메모리</string>
-    <string name="string_101">이미지 캐 시 삭제</string>
+    <string name="string_101">썸네일 캐시 삭제</string>
+    <string name="clear_original_cache">원본 이미지 캐시 삭제</string>
+    <string name="success_clear_original_cache">원본 이미지 캐시가 삭제되었습니다!</string>
+    <string name="setting_original_cache_quota">원본 이미지 캐시 상한</string>
+    <string name="setting_original_cache_quota_dialog_hint">한도를 넘는 오래된 원본 이미지 캐시는 자동으로 정리됩니다 (LRU)</string>
+    <string name="setting_original_cache_quota_range_min">200 MB</string>
+    <string name="setting_original_cache_quota_range_max">4 GB</string>
     <string name="string_102">GIF 캐 시 삭제</string>
     <string name="clear_bulk_download_cache">다운로드 관련 데이터 관리</string>
     <string name="clear_bulk_download_cache_message">다운로드 관리의 \'완료\', \'대기열\' 목록이 비워집니다. 앱을 처음 켰을 때와 같은 상태가 됩니다.\n(이미 저장된 이미지/소설 파일은 삭제되지 않습니다.)</string>
@@ -981,7 +987,7 @@
     <string name="female">여성</string>
     <string name="unknown_gender">알 수 없는 성별</string>
     <string name="singlePage_isAdd_p0">단일 페이지 작품의 파일명에 p0 추가</string>
-    <string name="success_clearImageCache">이미지 캐시가 삭제되었습니다!</string>
+    <string name="success_clearImageCache">썸네일 캐시가 삭제되었습니다!</string>
     <string name="success_clearGifCache">GIF 캐시가 삭제되었습니다!</string>
     <string name="success_clear_bulk_download_cache">다운로드 관련 데이터가 삭제되었습니다</string>
     <string name="restore_success">복원 성공</string>
@@ -3054,10 +3060,10 @@
     <string name="snapshot_quota_size_mb_decimal">%1$s MB</string>
     <string name="setting_auto_snapshot_quota_dialog_hint">정수 MB 단위로 조정하며 오른쪽 끝은 무제한입니다. 값을 줄이면 한도를 넘는 오래된 자동 스냅샷을 즉시 삭제합니다</string>
     <string name="setting_auto_snapshot_quota_range_min">10 MB</string>
-    <string name="setting_image_cache_quota">이미지 캐시 예상 상한</string>
+    <string name="setting_image_cache_quota">썸네일 캐시 예상 상한</string>
     <string name="setting_image_cache_quota_value">%1$d MB</string>
     <string name="setting_image_cache_quota_value_gb">%1$s GB</string>
-    <string name="setting_image_cache_quota_dialog_hint">앱을 다시 시작한 뒤 적용되며, 한도를 넘는 오래된 이미지 캐시는 자동으로 정리됩니다</string>
+    <string name="setting_image_cache_quota_dialog_hint">앱을 다시 시작한 뒤 적용되며, 한도를 넘는 오래된 썸네일 캐시는 자동으로 정리됩니다</string>
     <string name="setting_image_cache_quota_range_min">100 MB</string>
     <string name="setting_image_cache_quota_range_max">1 GB</string>
     <string name="setting_image_cache_quota_pending">%1$s (미적용)</string>

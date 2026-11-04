@@ -221,10 +221,12 @@ object SettingsCatalog {
         add(Entry(DATA, "webdav_rela", R.string.webdav_settings_title, R.string.webdav_settings_entry_desc, keywords = "webdav 坚果云 nextcloud pcloud 网盘 nas 同步 多设备 备份 还原 自动备份 sync"))
         add(Entry(DATA, "moon_upload_rela", R.string.moon_upload_title, keywords = "云端 上传 配置 同步 cloud upload"))
         add(Entry(DATA, "moon_sync_rela", R.string.moon_manual_sync_title, keywords = "云端 下载 配置 同步 cloud sync"))
-        add(Entry(DATA, "clear_image_cache", R.string.string_101, keywords = "缓存 清理 空间 占用 图片 cache"))
+        add(Entry(DATA, "clear_image_cache", R.string.string_101, keywords = "缓存 清理 空间 占用 图片 缩略图 cache thumbnail"))
+        add(Entry(DATA, "clear_original_cache", R.string.clear_original_cache, keywords = "缓存 清理 空间 占用 原图 原寸 original cache"))
         add(Entry(DATA, "clear_gif_cache", R.string.string_102, keywords = "缓存 清理 gif 动图 cache"))
         add(Entry(DATA, "clear_bulk_download_cache", R.string.clear_bulk_download_cache, keywords = "批量下载 数据库 清理 占用 瘦身 空间 cache"))
-        add(Entry(DATA, "image_cache_quota_rela", R.string.setting_image_cache_quota, keywords = "图片缓存 缓存 上限 预期 占用 空间 自动清理 淘汰 大小 cache limit size quota"))
+        add(Entry(DATA, "image_cache_quota_rela", R.string.setting_image_cache_quota, keywords = "缩略图缓存 图片缓存 缓存 上限 预期 占用 空间 自动清理 淘汰 大小 cache limit size quota"))
+        add(Entry(DATA, "original_cache_quota_rela", R.string.setting_original_cache_quota, keywords = "原图缓存 原图 缓存 上限 占用 空间 自动清理 淘汰 大小 original cache limit size quota"))
 
         // 试验性
         // 公开聊天室横幅开关在 google(Play) 渠道不出现——认 IS_LITE

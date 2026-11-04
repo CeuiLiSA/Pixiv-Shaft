@@ -803,7 +803,7 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
         // 设置开了 → 加载原图(imageloader 共享任务,与大图页 C 复用同一次下载/进度/结果):pos 0 盖在
         // large 占位之上,多 P 则直接盖在灰底占位上。原图下好淡入 illust_hd,底层从不被清 → 零闪烁。
         String shortUrl = targetUrl.substring(targetUrl.lastIndexOf('/') + 1);
-        ImageLoadTask task = ImageLoaderV3.obtain(targetUrl);
+        ImageLoadTask task = ImageLoaderV3.obtainOriginal(targetUrl);
         // 已失败的任务在(重新)绑定时强制重来一次(对齐旧 TaskPool「rebind 即重下」+ 让重试横幅生效)。
         if (task.getState().getValue() instanceof ImageLoadState.Error) {
             task.retry();
