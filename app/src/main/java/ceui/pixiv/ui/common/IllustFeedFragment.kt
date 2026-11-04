@@ -399,11 +399,11 @@ abstract class IllustFeedFragment(
     }
 
     /**
-     * 订阅快照索引的版本号，变了就给本页所有插画卡补一次「快照标记」重绑。
+     * 订阅快照索引版本号，只直接刷新屏上插画卡的快照标记。
      *
      * 两件事都由它兜住：索引**刚扫完**（首屏那几张卡绑定时 Map 还是空的，标记晚一步出现），
      * 以及快照被**增删**（详情页刚离线化完退回列表、管理页删掉某个快照）。和屏蔽名单同理，
-     * 短列表 / 已在屏幕上的卡不会自己回收重绑，只能靠这条通知。
+     * 屏上卡不会自己重绑；离屏卡在下次绑定时读索引。避免整段 adapter 更新使 SGLM 重派列。
      */
     private fun observeSnapshotRevision() {
         // 兜底预热：Shaft 启动时已经排过一次，这里只防「预热还没跑完就滑到首屏」。
@@ -412,7 +412,7 @@ abstract class IllustFeedFragment(
         SnapshotIndex.revisionLive.observe(viewLifecycleOwner) { revision ->
             if (revision == lastSnapshotRevision) return@observe
             lastSnapshotRevision = revision
-            rebindAllIllustCards(PAYLOAD_ILLUST_SNAPSHOT_CHANGED)
+            refreshVisibleSnapshotButtons(feedBinding.feedListView)
         }
     }
 

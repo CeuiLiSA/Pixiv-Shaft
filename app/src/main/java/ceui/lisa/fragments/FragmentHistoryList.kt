@@ -19,11 +19,13 @@ import ceui.lisa.activities.VActivity
 import ceui.lisa.core.Container
 import ceui.lisa.core.PageData
 import ceui.lisa.database.IllustHistoryEntity
+import ceui.lisa.databinding.CellHistoryIllustV3Binding
 import ceui.lisa.helper.StaggeredManager
 import ceui.pixiv.api.model.Illust
 import ceui.lisa.utils.DensityUtil
 import ceui.lisa.utils.Params
 import ceui.lisa.view.SpacesItemDecoration
+import ceui.pixiv.feeds.FeedCell
 import ceui.pixiv.feeds.FeedFragment
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.FeedRenderer
@@ -146,13 +148,13 @@ class FragmentHistoryList : FeedFragment(), SelectableHistoryTab {
     private var lastSnapshotRevision = SnapshotIndex.revision
 
     /**
-     * 订阅快照索引的版本号，变了就给本页所有**插画**卡补一次「快照标记」重绑。
+     * 订阅快照索引版本号，变了就直接刷新屏上插画卡的快照标记。
      *
      * 两件事都由它兜住：索引**刚扫完**（首屏那几张卡绑定时 Map 还是空的，标记晚一步出现），
      * 以及快照被**增删**（刚离线化完退回列表、管理页删掉某个快照）。和屏蔽名单同理，
      * 短列表 / 已在屏幕上的卡不会自己回收重绑，只能靠这条通知。
      *
-     * 只发插画段：小说卡没有快照标记，砸一遍等于白重绑。
+     * 离屏卡下次绑定时读取新索引；小说卡没有快照标记。
      */
     private fun observeSnapshotRevision() {
         // 兜底预热：Shaft 启动时已经排过一次，这里只防「预热还没跑完就滑到首屏」。
@@ -161,19 +163,12 @@ class FragmentHistoryList : FeedFragment(), SelectableHistoryTab {
         SnapshotIndex.revisionLive.observe(viewLifecycleOwner) { revision ->
             if (revision == lastSnapshotRevision) return@observe
             lastSnapshotRevision = revision
-            val adapter = feedAdapter ?: return@observe
-            val items = adapter.currentList
-            var start = -1
-            items.forEachIndexed { index, item ->
-                if (item is HistoryIllustFeedItem) {
-                    if (start < 0) start = index
-                } else if (start >= 0) {
-                    adapter.notifyItemRangeChanged(start, index - start, PAYLOAD_HISTORY_SNAPSHOT)
-                    start = -1
-                }
-            }
-            if (start >= 0) {
-                adapter.notifyItemRangeChanged(start, items.size - start, PAYLOAD_HISTORY_SNAPSHOT)
+            val list = feedBinding.feedListView
+            for (index in 0 until list.childCount) {
+                val cell = list.getChildViewHolder(list.getChildAt(index)) as? FeedCell<*, *> ?: continue
+                val binding = cell.binding as? CellHistoryIllustV3Binding ?: continue
+                val item = cell.itemOrNull as? HistoryIllustFeedItem ?: continue
+                renderHistorySnapshotButton(binding, item)
             }
         }
     }

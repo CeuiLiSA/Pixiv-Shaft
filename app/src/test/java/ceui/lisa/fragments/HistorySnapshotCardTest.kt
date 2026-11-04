@@ -45,7 +45,7 @@ class HistorySnapshotCardTest {
         SnapshotIndex.onSnapshotDeleted("history-test")
     }
 
-    @Test fun `selection and combined payloads hide and restore snapshot without rebinding cover`() {
+    @Test fun `direct snapshot refresh and selection payload hide and restore snapshot without rebinding cover`() {
         val fragment = FragmentHistoryList.newInstance(0)
         val adapter = FeedAdapter(listOf(fragment.historyIllustRenderer()))
         val item = HistoryIllustFeedItem(
@@ -57,17 +57,21 @@ class HistorySnapshotCardTest {
         val binding = cell.binding as CellHistoryIllustV3Binding
         val coverSentinel = Any()
         binding.illustImage.tag = coverSentinel
-        adapter.onBindViewHolder(cell, 0, mutableListOf(PAYLOAD_HISTORY_SNAPSHOT))
+        SnapshotIndex.onSnapshotDeleted("history-test")
+        renderHistorySnapshotButton(binding, item)
+        assertEquals(View.INVISIBLE, binding.snapshotButton.visibility)
+        SnapshotIndex.onSnapshotWritten(900001, "history-test", false, 1)
+        renderHistorySnapshotButton(binding, item)
         assertEquals(View.VISIBLE, binding.snapshotButton.visibility)
         adapter.submitList(null)
         adapter.submitList(listOf(item.copy(isSelectionMode = true)))
         adapter.onBindViewHolder(cell, 0, mutableListOf(PAYLOAD_HISTORY_SELECTION))
-        assertEquals(View.GONE, binding.snapshotButton.visibility)
+        assertEquals(View.INVISIBLE, binding.snapshotButton.visibility)
         assertEquals(View.GONE, binding.deleteItem.visibility)
         assertEquals(View.VISIBLE, binding.selectCheck.visibility)
         adapter.submitList(null)
         adapter.submitList(listOf(item))
-        adapter.onBindViewHolder(cell, 0, mutableListOf(PAYLOAD_HISTORY_SELECTION, PAYLOAD_HISTORY_SNAPSHOT))
+        adapter.onBindViewHolder(cell, 0, mutableListOf(PAYLOAD_HISTORY_SELECTION))
         assertEquals(View.VISIBLE, binding.snapshotButton.visibility)
         assertEquals(View.VISIBLE, binding.deleteItem.visibility)
         assertEquals(View.GONE, binding.selectCheck.visibility)
