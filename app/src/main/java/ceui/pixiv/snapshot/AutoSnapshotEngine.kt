@@ -266,7 +266,10 @@ object AutoSnapshotEngine {
                     val autoExists = AutoSnapshotRepository.listAuto(appContext).any { it.manifest.illustId == id }
                     if (autoExists) return@withPermit
 
-                    SnapshotGenerator.generateAuto(appContext, ready.illust)
+                    SnapshotGenerator.generateAuto(
+                        appContext, ready.illust,
+                        preferCachedOriginal = Shaft.sSettings.isAutoSnapshotPreferCachedOriginal,
+                    )
                     AutoSnapshotRepository.enforceAutoQuota(appContext)
                     if (ready.behaviorSignal != null && Shaft.sSettings.isAutoSnapshotOnIllustManga) {
                         AutoSnapshotBehaviorStore.markAutoSnapshotGenerated(id, ready.behaviorSignal, score)

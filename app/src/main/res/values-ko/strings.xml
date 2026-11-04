@@ -3050,6 +3050,8 @@
     <string name="snapshot_untitled">제목 없음</string>
     <string name="snapshot_badge_comments">댓글 포함</string>
     <string name="snapshot_badge_original">원본</string>
+    <string name="snapshot_badge_all_original">전체 원본</string>
+    <string name="snapshot_badge_some_original">일부 원본</string>
     <string name="snapshot_comments_title">댓글</string>
     <string name="snapshot_delete_confirm">스냅샷 “%1$s”을(를) 삭제할까요? 이 작업은 되돌릴 수 없습니다.</string>
     <string name="snapshot_delete_success">스냅샷을 삭제했습니다</string>
@@ -3108,6 +3110,8 @@
     <string name="setting_read_timeout_dialog_hint">앱을 다시 시작한 뒤 적용됩니다\n기본값이 아닐 때:\n이미지는 더 빨리 다시 불러오기가 나타납니다\n다운로드는 끊김 시간 초과를 한 번 허용하고 조용히 다시 시도합니다</string>
     <string name="setting_auto_snapshot_on_illust_manga">일러스트/만화 스냅샷 자동 생성</string>
     <string name="setting_auto_snapshot_on_illust_manga_desc">반복해서 들어가거나 오래 머문 일러스트/만화의 스냅샷을 조용히 생성합니다 (실험 기능)</string>
+    <string name="setting_auto_snapshot_prefer_cached_original">캐시된 원본 이미지 우선 사용</string>
+    <string name="setting_auto_snapshot_prefer_cached_original_desc">자동 스냅샷에서 캐시된 원본만 재사용하고 나머지는 일반 화질로 저장합니다</string>
 
     <!-- 로그 파일 (실험) -->
     <string name="setting_log_file_enable">로그 파일 사용</string>

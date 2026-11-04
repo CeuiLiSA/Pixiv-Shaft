@@ -3050,6 +3050,8 @@
     <string name="snapshot_untitled">タイトルなし</string>
     <string name="snapshot_badge_comments">コメントあり</string>
     <string name="snapshot_badge_original">オリジナル</string>
+    <string name="snapshot_badge_all_original">全ページ原画</string>
+    <string name="snapshot_badge_some_original">一部原画</string>
     <string name="snapshot_comments_title">コメント</string>
     <string name="snapshot_delete_confirm">スナップショット「%1$s」を削除しますか？この操作は元に戻せません。</string>
     <string name="snapshot_delete_success">スナップショットを削除しました</string>
@@ -3108,6 +3110,8 @@
     <string name="setting_read_timeout_dialog_hint">アプリ再起動後に有効\n既定値以外のとき：\n画像はより早く再読み込みが表示されます\nダウンロードは停止タイムアウトを1回許容し、黙って再試行します</string>
     <string name="setting_auto_snapshot_on_illust_manga">イラスト・漫画のスナップショットを自動作成</string>
     <string name="setting_auto_snapshot_on_illust_manga_desc">繰り返し開いた、または長く滞在したイラスト・漫画を静かにスナップショット化します（試験的）</string>
+    <string name="setting_auto_snapshot_prefer_cached_original">キャッシュ済みの原画を優先</string>
+    <string name="setting_auto_snapshot_prefer_cached_original_desc">自動スナップショットでは保存済みの原画を再利用し、他のページは通常画質を使用します</string>
 
     <!-- ログファイル（試験的） -->
     <string name="setting_log_file_enable">ログファイルを有効にする</string>

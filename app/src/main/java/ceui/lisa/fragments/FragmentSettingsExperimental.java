@@ -65,6 +65,15 @@ public class FragmentSettingsExperimental extends SettingsPageFragment<FragmentS
 
         bindAutoSnapshotQuotaRow();
 
+        baseBind.autoSnapshotPreferCachedOriginal.setChecked(
+                Shaft.sSettings.isAutoSnapshotPreferCachedOriginal());
+        baseBind.autoSnapshotPreferCachedOriginal.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            Shaft.sSettings.setAutoSnapshotPreferCachedOriginal(isChecked);
+            Local.setSettings(Shaft.sSettings);
+        });
+        baseBind.autoSnapshotPreferCachedOriginalRela.setOnClickListener(v ->
+                baseBind.autoSnapshotPreferCachedOriginal.performClick());
+
         // 插画/漫画自动生成快照：只记录并生成本地行为信号，不涉及站外 UGC。
         baseBind.autoSnapshotOnIllustManga.setChecked(Shaft.sSettings.isAutoSnapshotOnIllustManga());
         baseBind.autoSnapshotOnIllustManga.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {

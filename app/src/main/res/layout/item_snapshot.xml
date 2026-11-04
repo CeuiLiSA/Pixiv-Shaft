@@ -145,11 +145,11 @@
                 android:textStyle="bold"
                 tools:text="2025-01-01 12:00 · 1.2 MB" />
 
-            <LinearLayout
-                android:layout_width="wrap_content"
+            <com.google.android.flexbox.FlexboxLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:orientation="horizontal">
+                app:flexWrap="wrap">
 
                 <TextView
                     android:id="@+id/autoTag"
@@ -194,7 +194,7 @@
                     android:textSize="10sp"
                     android:visibility="gone"
                     tools:visibility="visible" />
-            </LinearLayout>
+            </com.google.android.flexbox.FlexboxLayout>
         </LinearLayout>
     </LinearLayout>
 </androidx.cardview.widget.CardView>

@@ -510,7 +510,12 @@ private class SnapshotViewHolder(
         )
         binding.autoTag.isVisible = card.isAuto
         binding.commentTag.isVisible = card.includeComments
-        binding.originalTag.isVisible = card.includeOriginal
+        binding.originalTag.isVisible = card.originalCoverage != SnapshotOriginalCoverage.NONE
+        binding.originalTag.setText(when (card.originalCoverage) {
+            SnapshotOriginalCoverage.ALL -> R.string.snapshot_badge_all_original
+            SnapshotOriginalCoverage.SOME -> R.string.snapshot_badge_some_original
+            SnapshotOriginalCoverage.NONE -> R.string.snapshot_badge_original
+        })
 
         val isR18 = (card.xRestrict ?: 0) > 0
         val pageCount = card.pageCount ?: 1

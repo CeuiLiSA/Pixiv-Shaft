@@ -3343,6 +3343,8 @@
     <string name="snapshot_meta_format" translatable="false">%1$s · %2$s</string>
     <string name="snapshot_badge_comments">含评论</string>
     <string name="snapshot_badge_original">原图</string>
+    <string name="snapshot_badge_all_original">全原图</string>
+    <string name="snapshot_badge_some_original">部分原图</string>
     <string name="snapshot_comments_title">评论</string>
     <string name="snapshot_delete_confirm">确定删除快照「%1$s」吗？此操作不可恢复。</string>
     <string name="snapshot_delete_success">已删除快照</string>
@@ -3404,6 +3406,8 @@
     <string name="setting_read_timeout_dialog_hint">重启 App 后生效\n非默认值时：\n图片加载会更快地出现重新加载\n图片下载会容许一次断流超时并静默重试</string>
     <string name="setting_auto_snapshot_on_illust_manga">插画/漫画自动生成快照</string>
     <string name="setting_auto_snapshot_on_illust_manga_desc">对反复进入与长时间驻留的插画/漫画静默生成快照（试验性）</string>
+    <string name="setting_auto_snapshot_prefer_cached_original">有原图缓存时优先使用原图</string>
+    <string name="setting_auto_snapshot_prefer_cached_original_desc">自动快照仅复用已缓存的原图；未缓存的页面继续使用普通画质</string>
 
     <!-- 日志文件（试验性） -->
     <string name="setting_log_file_enable">启用日志文件</string>

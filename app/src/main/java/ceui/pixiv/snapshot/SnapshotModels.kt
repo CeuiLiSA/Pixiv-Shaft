@@ -26,6 +26,8 @@ data class SnapshotManifest(
     val type: String = "illust",
     val includeComments: Boolean = false,
     val includeOriginal: Boolean = false,
+    /** 新快照逐页实测；null 表示旧清单，回退到 includeOriginal。 */
+    val originalPageCount: Int? = null,
     val isBookmarked: Boolean = false,
     val isFollowed: Boolean = false,
     val xRestrict: Int? = null,
@@ -47,6 +49,8 @@ data class AutoSnapshotManifest(
     val type: String = "illust",
     val includeComments: Boolean = false,
     val includeOriginal: Boolean = false,
+    /** 新快照逐页实测；null 表示旧清单，回退到 includeOriginal。 */
+    val originalPageCount: Int? = null,
     val isBookmarked: Boolean = false,
     val isFollowed: Boolean = false,
     val xRestrict: Int? = null,
@@ -58,6 +62,20 @@ data class AutoSnapshotManifest(
     val fileCount: Int = 0,
     val totalSize: Long = 0L,
 )
+
+/** 新清单记录实际原图页数；旧清单沿用 includeOriginal 的全有/全无语义。 */
+enum class SnapshotOriginalCoverage { ALL, SOME, NONE }
+
+internal fun originalCoverage(originalPageCount: Int?, pageCount: Int?, includeOriginal: Boolean): SnapshotOriginalCoverage {
+    if (originalPageCount == null || pageCount == null || pageCount <= 0) {
+        return if (includeOriginal) SnapshotOriginalCoverage.ALL else SnapshotOriginalCoverage.NONE
+    }
+    return when {
+        originalPageCount >= pageCount -> SnapshotOriginalCoverage.ALL
+        originalPageCount > 0 -> SnapshotOriginalCoverage.SOME
+        else -> SnapshotOriginalCoverage.NONE
+    }
+}
 
 /** 管理页展示自动快照时使用的轻量摘要。 */
 data class AutoSnapshotSummary(
@@ -81,6 +99,7 @@ sealed interface SnapshotCard {
     val pageCount: Int?
     val includeComments: Boolean
     val includeOriginal: Boolean
+    val originalCoverage: SnapshotOriginalCoverage
     val coverFile: File?
     val fileCount: Int
     val totalSize: Long
@@ -99,6 +118,9 @@ data class FormalSnapshotCard(val summary: SnapshotSummary) : SnapshotCard {
     override val pageCount get() = summary.manifest.pageCount
     override val includeComments get() = summary.manifest.includeComments
     override val includeOriginal get() = summary.manifest.includeOriginal
+    override val originalCoverage get() = originalCoverage(
+        summary.manifest.originalPageCount, summary.manifest.pageCount, summary.manifest.includeOriginal
+    )
     override val coverFile get() = summary.coverFile
     override val fileCount get() = summary.fileCount
     override val totalSize get() = summary.totalSize
@@ -117,6 +139,9 @@ data class AutoSnapshotCard(val summary: AutoSnapshotSummary) : SnapshotCard {
     override val pageCount get() = summary.manifest.pageCount
     override val includeComments get() = summary.manifest.includeComments
     override val includeOriginal get() = summary.manifest.includeOriginal
+    override val originalCoverage get() = originalCoverage(
+        summary.manifest.originalPageCount, summary.manifest.pageCount, summary.manifest.includeOriginal
+    )
     override val coverFile get() = summary.coverFile
     override val fileCount get() = summary.fileCount
     override val totalSize get() = summary.totalSize
@@ -131,6 +156,7 @@ fun AutoSnapshotManifest.toSnapshotManifest(): SnapshotManifest = SnapshotManife
     type = type,
     includeComments = includeComments,
     includeOriginal = includeOriginal,
+    originalPageCount = originalPageCount,
     isBookmarked = isBookmarked,
     isFollowed = isFollowed,
     xRestrict = xRestrict,
