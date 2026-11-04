@@ -71,6 +71,7 @@ import ceui.pixiv.ui.detail.applyDetailPanelExpanded
 import ceui.pixiv.ui.navigation.TemplateRoute
 import ceui.pixiv.ui.novel.reader.NovelTextCache
 import ceui.pixiv.ui.novel.reader.paginate.ContentParser
+import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.user.UserActionReceiver
 import ceui.pixiv.utils.extractPixivId
 import ceui.pixiv.utils.playToggleHaptic
@@ -814,7 +815,7 @@ fun novelAuthorRenderer(
             }
         visibilitySlots.getOrPut(cell) { CellObserverSlot(lifecycleOwner) }
             .rebind(FollowVisibility.changes) { changedId ->
-                if (changedId != snapshot.id) return@rebind
+                if (changedId != snapshot.id || !b.follow.isVisible) return@rebind
                 b.follow.renderFollowPill(palette, snapshot.id, currentUser(snapshot).is_followed == true)
             }
     }
@@ -830,7 +831,10 @@ private fun bindNovelAuthor(b: CellNovelAuthorBinding, user: User, glide: Reques
         b.authorAvatar.setTag(R.id.novel_header_avatar_key, avatar)
         glide.load(GlideUtil.getHead(user)).error(R.drawable.no_profile).into(b.authorAvatar)
     }
-    b.follow.renderFollowPill(palette, user.id, user.is_followed == true)
+    // 自己的作品不给关注按钮（关注自己会被服务端拒掉，队列几分钟后再回滚，按钮来回跳）
+    val isSelf = user.id == SessionManager.loggedInUid
+    b.follow.isVisible = !isSelf
+    if (!isSelf) b.follow.renderFollowPill(palette, user.id, user.is_followed == true)
 }
 
 fun novelTagsRenderer(
