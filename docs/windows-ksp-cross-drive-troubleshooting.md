@@ -116,5 +116,6 @@ git clone https://github.com/CeuiLiSA/Pixiv-Shaft.git
 
 1. **初次构建耗时**：
    - 切换 Gradle User Home 路径后，首次构建会重新下载 Gradle Wrapper、Android 构建插件及第三方依赖库，耗时由网络决定，属于正常现象。
+   - 旧目录里的 `gradle.properties`（如 `systemProp.https.proxyHost` 代理、JVM 参数）和 `init.d/` 初始化脚本（如镜像仓库配置）**不会随之生效**。若此前依赖它们才能下载依赖，请先复制到新的 Gradle User Home，否则首次构建会卡在依赖下载。
 2. **清理旧缓存**：
    - 迁移后，原 `C:\Users\<Username>\.gradle\caches` 中的旧缓存不会自动删除。在确认新环境构建正常后，可手动清理旧盘的 `.gradle/caches` 释放宝贵的系统盘空间。
