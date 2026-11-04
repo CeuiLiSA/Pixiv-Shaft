@@ -448,10 +448,7 @@ public class FragmentSettingsData extends SettingsPageFragment<FragmentSettingsD
         return null;
     }
 
-    /**
-     * 右侧显示的当前「预期上限」：不足 1 GB 写 MB，正好 1 GB 写 GB；
-     * 改过但还没重启时加「未生效」后缀。
-     */
+    /** 原图缓存上限即调即生效（见 {@link OriginalImageCacheManager#trimAsync}），没有「未生效」状态。 */
     private void refreshOriginalCacheQuotaLabel() {
         int current = Shaft.sSettings.getOriginalImageCacheMaxMb();
         String label = originalCacheQuotaLabel(mContext, current);
@@ -491,6 +488,10 @@ public class FragmentSettingsData extends SettingsPageFragment<FragmentSettingsD
         builder.show();
     }
 
+    /**
+     * 右侧显示的当前「预期上限」：不足 1 GB 写 MB，正好 1 GB 写 GB；
+     * 改过但还没重启时加「未生效」后缀。
+     */
     private void refreshImageCacheQuotaLabel() {
         int current = Shaft.sSettings.getImageCacheMaxMb();
         String label = imageCacheQuotaLabel(mContext, current);
