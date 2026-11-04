@@ -4,6 +4,7 @@
   isDetailPanelCollapsedByDefault 走），下面是一张两列信息表，每行至少 48dp。
   标签 14sp Regular v3_text_2，值 14sp Medium v3_text_1（等宽数字），动作 14sp SemiBold
   textAccent；行间细线 cardHairline（代码注入）。标题行的 48dp 已含 12dp 上留白，故 paddingTop 12dp。
+  小说系列页复用这张表：label_* 三个标签由系列渲染器改成「开始连载 / 系列 ID / 系列链接」。
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
@@ -56,6 +57,7 @@
             android:focusable="true">
 
             <TextView
+                android:id="@+id/label_published"
                 style="@style/NovelDetailInfoLabel"
                 android:text="@string/v3_detail_published" />
 
@@ -77,6 +79,7 @@
             android:focusable="true">
 
             <TextView
+                android:id="@+id/label_novel_id"
                 style="@style/NovelDetailInfoLabel"
                 android:text="@string/v3_detail_artwork_id" />
 
@@ -135,6 +138,7 @@
             android:paddingBottom="0dp">
 
             <TextView
+                android:id="@+id/label_novel_link"
                 style="@style/NovelDetailInfoLabel"
                 android:layout_width="0dp"
                 android:layout_weight="1"

@@ -342,7 +342,7 @@ class NovelTextFeedSource(private val novelId: Long) : FeedSource<String> {
  * emission 重复跑全部绑定逻辑）。不能图省事 `removeObservers(owner)`：同一篇小说的 LiveData
  * 被本页多张卡（头卡/简介卡/标签卡/信息卡）共享，那会把别的卡也摘下来。
  */
-private class CellObserverSlot<T>(private val lifecycleOwner: LifecycleOwner) {
+internal class CellObserverSlot<T>(private val lifecycleOwner: LifecycleOwner) {
     private var live: LiveData<T>? = null
     private var observer: Observer<T>? = null
 
@@ -670,7 +670,7 @@ private fun heroScrim(@ColorInt pageBg: Int, dark: Boolean): Drawable {
 }
 
 /** 「›」：ic_v3_chevron_24 本身是白色、不跟随 RTL，这里拷一份着色并开自动镜像。 */
-private fun chevron(ctx: Context, @ColorInt tint: Int): Drawable? =
+internal fun chevron(ctx: Context, @ColorInt tint: Int): Drawable? =
     AppCompatResources.getDrawable(ctx, R.drawable.ic_v3_chevron_24)?.mutate()?.also {
         DrawableCompat.setAutoMirrored(it, true)
         it.setTint(tint)
@@ -691,16 +691,7 @@ fun novelInfoRenderer(
         create = { cell ->
             val b = cell.binding
             val ctx = b.root.context
-            val p = V3Palette.from(ctx)
-            val text2 = ColorStateList.valueOf(ctx.color(R.color.v3_text_2))
-            ViewCompat.setAccessibilityHeading(b.infoTitle, true)
-            b.infoArrow.imageTintList = text2
-            b.copyNovelId.imageTintList = text2
-            b.copyUserId.imageTintList = text2
-            for (line in listOf(b.line1, b.line2, b.line3, b.line4)) line.setBackgroundColor(p.cardHairline)
-            for (action in listOf(b.novelLinkCopy, b.novelLinkOpen, b.userLinkCopy, b.userLinkOpen)) {
-                action.setTextColor(p.textAccent)
-            }
+            styleNovelInfoCell(b)
             b.infoHeader.setOnClickListener {
                 expanded = !expanded
                 applyDetailPanelExpanded(b.infoRows, b.infoArrow, expanded, animate = true)
@@ -739,6 +730,21 @@ fun novelInfoRenderer(
                 b.rowUserLink.isVisible = userId != null
                 b.valueUserId.text = userId?.toString()
             }
+    }
+}
+
+/** 信息表里不随数据变的部分（小说详情与小说系列共用 cell_novel_info）：细线、图标、动作文字着色。 */
+internal fun styleNovelInfoCell(b: CellNovelInfoBinding) {
+    val ctx = b.root.context
+    val p = V3Palette.from(ctx)
+    val text2 = ColorStateList.valueOf(ctx.color(R.color.v3_text_2))
+    ViewCompat.setAccessibilityHeading(b.infoTitle, true)
+    b.infoArrow.imageTintList = text2
+    b.copyNovelId.imageTintList = text2
+    b.copyUserId.imageTintList = text2
+    for (line in listOf(b.line1, b.line2, b.line3, b.line4)) line.setBackgroundColor(p.cardHairline)
+    for (action in listOf(b.novelLinkCopy, b.novelLinkOpen, b.userLinkCopy, b.userLinkOpen)) {
+        action.setTextColor(p.textAccent)
     }
 }
 
@@ -946,77 +952,98 @@ fun novelCaptionRenderer(
     return feedRenderer(
         inflate = CellNovelCaptionBinding::inflate,
         fullSpan = true,
-        create = { cell ->
-            val b = cell.binding
-            val accent = V3Palette.from(b.root.context).textAccent
-            ViewCompat.setAccessibilityHeading(b.captionLabel, true)
-            b.caption.setLinkTextColor(accent)
-            b.captionToggle.setTextColor(accent)
-            b.captionToggle.setOnClick {
-                collapse.expanded = !collapse.expanded
-                applyNovelCaptionCollapse(b, collapse)
-                if (!collapse.expanded) onCollapsed(b.root)
-            }
-        },
+        create = { cell -> setupNovelCaptionCell(cell.binding, collapse, onCollapsed) },
         recycle = { cell ->
             slots[cell]?.detach()
-            // 复用到另一条小说时不能沿用上一条的「已渲染 caption」短路标记
-            cell.binding.caption.setTag(R.id.novel_caption_rendered, null)
-            clearPendingCaptionPreDraw(cell.binding)
+            recycleNovelCaptionCell(cell.binding)
         },
     ) { cell ->
         val b = cell.binding
-        val ctx = b.root.context
         val liveNovel = ObjectPool.get<Novel>(cell.item.novelId)
+        // 本 observer 挂在 ObjectPool 上，这条小说**任何**字段的更新（收藏切换最常见）都会
+        // 让它重新发射；renderNovelCaption 对同一段原文直接跳过。
         slots.getOrPut(cell) { CellObserverSlot(lifecycleOwner) }.rebind(liveNovel) { novel ->
-            val rawCaption = novel?.caption.orEmpty()
-            // 本 observer 挂在 ObjectPool 上，这条小说**任何**字段的更新（收藏切换最常见）都会
-            // 让它重新发射，而下面的 fromHtml 解析 + CustomLinkMovementMethod 重建都不便宜。
-            // caption 原文没变就整段跳过——视图上现有的富文本与监听仍然是对的。
-            if (b.caption.getTag(R.id.novel_caption_rendered) == rawCaption) return@rebind
-            b.caption.setTag(R.id.novel_caption_rendered, rawCaption)
-            val hasCaption = rawCaption.isNotEmpty()
-            val normalizedCaption = rawCaption.replace("\r\n", "\n").replace("\n", "<br/>")
-            if (hasCaption) {
-                b.caption.isVisible = true
-                val linkHandler = CustomLinkMovementMethod { link ->
-                    val info = extractPixivId(link)
-                    when (info.type) {
-                        "novels" -> info.value.toLongOrNull()?.let { id ->
-                            b.caption.findActionReceiverOrNull<NovelActionReceiver>()?.visitNovelById(id)
-                        }
-                        "illusts" -> info.value.toLongOrNull()?.let { id ->
-                            b.caption.findActionReceiverOrNull<IllustCardActionReceiver>()?.visitIllustById(id)
-                        }
-                        "users" -> info.value.toLongOrNull()?.let { id ->
-                            b.caption.findActionReceiverOrNull<UserActionReceiver>()?.onClickUser(id)
-                        }
-                        else -> {
-                            val uri = runCatching { link.toUri() }.getOrNull()
-                            val scheme = uri?.scheme?.lowercase()
-                            if (uri != null && (scheme == "http" || scheme == "https")) {
-                                WebLinkHelper.openUrl(b.caption.context, uri)
-                            }
-                        }
-                    }
-                    Timber.d("caption link clicked: $info")
-                }
-                b.caption.movementMethod = linkHandler
-                // issue #1005: 超长简介折叠（对齐插画详情 #965），全文存进 collapse 供展开回填
-                collapse.full = HtmlCompat.fromHtml(normalizedCaption, HtmlCompat.FROM_HTML_MODE_COMPACT)
-                applyNovelCaptionCollapse(b, collapse)
-                b.caption.setOnClick {
-                    if (linkHandler.wasLinkClicked) return@setOnClick
-                    val plain = HtmlCompat.fromHtml(normalizedCaption, HtmlCompat.FROM_HTML_MODE_COMPACT)
-                        .toString().trim()
-                    Common.copy(ctx, plain)
-                }
-            } else {
-                b.caption.isVisible = false
-                collapse.full = null
-                b.captionToggle.isVisible = false
-            }
+            renderNovelCaption(b, novel?.caption.orEmpty(), collapse)
         }
+    }
+}
+
+/**
+ * 简介格只做一次的配置（小说详情与小说系列共用 cell_novel_caption）：链接与「展开 / 收起」用
+ * textAccent，区块标题标成无障碍标题。
+ */
+internal fun setupNovelCaptionCell(
+    b: CellNovelCaptionBinding,
+    collapse: NovelCaptionCollapse,
+    onCollapsed: (View) -> Unit,
+) {
+    val accent = V3Palette.from(b.root.context).textAccent
+    ViewCompat.setAccessibilityHeading(b.captionLabel, true)
+    b.caption.setLinkTextColor(accent)
+    b.captionToggle.setTextColor(accent)
+    b.captionToggle.setOnClick {
+        collapse.expanded = !collapse.expanded
+        applyNovelCaptionCollapse(b, collapse)
+        if (!collapse.expanded) onCollapsed(b.root)
+    }
+}
+
+/** 回收时调：复用到另一条时不能沿用上一条的「已渲染 caption」短路标记和未执行的折叠测量。 */
+internal fun recycleNovelCaptionCell(b: CellNovelCaptionBinding) {
+    b.caption.setTag(R.id.novel_caption_rendered, null)
+    clearPendingCaptionPreDraw(b)
+}
+
+/**
+ * 把 pixiv 简介（带 `<br />` / `<a>` 的 HTML）渲进简介格：站内作品 / 用户链接走 receiver，
+ * 其它 http(s) 链接外开；超长折叠（#1005，对齐插画详情 #965）；点正文复制纯文本。
+ * fromHtml + CustomLinkMovementMethod 重建都不便宜，原文没变就整段跳过 —— 视图上现有的
+ * 富文本与监听仍然是对的。
+ */
+internal fun renderNovelCaption(b: CellNovelCaptionBinding, rawCaption: String, collapse: NovelCaptionCollapse) {
+    if (b.caption.getTag(R.id.novel_caption_rendered) == rawCaption) return
+    b.caption.setTag(R.id.novel_caption_rendered, rawCaption)
+    val ctx = b.root.context
+    val hasCaption = rawCaption.isNotEmpty()
+    val normalizedCaption = rawCaption.replace("\r\n", "\n").replace("\n", "<br/>")
+    if (hasCaption) {
+        b.caption.isVisible = true
+        val linkHandler = CustomLinkMovementMethod { link ->
+            val info = extractPixivId(link)
+            when (info.type) {
+                "novels" -> info.value.toLongOrNull()?.let { id ->
+                    b.caption.findActionReceiverOrNull<NovelActionReceiver>()?.visitNovelById(id)
+                }
+                "illusts" -> info.value.toLongOrNull()?.let { id ->
+                    b.caption.findActionReceiverOrNull<IllustCardActionReceiver>()?.visitIllustById(id)
+                }
+                "users" -> info.value.toLongOrNull()?.let { id ->
+                    b.caption.findActionReceiverOrNull<UserActionReceiver>()?.onClickUser(id)
+                }
+                else -> {
+                    val uri = runCatching { link.toUri() }.getOrNull()
+                    val scheme = uri?.scheme?.lowercase()
+                    if (uri != null && (scheme == "http" || scheme == "https")) {
+                        WebLinkHelper.openUrl(b.caption.context, uri)
+                    }
+                }
+            }
+            Timber.d("caption link clicked: $info")
+        }
+        b.caption.movementMethod = linkHandler
+        // 全文存进 collapse 供展开回填
+        collapse.full = HtmlCompat.fromHtml(normalizedCaption, HtmlCompat.FROM_HTML_MODE_COMPACT)
+        applyNovelCaptionCollapse(b, collapse)
+        b.caption.setOnClick {
+            if (linkHandler.wasLinkClicked) return@setOnClick
+            val plain = HtmlCompat.fromHtml(normalizedCaption, HtmlCompat.FROM_HTML_MODE_COMPACT)
+                .toString().trim()
+            Common.copy(ctx, plain)
+        }
+    } else {
+        b.caption.isVisible = false
+        collapse.full = null
+        b.captionToggle.isVisible = false
     }
 }
 
