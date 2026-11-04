@@ -2142,6 +2142,10 @@
     <string name="dlmgr_active_size_failed">下载失败</string>
     <string name="dlmgr_active_size_unknown">未知大小</string>
     <string name="dlmgr_active_size_stalled">已断流%1$d/%2$ds</string>
+    <string name="single_image_save_title">单张保存</string>
+    <string name="single_image_save_help_desc">大图页发起的单张原图保存任务。\n独立于下载队列，不受下载管理全局的启停。\n完成后会自动从列表中消失。</string>
+    <string name="single_image_saving_desc">正在保存原图…</string>
+    <string name="single_image_save_failed_desc">保存失败，点击重试</string>
 
     <string name="dlmgr_open_novel_failed">无法识别小说 ID，请重新下载该小说</string>
     <string name="dlmgr_done_empty_title">还没有完成的下载</string>
@@ -2209,7 +2213,7 @@
     <string name="dlmgr_done_layout_grid">布局：网格</string>
     <string name="dlmgr_done_layout_compact">布局：缩图</string>
     <string name="dlmgr_clear_active_queue_title">清空全部下载？</string>
-    <string name="dlmgr_clear_active_queue_message">正在下载和排队中的任务都会停止并清除。\n（已经下载到一半的文件不会被删除。）</string>
+    <string name="dlmgr_clear_active_queue_message">正在下载和排队中的任务都会停止并清除（大图页发起的单张原图保存不会被清理）。\n（已经下载到一半的文件不会被删除。）</string>
     <string name="dlmgr_clear_done_title">清空已完成记录？</string>
     <string name="dlmgr_clear_done_message">已下载的文件不会被删除，只是从这里看不到了。</string>
     <string name="dlmgr_delete_done_title">删除这条下载记录？</string>

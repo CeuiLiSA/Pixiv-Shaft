@@ -1994,6 +1994,10 @@
     <string name="dlmgr_active_size_failed">Unduhan gagal</string>
     <string name="dlmgr_active_size_unknown">Ukuran tidak diketahui</string>
     <string name="dlmgr_active_size_stalled">Terputus %1$d/%2$ds</string>
+    <string name="single_image_save_title">Simpan Satu Gambar</string>
+    <string name="single_image_save_help_desc">Tugas menyimpan satu gambar asli yang dimulai dari tampilan gambar penuh.\nTugas ini terpisah dari antrean unduhan dan tidak terpengaruh oleh kontrol mulai dan jeda global di pengelola unduhan.\nTugas ini otomatis hilang dari daftar setelah selesai.</string>
+    <string name="single_image_saving_desc">Menyimpan gambar asli…</string>
+    <string name="single_image_save_failed_desc">Gagal menyimpan, ketuk untuk mencoba lagi</string>
     <string name="dlmgr_open_novel_failed">ID novel tidak dikenali, silakan unduh ulang novel ini</string>
     <string name="dlmgr_done_empty_title">Belum ada unduhan yang selesai</string>
     <string name="dlmgr_done_empty_hint">Karya yang selesai diunduh akan muncul di sini</string>
@@ -2056,7 +2060,7 @@
     <string name="dlmgr_done_layout_grid">Tata letak: kisi</string>
     <string name="dlmgr_done_layout_compact">Tata letak: thumbnail</string>
     <string name="dlmgr_clear_active_queue_title">Kosongkan semua unduhan?</string>
-    <string name="dlmgr_clear_active_queue_message">Tugas yang sedang diunduh dan mengantre akan dihentikan dan dihapus.\n(File yang setengah terunduh tidak akan dihapus.)</string>
+    <string name="dlmgr_clear_active_queue_message">Tugas yang sedang diunduh dan mengantre akan dihentikan dan dihapus (penyimpanan satu gambar asli dari tampilan gambar penuh tidak akan dihapus).\n(File yang setengah terunduh tidak akan dihapus.)</string>
     <string name="dlmgr_clear_done_title">Hapus riwayat selesai?</string>
     <string name="dlmgr_clear_done_message">File yang sudah diunduh tidak akan dihapus, hanya tidak terlihat lagi di sini.</string>
     <string name="dlmgr_delete_done_title">Hapus catatan unduhan ini?</string>

@@ -1963,6 +1963,10 @@
     <string name="dlmgr_active_size_failed">Ошибка</string>
     <string name="dlmgr_active_size_unknown">Неизвестно</string>
     <string name="dlmgr_active_size_stalled">Обрыв %1$d/%2$ds</string>
+    <string name="single_image_save_title">Сохранение одного изображения</string>
+    <string name="single_image_save_help_desc">Сохранение одного оригинального изображения запущено со страницы просмотра.\nЗадача не зависит от очереди загрузок и общих кнопок запуска и паузы в менеджере загрузок.\nПосле завершения она автоматически исчезнет из списка.</string>
+    <string name="single_image_saving_desc">Сохранение оригинала…</string>
+    <string name="single_image_save_failed_desc">Не удалось сохранить. Нажмите, чтобы повторить</string>
     <string name="dlmgr_open_novel_failed">Не удалось определить ID новеллы. Скачайте её заново.</string>
     <string name="dlmgr_done_empty_title">Завершённых загрузок пока нет</string>
     <string name="dlmgr_done_empty_hint">Завершённые загрузки появятся здесь</string>
@@ -2028,7 +2032,7 @@
     <string name="dlmgr_done_layout_grid">Вид: сетка</string>
     <string name="dlmgr_done_layout_compact">Вид: компактный</string>
     <string name="dlmgr_clear_active_queue_title">Очистить все загрузки?</string>
-    <string name="dlmgr_clear_active_queue_message">Текущие и ожидающие загрузки будут остановлены и удалены.\n(Частично загруженные файлы на диске сохранятся.)</string>
+    <string name="dlmgr_clear_active_queue_message">Текущие и ожидающие загрузки будут остановлены и удалены (сохранение одного оригинального изображения со страницы просмотра не затрагивается).\n(Частично загруженные файлы на диске сохранятся.)</string>
     <string name="dlmgr_clear_done_title">Очистить историю завершённых?</string>
     <string name="dlmgr_clear_done_message">Скачанные файлы останутся на диске; удалятся только записи из этого списка.</string>
     <string name="dlmgr_delete_done_title">Удалить эту запись о загрузке?</string>

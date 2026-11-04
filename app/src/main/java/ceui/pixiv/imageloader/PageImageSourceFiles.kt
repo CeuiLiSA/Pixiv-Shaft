@@ -21,9 +21,13 @@ import java.io.File
  * **拷贝只发生在真正需要 `File` 的这一侧** —— 这正是渲染层能安心接入统一模型的原因：
  * 它拿的是 [PageImageSource.Local.renderModel]，全程零拷贝。
  */
-suspend fun PageImageSource.awaitFile(context: Context, onProgress: (Int) -> Unit = {}): File? = when (this) {
+suspend fun PageImageSource.awaitFile(
+    context: Context,
+    onDetailedProgress: ((ImageLoadState.Loading) -> Unit)? = null,
+    onProgress: (Int) -> Unit = {},
+): File? = when (this) {
     is PageImageSource.Local -> file ?: copyLocalUriToCache(context, uri)
-    is PageImageSource.Remote -> task.awaitFile(onProgress)
+    is PageImageSource.Remote -> task.awaitFile(onDetailedProgress, onProgress)
     PageImageSource.Unavailable -> null
 }
 

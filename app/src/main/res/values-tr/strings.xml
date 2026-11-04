@@ -1957,6 +1957,10 @@
     <string name="dlmgr_active_size_failed">İndirme başarısız</string>
     <string name="dlmgr_active_size_unknown">Bilinmiyor</string>
     <string name="dlmgr_active_size_stalled">Akış koptu %1$d/%2$ds</string>
+    <string name="single_image_save_title">Tek Görsel Kaydetme</string>
+    <string name="single_image_save_help_desc">Büyük görsel sayfasından başlatılan tek bir orijinal görsel kaydetme görevidir.\nİndirme kuyruğundan bağımsızdır ve indirme yöneticisinin genel başlatma ve duraklatma denetimlerinden etkilenmez.\nTamamlandığında listeden otomatik olarak kaybolur.</string>
+    <string name="single_image_saving_desc">Orijinal görsel kaydediliyor…</string>
+    <string name="single_image_save_failed_desc">Kaydetme başarısız, yeniden denemek için dokunun</string>
     <string name="dlmgr_open_novel_failed">Roman kimliği tanımlanamadı. Lütfen tekrar indirin.</string>
     <string name="dlmgr_done_empty_title">Henüz tamamlanmış indirme yok</string>
     <string name="dlmgr_done_empty_hint">Tamamlanan eserler burada görünecek</string>
@@ -2022,7 +2026,7 @@
     <string name="dlmgr_done_layout_grid">Düzen: Izgara</string>
     <string name="dlmgr_done_layout_compact">Düzen: Kompakt</string>
     <string name="dlmgr_clear_active_queue_title">Tüm indirmeleri temizle?</string>
-    <string name="dlmgr_clear_active_queue_message">Süren ve sırada bekleyen tüm indirmeler durdurulup temizlenecek.\n(Disk üzerinde kısmen indirilmiş dosyalar korunur.)</string>
+    <string name="dlmgr_clear_active_queue_message">Süren ve sırada bekleyen tüm indirmeler durdurulup temizlenecek (büyük görsel sayfasından başlatılan tek bir orijinal görseli kaydetme görevi temizlenmez).\n(Disk üzerinde kısmen indirilmiş dosyalar korunur.)</string>
     <string name="dlmgr_clear_done_title">Tamamlanan kayıtları temizle?</string>
     <string name="dlmgr_clear_done_message">İndirilen dosyalar diskte kalır; yalnızca buradaki kayıtlar silinir.</string>
     <string name="dlmgr_delete_done_title">Bu indirme kaydı silinsin mi?</string>

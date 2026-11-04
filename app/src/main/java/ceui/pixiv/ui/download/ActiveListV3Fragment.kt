@@ -82,6 +82,7 @@ class ActiveListV3Fragment : Fragment() {
      * 实例是应用级的,拿住没有泄漏问题。
      */
     @Inject lateinit var queueDownloadManager: QueueDownloadManager
+    @Inject lateinit var imagePageSaver: ceui.pixiv.download.ImagePageSaver
 
     private val adapter = ActiveAdapterV3()
     private var statusHeader: TextView? = null
@@ -124,6 +125,8 @@ class ActiveListV3Fragment : Fragment() {
         // 多少无关。setHasFixedSize(true) 跳过每次 notifyItem* 重测自身。
         list.setHasFixedSize(true)
 
+        adapter.imagePageSaver = imagePageSaver
+
         // 断流文案「已断流N/10s」的分母：下载 client 的读超时秒数，运行时取、不硬编码。
         adapter.readTimeoutSeconds = downloadReadTimeoutSeconds()
 
@@ -138,11 +141,13 @@ class ActiveListV3Fragment : Fragment() {
                     return@onItemClick
                 }
                 is ActiveSnapshot.UgoiraEntry -> snap.bean
+                is ActiveSnapshot.SinglePageEntry -> snap.illust
             }
             val beans = all.mapNotNull { entry ->
                 when (entry) {
                     is ActiveSnapshot.IllustEntry -> entry.item.illust
                     is ActiveSnapshot.UgoiraEntry -> entry.bean
+                    is ActiveSnapshot.SinglePageEntry -> entry.illust
                 }
             }
             val index = beans.indexOfFirst { it.id == clicked.id }.coerceAtLeast(0)
@@ -222,8 +227,9 @@ class ActiveListV3Fragment : Fragment() {
                     queueDownloadManager.ugoiraInFlightFlow,
                     speedBpsFlow,
                     stallSecondsFlow,
-                ) { snapshot, ugoiras, speedBps, stalledSeconds ->
-                    ActiveFrame(snapshot, ugoiras, speedBps, stalledSeconds)
+                    imagePageSaver.states,
+                ) { snapshot, ugoiras, speedBps, stalledSeconds, singleStates ->
+                    ActiveFrame(snapshot, ugoiras, speedBps, stalledSeconds, singleStates)
                 }
                     .conflate()
                     .flowOn(Dispatchers.Default)
@@ -231,6 +237,7 @@ class ActiveListV3Fragment : Fragment() {
                         val snapshot = frame.snapshot
                         val ugoiras = frame.ugoiras
                         val speedBps = frame.speedBps
+                        val singlePages = frame.singleStates.values.toList()
                         val downloadingCount = snapshot.count { it.state == DownloadItem.DownloadState.DOWNLOADING }
                         val initCount = snapshot.count { it.state == DownloadItem.DownloadState.INIT }
                         val pausedCount = snapshot.count { it.state == DownloadItem.DownloadState.PAUSED }
@@ -264,14 +271,14 @@ class ActiveListV3Fragment : Fragment() {
                         }
                         statusHeader?.text = if (parts.isEmpty()) "—" else parts.joinToString(" · ")
 
-                        adapter.submit(snapshot, ugoiras, frame.stalledSeconds)
-                        val anyWork = snapshot.isNotEmpty() || ugoiras.isNotEmpty()
+                        adapter.submit(snapshot, ugoiras, frame.stalledSeconds, singlePages)
+                        val anyWork = snapshot.isNotEmpty() || ugoiras.isNotEmpty() || singlePages.isNotEmpty()
                         empty.visibility = if (anyWork) View.GONE else View.VISIBLE
                         // 没有任何活跃任务时把"清空"按钮置灰,避免用户在空列表上反复点。
-                        // pause/resume 改走 toolbar menu 后不在这控制 enable 状态 —
-                        // 跨 fragment 同步 menu enable 不值得专开通道,允许空态点击 (no-op)。
-                        btnClear.isEnabled = anyWork
-                        btnClear.alpha = if (anyWork) 1f else 0.4f
+                        // 单图保存不参与清空全部，也不受清空影响。
+                        val hasActiveBulk = snapshot.isNotEmpty() || ugoiras.isNotEmpty()
+                        btnClear.isEnabled = hasActiveBulk
+                        btnClear.alpha = if (hasActiveBulk) 1f else 0.4f
                     }
             }
         }
@@ -361,6 +368,7 @@ private data class ActiveFrame(
     val ugoiras: List<UgoiraInFlight>,
     val speedBps: Long,
     val stalledSeconds: Map<String, Int>,
+    val singleStates: Map<ceui.pixiv.download.ImagePageSaver.PageKey, ceui.pixiv.download.ImagePageSaver.PageState>,
 )
 
 /** 无字节进展满这么久才算断流 —— 不足 1s 的间隙是正常抖动，不算。 */
@@ -609,6 +617,16 @@ private sealed class ActiveSnapshot {
             )
         }
     }
+
+    /** 大图页发起的单张保存子卡片（#1316），排在正在下载队列尾部，完成后自动移出 */
+    data class SinglePageEntry(
+        val pageKey: ceui.pixiv.download.ImagePageSaver.PageKey,
+        val illust: Illust,
+        val page: Int,
+        val state: ceui.pixiv.download.ImagePageSaver.PageState,
+    ) : ActiveSnapshot() {
+        override val key: String get() = "s:" + pageKey.illustId + "_" + pageKey.page
+    }
 }
 
 /**
@@ -641,20 +659,47 @@ private class ActiveAdapterV3 : ListAdapter<ActiveSnapshot, ActiveAdapterV3.VH>(
      */
     var readTimeoutSeconds: Int = 10
 
-    /** ugoira 排在 illust 前面 —— 用户最近触发的批量下载里 ugoira 通常是稀缺关注点。 */
+    var imagePageSaver: ceui.pixiv.download.ImagePageSaver? = null
+
+    companion object {
+        private const val VIEW_TYPE_ACTIVE = 0
+        private const val VIEW_TYPE_SINGLE = 1
+    }
+
+    override fun getItemViewType(pos: Int): Int =
+        when (getItem(pos)) {
+            is ActiveSnapshot.SinglePageEntry -> VIEW_TYPE_SINGLE
+            else -> VIEW_TYPE_ACTIVE
+        }
+
+    /** 单图保存排在整个正在下载的列尾；平时无任务时不可见（#1316） */
     fun submit(
         illusts: List<DownloadItem>,
         ugoiras: List<UgoiraInFlight>,
         stalledSeconds: Map<String, Int>,
+        singlePages: List<ceui.pixiv.download.ImagePageSaver.PageState>,
     ) {
-        val combined = ArrayList<ActiveSnapshot>(illusts.size + ugoiras.size)
+        val combined = ArrayList<ActiveSnapshot>(illusts.size + ugoiras.size + singlePages.size)
         ugoiras.mapTo(combined) { ActiveSnapshot.UgoiraEntry.of(it) }
         illusts.mapTo(combined) { ActiveSnapshot.IllustEntry.of(it, stalledSeconds[it.uuid] ?: 0) }
+        singlePages.mapTo(combined) {
+            ActiveSnapshot.SinglePageEntry(
+                pageKey = ceui.pixiv.download.ImagePageSaver.PageKey(it.illust.id, it.page),
+                illust = it.illust,
+                page = it.page,
+                state = it,
+            )
+        }
         submitList(combined)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
-        val v = LayoutInflater.from(parent.context).inflate(R.layout.cell_download_active_v3, parent, false)
+        val layoutRes = if (viewType == VIEW_TYPE_SINGLE) {
+            R.layout.cell_download_single_save_v3
+        } else {
+            R.layout.cell_download_active_v3
+        }
+        val v = LayoutInflater.from(parent.context).inflate(layoutRes, parent, false)
         return VH(v)
     }
 
@@ -662,6 +707,7 @@ private class ActiveAdapterV3 : ListAdapter<ActiveSnapshot, ActiveAdapterV3.VH>(
         when (val it = getItem(pos)) {
             is ActiveSnapshot.IllustEntry -> bindFullIllust(h, it)
             is ActiveSnapshot.UgoiraEntry -> bindFullUgoira(h, it)
+            is ActiveSnapshot.SinglePageEntry -> bindFullSinglePage(h, it)
         }
     }
 
@@ -674,6 +720,7 @@ private class ActiveAdapterV3 : ListAdapter<ActiveSnapshot, ActiveAdapterV3.VH>(
         when (val it = getItem(pos)) {
             is ActiveSnapshot.IllustEntry -> bindIllustStateAndProgress(h, it)
             is ActiveSnapshot.UgoiraEntry -> bindUgoiraStateAndProgress(h, it)
+            is ActiveSnapshot.SinglePageEntry -> bindSinglePageStateAndProgress(h, it)
         }
     }
 
@@ -734,6 +781,131 @@ private class ActiveAdapterV3 : ListAdapter<ActiveSnapshot, ActiveAdapterV3.VH>(
         // 隐藏按钮避免误点；后续若要做 per-row cancel 再上。
         h.pauseBtn.visibility = View.GONE
         h.cancelBtn.visibility = View.GONE
+    }
+
+    private fun bindFullSinglePage(h: VH, snap: ActiveSnapshot.SinglePageEntry) {
+        val title = snap.illust.title.orEmpty().ifEmpty { snap.illust.id.toString() }
+        h.taskName.text = "${title} · P${snap.page}"
+        bindSinglePageStateAndProgress(h, snap)
+
+        val metaPage = snap.illust.meta_pages?.getOrNull(snap.page)
+        val urls = buildList {
+            metaPage?.image_urls?.let {
+                add(it.square_medium)
+                add(it.medium)
+                add(it.large)
+            }
+            if (snap.page == 0) {
+                snap.illust.image_urls?.let {
+                    add(it.square_medium)
+                    add(it.medium)
+                    add(it.large)
+                }
+            }
+        }.filterNotNull().filter { it.isNotBlank() }.distinct()
+        bindCachedThumb(h, urls)
+
+        h.itemView.setOnClickListener {
+            val p = h.bindingAdapterPosition
+            if (p != RecyclerView.NO_POSITION) {
+                onItemClick?.invoke(getItem(p), currentList)
+            }
+        }
+
+        h.helpBtn?.setOnClickListener {
+            val ctx = h.itemView.context
+            WitDialog.MessageDialogBuilder(ctx)
+                .setTitle(R.string.single_image_save_title)
+                .setMessage(R.string.single_image_save_help_desc)
+                .addAction(R.string.sure) { d, _ -> d.dismiss() }
+                .show()
+        }
+
+        h.cancelBtn.setOnClickListener {
+            imagePageSaver?.cancel(snap.pageKey)
+        }
+    }
+
+    private fun bindSinglePageStateAndProgress(h: VH, snap: ActiveSnapshot.SinglePageEntry) {
+        when (val state = snap.state) {
+            is ceui.pixiv.download.ImagePageSaver.PageState.Saving -> {
+                h.itemView.alpha = 1.0f
+                h.progress.visibility = View.VISIBLE
+                h.progress.isIndeterminate = state.totalBytes <= 0
+                h.percentText.visibility = if (state.totalBytes > 0) View.VISIBLE else View.GONE
+                h.progress.progress = state.percent
+                h.percentText.text = "${state.percent}%"
+                h.sizeText.text = formatSinglePageSizeText(h.sizeText, state.bytesRead, state.totalBytes)
+                h.stateBadge.text = "SAVING"
+                h.stateBadge.setTextColor(Color.parseColor("#4CAF50"))
+
+                h.pauseBtn.setImageResource(R.drawable.ic_baseline_pause_24)
+                h.pauseBtn.contentDescription = h.itemView.context.getString(R.string.dlmgr_queue_action_pause)
+                h.pauseBtn.setOnClickListener {
+                    imagePageSaver?.pause(snap.pageKey)
+                }
+            }
+            is ceui.pixiv.download.ImagePageSaver.PageState.Paused -> {
+                h.itemView.alpha = 0.55f
+                h.progress.visibility = if (state.totalBytes > 0) View.VISIBLE else View.GONE
+                h.progress.isIndeterminate = false
+                h.percentText.visibility = if (state.totalBytes > 0) View.VISIBLE else View.GONE
+                h.progress.progress = state.percent
+                h.percentText.text = "${state.percent}%"
+                h.sizeText.text = formatSinglePageSizeText(h.sizeText, state.bytesRead, state.totalBytes)
+                h.stateBadge.text = "PAUSED"
+                h.stateBadge.setTextColor(Color.parseColor("#FFB454"))
+
+                h.pauseBtn.setImageResource(R.drawable.ic_baseline_play_arrow_24)
+                h.pauseBtn.contentDescription = h.itemView.context.getString(R.string.dlmgr_queue_action_resume)
+                h.pauseBtn.setOnClickListener {
+                    imagePageSaver?.resume(snap.pageKey)
+                }
+            }
+            is ceui.pixiv.download.ImagePageSaver.PageState.Failed -> {
+                h.itemView.alpha = 1.0f
+                h.progress.visibility = View.GONE
+                h.percentText.visibility = View.GONE
+                h.sizeText.text = state.errorMsg ?: h.itemView.context.getString(R.string.single_image_save_failed_desc)
+                h.stateBadge.text = "FAILED"
+                h.stateBadge.setTextColor(Color.parseColor("#FF8B8B"))
+
+                h.pauseBtn.setImageResource(R.drawable.ic_v3_restart)
+                h.pauseBtn.contentDescription = h.itemView.context.getString(R.string.retry)
+                h.pauseBtn.setOnClickListener {
+                    imagePageSaver?.retry(snap.pageKey)
+                }
+            }
+        }
+    }
+
+    /** 单图卡只尝试 Glide 已有缓存，按本页 square → medium → large 依次回退。 */
+    private fun bindCachedThumb(h: VH, urls: List<String>) {
+        val cacheKey = "cache:" + urls.joinToString("|")
+        if (cacheKey == h.lastLoadedUrl) return
+        if (urls.isEmpty()) {
+            Glide.with(h.thumb).clear(h.thumb)
+            h.thumb.setImageDrawable(null)
+        } else {
+            val glide = Glide.with(h.thumb)
+            var request = glide.load(GlideUtil.getUrl(urls.last())).onlyRetrieveFromCache(true)
+            for (url in urls.dropLast(1).asReversed()) {
+                request = glide.load(GlideUtil.getUrl(url))
+                    .onlyRetrieveFromCache(true)
+                    .error(request)
+            }
+            request.placeholder(android.R.color.transparent).into(h.thumb)
+        }
+        h.lastLoadedUrl = cacheKey
+    }
+
+    private fun formatSinglePageSizeText(view: TextView, bytesRead: Long, totalBytes: Long): String {
+        val unknown = view.context.getString(R.string.dlmgr_active_size_unknown)
+        return when {
+            totalBytes > 0 -> "${FileSizeUtil.formatFileSize(bytesRead.coerceAtLeast(0))} / ${FileSizeUtil.formatFileSize(totalBytes)}"
+            bytesRead >= 0 -> "${FileSizeUtil.formatFileSize(bytesRead)} / $unknown"
+            else -> unknown
+        }
     }
 
     /** 缩略图：URL 没变就不 Glide.load —— 这是消除闪烁的关键。 */
@@ -848,6 +1020,7 @@ private class ActiveAdapterV3 : ListAdapter<ActiveSnapshot, ActiveAdapterV3.VH>(
         val percentText: TextView = v.findViewById(R.id.percentText)
         val pauseBtn: ImageView = v.findViewById(R.id.pauseBtn)
         val cancelBtn: ImageView = v.findViewById(R.id.cancelBtn)
+        val helpBtn: ImageView? = v.findViewById(R.id.helpBtn)
         /** 上次 Glide.load 的 URL（含 referer 拼接后）；URL 不变就跳过加载，消除闪烁 */
         var lastLoadedUrl: String? = null
     }
