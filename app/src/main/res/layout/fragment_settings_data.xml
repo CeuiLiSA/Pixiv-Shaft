@@ -219,14 +219,15 @@
                 android:layout_marginTop="14dp"
                 android:background="@drawable/wit_row_top">
 
-                <!-- 右侧数值比其它行长（多一个「（未生效）」后缀），按 M3SetValue 的
-                     maxWidth 150dp 预留；留 130dp 时字体放大后标题会和数值重叠。 -->
+                <!-- 按右侧数值的实际宽度让位；未生效后缀和字体放大时仍保留间距。 -->
                 <LinearLayout
                     style="@style/M3SetTexts"
-                    android:layout_marginEnd="150dp">
+                    android:layout_toStartOf="@id/image_cache_quota"
+                    android:layout_marginEnd="12dp">
 
                     <TextView
                         style="@style/M3SetTitle"
+                        android:breakStrategy="balanced"
                         android:text="@string/setting_image_cache_quota" />
                 </LinearLayout>
 
@@ -243,10 +244,12 @@
 
                 <LinearLayout
                     style="@style/M3SetTexts"
-                    android:layout_marginEnd="150dp">
+                    android:layout_toStartOf="@id/original_cache_quota"
+                    android:layout_marginEnd="12dp">
 
                     <TextView
                         style="@style/M3SetTitle"
+                        android:breakStrategy="balanced"
                         android:text="@string/setting_original_cache_quota" />
                 </LinearLayout>
 
