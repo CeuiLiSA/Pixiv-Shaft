@@ -178,6 +178,16 @@ ID、URL、作者搜索记录仍保留自己的路由与菜单，不按标签处
 - **性能约定**：滤镜 / 强度 / 调节先合成一只 33³ 3D LUT，预览与导出共用 `libshaft_filter.so` 同一个内核（所见即所得）；
   拖动中渲 1/4 像素草稿、停手 120ms 补清晰帧；新增滤镜只写 `ColorOp` 组合，不要在像素循环里加分支。
 
+### 用户卡（2026-11-04 起）
+
+推荐用户、搜索用户、相关用户、正在关注、粉丝、好P友、画师榜共用 `recy_user_preview`（`UserFeedFragment`），走「作品 / 作者」配方：作品预览在上 → 作者身份 → 关注，长相对齐 V3 画师主页。
+
+- **表面**：22dp 卡片，`cardFill` + 12% hairline、零 elevation（`cardSurface(22)`，按下是同形状主题色涟漪），`clipToOutline` 让顶部预览跟随卡片圆角。列表左右 16dp、首卡上方 16dp、卡间 12dp，宽屏整列收到 720dp 居中（`UserCardDecoration`）；不做条目缩放。
+- **预览**：三张 1:1 方图由 ConstraintLayout 按卡宽等分，格间 2dp 缝露出卡底；插画不足用小说封面补位，仍空的格子和加载占位都是 `v3_surface_2`，不用夜间也发亮的固定浅灰。
+- **身份**：44dp 头像 + 1.5dp 主题色描边（同画师主页）；名字 16sp Montserrat SemiBold `v3_text_1` 单行；`@账号` 12sp Montserrat Medium `v3_text_2`（不用 33% alpha 的 `v3_text_3`），没有账号时收起。
+- **关注**：48dp 热区里画 36dp 可见胶囊（`InsetDrawable` 上下 6dp 透明沿，`getPadding` 置空），14sp SemiBold，按下 0.96。未关注 = `pillPrimary` +「关注」+ `onPrimary`；已关注 = `pillSecondary` +「已关注 / 悄悄关注中」+ `textSecondary`，与画师主页同一套文案和颜色。胶囊最宽 160dp、最多两行，长译文与大字体时换行，不挤掉名字列。只改可见性（公开 ↔ 悄悄）时按 `FollowVisibility.changes` 重画屏幕上的那张卡。
+- **状态**：首屏 `UserCardSkeletonView` 按真卡几何画三格 + 头像 + 两条文字 + 胶囊；改卡片尺寸时同步改骨架。顶栏仍是 `fragment_toolbar_feed` 的宿主主色标准顶栏。
+
 ## 哪些是固定的，哪些可以变化
 
 | 固定关系 | 可以随页面变化 |

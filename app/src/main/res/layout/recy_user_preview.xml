@@ -1,101 +1,139 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+<!--
+  用户卡（V3「作品 / 作者」配方）：作品预览在上，作者身份 + 关注在下。推荐用户、搜索用户、相关用户、
+  正在关注、粉丝、好P友、画师榜共用，交互与绑定见 UserFeedFragment。
+
+  - 表面：22dp 卡片，V3Palette.cardFill + 12% hairline、零 elevation，均由代码注入（随主题派生），
+    clipToOutline 让顶部三张图跟着卡片圆角裁切。
+  - 预览：三张 1:1 方图，格间 2dp 缝露出卡底；ConstraintLayout 按比例出高，不再按屏宽手算。
+  - 身份：头像 44dp + 1.5dp 主题色描边（同画师主页）；名字 16sp Montserrat SemiBold v3_text_1，
+    账号 12sp Montserrat Medium v3_text_2（v3_text_3 只有 33% alpha，不承载信息）。
+  - 关注：48dp 热区、36dp 可见胶囊（上下各 6dp 透明沿由代码里的 InsetDrawable 画），未关注是主题实色
+    + onPrimary，已关注是浅色胶囊 + textSecondary，同画师主页。
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/card_pixiv"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:clickable="true"
-    app:cardCornerRadius="30dp"
-    app:cardElevation="@dimen/four_dp"
-    android:foreground="?attr/selectableItemBackground">
+    android:focusable="true"
+    android:orientation="vertical">
 
-    <RelativeLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:importantForAccessibility="noHideDescendants">
 
-        <LinearLayout
-            android:id="@+id/user_follow_linear"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@color/light_bg"
-            android:orientation="horizontal">
+        <ImageView
+            android:id="@+id/user_show_one"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:scaleType="centerCrop"
+            app:layout_constraintDimensionRatio="H,1:1"
+            app:layout_constraintEnd_toStartOf="@id/user_show_two"
+            app:layout_constraintHorizontal_chainStyle="spread_inside"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
-            <ImageView
-                android:id="@+id/user_show_one"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_gravity="start"
-                android:layout_weight="1"
-                android:scaleType="centerCrop" />
+        <ImageView
+            android:id="@+id/user_show_two"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginStart="2dp"
+            android:scaleType="centerCrop"
+            app:layout_constraintDimensionRatio="H,1:1"
+            app:layout_constraintEnd_toStartOf="@id/user_show_three"
+            app:layout_constraintStart_toEndOf="@id/user_show_one"
+            app:layout_constraintTop_toTopOf="parent" />
 
-            <ImageView
-                android:id="@+id/user_show_two"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_gravity="center_horizontal"
-                android:layout_weight="1"
-                android:scaleType="centerCrop" />
+        <ImageView
+            android:id="@+id/user_show_three"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginStart="2dp"
+            android:scaleType="centerCrop"
+            app:layout_constraintDimensionRatio="H,1:1"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/user_show_two"
+            app:layout_constraintTop_toTopOf="parent" />
 
-            <ImageView
-                android:id="@+id/user_show_three"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_gravity="end"
-                android:layout_weight="1"
-                android:scaleType="centerCrop" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
-        </LinearLayout>
-
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:id="@+id/bottom_rela"
-            android:layout_below="@+id/user_follow_linear"
-            android:layout_height="50dp">
-
-            <TextView
-                android:id="@+id/user_name"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textSize="15sp"
-                android:textStyle="bold"
-                android:layout_marginBottom="@dimen/four_dp"
-                android:layout_marginStart="80dp"
-                android:layout_centerVertical="true"
-                android:layout_toStartOf="@+id/post_like_user"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:textColor="?attr/colorPrimary" />
-
-            <ceui.pixiv.witstudio.widget.WitRoundButton
-                android:id="@+id/post_like_user"
-                android:layout_width="wrap_content"
-                android:paddingStart="@dimen/sixteen_dp"
-                android:paddingTop="@dimen/four_dp"
-                android:paddingBottom="@dimen/four_dp"
-                android:textSize="13sp"
-                android:paddingEnd="@dimen/sixteen_dp"
-                app:wit_borderColor="?attr/colorPrimary"
-                android:layout_height="30dp"
-                android:layout_alignParentEnd="true"
-                android:layout_centerVertical="true"
-                android:layout_margin="@dimen/twelve_dip"
-                android:gravity="center"
-                android:text="@string/string_4"
-                android:textColor="?attr/colorPrimary" />
-
-        </RelativeLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="16dp"
+        android:paddingTop="10dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="10dp">
 
         <de.hdodenhof.circleimageview.CircleImageView
             android:id="@+id/user_head"
-            android:layout_width="60dp"
-            android:layout_marginTop="@dimen/eight_dp"
-            android:layout_height="60dp"
-            android:layout_alignBottom="@+id/bottom_rela"
-            android:layout_marginStart="@dimen/twelve_dp"
-            android:layout_marginBottom="@dimen/twelve_dp"
-            app:civ_border_color="#DDDDDD"
-            app:civ_border_width="1dp" />
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:importantForAccessibility="no"
+            app:civ_border_color="?attr/colorPrimary"
+            app:civ_border_width="1.5dp" />
 
-    </RelativeLayout>
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="12dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
 
-</androidx.cardview.widget.CardView>
+            <TextView
+                android:id="@+id/user_name"
+                style="@style/textMontserratSemiBold"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="@color/v3_text_1"
+                android:textSize="16sp"
+                tools:text="Katann" />
+
+            <TextView
+                android:id="@+id/user_account"
+                style="@style/textMontserratMedium"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="@color/v3_text_2"
+                android:textSize="12sp"
+                android:visibility="gone"
+                tools:text="\@katann_art"
+                tools:visibility="visible" />
+
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/post_like_user"
+            style="@style/textMontserratSemiBold"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:gravity="center"
+            android:maxWidth="160dp"
+            android:maxLines="2"
+            android:minWidth="76dp"
+            android:minHeight="48dp"
+            android:paddingStart="18dp"
+            android:paddingTop="14dp"
+            android:paddingEnd="18dp"
+            android:paddingBottom="14dp"
+            android:text="@string/follow"
+            android:textSize="14sp"
+            tools:background="@drawable/bg_v3_pill_primary"
+            tools:textColor="@color/white" />
+
+    </LinearLayout>
+
+</LinearLayout>

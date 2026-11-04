@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- 人气画师榜的纯画师行:头像 + 名字 + 「本周 N 人关注」副标题 + 关注按钮。
      没有代表作预览(trending/users 只回 user_meta),所以不复用 recy_user_preview 的三格卡。
-     关注按钮 / 头像 / 名字的样式对齐 recy_user_preview,交互由 TrendingArtistsFragment 绑定。 -->
+     关注按钮 / 头像 / 名字的样式对齐旧版 recy_user_preview(该卡 2026-11-04 已改 V3,本行未跟进),交互由 TrendingArtistsFragment 绑定。 -->
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/card_pixiv"

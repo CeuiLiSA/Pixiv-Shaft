@@ -1,30 +1,41 @@
 package ceui.pixiv.ui.common
 
-import android.content.Intent
+import android.graphics.Color
+import android.graphics.Rect
+import android.graphics.drawable.Drawable
+import android.graphics.drawable.InsetDrawable
 import android.os.Bundle
 import android.view.View
 import androidx.annotation.LayoutRes
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
 import ceui.lisa.R
+import ceui.lisa.activities.followedLabelRes
 import ceui.lisa.databinding.RecyUserPreviewBinding
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
 import ceui.lisa.utils.PixivOperate
-import ceui.lisa.view.LinearItemDecoration
 import ceui.loxia.User
+import ceui.pixiv.actions.FollowVisibility
 import ceui.pixiv.actions.PixivActions
 import ceui.pixiv.api.model.UserPreview
 import ceui.pixiv.feeds.FeedCell
 import ceui.pixiv.feeds.FeedFragment
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.FeedRenderer
+import ceui.pixiv.feeds.FeedSkeletonView
 import ceui.pixiv.feeds.FeedViewModel
 import ceui.pixiv.feeds.feedRenderer
 import ceui.pixiv.utils.pinHostGlide
 import ceui.pixiv.utils.playToggleHaptic
-import ceui.pixiv.utils.ppppx
-import ceui.pixiv.utils.setOnClick
+import ceui.pixiv.witstudio.theme.V3Palette
+import ceui.pixiv.witstudio.theme.cardSurface
+import ceui.pixiv.witstudio.theme.dp
+import ceui.pixiv.witstudio.theme.hairlinePx
+import ceui.pixiv.witstudio.theme.pressScale
+import ceui.pixiv.witstudio.theme.ripple
+import ceui.pixiv.witstudio.theme.shape
 import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestManager
 
@@ -48,6 +59,10 @@ private val PAYLOAD_USER_FOLLOW = Any()
  *
  * 卡片布局与交互语义源自 legacy `UAdapter`（迁移时逐条对齐）。**该类已随最后一个调用方一起
  * 删除**，要考古去 git 历史，别在工作区找。
+ *
+ * **V3 卡片（2026-11-04）**：长相对齐 V3 画师主页 —— 22dp `cardFill` 卡 + hairline、头像主题色描边、
+ * Montserrat 名字 / 账号、主题实色「关注」与浅色「已关注 / 悄悄关注中」胶囊；列表左右 16dp、卡间 12dp、
+ * 宽屏收到 720dp 居中，首屏画 [UserCardSkeletonView]。几何改动要同步改骨架，见 `recy_user_preview.xml`。
  */
 abstract class UserFeedFragment(
     @LayoutRes contentLayoutId: Int = ceui.pixiv.feeds.R.layout.fragment_feed,
@@ -61,6 +76,12 @@ abstract class UserFeedFragment(
      */
     private val userGlide: RequestManager by lazy { Glide.with(this) }
 
+    /**
+     * 卡底 / 胶囊 / 文字色都从宿主主色派生。换主题会重建 Activity 连同本 Fragment，
+     * 所以按实例缓存一份即可，不必每次 bind 重算。
+     */
+    private val palette: V3Palette by lazy { V3Palette.from(requireContext()) }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         pinHostGlide(userGlide)
@@ -71,11 +92,25 @@ abstract class UserFeedFragment(
             idOf = { it.user?.id },
             transform = { item, followed -> item.withFollowed(followed) },
         ).bind(requireContext(), viewLifecycleOwner)
+        // 「已关注 ↔ 悄悄关注中」只改可见性、不改 is_followed：条目内容没变，DiffUtil 不会重绑，
+        // 得自己按 id 把屏幕上那张卡的胶囊文案刷一下（画师主页长按切换后返回本页就是这条路径）。
+        FollowVisibility.changes.observe(viewLifecycleOwner) { userId ->
+            refreshFollowPill(userId)
+        }
     }
 
     override fun onListReady(listView: RecyclerView) {
-        listView.addItemDecoration(LinearItemDecoration(12.ppppx))
+        listView.addItemDecoration(UserCardDecoration(requireContext()))
+        // 分屏 / 自由窗口改宽度时不一定重建，偏移要跟着新宽度重算一次。首次布局（旧宽 0）不算：
+        // 那一遍 getItemOffsets 读到的已经是真实宽度，再 invalidate 只会白跑一整遍列表布局。
+        listView.addOnLayoutChangeListener { v, left, _, right, _, oldLeft, _, oldRight, _ ->
+            val oldWidth = oldRight - oldLeft
+            if (oldWidth != 0 && right - left != oldWidth) (v as RecyclerView).invalidateItemDecorations()
+        }
     }
+
+    override fun onCreateSkeletonView(layoutManager: RecyclerView.LayoutManager): FeedSkeletonView =
+        UserCardSkeletonView(requireContext())
 
     override fun onCreateRenderers(): List<FeedRenderer<out FeedItem, out ViewBinding>> {
         return listOf(userRenderer())
@@ -84,9 +119,14 @@ abstract class UserFeedFragment(
     private fun userRenderer() = feedRenderer<UserFeedItem, RecyUserPreviewBinding>(
         inflate = RecyUserPreviewBinding::inflate,
         create = { cell ->
-            cell.binding.root.setOnClick { cell.item.user?.id?.let { openUserActivity(it) } }
-            cell.binding.postLikeUser.setOnClick { toggleFollow(cell) }
-            cell.binding.postLikeUser.setOnLongClickListener {
+            val b = cell.binding
+            // 22dp 卡片：主题派生的卡底 + hairline，按下是同形状的主题色涟漪；顶部三张图随轮廓裁圆角。
+            b.root.background = b.root.context.cardSurface(22)
+            b.root.clipToOutline = true
+            b.root.setOnClickListener { cell.itemOrNull?.user?.id?.let { openUserActivity(it) } }
+            b.postLikeUser.pressScale()
+            b.postLikeUser.setOnClickListener { toggleFollow(cell) }
+            b.postLikeUser.setOnLongClickListener {
                 privateFollow(cell)
                 true
             }
@@ -106,7 +146,8 @@ abstract class UserFeedFragment(
         },
         bindPayloads = { cell, payloads ->
             if (payloads.all { it === PAYLOAD_USER_FOLLOW }) {
-                renderFollow(cell.binding, cell.item.user?.is_followed == true)
+                val user = cell.item.user
+                renderFollow(cell.binding, user?.id ?: 0L, user?.is_followed == true)
                 true
             } else {
                 false
@@ -118,21 +159,9 @@ abstract class UserFeedFragment(
         val b = cell.binding
         val preview = cell.item.preview
         val user = preview.user
-        val ctx = b.root.context
 
-        // 3 张方形预览图，边长 = 屏宽/3。默认只显示插画预览（不足留空，见类文档）。
-        val size = ctx.resources.displayMetrics.widthPixels / 3
+        // 3 张 1:1 预览图，边长由布局按卡宽等分（ConstraintLayout 比例），这里只管填图。
         val slots = listOf(b.userShowOne, b.userShowTwo, b.userShowThree)
-        slots.forEach { iv ->
-            // 尺寸没变就别赋值：setLayoutParams 无条件触发 requestLayout，而这里是 fling 帧路径上
-            // 每张卡跑 3 次。屏宽只在旋转/分屏时变，那时 holder 本来就会重新走一遍 bind。
-            val lp = iv.layoutParams
-            if (lp.width != size || lp.height != size) {
-                lp.width = size
-                lp.height = size
-                iv.layoutParams = lp
-            }
-        }
         val illusts = preview.illusts
         // 插画不足的位置用小说封面补位（realCoverUrl 跳过占位图，与作者页 banner 同口径 ——
         // 补位铺一张灰底还不如留空）。三格已被插画占满就别遍历 novels：这是 fling 帧路径，
@@ -145,18 +174,63 @@ abstract class UserFeedFragment(
         slots.forEachIndexed { i, iv ->
             val url = illusts.getOrNull(i)?.image_urls?.let { it.square_medium ?: it.medium }
                 ?: novelCovers.getOrNull(i - illusts.size)
-            userGlide.load(GlideUtil.getUrl(url)).placeholder(R.color.light_bg).into(iv)
+            // 占位 / 补不上的空格是中性浅面（日夜各一档），不再是夜间也亮着的 #f2f2f2。
+            userGlide.load(GlideUtil.getUrl(url)).placeholder(R.color.v3_surface_2).into(iv)
         }
 
         b.userName.text = user?.name ?: ""
+        val account = user?.account
+        b.userAccount.isVisible = !account.isNullOrBlank()
+        if (b.userAccount.isVisible) b.userAccount.text = "@$account" // 同画师主页 / 作品页作者栏
         userGlide.load(GlideUtil.getUrl(user?.profile_image_urls?.medium))
             .error(R.drawable.no_profile).into(b.userHead)
-        renderFollow(b, user?.is_followed == true)
+        renderFollow(b, user?.id ?: 0L, user?.is_followed == true)
     }
 
-    /** 关注按钮文案：已关注 / 关注。 */
-    private fun renderFollow(b: RecyUserPreviewBinding, followed: Boolean) {
-        b.postLikeUser.text = getString(if (followed) R.string.post_unfollow else R.string.post_follow)
+    /**
+     * 关注胶囊，同画师主页：未关注 = 主题实色 +「关注」；已关注 = 浅色胶囊 +「已关注 / 悄悄关注中」
+     * （可见性见 [followedLabelRes]）。底只在关注态翻转时换 —— 这是 fling 帧路径，复用的格子大多
+     * 和上一张卡同态，不必每次都新建一套 drawable。
+     */
+    private fun renderFollow(b: RecyUserPreviewBinding, userId: Long, followed: Boolean) {
+        val pill = b.postLikeUser
+        pill.text = getString(if (followed) followedLabelRes(userId) else R.string.follow)
+        if (pill.getTag(R.id.user_card_follow_state) == followed) return
+        pill.setTag(R.id.user_card_follow_state, followed)
+        pill.background = followPillBackground(pill, followed)
+        pill.setTextColor(if (followed) palette.textSecondary else palette.onPrimary)
+    }
+
+    /**
+     * 48dp 热区里画 36dp 可见胶囊：上下各 6dp 透明沿。⚠️ InsetDrawable 默认把 inset 报成 View
+     * 内边距，会覆盖布局里的 padding（标签流踩过，见 `WitTagFlowView`），所以把 getPadding 置空。
+     */
+    private fun followPillBackground(pill: View, followed: Boolean): Drawable {
+        val ctx = pill.context
+        val edge = ctx.dp(6)
+        val fill = if (followed) palette.pillSecondary(999f, ctx.hairlinePx()) else palette.pillPrimary(999f)
+        return ctx.ripple(insetPill(fill, edge), insetPill(shape(999f, Color.WHITE), edge))
+    }
+
+    private fun insetPill(pill: Drawable, edge: Int): Drawable =
+        object : InsetDrawable(pill, 0, edge, 0, edge) {
+            override fun getPadding(padding: Rect): Boolean {
+                padding.setEmpty()
+                return false
+            }
+        }
+
+    /** 屏幕上这位用户的卡（若在）按 VM 当前关注态重画胶囊；只改了可见性时用。 */
+    private fun refreshFollowPill(userId: Long) {
+        val list = view?.let { feedBinding.feedListView } ?: return
+        for (i in 0 until list.childCount) {
+            val cell = list.getChildViewHolder(list.getChildAt(i)) as? FeedCell<*, *> ?: continue
+            val b = cell.binding as? RecyUserPreviewBinding ?: continue
+            val item = cell.itemOrNull as? UserFeedItem ?: continue
+            if (item.user?.id != userId) continue
+            val followed = (currentUserItem(userId) ?: item).user?.is_followed == true
+            renderFollow(b, userId, followed)
+        }
     }
 
     /** VM 里当前这个用户的最新条目（真源）；已被刷新挤掉则 null。 */
@@ -173,7 +247,6 @@ abstract class UserFeedFragment(
         val userId = tapped.id
         val user = currentUserItem(userId)?.user ?: tapped
         val target = user.is_followed != true
-        renderFollow(cell.binding, target) // 当帧翻文案（异步 updateItems 落地兜底）
         playToggleHaptic(cell.binding.postLikeUser, target)
         applyFollow(userId, target)
         // 复用 legacy follow op：它现在是 PixivActions 的薄封装，本地态 + LIKED_USER 广播当帧
@@ -185,6 +258,9 @@ abstract class UserFeedFragment(
         } else {
             PixivOperate.postUnFollowUser(userId)
         }
+        // 当帧翻胶囊（异步 updateItems 落地兜底）。放在发请求之后：那一步先写可见性，
+        // 「默认悄悄关注」开着时这里才能直接读出「悄悄关注中」。
+        renderFollow(cell.binding, userId, target)
     }
 
     /** 长按 = 私密关注（沿用 legacy 的长按语义）。 */
@@ -193,9 +269,9 @@ abstract class UserFeedFragment(
         val userId = user.id
         // 长按恒为「私密关注」（目标态固定 true），所以不必像 toggleFollow 那样回 VM 读当前态；
         // 失败回滚同 toggleFollow，由队列的 LIKED_USER 广播完成。
-        renderFollow(cell.binding, true)
         applyFollow(userId, true)
         PixivOperate.postFollowUser(userId, Params.TYPE_PRIVATE)
+        renderFollow(cell.binding, userId, true) // 同 toggleFollow：可见性已写入，直接出「悄悄关注中」
     }
 
     private fun applyFollow(userId: Long, followed: Boolean) {

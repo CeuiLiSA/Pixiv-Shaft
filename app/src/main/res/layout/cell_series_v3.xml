@@ -141,7 +141,7 @@
                 android:textSize="13sp"
                 tools:text="画师名" />
 
-            <!-- 高度/内边距照 recy_user_preview 的关注按钮:AppCompatButton 自带的竖向 padding 在
+            <!-- 高度/内边距照旧版用户卡(recy_user_preview 改 V3 之前)的关注按钮:AppCompatButton 自带的竖向 padding 在
                  28dp 里会把 12sp 字切掉上下沿,必须显式给 paddingTop/Bottom + gravity center。 -->
             <ceui.pixiv.witstudio.widget.WitRoundButton
                 android:id="@+id/action"

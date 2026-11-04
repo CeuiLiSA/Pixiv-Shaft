@@ -81,4 +81,6 @@
     <item type="id" name="comment_translation_animator"/>
     <item name="nav_referral_plan" type="id"/>
     <item name="referral_scroll" type="id"/>
+    <!-- UserFeedFragment：用户卡关注胶囊当前画的是哪一态（只在翻转时换 drawable） -->
+    <item type="id" name="user_card_follow_state"/>
 </resources>
