@@ -7,8 +7,8 @@ import android.util.AttributeSet
  * 「动态」页时间线模式（`recy_timeline_illust`，单列大卡）的首屏骨架图：
  * 圆头像 + 画师名/时间两条 → 标题条 → 一整块大图。shimmer / 动画生命周期在 [FeedSkeletonView]。
  *
- * 尺寸照抄真卡：header padding 14dp/10dp、头像 42dp、图区左右各 16dp 且圆角 16dp，
- * 这样首屏从骨架换成真卡时内容不跳位。
+ * 尺寸照抄真卡（2026-11-04 V3 版）：卡片内边距左右 16dp / 上下 14dp、头像 40dp、头像到标题 12dp、
+ * 标题一行约 22dp、标题到图区 10dp、图区圆角 16dp，这样首屏从骨架换成真卡时内容不跳位。
  *
  * 图高按固定 pattern 在 0.6~1.5 倍宽之间循环（真卡就是把作品宽高比钳在这个区间），
  * 确定性 → 零 jitter，尺寸不变不重算。
@@ -19,15 +19,16 @@ class FeedTimelineSkeletonView @JvmOverloads constructor(
 ) : FeedSkeletonView(context, attrs) {
 
     // ── recy_timeline_illust 的真实尺寸 ────────────────────────────
-    private val sideMargin = 16f * density      // 图区(CardView) 左右 margin
-    private val headerPadTop = 14f * density
-    private val headerPadBottom = 10f * density
-    private val avatar = 42f * density
+    private val sideMargin = 16f * density      // 卡片左右内边距
+    private val headerPadTop = 14f * density    // 卡片上内边距
+    private val headerPadBottom = 12f * density // 头像 → 标题
+    private val avatar = 40f * density
     private val avatarTextGap = 12f * density   // 头像 → 名字列
-    private val titleH = 16f * density
-    private val titlePadBottom = 8f * density
+    private val titleH = 16f * density          // 标题条本身
+    private val titleLineH = 22f * density      // 标题一行实际占高（16sp）
+    private val titlePadBottom = 10f * density  // 标题 → 图区
     private val imageCorner = 16f * density
-    private val cardPadBottom = 4f * density
+    private val cardPadBottom = 14f * density   // 卡片下内边距
 
     private val lineCorner = 4f * density
 
@@ -58,10 +59,10 @@ class FeedTimelineSkeletonView @JvmOverloads constructor(
 
             // 标题条
             val titleTop = headerTop + avatar + headerPadBottom
-            out.add(block(sideMargin, titleTop, imageW * 0.68f, titleH, lineCorner))
+            out.add(block(sideMargin, titleTop + (titleLineH - titleH) / 2f, imageW * 0.68f, titleH, lineCorner))
 
             // 大图
-            val imageTop = titleTop + titleH + titlePadBottom
+            val imageTop = titleTop + titleLineH + titlePadBottom
             out.add(block(sideMargin, imageTop, imageW, imageH, imageCorner))
 
             cardTop = imageTop + imageH + cardPadBottom

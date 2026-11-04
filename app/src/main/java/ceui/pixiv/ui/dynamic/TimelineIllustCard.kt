@@ -1,6 +1,8 @@
 package ceui.pixiv.ui.dynamic
 
 import android.annotation.SuppressLint
+import android.graphics.Rect
+import android.view.View
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.view.isVisible
@@ -22,7 +24,6 @@ import ceui.pixiv.feeds.feedRenderer
 import ceui.pixiv.ui.common.IllustFeedItem
 import ceui.pixiv.ui.common.IllustMuteStore
 import ceui.pixiv.utils.clearGlideOnRecycle
-import ceui.pixiv.utils.setOnClick
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.request.RequestOptions.bitmapTransform
@@ -32,10 +33,10 @@ import java.util.Locale
 private const val MIN_HEIGHT_RATIO = 0.6f
 private const val MAX_HEIGHT_RATIO = 1.5f
 
-/** 卡片左右各 16dp margin（recy_timeline_illust 里 CardView 的 layout_marginHorizontal）。 */
-private const val CARD_HORIZONTAL_MARGIN_DP = 32f
+/** 卡片左右各 16dp 内边距（recy_timeline_illust 根布局的 paddingStart / paddingEnd）。 */
+private const val CARD_HORIZONTAL_PADDING_DP = 32f
 
-/** 宫格格子间距（对齐 legacy 的 cellSize 算法）。 */
+/** 宫格格子间距：[TimelineGridGapDecoration] 真的留出这道缝，cellSize 也按它扣，格子才是正方形。 */
 private const val GRID_GAP_DP = 2f
 
 /** 屏蔽态的 Glide 模糊参数，与瀑布流卡逐字一致（IllustStaggerRenderer 的 25/3）。 */
@@ -85,14 +86,16 @@ fun timelineIllustRenderer(
     return feedRenderer(
         inflate = RecyTimelineIllustBinding::inflate,
         create = { cell ->
-            cell.binding.card.setOnClick { handleTap(cell.item) }
+            // 按下反馈是布局里的矩形涟漪（同广场帖子行），不用 setOnClick 那套整卡变 30% 透明
+            cell.binding.card.setOnClickListener { cell.itemOrNull?.let(handleTap) }
             // 宫格的 LayoutManager / Adapter 建一次就跟着 ViewHolder 走。legacy 是每次 bind 都
             // new 一份 GridLayoutManager + GridImageAdapter 塞进内嵌 RecyclerView——fling 时每张
             // 多图卡都要重建一遍适配器，纯浪费。这里只在 bind 时改 spanCount + 换数据。
             cell.binding.imageGrid.apply {
                 layoutManager = GridLayoutManager(context, 2)
+                addItemDecoration(TimelineGridGapDecoration(DensityUtil.dp2px(GRID_GAP_DP)))
                 // 格子点击等价于点整卡（对齐 legacy 的 gridClick）
-                adapter = TimelineGridAdapter { handleTap(cell.item) }
+                adapter = TimelineGridAdapter { cell.itemOrNull?.let(handleTap) }
             }
         },
         recycle = { cell ->
@@ -126,11 +129,11 @@ private fun bindTimelineCard(cell: FeedCell<IllustFeedItem, RecyTimelineIllustBi
     b.title.isVisible = !masked && !title.isNullOrEmpty()
     b.title.text = title ?: ""
 
-    // 图区宽度 = 屏宽 - 卡片左右 margin。图区高度由代码算死（centerCrop 需要确定尺寸），
+    // 图区宽度 = 屏宽 - 卡片左右内边距。图区高度由代码算死（centerCrop 需要确定尺寸），
     // 所以下面每次加载都 override 成这个尺寸：请求宽高比恒等于展示宽高比，复用卡片不会
     // 因为解码时按上一次的旧尺寸裁位图而裁飞（同瀑布流卡，见 project_stagger_glide_override）。
     val imageWidth = ctx.resources.displayMetrics.widthPixels -
-            DensityUtil.dp2px(CARD_HORIZONTAL_MARGIN_DP)
+            DensityUtil.dp2px(CARD_HORIZONTAL_PADDING_DP)
 
     val pages = bean.meta_pages
     val isMulti = bean.page_count > 1 && !pages.isNullOrEmpty()
@@ -276,7 +279,7 @@ private class TimelineGridAdapter(
         val binding = ItemTimelineGridImageBinding.inflate(
             LayoutInflater.from(parent.context), parent, false,
         )
-        binding.root.setOnClick { onCellClick() }
+        binding.root.setOnClickListener { onCellClick() }
         return VH(binding)
     }
 
@@ -310,4 +313,26 @@ private class TimelineGridAdapter(
     }
 
     class VH(val binding: ItemTimelineGridImageBinding) : RecyclerView.ViewHolder(binding.root)
+}
+
+/**
+ * 宫格格子之间的 [GRID_GAP_DP] 缝：每列分摊同样多的左右偏移，所以每格宽度恰好是
+ * `(图区宽 - (列数 - 1) × 缝) / 列数` = bind 时算的 cellSize，格子保持正方形。
+ * 列数在 bind 时会变（2 / 3 列），这里每次现读；换数据走 notifyDataSetChanged，偏移会随之重算。
+ */
+private class TimelineGridGapDecoration(private val gap: Int) : RecyclerView.ItemDecoration() {
+    override fun getItemOffsets(outRect: Rect, view: View, parent: RecyclerView, state: RecyclerView.State) {
+        val span = (parent.layoutManager as? GridLayoutManager)?.spanCount ?: return
+        val position = parent.getChildAdapterPosition(view)
+        if (position == RecyclerView.NO_POSITION) return
+        val column = position % span
+        val start = column * gap / span
+        val end = gap - (column + 1) * gap / span
+        if (parent.layoutDirection == View.LAYOUT_DIRECTION_RTL) {
+            outRect.set(end, 0, start, 0)
+        } else {
+            outRect.set(start, 0, end, 0)
+        }
+        if (position >= span) outRect.top = gap
+    }
 }

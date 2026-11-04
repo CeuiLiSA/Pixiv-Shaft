@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- 动态时间线大卡图上的玻璃小标（浏览·收藏数 / 页数）。60% 黑：图上不再压底部渐变，
+     白字落在纯白插画上合成底约 #666，对比度仍有 5.7:1；胶囊形同 V3 其余小标。 -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
-    <solid android:color="#66000000" />
-    <corners android:radius="12dp" />
+    <solid android:color="#99000000" />
+    <corners android:radius="100dp" />
 </shape>

@@ -6,6 +6,7 @@ import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
+import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.helper.IllustNovelFilter
 import ceui.pixiv.witstudio.theme.V3Palette
@@ -19,6 +20,7 @@ import ceui.pixiv.feeds.pixiv.pixivFeedSource
 import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.ui.common.IllustFeedFragment
 import ceui.pixiv.ui.common.IllustFeedItem
+import ceui.pixiv.ui.common.BottomDividerDecoration
 import ceui.pixiv.ui.common.JustifiedLayoutManager
 import ceui.pixiv.ui.common.observeR18FilterChanges
 
@@ -109,8 +111,11 @@ class FollowingIllustFeedFragment : IllustFeedFragment() {
 
     override fun onListReady(listView: RecyclerView) {
         // 瀑布流卡自身无 margin,靠基类的 8dp SpacesItemDecoration 拉开;
-        // 时间线大卡自带内边距和分隔线,再加 decoration 会双份留白
-        if (!isTimelineMode) {
+        // 时间线大卡自带内边距,条目之间只要一道通栏 hairline(同广场帖子列表,不占位、只画线)。
+        // 切换排布走 rebuildList,会先摘掉全部 decoration 再回到这里,两种模式不会叠加。
+        if (isTimelineMode) {
+            listView.addItemDecoration(BottomDividerDecoration(requireContext(), R.drawable.hairline_divider))
+        } else {
             super.onListReady(listView)
         }
     }

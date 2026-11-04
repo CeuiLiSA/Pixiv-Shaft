@@ -1,41 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Flat surface, no elevation — matches Compose Surface(tonalElevation = 0.dp) -->
+<!--
+  「动态」时间线大卡（V3「作品 / 内容」配方，同广场帖子列表的无界平铺）：
+  - 本列表坐在动态页那张 cardFill 圆角 sheet 里，条目**不套卡底、不画自己的底色**（画 v3_bg 会在
+    筛选条下方裂出撞色横缝），左右 16dp、上下 14dp，条目间是列表的通栏 hairline
+    （FollowingIllustFeedFragment 给的 BottomDividerDecoration），按下是矩形涟漪。
+  - 头部：40dp 头像 + 1.5dp 主题色描边（同用户卡 / 画师主页）→ 名字 15sp Montserrat SemiBold v3_text_1、
+    时间 12sp Montserrat Medium v3_text_2（v3_text_3 只有 33% alpha，不承载信息）。
+  - 标题 16sp SemiBold v3_text_1（卡片标题），最多两行；图区 16dp 圆角，统计 / 页数是图上的玻璃小标。
+  尺寸改动要同步 TimelineIllustCard 的 CARD_HORIZONTAL_PADDING_DP 与 FeedTimelineSkeletonView。
+-->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/card"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@color/v3_bg"
     android:clickable="true"
     android:focusable="true"
     android:foreground="?attr/selectableItemBackground"
-    android:orientation="vertical">
-
-    <!-- Subtle separator between feed items -->
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="0.5dp"
-        android:layout_marginHorizontal="16dp"
-        android:background="@color/v3_border_1" />
+    android:orientation="vertical"
+    android:paddingStart="16dp"
+    android:paddingTop="14dp"
+    android:paddingEnd="16dp"
+    android:paddingBottom="14dp">
 
     <!-- ═══ Header: avatar + name + time ═══ -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingHorizontal="16dp"
-        android:paddingTop="14dp"
-        android:paddingBottom="10dp">
+        android:orientation="horizontal">
 
         <de.hdodenhof.circleimageview.CircleImageView
             android:id="@+id/user_icon"
-            android:layout_width="42dp"
-            android:layout_height="42dp"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:importantForAccessibility="no"
             android:scaleType="centerCrop"
-            app:civ_border_color="@color/v3_border_2"
-            app:civ_border_width="1dp" />
+            app:civ_border_color="?attr/colorPrimary"
+            app:civ_border_width="1.5dp" />
 
         <LinearLayout
             android:layout_width="0dp"
@@ -46,47 +49,47 @@
 
             <TextView
                 android:id="@+id/user_name"
+                style="@style/textMontserratSemiBold"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
                 android:maxLines="1"
                 android:textColor="@color/v3_text_1"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                tools:text="Artist Name" />
+                android:textSize="15sp"
+                tools:text="はむねずこ" />
 
             <TextView
                 android:id="@+id/post_time"
+                style="@style/textMontserratMedium"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
                 android:ellipsize="end"
                 android:maxLines="1"
-                android:textColor="@color/v3_text_3"
+                android:textColor="@color/v3_text_2"
                 android:textSize="12sp"
-                tools:text="3 hours ago" />
+                tools:text="1 天前" />
         </LinearLayout>
     </LinearLayout>
 
-    <!-- ═══ Title (above image, like Compose) ═══ -->
+    <!-- ═══ Title ═══ -->
     <TextView
         android:id="@+id/title"
+        style="@style/textMontserratSemiBold"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
         android:ellipsize="end"
-        android:letterSpacing="-0.01"
         android:maxLines="2"
-        android:paddingHorizontal="16dp"
-        android:paddingBottom="8dp"
         android:textColor="@color/v3_text_1"
-        android:textSize="15sp"
-        tools:text="Illustration Title" />
+        android:textSize="16sp"
+        tools:text="【ラブカ】WATER BLUE NEW WORLD" />
 
-    <!-- ═══ Image area: rounded container + overlays ═══ -->
+    <!-- ═══ Image area: 16dp rounded container + glass overlays ═══ -->
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="10dp"
         app:cardBackgroundColor="@color/v3_surface_2"
         app:cardCornerRadius="16dp"
         app:cardElevation="0dp">
@@ -113,15 +116,7 @@
                 android:overScrollMode="never"
                 android:visibility="gone" />
 
-            <!-- Bottom gradient scrim -->
-            <View
-                android:id="@+id/gradient_scrim"
-                android:layout_width="match_parent"
-                android:layout_height="72dp"
-                android:layout_gravity="bottom"
-                android:background="@drawable/gradient_bottom_scrim" />
-
-            <!-- Stats pill (bottom-start) -->
+            <!-- Stats pill (bottom-start): 自带足够不透明的玻璃底，不再给整张图压一道底部渐变 -->
             <LinearLayout
                 android:id="@+id/stats_pill"
                 android:layout_width="wrap_content"
@@ -143,13 +138,14 @@
 
                 <TextView
                     android:id="@+id/view_count"
+                    style="@style/textMontserratSemiBold"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="3dp"
+                    android:layout_marginStart="4dp"
+                    android:fontFeatureSettings="tnum"
                     android:textColor="@android:color/white"
-                    android:textSize="11sp"
-                    android:textStyle="bold"
-                    tools:text="1,234" />
+                    android:textSize="12sp"
+                    tools:text="2,846" />
 
                 <ImageView
                     android:layout_width="14dp"
@@ -161,13 +157,14 @@
 
                 <TextView
                     android:id="@+id/bookmark_count"
+                    style="@style/textMontserratSemiBold"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="3dp"
+                    android:layout_marginStart="4dp"
+                    android:fontFeatureSettings="tnum"
                     android:textColor="@android:color/white"
-                    android:textSize="11sp"
-                    android:textStyle="bold"
-                    tools:text="567" />
+                    android:textSize="12sp"
+                    tools:text="950" />
             </LinearLayout>
 
             <!-- Page count badge (top-end) -->
@@ -177,11 +174,11 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="top|end"
                 android:layout_margin="10dp"
-                android:background="@drawable/bg_page_count_overlay"
+                android:background="@drawable/bg_stats_pill"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
-                android:paddingHorizontal="8dp"
-                android:paddingVertical="4dp"
+                android:paddingHorizontal="9dp"
+                android:paddingVertical="5dp"
                 android:visibility="gone"
                 tools:visibility="visible">
 
@@ -194,21 +191,17 @@
 
                 <TextView
                     android:id="@+id/page_count"
+                    style="@style/textMontserratSemiBold"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="4dp"
+                    android:fontFeatureSettings="tnum"
                     android:textColor="@android:color/white"
                     android:textSize="12sp"
-                    android:textStyle="bold"
                     tools:text="3" />
             </LinearLayout>
 
         </FrameLayout>
     </androidx.cardview.widget.CardView>
-
-    <!-- Bottom spacing -->
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="4dp" />
 
 </LinearLayout>

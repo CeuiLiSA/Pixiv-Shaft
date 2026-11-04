@@ -188,6 +188,15 @@ ID、URL、作者搜索记录仍保留自己的路由与菜单，不按标签处
 - **关注**：48dp 热区里画 36dp 可见胶囊（`InsetDrawable` 上下 6dp 透明沿，`getPadding` 置空），14sp SemiBold，按下 0.96。未关注 = `pillPrimary` +「关注」+ `onPrimary`；已关注 = `pillSecondary` +「已关注 / 悄悄关注中」+ `textSecondary`，与画师主页同一套文案和颜色。胶囊最宽 160dp、最多两行，长译文与大字体时换行，不挤掉名字列。只改可见性（公开 ↔ 悄悄）时按 `FollowVisibility.changes` 重画屏幕上的那张卡。
 - **状态**：首屏 `UserCardSkeletonView` 按真卡几何画三格 + 头像 + 两条文字 + 胶囊；改卡片尺寸时同步改骨架。顶栏仍是 `fragment_toolbar_feed` 的宿主主色标准顶栏。
 
+### 动态时间线（2026-11-04 起）
+
+「动态」页时间线模式的大卡 `recy_timeline_illust`（`TimelineIllustCard`）与广场帖子列表同一套**无界平铺**：列表坐在动态页那张 `cardFill` 圆角 sheet 里，所以条目不套卡底、也不画自己的底色（画 `v3_bg` 会在筛选条下方裂出撞色横缝）；左右 16dp、上下 14dp，条目间是通栏 hairline（`BottomDividerDecoration` + `hairline_divider`），按下是矩形涟漪，不用整卡变透明的 `setOnClick`。
+
+- **头部**：40dp 头像 + 1.5dp 主题色描边（同用户卡）→ 名字 15sp Montserrat SemiBold `v3_text_1` → 相对时间 12sp Medium `v3_text_2`。相对时间走 `DateParse.getTimeAgo`，默认（简体中文）资源输出「3 小时前」，各语言另有复数形式。
+- **标题**：头像下 12dp，16sp SemiBold `v3_text_1`，最多两行；屏蔽态隐藏。
+- **图区**：标题下 10dp，16dp 圆角。宫格格间真留 2dp 缝（`TimelineGridGapDecoration`），格子保持正方形，每格按下有涟漪。浏览·收藏数与页数是图上 60% 黑的胶囊玻璃小标（12sp SemiBold `tnum` 白字），不再给整张图压底部渐变；白底插画上合成后对比度约 5.7:1。
+- **骨架**：`FeedTimelineSkeletonView` 按上面的几何画；改卡片尺寸时同步改它和 `CARD_HORIZONTAL_PADDING_DP`。
+
 ## 哪些是固定的，哪些可以变化
 
 | 固定关系 | 可以随页面变化 |
