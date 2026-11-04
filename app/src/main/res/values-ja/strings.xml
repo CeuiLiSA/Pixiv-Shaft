@@ -3091,6 +3091,7 @@
     <string name="setting_auto_snapshot_quota_value">%1$d MB</string>
     <string name="setting_auto_snapshot_quota_value_gb">%1$s GB</string>
     <string name="setting_auto_snapshot_quota_unlimited">無制限</string>
+    <string name="snapshot_auto_quota_exceeded">この作品は自動スナップショットのサイズ上限を超えるため、作成を中止しました</string>
     <string name="snapshot_quota_banner_title">自動スナップショット使用量</string>
     <string name="snapshot_quota_banner_value">%1$s / %2$s</string>
     <string name="snapshot_quota_size_mb_decimal">%1$s MB</string>

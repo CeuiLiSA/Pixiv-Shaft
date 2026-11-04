@@ -3387,6 +3387,7 @@
     <string name="setting_auto_snapshot_quota_value">%1$d MB</string>
     <string name="setting_auto_snapshot_quota_value_gb">%1$s GB</string>
     <string name="setting_auto_snapshot_quota_unlimited">不限</string>
+    <string name="snapshot_auto_quota_exceeded">该作品的大小超出自动快照大小的上限，已取消生成</string>
     <string name="snapshot_quota_banner_title">自动快照占用</string>
     <string name="snapshot_quota_banner_value">%1$s / %2$s</string>
     <string name="snapshot_quota_size_mb_decimal">%1$s MB</string>

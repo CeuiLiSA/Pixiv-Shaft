@@ -3109,6 +3109,7 @@
     <string name="setting_auto_snapshot_quota_value">%1$d МБ</string>
     <string name="setting_auto_snapshot_quota_value_gb">%1$s ГБ</string>
     <string name="setting_auto_snapshot_quota_unlimited">Без ограничений</string>
+    <string name="snapshot_auto_quota_exceeded">Размер этой работы превышает лимит автоснимка. Создание отменено.</string>
     <string name="snapshot_quota_banner_title">Занято автоснимками</string>
     <string name="snapshot_quota_banner_value">%1$s / %2$s</string>
     <string name="snapshot_quota_size_mb_decimal">%1$s МБ</string>

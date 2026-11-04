@@ -22,7 +22,7 @@ class SnapshotOriginalCoverageTest {
     fun oldManifestsFallBackAndPromotionPreservesCount() {
         val gson = Gson()
         val old = gson.fromJson(
-            """{"snapshotId":"old","illustId":42,"includeOriginal":true,"pageCount":2}""",
+            """{"snapshotId":"old","illustId":42,"type":"illust","includeOriginal":true,"pageCount":2}""",
             AutoSnapshotManifest::class.java,
         )
         assertEquals(null, old.originalPageCount)
