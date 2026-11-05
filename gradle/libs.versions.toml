@@ -72,7 +72,6 @@ androidxBrowser = { module = "androidx.browser:browser", version.ref = "browser"
 androidxCardview = { module = "androidx.cardview:cardview", version.ref = "cardview" }
 androidxConstraintLayout = { module = "androidx.constraintlayout:constraintlayout", version.ref = "constraintLayout" }
 androidxCore = { module = "androidx.core:core-ktx", version.ref = "core" }
-androidxCoreBase = { module = "androidx.core:core", version.ref = "core" }
 androidxDocumentFile = { module = "androidx.documentfile:documentfile", version.ref = "documentFile" }
 androidxFragment = { module = "androidx.fragment:fragment-ktx", version.ref = "fragment" }
 androidxInterpolator = { module = "androidx.interpolator:interpolator", version.ref = "interpolator" }
