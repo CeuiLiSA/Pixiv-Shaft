@@ -22,6 +22,16 @@ private fun Illust.urlAt(index: Int, resolution: String): String? =
         .getOrNull()
         ?.takeIf { it.isNotBlank() }
 
+/** 精确的原图 URL；getUrl(ORIGINAL) 会降级到 large，不能用来判断实际画质。 */
+fun Illust.snapshotOriginalPageUrl(index: Int): String? {
+    return if (page_count <= 1) {
+        listOfNotNull(meta_single_page?.original_image_url, image_urls?.original)
+            .firstOrNull { it.isNotBlank() }
+    } else {
+        meta_pages?.getOrNull(index)?.image_urls?.original?.takeIf { it.isNotBlank() }
+    }
+}
+
 /** 生成快照时第 [index] 页要下载哪一档：勾了原图取 ORIGINAL，否则取 LARGE，都拿不到再逐级兜底。 */
 fun Illust.snapshotPageUrl(index: Int, original: Boolean): String? {
     val preferred = if (original) Params.IMAGE_RESOLUTION_ORIGINAL else Params.IMAGE_RESOLUTION_LARGE

@@ -73,10 +73,13 @@ object AutoSnapshotRepository {
         while (autos.isNotEmpty()) {
             val total = autos.sumOf { it.totalSize }
             if (total <= maxBytes) break
-            val oldest = autos.minByOrNull { it.manifest.createdAt } ?: break
+            // 单份已超额时先移除它；否则按 LRU 清旧快照。避免新来的巨型快照清空整个旧库。
+            val victim = autos.firstOrNull { it.totalSize > maxBytes }
+                ?: autos.minByOrNull { it.manifest.createdAt }
+                ?: break
             // 删除失败（deleteRecursively 半途出错等）必须退出：这一份下轮还会被选中，
             // 继续循环就是永不推进的全库扫描死循环。宁可本轮超额，等下次生成再收。
-            if (!deleteAuto(context, oldest.manifest.snapshotId)) break
+            if (!deleteAuto(context, victim.manifest.snapshotId)) break
             autos = listAuto(context)
         }
     }

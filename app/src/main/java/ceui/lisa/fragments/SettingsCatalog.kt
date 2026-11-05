@@ -236,6 +236,7 @@ object SettingsCatalog {
             add(Entry(EXPERIMENTAL, "show_chat_room_push_banner_rela", R.string.setting_show_chat_room_push_banner, keywords = "推送 横幅 新消息 通知 banner push"))
         }
         add(Entry(EXPERIMENTAL, "auto_snapshot_quota_rela", R.string.setting_auto_snapshot_quota, R.string.setting_auto_snapshot_quota_desc, keywords = "自动快照 离线快照 大小 上限 配额 存储 不限 snapshot quota limit size"))
+        add(Entry(EXPERIMENTAL, "auto_snapshot_prefer_cached_original_rela", R.string.setting_auto_snapshot_prefer_cached_original, R.string.setting_auto_snapshot_prefer_cached_original_desc, keywords = "自动快照 原图缓存 优先 原画质 offline snapshot original cache"))
         add(Entry(EXPERIMENTAL, "auto_snapshot_on_bookmark_rela", R.string.setting_auto_snapshot_on_bookmark, R.string.setting_auto_snapshot_on_bookmark_desc, keywords = "自动快照 离线快照 收藏 静默 后台 snapshot bookmark auto"))
         add(Entry(EXPERIMENTAL, "auto_snapshot_on_illust_manga_rela", R.string.setting_auto_snapshot_on_illust_manga, R.string.setting_auto_snapshot_on_illust_manga_desc, keywords = "自动快照 离线快照 插画 漫画 反复进入 长时间驻留 静默 后台 snapshot auto behavior dwell revisit"))
         add(Entry(EXPERIMENTAL, "log_file_enable_rela", R.string.setting_log_file_enable, R.string.setting_log_file_desc, keywords = "日志 文件 调试 落盘 log timber"))

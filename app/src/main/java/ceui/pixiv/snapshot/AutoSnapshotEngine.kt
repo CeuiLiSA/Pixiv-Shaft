@@ -1,7 +1,9 @@
 package ceui.pixiv.snapshot
 
 import android.os.SystemClock
+import ceui.lisa.R
 import ceui.lisa.activities.Shaft
+import ceui.lisa.utils.Common
 import ceui.pixiv.api.model.Illust
 import ceui.pixiv.cache.ObjectPool
 import ceui.pixiv.services.appServices
@@ -13,6 +15,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 
 /**
@@ -28,7 +31,7 @@ import timber.log.Timber
  * 停留，不结算也不评估。被自家半透明层（二级大图页及更上层）盖住时宿主自己先 paused —— 视觉
  * 没离开，表从没停过，回来是空操作。
  *
- * 静默生成：不弹窗、不 toast；失败只记日志，不重试轰炸。
+ * 静默生成：通常不弹窗、不 Toast；单份超配额时提示取消，其他失败只记日志。
  * 选择性启用：收藏走 [Shaft.sSettings.isAutoSnapshotOnBookmark]，行为走
  * [Shaft.sSettings.isAutoSnapshotOnIllustManga]，开关关闭时不采集、不生成。
  */
@@ -266,7 +269,10 @@ object AutoSnapshotEngine {
                     val autoExists = AutoSnapshotRepository.listAuto(appContext).any { it.manifest.illustId == id }
                     if (autoExists) return@withPermit
 
-                    SnapshotGenerator.generateAuto(appContext, ready.illust)
+                    SnapshotGenerator.generateAuto(
+                        appContext, ready.illust,
+                        preferCachedOriginal = Shaft.sSettings.isAutoSnapshotPreferCachedOriginal,
+                    )
                     AutoSnapshotRepository.enforceAutoQuota(appContext)
                     if (ready.behaviorSignal != null && Shaft.sSettings.isAutoSnapshotOnIllustManga) {
                         AutoSnapshotBehaviorStore.markAutoSnapshotGenerated(id, ready.behaviorSignal, score)
@@ -275,6 +281,11 @@ object AutoSnapshotEngine {
                 }
             } catch (ce: CancellationException) {
                 throw ce
+            } catch (e: AutoSnapshotQuotaExceededException) {
+                Timber.tag(TAG).i("auto snapshot cancelled over quota, illustId=%d", id)
+                withContext(Dispatchers.Main) {
+                    Common.showToast(Shaft.getContext().getString(R.string.snapshot_auto_quota_exceeded), true)
+                }
             } catch (e: Exception) {
                 Timber.tag(TAG).w(e, "auto snapshot failed, illustId=%d", id)
             } finally {

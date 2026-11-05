@@ -3059,6 +3059,8 @@
     <string name="snapshot_untitled">Tanpa judul</string>
     <string name="snapshot_badge_comments">Dengan komentar</string>
     <string name="snapshot_badge_original">Gambar asli</string>
+    <string name="snapshot_badge_all_original">Semua asli</string>
+    <string name="snapshot_badge_some_original">Sebagian asli</string>
     <string name="snapshot_comments_title">Komentar</string>
     <string name="snapshot_delete_confirm">Yakin ingin menghapus snapshot «%1$s»? Tindakan ini tidak dapat dibatalkan.</string>
     <string name="snapshot_delete_success">Snapshot dihapus</string>
@@ -3096,6 +3098,7 @@
     <string name="setting_auto_snapshot_quota_value">%1$d MB</string>
     <string name="setting_auto_snapshot_quota_value_gb">%1$s GB</string>
     <string name="setting_auto_snapshot_quota_unlimited">Tanpa batas</string>
+    <string name="snapshot_auto_quota_exceeded">Ukuran karya ini melebihi batas snapshot otomatis. Pembuatan dibatalkan.</string>
     <string name="snapshot_quota_banner_title">Penggunaan snapshot otomatis</string>
     <string name="snapshot_quota_banner_value">%1$s / %2$s</string>
     <string name="snapshot_quota_size_mb_decimal">%1$s MB</string>
@@ -3115,6 +3118,8 @@
     <string name="setting_read_timeout_dialog_hint">Berlaku setelah aplikasi dimulai ulang\nJika bukan nilai default:\nPemuatan gambar akan lebih cepat menampilkan muat ulang\nUnduhan gambar diizinkan sekali timeout putus koneksi dan dicoba ulang diam-diam</string>
     <string name="setting_auto_snapshot_on_illust_manga">Buat snapshot otomatis untuk ilustrasi/manga</string>
     <string name="setting_auto_snapshot_on_illust_manga_desc">Buat snapshot diam-diam untuk ilustrasi/manga yang sering dibuka atau lama dilihat (eksperimental)</string>
+    <string name="setting_auto_snapshot_prefer_cached_original">Utamakan gambar asli yang tersimpan</string>
+    <string name="setting_auto_snapshot_prefer_cached_original_desc">Snapshot otomatis memakai gambar asli yang sudah tersimpan; halaman lain memakai kualitas standar</string>
     <string name="setting_log_file_enable">Aktifkan file log</string>
     <string name="setting_predictive_back">Kembali prediktif</string>
     <string name="setting_predictive_back_desc">Pilih per halaman apakah memakai animasi kembali prediktif sistem; halaman yang dimatikan memakai kembali tradisional. Jika animasi kembali sistem bermasalah (berkedip / halaman bawah tidak normal / tepi warna polos aneh), Anda dapat memeriksa per halaman.</string>

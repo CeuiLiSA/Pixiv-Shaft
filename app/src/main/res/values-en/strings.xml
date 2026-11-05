@@ -3074,6 +3074,8 @@
     <string name="snapshot_untitled">Untitled</string>
     <string name="snapshot_badge_comments">With comments</string>
     <string name="snapshot_badge_original">Original</string>
+    <string name="snapshot_badge_all_original">All originals</string>
+    <string name="snapshot_badge_some_original">Some originals</string>
     <string name="snapshot_comments_title">Comments</string>
     <string name="snapshot_delete_confirm">Delete snapshot “%1$s”? This cannot be undone.</string>
     <string name="snapshot_delete_success">Snapshot deleted</string>
@@ -3113,6 +3115,7 @@
     <string name="setting_auto_snapshot_quota_value">%1$d MB</string>
     <string name="setting_auto_snapshot_quota_value_gb">%1$s GB</string>
     <string name="setting_auto_snapshot_quota_unlimited">Unlimited</string>
+    <string name="snapshot_auto_quota_exceeded">This work exceeds the auto snapshot size limit. Creation cancelled.</string>
     <string name="snapshot_quota_banner_title">Auto snapshots</string>
     <string name="snapshot_quota_banner_value">%1$s / %2$s</string>
     <string name="snapshot_quota_size_mb_decimal">%1$s MB</string>
@@ -3132,6 +3135,8 @@
     <string name="setting_read_timeout_dialog_hint">Takes effect after restarting the app\nWhen not at the default:\nImages show the reload prompt sooner\nDownloads tolerate one stall timeout and retry silently</string>
     <string name="setting_auto_snapshot_on_illust_manga">Auto-create snapshots for illustrations/manga</string>
     <string name="setting_auto_snapshot_on_illust_manga_desc">Quietly create snapshots for illustrations/manga you open repeatedly or dwell on for a long time (experimental)</string>
+    <string name="setting_auto_snapshot_prefer_cached_original">Prefer cached originals for auto snapshots</string>
+    <string name="setting_auto_snapshot_prefer_cached_original_desc">Reuse originals already cached; other pages use standard quality</string>
 
     <!-- Log file (experimental) -->
     <string name="setting_log_file_enable">Enable log file</string>

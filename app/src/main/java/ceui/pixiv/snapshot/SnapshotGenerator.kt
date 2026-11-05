@@ -29,6 +29,10 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicLong
+
+/** [reusedCachedOriginal]：超额的这一份用了「优先复用」的缓存原图，换回普通画质可能装得下。 */
+internal class AutoSnapshotQuotaExceededException(val reusedCachedOriginal: Boolean = false) : Exception()
 
 /**
  * 从在线详情页生成一份离线快照。
@@ -81,7 +85,7 @@ object SnapshotGenerator {
             onProgress = onProgress,
         )
         try {
-            val manifest = content.toSnapshotManifest(includeComments, includeOriginal)
+            val manifest = content.toSnapshotManifest(includeComments)
             writeJson(content.snapshotDir, SNAPSHOT_MANIFEST, manifest)
             // 卡片上的快照标记读的是进程内索引，写完立刻登记：用户从详情页离线化完退回列表，
             // 那张卡不用等下次扫描就该亮起来。
@@ -97,22 +101,50 @@ object SnapshotGenerator {
         context: Context,
         illust: Illust,
         includeOriginal: Boolean = false,
+        preferCachedOriginal: Boolean = false,
         onProgress: suspend (String) -> Unit = {},
     ): AutoSnapshotManifest = withContext(Dispatchers.IO) {
+        try {
+            generateAutoOnce(context, illust, includeOriginal, preferCachedOriginal, onProgress)
+        } catch (e: AutoSnapshotQuotaExceededException) {
+            // 原图只是「优先」：带上缓存原图超额时退回普通画质再试一次，
+            // 不能因为开了优选，反而把关掉时装得下的作品整份取消。
+            if (!e.reusedCachedOriginal) throw e
+            generateAutoOnce(context, illust, includeOriginal, preferCachedOriginal = false, onProgress)
+        }
+    }
+
+    private suspend fun generateAutoOnce(
+        context: Context,
+        illust: Illust,
+        includeOriginal: Boolean,
+        preferCachedOriginal: Boolean,
+        onProgress: suspend (String) -> Unit,
+    ): AutoSnapshotManifest {
+        val maxAutoBytes = AutoSnapshotQuota.maxBytesForLimit(Shaft.sSettings.autoSnapshotMaxMb)
         val content = generateContent(
             context = context,
             illust = illust,
             includeComments = false,
             includeOriginal = includeOriginal,
+            preferCachedOriginal = preferCachedOriginal,
+            maxAutoBytes = maxAutoBytes,
             freshDetail = false,
             onProgress = onProgress,
         )
         try {
-            val manifest = content.toAutoSnapshotManifest(includeOriginal)
+            val manifest = content.toAutoSnapshotManifest()
             writeJson(content.snapshotDir, AUTO_SNAPSHOT_MANIFEST, manifest)
+            // 发布到索引和 LRU 淘汰前按当前设置复核，包含 manifest 本身，也覆盖生成期间调低配额。
+            val actualSize = content.totalSize + File(content.snapshotDir, AUTO_SNAPSHOT_MANIFEST).length()
+            if (actualSize > AutoSnapshotQuota.maxBytesForLimit(Shaft.sSettings.autoSnapshotMaxMb)) {
+                throw AutoSnapshotQuotaExceededException(
+                    reusedCachedOriginal = preferCachedOriginal && !includeOriginal && content.originalPageCount > 0,
+                )
+            }
             // 自动快照同样要算「有快照」：卡片标记不分正式/自动，只是点开时按 isAuto 回读。
             SnapshotIndex.onSnapshotWritten(manifest.illustId, manifest.snapshotId, isAuto = true, manifest.createdAt)
-            manifest
+            return manifest
         } catch (e: Exception) {
             content.snapshotDir.deleteRecursively()
             throw e
@@ -124,6 +156,7 @@ object SnapshotGenerator {
         val snapshotId: String,
         val bean: Illust,
         val pageCount: Int,
+        val originalPageCount: Int,
         val assets: Map<String, String>,
         val pagePaths: List<String>,
         val comments: SnapshotComments?,
@@ -137,6 +170,8 @@ object SnapshotGenerator {
         illust: Illust,
         includeComments: Boolean,
         includeOriginal: Boolean,
+        preferCachedOriginal: Boolean = false,
+        maxAutoBytes: Long = Long.MAX_VALUE,
         freshDetail: Boolean,
         onProgress: suspend (String) -> Unit,
     ): SnapshotContent = withContext(Dispatchers.IO) {
@@ -164,15 +199,21 @@ object SnapshotGenerator {
             val pagePaths = mutableListOf<String>()
 
             val pageCount = bean.page_count.coerceAtLeast(1)
-            // 先把每页的 URL 与目标路径算齐：这一步是纯函数、不碰 IO，于是「第 N 张图缺 URL」会在
-            // 写下任何一个字节之前就抛出来（旧实现是边下边算，前几页已经落盘才发现最后一张没有 URL）。
+            // 先把每页的 URL 与目标路径算齐；缓存优选只查本地原图文件，不发网络请求。
+            // 「第 N 张图缺 URL」会在写下任何图片之前就抛出，避免留下半份快照。
             val pages = (0 until pageCount).map { i ->
-                val url = bean.snapshotPageUrl(i, includeOriginal)
+                val originalUrl = bean.snapshotOriginalPageUrl(i)
+                val cachedOriginal = if (preferCachedOriginal && !includeOriginal && originalUrl != null &&
+                    ImageLoaderV3.peekFile(originalUrl, isOriginal = true) != null
+                ) originalUrl else null
+                val url = cachedOriginal ?: bean.snapshotPageUrl(i, includeOriginal)
                     ?: throw SnapshotException(
                         appContext.getString(R.string.snapshot_error_page_url_missing, i + 1)
                     )
-                SnapshotPage(index = i, url = url, rel = "images/p$i${url.snapshotExtension()}", isOriginal = includeOriginal)
+                SnapshotPage(index = i, url = url, rel = "images/p$i" + url.snapshotExtension(),
+                    isOriginal = url == originalUrl)
             }
+            val reusedCachedOriginal = preferCachedOriginal && !includeOriginal && pages.any { it.isOriginal }
 
             // 进度按「已完成页数」报，第一页落盘前不会有下一条；先报 0/N 切到图片阶段，
             // 否则探测 + 首批下载期间弹窗一直停在「获取作品信息」。
@@ -187,13 +228,27 @@ object SnapshotGenerator {
                 val source = localFiles[i]
                 if (source != null) readyPages += plan to source else pendingPages += plan
             }
+            // 已缓存页本身就装不下时，别再启动其余页面的网络下载。
+            if (maxAutoBytes != Long.MAX_VALUE) {
+                var readyBytes = 0L
+                readyPages.forEach { (_, source) ->
+                    val bytes = source.length()
+                    if (bytes > maxAutoBytes - readyBytes) throw AutoSnapshotQuotaExceededException(reusedCachedOriginal)
+                    readyBytes += bytes
+                }
+            }
 
             // 进度改成「已完成页数」：并行之后页序不再有意义，报页码反而会跳。
             val donePages = AtomicInteger()
+            val imageBytes = AtomicLong()
             val copyGate = Semaphore(COPY_PARALLELISM)
             val downloadGate = Semaphore(DOWNLOAD_PARALLELISM)
 
             fun copyPage(plan: SnapshotPage, source: File) {
+                // 自动快照一旦仅页图就超额，立即停止，不再继续复制或下载剩余页面。
+                if (imageBytes.addAndGet(source.length()) > maxAutoBytes) {
+                    throw AutoSnapshotQuotaExceededException(reusedCachedOriginal)
+                }
                 copyFileTo(source, File(snapshotDir, plan.rel))
             }
 
@@ -276,11 +331,13 @@ object SnapshotGenerator {
 
             val fileCount = snapshotDir.walkTopDown().count { it.isFile }
             val totalSize = snapshotDir.walkTopDown().filter { it.isFile }.sumOf { it.length() }
+            if (totalSize > maxAutoBytes) throw AutoSnapshotQuotaExceededException(reusedCachedOriginal)
             SnapshotContent(
                 snapshotDir = snapshotDir,
                 snapshotId = snapshotId,
                 bean = bean,
                 pageCount = pageCount,
+                originalPageCount = pages.count { it.isOriginal },
                 assets = assets,
                 pagePaths = pagePaths,
                 comments = commentData,
@@ -296,14 +353,14 @@ object SnapshotGenerator {
 
     private fun SnapshotContent.toSnapshotManifest(
         includeComments: Boolean,
-        includeOriginal: Boolean,
     ): SnapshotManifest = SnapshotManifest(
         snapshotId = snapshotId,
         createdAt = createdAt,
         illustId = bean.id,
         type = bean.type ?: "illust",
         includeComments = includeComments,
-        includeOriginal = includeOriginal,
+        includeOriginal = originalPageCount == pageCount,
+        originalPageCount = originalPageCount,
         isBookmarked = bean.isBookmarked,
         isFollowed = bean.user?.is_followed ?: false,
         xRestrict = bean.x_restrict,
@@ -316,15 +373,14 @@ object SnapshotGenerator {
         totalSize = totalSize,
     )
 
-    private fun SnapshotContent.toAutoSnapshotManifest(
-        includeOriginal: Boolean,
-    ): AutoSnapshotManifest = AutoSnapshotManifest(
+    private fun SnapshotContent.toAutoSnapshotManifest(): AutoSnapshotManifest = AutoSnapshotManifest(
         snapshotId = snapshotId,
         createdAt = createdAt,
         illustId = bean.id,
         type = bean.type ?: "illust",
         includeComments = false,
-        includeOriginal = includeOriginal,
+        includeOriginal = originalPageCount == pageCount,
+        originalPageCount = originalPageCount,
         isBookmarked = bean.isBookmarked,
         isFollowed = bean.user?.is_followed ?: false,
         xRestrict = bean.x_restrict,

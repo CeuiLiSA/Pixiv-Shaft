@@ -3068,6 +3068,8 @@
     <string name="snapshot_untitled">Без названия</string>
     <string name="snapshot_badge_comments">С комментариями</string>
     <string name="snapshot_badge_original">Оригинал</string>
+    <string name="snapshot_badge_all_original">Все оригиналы</string>
+    <string name="snapshot_badge_some_original">Часть оригиналов</string>
     <string name="snapshot_comments_title">Комментарии</string>
     <string name="snapshot_delete_confirm">Удалить снимок «%1$s»? Это действие необратимо.</string>
     <string name="snapshot_delete_success">Снимок удалён</string>
@@ -3107,6 +3109,7 @@
     <string name="setting_auto_snapshot_quota_value">%1$d МБ</string>
     <string name="setting_auto_snapshot_quota_value_gb">%1$s ГБ</string>
     <string name="setting_auto_snapshot_quota_unlimited">Без ограничений</string>
+    <string name="snapshot_auto_quota_exceeded">Размер этой работы превышает лимит автоснимка. Создание отменено.</string>
     <string name="snapshot_quota_banner_title">Занято автоснимками</string>
     <string name="snapshot_quota_banner_value">%1$s / %2$s</string>
     <string name="snapshot_quota_size_mb_decimal">%1$s МБ</string>
@@ -3126,6 +3129,8 @@
     <string name="setting_read_timeout_dialog_hint">Вступает в силу после перезапуска приложения\nЕсли значение не по умолчанию:\nИзображения быстрее показывают предложение перезагрузить\nЗагрузки допускают один тайм-аут обрыва и повторяются без уведомления</string>
     <string name="setting_auto_snapshot_on_illust_manga">Автосоздание снимков иллюстраций/манги</string>
     <string name="setting_auto_snapshot_on_illust_manga_desc">Тихо создавать снимки для часто открываемых иллюстраций/манги и работ с долгим просмотром (экспериментально)</string>
+    <string name="setting_auto_snapshot_prefer_cached_original">Предпочитать оригиналы из кэша</string>
+    <string name="setting_auto_snapshot_prefer_cached_original_desc">Автоснимки используют только уже сохранённые оригиналы; остальные страницы сохраняются в обычном качестве</string>
 
     <!-- Файл журнала (экспериментально) -->
     <string name="setting_log_file_enable">Включить файл журнала</string>

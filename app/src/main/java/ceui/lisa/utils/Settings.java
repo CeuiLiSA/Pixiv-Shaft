@@ -415,6 +415,9 @@ public class Settings {
 
     private volatile boolean autoSnapshotOnIllustManga = false; // 试验性：插画/漫画自动生成快照
 
+    /** 自动快照只复用已经缓存的原图；默认关闭，升级用户维持原有行为。 */
+    private volatile boolean autoSnapshotPreferCachedOriginal = false;
+
     /** 试验性：自动快照总大小上限（MB）；默认等于旧硬编码 200 MB。 */
     private volatile int autoSnapshotMaxMb = AutoSnapshotQuota.DEFAULT_LIMIT_MB;
 
@@ -1365,6 +1368,14 @@ public class Settings {
 
     public void setAutoSnapshotOnIllustManga(boolean autoSnapshotOnIllustManga) {
         this.autoSnapshotOnIllustManga = autoSnapshotOnIllustManga;
+    }
+
+    public boolean isAutoSnapshotPreferCachedOriginal() {
+        return autoSnapshotPreferCachedOriginal;
+    }
+
+    public void setAutoSnapshotPreferCachedOriginal(boolean enabled) {
+        autoSnapshotPreferCachedOriginal = enabled;
     }
 
     public int getAutoSnapshotMaxMb() {
