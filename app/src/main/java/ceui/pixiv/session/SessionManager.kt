@@ -291,7 +291,7 @@ object SessionManager {
     fun updateSession(userModel: AccountResponse?) {
         revokeAuthSessionIfAccountChanges(userModel)
         if (userModel == null) {
-            prefStore.putString(USER_KEY, "")
+            clearPersistedSession()
             _loggedInAccount.value = AccountResponse()
         } else {
             prefStore.putString(USER_KEY, gson.toJson(userModel))
@@ -302,12 +302,25 @@ object SessionManager {
     fun postUpdateSession(userModel: AccountResponse?) {
         revokeAuthSessionIfAccountChanges(userModel)
         if (userModel == null) {
-            prefStore.putString(USER_KEY, "")
+            clearPersistedSession()
             _loggedInAccount.postValue(AccountResponse())
         } else {
             prefStore.putString(USER_KEY, gson.toJson(userModel))
             _loggedInAccount.postValue(userModel)
         }
+    }
+
+    /**
+     * 退出登录要把会话的**两份**落盘一起清掉：MMKV 这份，和 [Local.saveUser] 每次登录 / 切号
+     * 顺手写进 legacy SharedPreferences 的那份副本（含 refresh_token）。
+     *
+     * 只清 MMKV 的话，下次冷启动 [initialize] 读到空会话就走 [migrateFromLegacyIfNeeded]，
+     * 把那份副本当成老版本待迁移的数据写回来 —— 刚退出（甚至刚勾了「删除账号信息」）的账号
+     * 原样复活（#1330）。用 commit 不用 apply：退出后马上杀进程正是复现路径，apply 来不及落盘。
+     */
+    private fun clearPersistedSession() {
+        prefStore.putString(USER_KEY, "")
+        Shaft.sPreferences?.edit()?.remove(Local.USER)?.commit()
     }
 
     private fun revokeAuthSessionIfAccountChanges(next: AccountResponse?) {
