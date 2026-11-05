@@ -12,6 +12,7 @@ import ceui.lisa.models.FramesBean
 import ceui.lisa.models.GifResponse
 import ceui.pixiv.api.model.Illust
 import ceui.pixiv.download.StageStore
+import ceui.pixiv.services.appServices
 import ceui.lisa.utils.AnimatedGifEncoder
 import ceui.lisa.utils.Params
 import ceui.pixiv.ui.interpolate.RifeInterpolator
@@ -25,6 +26,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -130,8 +132,13 @@ object UgoiraEngine {
     private fun framesFlowFor(illustId: Long): MutableStateFlow<UgoiraFrames?> =
         framesFlows.computeIfAbsent(illustId) { MutableStateFlow(readyFramesCache[illustId]) }
 
-    /** 落一版可播帧序列:写内存缓存 + 广播给正在看的播放器。 */
-    private fun publishFrames(id: Long, frames: UgoiraFrames) {
+    /**
+     * 落一版可播帧序列:写内存缓存 + 广播给正在看的播放器。[generation] 不是当前代(任务已被
+     * [invalidateAll] 作废)就不发布 —— 旧代按旧开关定的变体,写进去就是把刚清掉的旧版写回缓存。
+     * 与 [invalidateAll] 的换代 + 清缓存同在 [lock] 内,两者不会交错。
+     */
+    private fun publishFrames(id: Long, frames: UgoiraFrames, generation: Long) = synchronized(lock) {
+        if (generation != variantGeneration) return@synchronized
         readyFramesCache[id] = frames
         framesFlowFor(id).value = frames
     }
@@ -155,6 +162,9 @@ object UgoiraEngine {
     private val jobs = HashMap<Long, Deferred<UgoiraFrames>>()   // illustId -> 正在跑的共享任务
     private val refs = HashMap<Long, Int>()             // illustId -> 当前观察者数
     private val cancelTimers = HashMap<Long, Job>()     // illustId -> 待触发的「划走取消」计时器
+
+    /** 变体代数:[invalidateAll] 每调一次 +1,[jobs] 里只有当前代的任务。受 [lock] 保护。 */
+    private var variantGeneration = 0L
 
     /** 观察某条 ugoira 的加载进度(进来立刻拿当前值)。 */
     fun progressOf(illustId: Long): StateFlow<UgoiraProgress> = flowFor(illustId).asStateFlow()
@@ -290,12 +300,29 @@ object UgoiraEngine {
     /**
      * RIFE 补帧开关切换时调用:内存里记的是旧变体(原速/补帧)的 gif,全清,下次按新开关重取。
      * 顺带清掉 [rifeHardFailed] —— 用户手动切开关就是「再试一次」的意思。
+     *
+     * 同时作废在跑的任务(等待方无感接到新任务,见 [loadPlayableFrames]),并发一条
+     * [UgoiraVariantChanged] —— 详情页菜单就地切开关时,正在播的那一版靠它换掉。
      */
     @JvmStatic
     fun invalidateAll() {
-        readyFramesCache.clear()
-        framesFlows.clear()
+        // 在跑的任务开工时就按旧开关定了变体:放着不管,关了补帧还在跑分钟级 GPU,开了补帧却
+        // 播出原速版。换代后取消它们,等待方在 [loadPlayableFrames] 里按新开关接着等。
+        val stale = synchronized(lock) {
+            variantGeneration++
+            readyFramesCache.clear()
+            framesFlows.clear()
+            jobs.values.toList().also { jobs.clear() }
+        }
         rifeHardFailed = false
+        // 锁外取消:等待方可能在当前线程被同步唤醒,再进 acquire/rejoin 拿锁。
+        stale.forEach { it.cancel() }
+        // 已经播上的那一版不会自己换:通知正在播的播放器按新开关重取。
+        val result = Shaft.getContext().appServices().ugoiraVariantChangePublisher
+            .tryPublish(UgoiraVariantChanged)
+        Timber.tag(UGOIRA_LOG_TAG).i(
+            "[engine] invalidateAll:作废 %d 个在跑任务,变体切换通知 %s", stale.size, result,
+        )
     }
 
     /**
@@ -371,9 +398,21 @@ object UgoiraEngine {
             Timber.tag(UGOIRA_LOG_TAG).i("[loadPlayableFrames] illust=%d 内存缓存命中 -> %s", id, it.dir.name)
             return it
         }
-        val deferred = acquireJob(illust)
+        var (deferred, generation) = acquireJob(illust)
         try {
-            return deferred.await()
+            while (true) {
+                try {
+                    return deferred.await()
+                } catch (c: CancellationException) {
+                    // 自己被取消(页面退出)照常抛。任务被 invalidateAll 作废(切补帧开关等)时调用方
+                    // 无感:观察者计数不动,换到当前代的任务接着等 —— 逐帧页 / 快照 / 保存都靠这里不中断。
+                    currentCoroutineContext().ensureActive()
+                    readyFramesCache[id]?.let { return it }
+                    val next = rejoinIfSuperseded(illust, generation) ?: throw c
+                    deferred = next.first
+                    generation = next.second
+                }
+            }
         } finally {
             releaseJob(id)
         }
@@ -405,20 +444,35 @@ object UgoiraEngine {
      */
     internal suspend fun <T> withVideoEncoder(block: suspend () -> T): T = videoGate.withPermit { block() }
 
-    /** 观察者 +1,拿到(或新建)共享任务;撤销任何待触发的「划走取消」。 */
-    private fun acquireJob(illust: Illust): Deferred<UgoiraFrames> = synchronized(lock) {
+    /** 观察者 +1,拿到(或新建)当前代的共享任务及其代数;撤销任何待触发的「划走取消」。 */
+    private fun acquireJob(illust: Illust): Pair<Deferred<UgoiraFrames>, Long> = synchronized(lock) {
         val id = illust.id
         val count = (refs[id] ?: 0) + 1
         refs[id] = count
         cancelTimers.remove(id)?.cancel() // 有人(重新)进来了,别取消
+        joinOrStartLocked(illust, count) to variantGeneration
+    }
+
+    /** 等的任务已被 [invalidateAll] 作废:观察者计数不变,换到当前代的任务(没有就新建)。没换过代返回 null。 */
+    private fun rejoinIfSuperseded(illust: Illust, generation: Long): Pair<Deferred<UgoiraFrames>, Long>? =
+        synchronized(lock) {
+            if (generation == variantGeneration) return@synchronized null
+            Timber.tag(UGOIRA_LOG_TAG).i("[loadPlayableFrames] illust=%d 等的任务已被作废,按新开关重取", illust.id)
+            joinOrStartLocked(illust, refs[illust.id] ?: 0) to variantGeneration
+        }
+
+    /** 须持 [lock] 调用。 */
+    private fun joinOrStartLocked(illust: Illust, observers: Int): Deferred<UgoiraFrames> {
+        val id = illust.id
         jobs[id]?.let { existing ->
-            Timber.tag(UGOIRA_LOG_TAG).i("[loadPlayableFrames] illust=%d join 正在跑的任务,await(观察者=%d)", id, count)
-            return@synchronized existing
+            Timber.tag(UGOIRA_LOG_TAG).i("[loadPlayableFrames] illust=%d join 正在跑的任务,await(观察者=%d)", id, observers)
+            return existing
         }
         Timber.tag(UGOIRA_LOG_TAG).i("[loadPlayableFrames] illust=%d 启动新任务,await", id)
-        val d = engineScope.async { runPipeline(illust) }
+        val generation = variantGeneration
+        val d = engineScope.async { runPipeline(illust, generation) }
         jobs[id] = d
-        d
+        return d
     }
 
     /** 观察者 -1;归零且任务还在跑 → 宽限期后仍没人看就取消(省流量 + 让出并发额度)。 */
@@ -464,9 +518,10 @@ object UgoiraEngine {
         id: Long,
         frames: UgoiraFrames,
         flow: MutableStateFlow<UgoiraProgress>,
+        generation: Long,
     ): UgoiraFrames {
         val final = ensureVideo(id, frames, flow)
-        publishFrames(id, final)
+        publishFrames(id, final, generation)
         return final
     }
 
@@ -514,7 +569,7 @@ object UgoiraEngine {
         }
     }
 
-    private suspend fun runPipeline(illust: Illust): UgoiraFrames {
+    private suspend fun runPipeline(illust: Illust, generation: Long): UgoiraFrames {
         val id = illust.id
         val flow = flowFor(id)
         val t0 = System.currentTimeMillis()
@@ -528,7 +583,7 @@ object UgoiraEngine {
 
             // 磁盘上已有想要的那一版帧序列:直接用。
             readFramesDir(framesDirFor(ctx, illust, useRife), useRife)?.let {
-                val ready = finishAndPublish(id, it, flow)
+                val ready = finishAndPublish(id, it, flow, generation)
                 Timber.tag(UGOIRA_LOG_TAG).i(
                     "[pipeline] illust=%d 磁盘命中帧序列 -> %s (%d帧, mp4=%b),直接返回",
                     id, ready.dir.name, ready.files.size, ready.video != null,
@@ -543,7 +598,7 @@ object UgoiraEngine {
             if (useRife) {
                 readFramesDir(framesDirFor(ctx, illust, false), false)?.let { base ->
                     if (!RifeInterpolator.worthInterpolating(base.delaysMs)) {
-                        val ready = finishAndPublish(id, base, flow)
+                        val ready = finishAndPublish(id, base, flow, generation)
                         Timber.tag(UGOIRA_LOG_TAG).i(
                             "[pipeline] illust=%d 磁盘命中原速帧序列且不值得补帧(%d帧,最小延迟%dms,mp4=%b),直接返回",
                             id, ready.files.size, ready.delaysMs.min(), ready.video != null,
@@ -713,7 +768,7 @@ object UgoiraEngine {
             // 只在最终版确定后发布一次:补帧成功就是补帧版,补帧失败/不适用/开关关着就是原速版。
             // 中途不发布 —— 播放器要么不动,要么直接以最终帧率动起来。压制 mp4 也在发布之前
             // 做完(finishAndPublish),免得先播一版软解帧序列再切硬解、看到一次跳变。
-            val ready = finishAndPublish(id, r, flow)
+            val ready = finishAndPublish(id, r, flow, generation)
             Timber.tag(UGOIRA_LOG_TAG).i(
                 "[pipeline] illust=%d ===== SUCCESS ===== %s (%d帧, mp4=%b) 耗时 %dms",
                 id, ready.dir.name, ready.files.size, ready.video != null,

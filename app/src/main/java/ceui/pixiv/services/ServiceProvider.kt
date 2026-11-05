@@ -41,6 +41,14 @@ interface ServicesProvider {
     /** 通用进程内通信容器；业务在组合根创建类型化 topic，再按读写能力注入。 */
     val communicationScope: ceui.pixiv.communication.CommunicationScope
 
+    /** 动图播放变体失效通知的发布端，只给 [ceui.pixiv.ui.bulk.UgoiraEngine.invalidateAll]。 */
+    val ugoiraVariantChangePublisher:
+        ceui.pixiv.communication.EventPublisher<ceui.pixiv.ui.bulk.UgoiraVariantChanged>
+
+    /** 同一 topic 的订阅端：正在播的 [ceui.pixiv.ui.detail.UgoiraPlayerView] 据此按新开关重取。 */
+    val ugoiraVariantChanges:
+        ceui.pixiv.communication.EventSource<ceui.pixiv.ui.bulk.UgoiraVariantChanged>
+
     val prefStore: MMKV
     val networkStateManager: NetworkStateManager
     val entityWrapper: EntityWrapper
