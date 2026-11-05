@@ -64,38 +64,19 @@
 
     </com.google.android.material.appbar.AppBarLayout>
 
-    <com.mxn.soul.flowingdrawer_core.FlowingDrawer
+    <FrameLayout
         android:id="@+id/drawerlayout"
         android:layout_width="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
         android:layout_height="match_parent"
-        android:clipChildren="false"
-        android:layout_below="@+id/app_bar"
-        android:clipToPadding="false"
-        app:edPosition="2"
-        app:edMenuSize="280dp"
-        app:edMenuBackground="@color/fragment_center">
+        android:layout_below="@+id/app_bar">
 
         <androidx.viewpager.widget.ViewPager
             android:layout_width="match_parent"
             android:id="@+id/view_pager"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent" />
 
-        </androidx.viewpager.widget.ViewPager>
-
-        <com.mxn.soul.flowingdrawer_core.FlowingMenuLayout
-            android:id="@+id/menulayout"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-            <FrameLayout
-                android:id="@+id/id_container_menu"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent" />
-
-        </com.mxn.soul.flowingdrawer_core.FlowingMenuLayout>
-
-    </com.mxn.soul.flowingdrawer_core.FlowingDrawer>
+    </FrameLayout>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/hint_list"

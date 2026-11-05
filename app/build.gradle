@@ -330,13 +330,8 @@ dependencies {
     ksp libs.hiltCompiler
     implementation libs.agentwebCore
     implementation libs.androidxWebkit
-    implementation libs.rebound
     implementation libs.htmlTextView
     implementation libs.materialDateTimePicker
-    implementation libs.flowingDrawer
-    // flowingdrawer-core declares these classes in its animation path but its published POM omits
-    // the dependency. Debug/D8 tolerated that; R8 correctly exposes the potential runtime crash.
-    implementation libs.nineOldAndroids
     implementation libs.viewPagerTransforms
     implementation(libs.utilCode) {
         // 它在 POM 里带了 kotlin-android-extensions-runtime:1.3.72；Kotlin 2.2 起
@@ -349,7 +344,6 @@ dependencies {
     // Google Play In-App Review
     implementation libs.googleReview
 
-    implementation libs.colorPicker
     implementation libs.androidxSplashScreen
     implementation libs.roundedImageView
     // net.csdn.roundview.RoundImageView is inflated directly by comment/plaza XML layouts.
@@ -362,7 +356,6 @@ dependencies {
     implementation libs.cronet
 
     implementation libs.lottie
-    implementation libs.hdImageView
 
     implementation project(path: ':models')
     // 列表框架（FeedSource / FeedViewModel / FeedFragment / FeedAdapter）。对 pixiv 一无所知，

@@ -12,6 +12,7 @@ import ceui.lisa.http.ErrorCtrl
 import ceui.pixiv.api.Client
 import ceui.lisa.interfaces.Display
 import ceui.lisa.models.UserDetailResponse
+import ceui.lisa.helper.ReboundSpringChain
 import ceui.lisa.utils.Common
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -76,7 +77,7 @@ class FragmentWorkSpace : BaseLazyFragment<FragmentWorkSpaceBinding>(), Display<
         baseBind.toolbar.toolbar.setNavigationOnClickListener {
             mActivity.finish()
         }
-        Common.animate(baseBind.parentLinear)
+        ReboundSpringChain.animate(baseBind.parentLinear)
         baseBind.submit.setOnClickListener {
             baseBind.progress.visibility = View.VISIBLE
             val map = HashMap<String, String>()

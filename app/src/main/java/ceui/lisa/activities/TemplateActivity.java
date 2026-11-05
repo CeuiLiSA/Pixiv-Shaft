@@ -14,8 +14,6 @@ import androidx.fragment.app.FragmentManager;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.jaredrummler.android.colorpicker.ColorPickerDialogListener;
-
 import ceui.lisa.BuildConfig;
 import ceui.lisa.R;
 import ceui.lisa.databinding.ActivityFragmentBinding;
@@ -30,7 +28,7 @@ import timber.log.Timber;
 
 @AndroidEntryPoint
 public class TemplateActivity extends BaseActivity<ActivityFragmentBinding>
-        implements ColorPickerDialogListener, AnalyticsScreen {
+        implements AnalyticsScreen {
 
     public static final String EXTRA_FRAGMENT = "dataType";
     public static final String EXTRA_KEYWORD = "keyword";
@@ -186,20 +184,5 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding>
         } else {
             return getIntent().getBooleanExtra("hideStatusBar", true);
         }
-    }
-
-    @Override
-    public void onColorSelected(int dialogId, int color) {
-        // 旧版小说阅读器 FragmentNovelHolder 已删除（改用 NovelReaderV3 的设置面板），
-        // 这里的颜色回调不再有承接对象，保留空实现满足接口。
-    }
-
-    @Override
-    public void onDialogDismissed(int dialogId) {
-
-    }
-
-    public void onFontSizeSelected(int size) {
-        // 同上：旧阅读器字号回调已随 FragmentNovelHolder 一并废弃。
     }
 }
