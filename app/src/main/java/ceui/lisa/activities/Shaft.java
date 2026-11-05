@@ -91,6 +91,9 @@ public class Shaft extends Application implements ServicesProvider {
     @Inject ceui.pixiv.actions.PixivActionQueue pixivActionQueue;
     private final ceui.pixiv.communication.CommunicationScope communicationScope =
             new ceui.pixiv.communication.CommunicationScope();
+    // 必须排在 communicationScope 之后：字段按声明顺序初始化。
+    private final ceui.pixiv.communication.EventTopic<ceui.pixiv.ui.bulk.UgoiraVariantChanged> ugoiraVariantChangeTopic =
+            ceui.pixiv.ui.bulk.UgoiraVariantChangesKt.ugoiraVariantChangeTopic(communicationScope);
     @Inject ceui.pixiv.db.discovery.ProfileManager profileManager;
     @Inject ceui.pixiv.db.discovery.DiscoveryPool discoveryPool;
     @Inject ceui.pixiv.actions.AccountOnlineReportOutbox accountOnlineReportOutbox;
@@ -109,6 +112,16 @@ public class Shaft extends Application implements ServicesProvider {
     @Override
     public ceui.pixiv.communication.CommunicationScope getCommunicationScope() {
         return communicationScope;
+    }
+
+    @Override
+    public @NotNull ceui.pixiv.communication.EventPublisher<ceui.pixiv.ui.bulk.UgoiraVariantChanged> getUgoiraVariantChangePublisher() {
+        return ugoiraVariantChangeTopic.getPublisher();
+    }
+
+    @Override
+    public @NotNull ceui.pixiv.communication.EventSource<ceui.pixiv.ui.bulk.UgoiraVariantChanged> getUgoiraVariantChanges() {
+        return ugoiraVariantChangeTopic.getSource();
     }
 
     /**

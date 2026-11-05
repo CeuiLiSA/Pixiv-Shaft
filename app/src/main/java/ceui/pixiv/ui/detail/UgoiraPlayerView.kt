@@ -43,6 +43,9 @@ import ceui.pixiv.ui.bulk.UgoiraPhase
 import ceui.pixiv.ui.bulk.UgoiraProgress
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.ui.bulk.UgoiraFrames
+import ceui.pixiv.communication.android.SubscriberErrorPolicy
+import ceui.pixiv.communication.android.collectIn
+import ceui.pixiv.services.appServices
 import ceui.pixiv.snapshot.SnapshotManagerFragment
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.DataSource
@@ -420,6 +423,8 @@ class UgoiraPlayerView @JvmOverloads constructor(
 
     private var job: Job? = null
     private var transformJob: Job? = null
+    /** 订阅「补帧开关切换」等变体失效通知，跟 [boundOwner] 同寿。 */
+    private var variantJob: Job? = null
     private var maxContentHeight = 0
     private var fitToViewport = false
     private var player: FrameSequencePlayer? = null
@@ -531,6 +536,14 @@ class UgoiraPlayerView @JvmOverloads constructor(
             transformJob = owner.lifecycleScope.launch(Dispatchers.Main.immediate) {
                 imageView.zoomable.userTransformState.collect { applyVideoTransform() }
             }
+            variantJob?.cancel()
+            // RESUMED 才收:不在前台时 lifecycleObserver 已停播,恢复时 startLoad 本来就按新开关重取。
+            variantJob = context.appServices().ugoiraVariantChanges.collectIn(
+                owner,
+                minState = Lifecycle.State.RESUMED,
+                errorPolicy = SubscriberErrorPolicy.ContinueAndReport,
+                onError = { Timber.tag(UGOIRA_LOG_TAG).w(it, "[player] 变体切换后重取失败") },
+            ) { reloadForVariantChange() }
         }
         boundIllust = illust
         this.offline = offline
@@ -572,6 +585,8 @@ class UgoiraPlayerView @JvmOverloads constructor(
         pausePlayback()
         transformJob?.cancel()
         transformJob = null
+        variantJob?.cancel()
+        variantJob = null
         boundOwner?.lifecycle?.removeObserver(lifecycleObserver)
         boundOwner = null
         boundIllust = null
@@ -589,6 +604,19 @@ class UgoiraPlayerView @JvmOverloads constructor(
         glide.clear(imageView)
         imageView.setImageDrawable(null)
         imageView.zoomable.reset()
+    }
+
+    /**
+     * 补帧开关切换 / 删模型 / 清缓存后([UgoiraEngine.invalidateAll]),已经在播的这一版不会自己换,
+     * 按新开关重取 —— 和点「重试」同一条路。没在播的不用管(下次恢复本来就重取);快照帧序列不经引擎。
+     */
+    private fun reloadForVariantChange() {
+        val owner = boundOwner ?: return
+        val illust = boundIllust ?: return
+        if (!playbackActive || offline != null) return
+        Timber.tag(UGOIRA_LOG_TAG).i("[player] illust=%d 变体已切换,按新开关重取", illust.id)
+        pausePlayback()
+        startLoad(owner, illust)
     }
 
     private fun pausePlayback() {

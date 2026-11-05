@@ -25,7 +25,10 @@ import ceui.pixiv.cache.ObjectPool
 import ceui.pixiv.download.DownloadRecordStateSource
 import ceui.pixiv.snapshot.showSnapshotCreateDialog
 import ceui.pixiv.ui.bookmark.SelectTagBottomSheet
+import ceui.pixiv.ui.bulk.UgoiraEngine
 import ceui.pixiv.ui.detail.frames.openUgoiraFrames
+import ceui.pixiv.ui.interpolate.RifeInterpolator
+import ceui.pixiv.ui.interpolate.RifePrefs
 import ceui.pixiv.ui.muted.MuteTagSheet
 import ceui.pixiv.ui.navigation.TemplateRoute
 import ceui.pixiv.ui.share.saveArtworkPoster
@@ -62,6 +65,7 @@ internal class ArtworkV3Actions(
     private val aiHelper: () -> IllustAiHelper?,
     private val onOpenComicReader: () -> Unit,
     private val onForceOriginal: () -> Unit,
+    private val requestRifeModelDownload: () -> Unit,
 ) {
     private val context: Context
         get() = fragment.requireContext()
@@ -206,11 +210,29 @@ internal class ArtworkV3Actions(
 
     fun showMoreMenu() {
         val illust = currentIllust() ?: return
+        if (illust.isGif() && RifePrefs.isEnabled() && !RifeInterpolator.isAvailable(context)) {
+            RifePrefs.setEnabled(false)
+            UgoiraEngine.invalidateAll()
+        }
         fragment.showV3Menu {
             if (illust.isGif()) {
                 item(context.getString(R.string.ugoira_frames_menu), R.drawable.ic_ugoira_frames_24) {
                     openUgoiraFrames(context, illust)
                 }
+                switchItem(
+                    context.getString(R.string.ugoira_rife_enable),
+                    R.drawable.baseline_auto_awesome_24,
+                    isChecked = { RifePrefs.isEnabled() },
+                    onToggle = { enabled ->
+                        if (enabled && !RifeInterpolator.isAvailable(context)) {
+                            requestRifeModelDownload()
+                        } else {
+                            RifePrefs.setEnabled(enabled)
+                            UgoiraEngine.invalidateAll()
+                            Common.showToast(context.getString(R.string.string_428))
+                        }
+                    },
+                )
             }
             if (!illust.isGif() && illust.page_count == 1) {
                 item(context.getString(R.string.comic_reader_enter_illust), R.drawable.ic_baseline_menu_book_24) {

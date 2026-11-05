@@ -10,6 +10,7 @@ import android.view.View
 import android.view.ViewTreeObserver
 import android.widget.FrameLayout
 import android.widget.TextView
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
@@ -55,12 +56,16 @@ import ceui.pixiv.ui.comments.CommentComposerView
 import ceui.pixiv.ui.comments.CommentTarget
 import ceui.pixiv.ui.comments.CommentsComposerViewModel
 import ceui.pixiv.ui.comments.SentComment
+import ceui.pixiv.ui.bulk.UgoiraEngine
 import ceui.pixiv.ui.common.IllustFeedFragment
 import ceui.pixiv.ui.common.scrollToPositionWithOffset
 import ceui.pixiv.ui.common.JustifiedLayoutManager
 import ceui.pixiv.ui.common.JustifiedItemDecoration
 import ceui.pixiv.ui.common.TabletLayout
 import ceui.pixiv.ui.common.staggerIllustRenderer
+import ceui.pixiv.ui.interpolate.RifeInterpolator
+import ceui.pixiv.ui.interpolate.RifeModel
+import ceui.pixiv.ui.interpolate.RifePrefs
 import ceui.pixiv.ui.navigation.TemplateRoute
 import ceui.pixiv.ui.task.PageLoadRetryController
 import ceui.pixiv.ui.task.renderImageLoadStatusBanner
@@ -87,6 +92,23 @@ import timber.log.Timber
 class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
     /** 自动快照计时凭证。跨视图重建存活（与 Fragment 实例同寿），快照模式不用。 */
     private val autoSnapshot = ArtworkAutoSnapshotTracker()
+
+    private val rifeModelDownload = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult(),
+    ) {
+        if (RifeInterpolator.isAvailable(requireContext())) {
+            RifePrefs.setEnabled(true)
+            UgoiraEngine.invalidateAll()
+            Common.showToast(getString(R.string.string_428))
+        }
+    }
+
+    private fun requestRifeModelDownload() {
+        rifeModelDownload.launch(Intent(requireContext(), TemplateActivity::class.java).apply {
+            putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.RIFE_MODEL_DOWNLOAD.key)
+            putExtra("rife_model_name", RifeModel.RIFE_V4_6.name)
+        })
+    }
 
     internal val snapshotId: String?
         get() = arguments?.getString(SnapshotManagerFragment.ARG_SNAPSHOT_ID)
@@ -426,6 +448,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
                 aiHelper = { aiHelper },
                 onOpenComicReader = ::openComicReader,
                 onForceOriginal = ::applyForceOriginal,
+                requestRifeModelDownload = ::requestRifeModelDownload,
             )
         aiHelper?.restoreUpscaleIfRunning(illustId)
 
