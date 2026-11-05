@@ -41,6 +41,7 @@ class V3MenuDialog : DialogFragment() {
 
     private val items = mutableListOf<MenuItem>()
     private val toggles = mutableListOf<Pair<SwitchCompat, MenuItem.Toggle>>()
+    private var syncingToggles = false
 
     fun setItems(newItems: List<MenuItem>): V3MenuDialog {
         items.clear()
@@ -108,8 +109,11 @@ class V3MenuDialog : DialogFragment() {
                     val toggle = row.findViewById<SwitchCompat>(R.id.menu_switch)
                     toggle.contentDescription = item.label
                     toggle.isChecked = item.isChecked()
-                    toggle.setOnClickListener {
-                        item.onToggle(toggle.isChecked)
+                    // 听 checked 变化而不是 click：拖动 / 甩动滑块只走 setChecked，不触发 OnClickListener。
+                    toggle.setOnCheckedChangeListener { _, checked ->
+                        if (syncingToggles) return@setOnCheckedChangeListener
+                        item.onToggle(checked)
+                        // 调用方可能没采纳（如模型缺失 → 跳下载页），按真实状态回写；监听器内 setChecked 不会重入。
                         toggle.isChecked = item.isChecked()
                     }
                     row.setOnClickListener { toggle.performClick() }
@@ -128,7 +132,10 @@ class V3MenuDialog : DialogFragment() {
 
     override fun onResume() {
         super.onResume()
+        // 程序性回写不是用户拨动，不能再走 onToggle（会重复落盘、弹 toast 或再跳一次下载页）。
+        syncingToggles = true
         toggles.forEach { (toggle, item) -> toggle.isChecked = item.isChecked() }
+        syncingToggles = false
     }
 
     override fun onStart() {
