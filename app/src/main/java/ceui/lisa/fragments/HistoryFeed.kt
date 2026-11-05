@@ -1,7 +1,6 @@
 package ceui.lisa.fragments
 
 import android.content.Intent
-import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
@@ -309,10 +308,10 @@ suspend fun deleteHistoryEntities(historyType: Int, entities: List<IllustHistory
 // 定义成 FragmentHistoryList 扩展：renderer 只在 onCreateRenderers() 里 new，随 view 生死，
 // 引用 fragment 的方法安全（不违反 FeedSource 的零捕获约定）。
 
-/** 已挂载或重新挂载的历史插画卡直接读快照索引，隐藏时保留操作行尺寸。 */
+/** 已挂载或重新挂载的历史插画卡直接读快照索引刷新快照标记；多选态不显示。 */
 internal fun renderHistorySnapshotButton(binding: CellHistoryIllustV3Binding, item: HistoryIllustFeedItem) {
-    binding.snapshotButton.isInvisible =
-        item.isSelectionMode || SnapshotIndex.entryFor(item.illust.id) == null
+    binding.snapshotButton.isVisible =
+        !item.isSelectionMode && SnapshotIndex.entryFor(item.illust.id) != null
 }
 
 fun FragmentHistoryList.historyIllustRenderer(): FeedRenderer<HistoryIllustFeedItem, CellHistoryIllustV3Binding> =

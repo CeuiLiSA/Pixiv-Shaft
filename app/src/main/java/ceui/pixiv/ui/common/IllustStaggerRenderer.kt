@@ -8,7 +8,6 @@ import android.graphics.Color
 import android.view.animation.OvershootInterpolator
 import android.widget.ImageView
 import androidx.core.content.ContextCompat
-import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import ceui.lisa.R
@@ -305,7 +304,7 @@ private fun IllustFeedFragment.applyIllustSpoilerMask(
     // 快照标记和爱心同属「叠在图上的操作层」，屏蔽态一起藏（糊掉的图上还写着「本地有快照」没意义）。
     // 但它**不跟 hideLikeButton 走**：有快照这件事和「要不要显示收藏按钮」无关，那时它自己顶到
     // 行尾、正好落在爱心原来的位置上（见 recy_illust_stagger 里操作行那段注释）。
-    binding.snapshotButton.isInvisible = masked || !hasSnapshot
+    binding.snapshotButton.isVisible = !masked && hasSnapshot
     if (masked) {
         resetLikeAnim(binding)
     }
@@ -323,8 +322,8 @@ internal fun IllustFeedFragment.refreshVisibleSnapshotButtons(list: RecyclerView
 
 private fun IllustFeedFragment.updateSnapshotButton(binding: RecyIllustStaggerBinding, bean: Illust) {
     val fakeInvalid = fakeInvalidWorksEnabled && DebugInvalidWorks.shouldFakeAsInvalid(bean.id)
-    binding.snapshotButton.isInvisible =
-        SnapshotIndex.entryFor(bean.id) == null || (!fakeInvalid && isIllustSpoilered(bean))
+    binding.snapshotButton.isVisible =
+        SnapshotIndex.entryFor(bean.id) != null && (fakeInvalid || !isIllustSpoilered(bean))
 }
 
 /** 卡片此刻是不是屏蔽态（本地屏蔽名单 + AI 屏蔽强度）。局部重绑路径共用，口径与全量绑定一致。 */
