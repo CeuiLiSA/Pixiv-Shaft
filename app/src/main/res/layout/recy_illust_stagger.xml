@@ -69,7 +69,8 @@
 
             <!-- 快照标记：这件作品本地有离线快照（含自动快照）时出现，点开直接进离线详情页。
                  与爱心同尺寸同底座、白色 24dp 图标居中；显隐见 IllustStaggerRenderer 的
-                 applyIllustSpoilerMask（屏蔽态跟着爱心一起藏）。 -->
+                 applyIllustSpoilerMask（屏蔽态跟着爱心一起藏）。
+                 隐藏用 GONE 不用 INVISIBLE：4 列窄卡里占位会让操作行换行，把没有快照的横图卡也撑高。 -->
             <FrameLayout
                 android:id="@+id/snapshot_button"
                 android:layout_width="48dp"

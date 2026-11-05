@@ -9,6 +9,7 @@ import android.view.animation.OvershootInterpolator
 import android.widget.ImageView
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
+import androidx.recyclerview.widget.RecyclerView
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.adapters.IllustAdapter
@@ -19,6 +20,7 @@ import ceui.lisa.databinding.RecyIllustStaggerBinding
 import ceui.pixiv.api.model.Illust
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
+import ceui.pixiv.feeds.FeedCell
 import ceui.pixiv.feeds.FeedRenderer
 import ceui.pixiv.feeds.feedRenderer
 import ceui.pixiv.snapshot.SnapshotIndex
@@ -71,14 +73,6 @@ internal val PAYLOAD_ILLUST_SPOILER_CHANGED = Any()
  * 同样不来自 DiffUtil，由 [IllustFeedFragment.onResume] 比对 [IllustFeedFragment.boundHideLikeButton] 后发出。
  */
 internal val PAYLOAD_ILLUST_LIKE_VISIBILITY_CHANGED = Any()
-
-/**
- * 「这件作品有 / 没有离线快照」的局部重绑标记：只重算快照标记的显隐，不碰图、角标和爱心。
- *
- * 同样不来自 DiffUtil —— 快照在磁盘上（[ceui.pixiv.snapshot.SnapshotIndex]），条目内容一个字节没变。
- * 由 [IllustFeedFragment.observeSnapshotRevision] 在「索引扫完」和「快照被增删」时发出。
- */
-internal val PAYLOAD_ILLUST_SNAPSHOT_CHANGED = Any()
 
 /**
  * Glide 请求去重 key（存在 ImageView 的 tag 上）。带 [blurred]：屏蔽态切换时 URL 和尺寸都没变，
@@ -187,13 +181,14 @@ internal fun IllustFeedFragment.staggerIllustRenderer():
             if (spoilered == true) {
                 cell.binding.spoilerParticles.setParticleAnimationRunning(true)
             }
+            cell.itemOrNull?.illust?.let { updateSnapshotButton(cell.binding, it) }
         },
         detach = { cell ->
             cell.binding.spoilerParticles.setParticleAnimationRunning(false)
         },
         changePayload = ::illustLikeChangePayload,
         bindPayloads = payloadBind@ { cell, payloads ->
-            // 模拟开关或快照资格改变会同时改变封面、角标、高度和遮罩；必须走同一套全量绘制。
+            // 失效作品模拟开关会同时改变封面、角标、高度和遮罩；必须走同一套全量绘制。
             // 每个 holder 记住上次开关值，关闭后的局部通知也能逐卡恢复真图。
             if (fakeInvalidWorksEnabled || cell.binding.snapshotButton.tag == true) {
                 return@payloadBind false
@@ -202,8 +197,7 @@ internal fun IllustFeedFragment.staggerIllustRenderer():
             // 所以逐个认领而不是二选一；混进不认识的就整体退回全量绑定
             val known = payloads.all {
                 it === PAYLOAD_ILLUST_LIKE_CHANGED || it === PAYLOAD_ILLUST_SPOILER_CHANGED ||
-                        it === PAYLOAD_ILLUST_LIKE_VISIBILITY_CHANGED ||
-                        it === PAYLOAD_ILLUST_SNAPSHOT_CHANGED
+                        it === PAYLOAD_ILLUST_LIKE_VISIBILITY_CHANGED
             }
             if (known) {
                 if (payloads.any { it === PAYLOAD_ILLUST_LIKE_CHANGED }) {
@@ -232,12 +226,6 @@ internal fun IllustFeedFragment.staggerIllustRenderer():
                                 IllustNovelFilter.shouldBlurAi(cell.item.illust),
                         SnapshotIndex.entryFor(cell.item.illust.id) != null,
                     )
-                }
-                if (payloads.any { it === PAYLOAD_ILLUST_SNAPSHOT_CHANGED }) {
-                    // 索引扫完了 / 快照被增删：只翻这枚标记的显隐，图、角标、爱心一个字节都不用重算
-                    val bean = cell.item.illust
-                    cell.binding.snapshotButton.isVisible =
-                        SnapshotIndex.entryFor(bean.id) != null && !isIllustSpoilered(bean)
                 }
                 true
             } else {
@@ -320,6 +308,22 @@ private fun IllustFeedFragment.applyIllustSpoilerMask(
     if (masked) {
         resetLikeAnim(binding)
     }
+}
+
+/** 索引变化只更新屏上卡片；离屏卡片下次绑定时自然读取新索引，避免 adapter 更新触发 SGLM 重排。 */
+internal fun IllustFeedFragment.refreshVisibleSnapshotButtons(list: RecyclerView) {
+    for (index in 0 until list.childCount) {
+        val cell = list.getChildViewHolder(list.getChildAt(index)) as? FeedCell<*, *> ?: continue
+        val binding = cell.binding as? RecyIllustStaggerBinding ?: continue
+        val bean = (cell.itemOrNull as? IllustFeedItem)?.illust ?: continue
+        updateSnapshotButton(binding, bean)
+    }
+}
+
+private fun IllustFeedFragment.updateSnapshotButton(binding: RecyIllustStaggerBinding, bean: Illust) {
+    val fakeInvalid = fakeInvalidWorksEnabled && DebugInvalidWorks.shouldFakeAsInvalid(bean.id)
+    binding.snapshotButton.isVisible =
+        SnapshotIndex.entryFor(bean.id) != null && (fakeInvalid || !isIllustSpoilered(bean))
 }
 
 /** 卡片此刻是不是屏蔽态（本地屏蔽名单 + AI 屏蔽强度）。局部重绑路径共用，口径与全量绑定一致。 */

@@ -65,7 +65,8 @@
                 app:flexWrap="wrap">
 
                 <!-- 可见底座与删除钮保持 30dp；透明上/左沿扩到 48dp 热区，
-                     窄列由 Flexbox 换行，两个操作都保留在卡片内。 -->
+                     窄列由 Flexbox 换行，两个操作都保留在卡片内。
+                     隐藏用 GONE 不用 INVISIBLE：窄列里占位会让操作行换行，把没有快照的卡也撑高。 -->
                 <FrameLayout
                     android:id="@+id/snapshot_button"
                     android:layout_width="48dp"

@@ -45,7 +45,7 @@ class HistorySnapshotCardTest {
         SnapshotIndex.onSnapshotDeleted("history-test")
     }
 
-    @Test fun `selection and combined payloads hide and restore snapshot without rebinding cover`() {
+    @Test fun `direct snapshot refresh and selection payload hide and restore snapshot without rebinding cover`() {
         val fragment = FragmentHistoryList.newInstance(0)
         val adapter = FeedAdapter(listOf(fragment.historyIllustRenderer()))
         val item = HistoryIllustFeedItem(
@@ -57,7 +57,11 @@ class HistorySnapshotCardTest {
         val binding = cell.binding as CellHistoryIllustV3Binding
         val coverSentinel = Any()
         binding.illustImage.tag = coverSentinel
-        adapter.onBindViewHolder(cell, 0, mutableListOf(PAYLOAD_HISTORY_SNAPSHOT))
+        SnapshotIndex.onSnapshotDeleted("history-test")
+        renderHistorySnapshotButton(binding, item)
+        assertEquals(View.GONE, binding.snapshotButton.visibility)
+        SnapshotIndex.onSnapshotWritten(900001, "history-test", false, 1)
+        renderHistorySnapshotButton(binding, item)
         assertEquals(View.VISIBLE, binding.snapshotButton.visibility)
         adapter.submitList(null)
         adapter.submitList(listOf(item.copy(isSelectionMode = true)))
@@ -67,7 +71,7 @@ class HistorySnapshotCardTest {
         assertEquals(View.VISIBLE, binding.selectCheck.visibility)
         adapter.submitList(null)
         adapter.submitList(listOf(item))
-        adapter.onBindViewHolder(cell, 0, mutableListOf(PAYLOAD_HISTORY_SELECTION, PAYLOAD_HISTORY_SNAPSHOT))
+        adapter.onBindViewHolder(cell, 0, mutableListOf(PAYLOAD_HISTORY_SELECTION))
         assertEquals(View.VISIBLE, binding.snapshotButton.visibility)
         assertEquals(View.VISIBLE, binding.deleteItem.visibility)
         assertEquals(View.GONE, binding.selectCheck.visibility)
@@ -115,6 +119,34 @@ class HistorySnapshotCardTest {
         assertTrue(binding.snapshotButton.width >= 48 * density)
         assertTrue(binding.snapshotButton.height >= 48 * density)
         assertTrue(binding.snapshotButton.isFocusable)
+    }
+
+    /** 隐藏的快照标记不能占位：4 列窄卡里占位会让操作行换行，把没有快照的横图卡撑高（实测 60dp → 96dp）。 */
+    @Test fun `hidden snapshot marker does not stretch narrow four column cards`() {
+        val width = (80 * app.resources.displayMetrics.density).toInt()
+        // 封面所在的那层 FrameLayout 高度必须只由图决定，操作行不能把它撑高。
+        fun assertFrameFitsImage(root: View, image: View) {
+            root.measure(
+                View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+            )
+            assertEquals(image.measuredHeight, (image.parent as View).measuredHeight)
+        }
+
+        val stagger = RecyIllustStaggerBinding.inflate(LayoutInflater.from(app))
+        stagger.illustImage.setHeightRatio(0.75f)
+        assertFrameFitsImage(stagger.root, stagger.illustImage)
+
+        val fragment = FragmentHistoryList.newInstance(0)
+        val cell = FeedAdapter(listOf(fragment.historyIllustRenderer())).createViewHolder(FrameLayout(app), 0)
+        val history = cell.binding as CellHistoryIllustV3Binding
+        history.illustImage.setHeightRatio(0.75f)
+        SnapshotIndex.onSnapshotDeleted("history-test")
+        renderHistorySnapshotButton(
+            history,
+            HistoryIllustFeedItem(IllustHistoryEntity().apply { illustID = 900001 }, Illust(id = 900001, visible = true)),
+        )
+        assertFrameFitsImage(history.root, history.illustImage)
     }
 
     @Test fun `hiding like keeps snapshot visible icon at the original right edge`() {

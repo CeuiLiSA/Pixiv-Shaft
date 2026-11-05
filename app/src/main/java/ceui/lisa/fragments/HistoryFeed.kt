@@ -308,14 +308,11 @@ suspend fun deleteHistoryEntities(historyType: Int, entities: List<IllustHistory
 // 定义成 FragmentHistoryList 扩展：renderer 只在 onCreateRenderers() 里 new，随 view 生死，
 // 引用 fragment 的方法安全（不违反 FeedSource 的零捕获约定）。
 
-/**
- * 「这件作品有 / 没有离线快照」的局部重绑标记（按引用识别）。
- *
- * 和 [PAYLOAD_HISTORY_SELECTION] 一样不来自 DiffUtil：快照在磁盘上（[SnapshotIndex]），
- * 条目内容一个字节没变。由 [FragmentHistoryList.observeSnapshotRevision] 在索引扫完 /
- * 快照被增删时发给插画段 —— 小说没有快照，不发。
- */
-internal val PAYLOAD_HISTORY_SNAPSHOT = Any()
+/** 已挂载或重新挂载的历史插画卡直接读快照索引刷新快照标记；多选态不显示。 */
+internal fun renderHistorySnapshotButton(binding: CellHistoryIllustV3Binding, item: HistoryIllustFeedItem) {
+    binding.snapshotButton.isVisible =
+        !item.isSelectionMode && SnapshotIndex.entryFor(item.illust.id) != null
+}
 
 fun FragmentHistoryList.historyIllustRenderer(): FeedRenderer<HistoryIllustFeedItem, CellHistoryIllustV3Binding> =
     feedRenderer(
@@ -349,6 +346,7 @@ fun FragmentHistoryList.historyIllustRenderer(): FeedRenderer<HistoryIllustFeedI
             }
         },
         recycle = { it.binding.illustImage.clearGlideOnRecycle() },
+        attach = { cell -> cell.itemOrNull?.let { renderHistorySnapshotButton(cell.binding, it) } },
         // 内容指纹（illustID + time，与 equals 同一套）没变、只有选择态翻转 → 走增量，
         // 不重跑 Glide。理由见 PAYLOAD_HISTORY_SELECTION 的注释。
         changePayload = { old, new ->
@@ -363,18 +361,13 @@ fun FragmentHistoryList.historyIllustRenderer(): FeedRenderer<HistoryIllustFeedI
         },
         bindPayloads = { cell, payloads ->
             val item = cell.item
-            if (payloads.isNotEmpty() && payloads.all {
-                    it === PAYLOAD_HISTORY_SNAPSHOT || it === PAYLOAD_HISTORY_SELECTION
-                }) {
-                if (payloads.any { it === PAYLOAD_HISTORY_SELECTION }) {
-                    HistorySelectBadge.bindSelection(
-                        cell.binding.selectCheck, cell.binding.deleteItem,
-                        item.isSelectionMode, item.isSelected,
-                    )
-                }
-                // 进入/退出多选和索引变化都重算，合并 payload 时也不重发封面请求。
-                cell.binding.snapshotButton.isVisible =
-                    !item.isSelectionMode && SnapshotIndex.entryFor(item.illust.id) != null
+            if (payloads.isNotEmpty() && payloads.all { it === PAYLOAD_HISTORY_SELECTION }) {
+                HistorySelectBadge.bindSelection(
+                    cell.binding.selectCheck, cell.binding.deleteItem,
+                    item.isSelectionMode, item.isSelected,
+                )
+                // 进入/退出多选时重算，仍不重发封面请求。
+                renderHistorySnapshotButton(cell.binding, item)
                 true
             } else {
                 false
@@ -433,9 +426,8 @@ fun FragmentHistoryList.historyIllustRenderer(): FeedRenderer<HistoryIllustFeedI
         )
         // 有离线快照的作品在封面右下角挂一枚标记（点开直接进离线详情页）。判定读
         // SnapshotIndex 的内存 Map，绑定热路径上零 IO；索引建好 / 快照增删时由
-        // FragmentHistoryList.observeSnapshotRevision 补绑。多选态不显示，见布局注释。
-        binding.snapshotButton.isVisible =
-            !item.isSelectionMode && SnapshotIndex.entryFor(illust.id) != null
+        // FragmentHistoryList.observeSnapshotRevision 刷新屏上卡片。多选态不显示，见布局注释。
+        renderHistorySnapshotButton(binding, item)
     }
 
 fun FragmentHistoryList.historyNovelRenderer(): FeedRenderer<HistoryNovelFeedItem, CellHistoryNovelV3Binding> =
