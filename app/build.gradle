@@ -89,6 +89,8 @@ android {
         versionCode 43600
         versionName "4.9.9"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        // 仅保留 App 实际支持的语言资源（对齐 locales_config.xml），剔除第三方库自带的 80+ 种未用语言
+        resourceConfigurations += ['zh', 'zh-rCN', 'zh-rTW', 'zh-rHK', 'en', 'ja', 'ko', 'ru', 'tr', 'id', 'in']
         ndk {
             // Production remains arm64-only. CI can request x86_64 so instrumented tests run on
             // GitHub's hardware-accelerated emulator without changing shipped APKs.
