@@ -101,6 +101,8 @@ data class ImageUrls(
     val px_170x170: String? = null,
     val px_50x50: String? = null,
 ) : Serializable {
+    /** 空串 / 纯空白视同缺失、继续往下一档找：`{"url": ""}` 不能把后面能用的 medium 挡掉。全空返回 null。 */
     fun findMaxSizeUrl(): String? =
-        url ?: original ?: large ?: medium ?: square_medium ?: small ?: px_170x170 ?: px_50x50 ?: px_16x16
+        listOf(url, original, large, medium, square_medium, small, px_170x170, px_50x50, px_16x16)
+            .firstOrNull { !it.isNullOrBlank() }
 }

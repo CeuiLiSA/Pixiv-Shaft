@@ -5,6 +5,7 @@ import ceui.lisa.models.ObjectSpec
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotSame
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -51,6 +52,9 @@ class ModelContractsTest {
         assertFalse(User(x_restrict = 0).isR18Enabled())
         assertTrue(User(x_restrict = 2).isR18GEnabled())
         assertEquals("original", ImageUrls(original = "original", medium = "medium").findMaxSizeUrl())
+        assertEquals("medium", ImageUrls(url = "", original = "  ", medium = "medium").findMaxSizeUrl())
+        assertNull(ImageUrls().findMaxSizeUrl())
+        assertNull(ImageUrls(medium = "", px_170x170 = " ").findMaxSizeUrl())
         assertTrue(Novel(novel_ai_type = IllustAIType.CreatedByAI).isCreatedByAI())
     }
 }

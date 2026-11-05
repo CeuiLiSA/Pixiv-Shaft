@@ -1273,6 +1273,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                 && SessionManager.INSTANCE.getLoggedInUser() != null) {
             Glide.with(mContext)
                     .load(GlideUtil.getHead(SessionManager.INSTANCE.getLoggedInUser()))
+                    .error(R.drawable.no_profile)
                     .into(baseBind.userHead);
             baseBind.userName.setText(SessionManager.INSTANCE.getLoggedInUser().getName());
             String mailAddress = SessionManager.INSTANCE.getMailAddress();

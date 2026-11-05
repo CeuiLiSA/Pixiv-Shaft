@@ -98,7 +98,7 @@ class MeFragment : Fragment(R.layout.fragment_me) {
 
         val user = SessionManager.loggedInUser
         if (user != null) {
-            Glide.with(this).load(GlideUtil.getHead(user)).into(avatar)
+            Glide.with(this).load(GlideUtil.getHead(user)).error(R.drawable.no_profile).into(avatar)
             val displayName = user.name?.takeIf { it.isNotBlank() }
                 ?: SessionManager.accountName
                 ?: ""

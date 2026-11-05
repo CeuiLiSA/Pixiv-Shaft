@@ -81,6 +81,7 @@ public class FragmentEditFile extends BaseLazyFragment<FragmentEditFileBinding> 
         }
         Glide.with(mContext)
                 .load(GlideUtil.getHead(SessionManager.INSTANCE.getLoggedInUser()))
+                .error(R.drawable.no_profile)
                 .into(baseBind.userHead);
         baseBind.submit.setOnClickListener(v -> submit());
         baseBind.changeHead.setOnClickListener(v ->

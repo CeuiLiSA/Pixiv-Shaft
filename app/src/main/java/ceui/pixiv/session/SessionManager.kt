@@ -479,7 +479,9 @@ object SessionManager {
             account = fresh.account ?: account,
             name = fresh.name ?: name,
             pixiv_id = fresh.pixiv_id ?: pixiv_id,
-            profile_image_urls = fresh.profile_image_urls ?: profile_image_urls,
+            // 头像对象在但是 `{}` 或全是空串时同样算「没返回」，否则会把会话里能用的头像刷成空圈
+            profile_image_urls = fresh.profile_image_urls?.takeIf { it.findMaxSizeUrl() != null }
+                ?: profile_image_urls,
             is_mail_authorized = fresh.is_mail_authorized ?: is_mail_authorized,
             // 会员状态**只**认调用方显式传进来的那份，不从 [fresh] 里捡。
             //
