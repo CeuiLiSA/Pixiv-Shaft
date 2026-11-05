@@ -58,7 +58,6 @@ timber = "5.0.1"
 toaster = "15.0"
 tracing = "1.2.0"
 utilCode = "1.31.1"
-viewPagerTransforms = "2.0.24"
 webkit = "1.17.1"
 work = "2.9.1"
 zoomImage = "1.4.0"
@@ -136,7 +135,6 @@ roundView = { module = "io.github.csdn-mobile:RoundView", version.ref = "roundVi
 timber = { module = "com.jakewharton.timber:timber", version.ref = "timber" }
 toaster = { module = "com.github.getActivity:Toaster", version.ref = "toaster" }
 utilCode = { module = "com.blankj:utilcodex", version.ref = "utilCode" }
-viewPagerTransforms = { module = "com.ToxicBakery.viewpager.transforms:view-pager-transforms", version.ref = "viewPagerTransforms" }
 zoomImage = { module = "io.github.panpf.zoomimage:zoomimage-view-sketch4", version.ref = "zoomImage" }
 
 [plugins]

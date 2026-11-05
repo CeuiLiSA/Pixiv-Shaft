@@ -332,7 +332,6 @@ dependencies {
     implementation libs.androidxWebkit
     implementation libs.htmlTextView
     implementation libs.materialDateTimePicker
-    implementation libs.viewPagerTransforms
     implementation(libs.utilCode) {
         // 它在 POM 里带了 kotlin-android-extensions-runtime:1.3.72；Kotlin 2.2 起
         // kotlin-parcelize-runtime 自带 kotlinx.android.parcel.*，两份同名类会撞 checkDuplicateClasses。
