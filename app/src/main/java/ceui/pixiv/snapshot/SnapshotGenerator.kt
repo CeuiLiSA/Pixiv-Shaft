@@ -31,7 +31,8 @@ import java.util.UUID
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
 
-internal class AutoSnapshotQuotaExceededException : Exception()
+/** [reusedCachedOriginal]：超额的这一份用了「优先复用」的缓存原图，换回普通画质可能装得下。 */
+internal class AutoSnapshotQuotaExceededException(val reusedCachedOriginal: Boolean = false) : Exception()
 
 /**
  * 从在线详情页生成一份离线快照。
@@ -103,6 +104,23 @@ object SnapshotGenerator {
         preferCachedOriginal: Boolean = false,
         onProgress: suspend (String) -> Unit = {},
     ): AutoSnapshotManifest = withContext(Dispatchers.IO) {
+        try {
+            generateAutoOnce(context, illust, includeOriginal, preferCachedOriginal, onProgress)
+        } catch (e: AutoSnapshotQuotaExceededException) {
+            // 原图只是「优先」：带上缓存原图超额时退回普通画质再试一次，
+            // 不能因为开了优选，反而把关掉时装得下的作品整份取消。
+            if (!e.reusedCachedOriginal) throw e
+            generateAutoOnce(context, illust, includeOriginal, preferCachedOriginal = false, onProgress)
+        }
+    }
+
+    private suspend fun generateAutoOnce(
+        context: Context,
+        illust: Illust,
+        includeOriginal: Boolean,
+        preferCachedOriginal: Boolean,
+        onProgress: suspend (String) -> Unit,
+    ): AutoSnapshotManifest {
         val maxAutoBytes = AutoSnapshotQuota.maxBytesForLimit(Shaft.sSettings.autoSnapshotMaxMb)
         val content = generateContent(
             context = context,
@@ -120,11 +138,13 @@ object SnapshotGenerator {
             // 发布到索引和 LRU 淘汰前按当前设置复核，包含 manifest 本身，也覆盖生成期间调低配额。
             val actualSize = content.totalSize + File(content.snapshotDir, AUTO_SNAPSHOT_MANIFEST).length()
             if (actualSize > AutoSnapshotQuota.maxBytesForLimit(Shaft.sSettings.autoSnapshotMaxMb)) {
-                throw AutoSnapshotQuotaExceededException()
+                throw AutoSnapshotQuotaExceededException(
+                    reusedCachedOriginal = preferCachedOriginal && !includeOriginal && content.originalPageCount > 0,
+                )
             }
             // 自动快照同样要算「有快照」：卡片标记不分正式/自动，只是点开时按 isAuto 回读。
             SnapshotIndex.onSnapshotWritten(manifest.illustId, manifest.snapshotId, isAuto = true, manifest.createdAt)
-            manifest
+            return manifest
         } catch (e: Exception) {
             content.snapshotDir.deleteRecursively()
             throw e
@@ -193,6 +213,7 @@ object SnapshotGenerator {
                 SnapshotPage(index = i, url = url, rel = "images/p$i" + url.snapshotExtension(),
                     isOriginal = url == originalUrl)
             }
+            val reusedCachedOriginal = preferCachedOriginal && !includeOriginal && pages.any { it.isOriginal }
 
             // 进度按「已完成页数」报，第一页落盘前不会有下一条；先报 0/N 切到图片阶段，
             // 否则探测 + 首批下载期间弹窗一直停在「获取作品信息」。
@@ -212,7 +233,7 @@ object SnapshotGenerator {
                 var readyBytes = 0L
                 readyPages.forEach { (_, source) ->
                     val bytes = source.length()
-                    if (bytes > maxAutoBytes - readyBytes) throw AutoSnapshotQuotaExceededException()
+                    if (bytes > maxAutoBytes - readyBytes) throw AutoSnapshotQuotaExceededException(reusedCachedOriginal)
                     readyBytes += bytes
                 }
             }
@@ -226,7 +247,7 @@ object SnapshotGenerator {
             fun copyPage(plan: SnapshotPage, source: File) {
                 // 自动快照一旦仅页图就超额，立即停止，不再继续复制或下载剩余页面。
                 if (imageBytes.addAndGet(source.length()) > maxAutoBytes) {
-                    throw AutoSnapshotQuotaExceededException()
+                    throw AutoSnapshotQuotaExceededException(reusedCachedOriginal)
                 }
                 copyFileTo(source, File(snapshotDir, plan.rel))
             }
@@ -310,7 +331,7 @@ object SnapshotGenerator {
 
             val fileCount = snapshotDir.walkTopDown().count { it.isFile }
             val totalSize = snapshotDir.walkTopDown().filter { it.isFile }.sumOf { it.length() }
-            if (totalSize > maxAutoBytes) throw AutoSnapshotQuotaExceededException()
+            if (totalSize > maxAutoBytes) throw AutoSnapshotQuotaExceededException(reusedCachedOriginal)
             SnapshotContent(
                 snapshotDir = snapshotDir,
                 snapshotId = snapshotId,
