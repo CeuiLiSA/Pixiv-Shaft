@@ -83,11 +83,10 @@ object NcnnUpscaler {
             Timber.d("$tag: input ${bitmap.width}x${bitmap.height} → 2x → ${bitmap.width * 2}x${bitmap.height * 2}")
 
             // Pre-compute estimated total tile rows for CUGAN tile-counter progress
-            // process_se_very_rough: stage0(tile=32,step=3) + stage2(tile=64,step=1)
+            // Real-CUGAN -c 1 runs 4 passes of stage0 (gap0..3) + 1 pass of stage2, all at tile=64.
             // sync_gap is excluded (near-instant, no progress reported)
-            val yt32 = (bitmap.height + 31) / 32
             val yt64 = (bitmap.height + 63) / 64
-            val estimatedTotalTiles = (yt32 + 2) / 3 + yt64
+            val estimatedTotalTiles = yt64 * 5
 
             bitmap.recycle()
 
