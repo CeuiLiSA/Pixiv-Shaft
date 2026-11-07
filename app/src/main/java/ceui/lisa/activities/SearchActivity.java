@@ -17,7 +17,6 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import com.google.android.material.appbar.AppBarLayout;
-import com.mxn.soul.flowingdrawer_core.ElasticDrawer;
 import ceui.pixiv.witstudio.dialog.WitDialog;
 import ceui.pixiv.witstudio.dialog.WitDialogAction;
 import ceui.pixiv.witstudio.dialog.WitTipDialog;
@@ -481,8 +480,6 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
         // V3 SearchViewModel 的 illustFilter / novelFilter 翻译到 SearchModel，
         // 并在 sheet 触发搜索事件时 setNowGo("search_now") 让老 fragment 自动刷新。
         SearchFilterV3LegacyBridge.INSTANCE.install(this, searchModel);
-        // 关掉抽屉的触摸响应——抽屉里没东西了，避免侧边盲区误触。
-        baseBind.drawerlayout.setTouchMode(ElasticDrawer.TOUCH_MODE_NONE);
 
         // 搜索结果退出二次确认（issue #939，默认关闭）：只拦系统返回（手势/按键）——
         // 长滑之后误触退出就是从这条路来的；工具栏返回箭头是明确点击，不拦。
