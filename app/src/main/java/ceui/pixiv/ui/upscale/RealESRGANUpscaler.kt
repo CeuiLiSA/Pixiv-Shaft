@@ -12,7 +12,7 @@ import java.security.MessageDigest
 
 object NcnnUpscaler {
 
-    private val PROGRESS_REGEX = Regex("""(\d+\.?\d*)%\s*\[\s*[\d.]+s\s*/\s*([\d.]+)\s*ETA""")
+    private val PROGRESS_REGEX = Regex("""(\d+\.?\d*)%(?:\s*\[\s*[\d.]+s\s*/\s*([\d.]+)\s*ETA)?""")
     private val TILE_REGEX = Regex("""TILE (\d+)""")
 
     private fun cacheDir(context: Context): File {
@@ -111,8 +111,8 @@ object NcnnUpscaler {
                 Timber.d("$tag: $line")
                 PROGRESS_REGEX.find(line)?.let { match ->
                     val percent = match.groupValues[1].toFloatOrNull() ?: return@let
-                    val eta = match.groupValues[2].toFloatOrNull() ?: 0f
-                    onProgress?.invoke(percent / 100f, eta)
+                    val eta = match.groupValues.getOrNull(2)?.toFloatOrNull() ?: 0f
+                    onProgress?.invoke((percent / 100f).coerceIn(0f, 1f), eta)
                     return@forEachLine
                 }
                 TILE_REGEX.find(line)?.let { match ->
