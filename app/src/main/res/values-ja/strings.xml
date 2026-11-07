@@ -955,6 +955,13 @@
     <string name="ai_block_strength_blur">ぼかし＋パーティクル</string>
     <string name="ai_block_exempt_authors">除外する作者リスト</string>
     <string name="ai_block_exempt_hint">作者 ID を 1 件ずつ追加できます。チップをタップすると一時的に除外を無効に、ゴミ箱アイコンで削除できます\nリストを変更した後はアプリの再起動を推奨します</string>
+    <string name="ai_block_exempt_followed">フォロー中の作者も除外する（非公開フォローを含む）</string>
+    <string name="ai_block_follow_mirror_public_unready">公開フォローのミラーは準備中です</string>
+    <string name="ai_block_follow_mirror_private_unready">非公開フォローのミラーは準備中です</string>
+    <string name="ai_block_follow_mirror_both_unready">公開・非公開フォローのミラーは準備中です</string>
+    <string name="ai_block_follow_mirror_disabled">ブックマークのミラー機能はオフです</string>
+    <string name="ai_block_follow_mirror_checking">フォローのミラーを確認中…</string>
+    <string name="ai_block_follow_mirror_unavailable_format">[スイッチ使用不可] %1$s</string>
     <string name="ai_block_exempt_add">追加</string>
     <string name="ai_block_exempt_input_hint">作者 ID を入力</string>
     <string name="ai_block_exempt_empty">除外作者はまだいません</string>

@@ -284,6 +284,26 @@
 
             </RelativeLayout>
 
+            <!-- 仅 debug：按公开 / 私人分别清空关注镜像及就绪标志。 -->
+            <RelativeLayout
+                android:id="@+id/debug_clear_follow_mirror_rela"
+                style="@style/M3SetRow"
+                android:layout_marginTop="14dp"
+                android:background="@drawable/wit_row_single">
+
+                <LinearLayout style="@style/M3SetTexts">
+
+                    <TextView
+                        style="@style/M3SetTitle"
+                        android:text="@string/debug_clear_follow_mirror_title" />
+
+                    <TextView
+                        style="@style/M3SetDesc"
+                        android:text="@string/debug_clear_follow_mirror_desc" />
+                </LinearLayout>
+
+            </RelativeLayout>
+
             <!--
               更新弹窗调试 —— 临时调试入口，只在 debug 包可见
               （可见性在 FragmentSettingsExperimental 里按 BuildConfig.DEBUG 控制）。

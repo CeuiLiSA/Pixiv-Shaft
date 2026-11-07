@@ -102,6 +102,11 @@ object BookmarkMirrorReadyBanner {
         announce(context, shelf, rows)
     }
 
+    /** 清除单个书架的「已弹过」引导标记；调试清空后可重新验首次就绪引导。 */
+    fun forget(shelf: BookmarkShelf) {
+        Shaft.getMMKV()?.removeValueForKey(KEY_PREFIX + shelf.key)
+    }
+
     /**
      * 账号被从本地移除：把这个 uid 名下所有书架的「已弹过」标记清掉。
      *

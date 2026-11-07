@@ -230,6 +230,9 @@ public class Settings {
     //WebDAV 老备份里没有这个字段，反序列化后为空集，等于名单里所有 ID 都「启用」，无需迁移。
     private LinkedHashSet<Long> aiBlockExemptDisabledIds = new LinkedHashSet<>();
 
+    //是否同时豁免已关注作者；镜像就绪只影响名单是否可用，不改变客户端 AI 过滤路径。旧设置默认开启。
+    private boolean aiBlockExemptFollowedAuthors = true;
+
     //用标签辅助识别 AI 作品（issue #1252 需求 1）：内置清单编译期固定在
     //ceui.lisa.helper.AiTagRules.BUILTIN_TAGS 里，这里只存用户自定义的那部分。
     //「停用」与「自定义」拆成两个集合，理由同上面的豁免名单：旧设置 / WebDAV 老备份没有
@@ -960,13 +963,20 @@ public class Settings {
                 : aiTagDisabledTags;
     }
 
+    public boolean isAiBlockExemptFollowedAuthors() {
+        return aiBlockExemptFollowedAuthors;
+    }
+
+    public void setAiBlockExemptFollowedAuthors(boolean enabled) {
+        aiBlockExemptFollowedAuthors = enabled;
+    }
+
     /**
-     * 屏蔽 AI 是否需要客户端接管（拿全量再本地滤/遮）：模糊粒子化或存在**启用**的豁免作者时，
-     * 服务端不能直接剔掉 AI。被停用的豁免作者不产生任何效果，因此不计入——名单里全是停用项时，
-     * 服务端照常剔除即可，没必要让客户端把全量拉下来。
+     * 屏蔽 AI 是否需要客户端接管（拿全量再本地滤/遮）：模糊粒子化、存在启用的手动豁免作者，
+     * 或开启自动豁免关注作者时都需要。镜像就绪状态不改变搜索请求参数。
      */
     public boolean isAiBlockClientSide() {
-        return aiBlockStrength != 0 || getEnabledAiBlockExemptAuthorCount() > 0;
+        return aiBlockStrength != 0 || getEnabledAiBlockExemptAuthorCount() > 0 || aiBlockExemptFollowedAuthors;
     }
 
 
