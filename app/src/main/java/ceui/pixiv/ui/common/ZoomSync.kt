@@ -16,7 +16,7 @@ import kotlinx.coroutines.launch
 
 /**
  * 把两张 SketchZoomImageView 的缩放/位移做单向同步：
- * 用户当前手指落在哪张图,哪张就是 source,另一张被动跟随。
+ * 当前触控流先落在哪张图，哪张就是 source；被动图上的真实触控直到抬手都忽略。
  *
  * 同步的是 **userTransform**(用户手势相对 fit 的倍率/位移),不是 final
  * transform。两张图尺寸不一样(典型例子:超分对比,原图 2400x3200、上采样
@@ -37,6 +37,8 @@ fun setupZoomSync(
     right: SketchZoomImageView,
 ) {
     var source: SketchZoomImageView? = null
+    var activeTouch: SketchZoomImageView? = null
+    var ignoredTouch: SketchZoomImageView? = null
     var pendingDown: MotionEvent? = null
     var mirroringPinch = false
     var pinchRollbackPending = false
@@ -49,8 +51,22 @@ fun setupZoomSync(
 
     val tracker = android.view.View.OnTouchListener { v, event ->
         val touched = v as SketchZoomImageView
+        val action = event.actionMasked
+        if (touched === ignoredTouch) {
+            if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) ignoredTouch = null
+            return@OnTouchListener true
+        }
+        if (action == MotionEvent.ACTION_DOWN) {
+            if (activeTouch != null && activeTouch !== touched) {
+                ignoredTouch = touched
+                return@OnTouchListener true
+            }
+            activeTouch = touched
+        } else if (activeTouch !== touched) {
+            return@OnTouchListener true
+        }
         val follower = if (touched === left) right else left
-        when (event.actionMasked) {
+        when (action) {
             MotionEvent.ACTION_DOWN -> {
                 source = touched
                 pendingDown?.recycle()
@@ -76,6 +92,7 @@ fun setupZoomSync(
                     pendingDown = null
                     pinchRollbackPending = mirroringPinch
                     mirroringPinch = false
+                    activeTouch = null
                 }
             }
         }

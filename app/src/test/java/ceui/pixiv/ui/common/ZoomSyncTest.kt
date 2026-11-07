@@ -81,6 +81,25 @@ class ZoomSyncTest {
             assertEquals(enhancedTransform.offset.y, originalTransform.offset.y, 1f)
 
             for (active in listOf(enhanced, original)) {
+                val passive = if (active === enhanced) original else enhanced
+                val before = passive.zoomable.userTransformState.value.offset
+                val activeStart = SystemClock.uptimeMillis()
+                touch(active, activeStart, 0, MotionEvent.ACTION_DOWN, floatArrayOf(50f))
+                val ignoredStart = SystemClock.uptimeMillis()
+                touch(passive, ignoredStart, 0, MotionEvent.ACTION_DOWN, floatArrayOf(50f))
+                touch(passive, ignoredStart, 16, MotionEvent.ACTION_MOVE, floatArrayOf(35f), 35f)
+                touch(passive, ignoredStart, 32, MotionEvent.ACTION_MOVE, floatArrayOf(20f), 20f)
+                assertEquals(before.x, passive.zoomable.userTransformState.value.offset.x, 1f)
+                assertEquals(before.y, passive.zoomable.userTransformState.value.offset.y, 1f)
+
+                touch(active, activeStart, 48, MotionEvent.ACTION_UP, floatArrayOf(50f))
+                touch(passive, ignoredStart, 48, MotionEvent.ACTION_MOVE, floatArrayOf(10f), 10f)
+                assertEquals(before.x, passive.zoomable.userTransformState.value.offset.x, 1f)
+                assertEquals(before.y, passive.zoomable.userTransformState.value.offset.y, 1f)
+                touch(passive, ignoredStart, 64, MotionEvent.ACTION_UP, floatArrayOf(10f), 10f)
+            }
+
+            for (active in listOf(enhanced, original)) {
                 val follower = if (active === enhanced) original else enhanced
                 val start = SystemClock.uptimeMillis()
                 touch(active, start, 0, MotionEvent.ACTION_DOWN, floatArrayOf(40f))
