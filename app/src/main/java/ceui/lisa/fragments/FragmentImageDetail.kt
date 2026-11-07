@@ -765,7 +765,7 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
      * 直接 Sketch 读已下载的本地文件（content:// 或 file://），不走 TaskPool 网络下载。 读失败（文件被移动/删除/无权限）就回退网络路径重新下，行为与
      * IllustAdapter 一致。
      */
-    private fun loadFromLocal(localUri: Uri, imageUrl: String, isUrlMode: Boolean) {
+    private fun loadFromLocal(localUri: Uri, imageUrl: String, isUrlMode: Boolean, isRetry: Boolean = false) {
         // 本地已有原图，直读即最终图 —— 摘掉 large 占位观察，别让晚到的 large 回盖已显示的原图。
         originalShown = true
         largeDisposable?.dispose()
@@ -774,10 +774,33 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
         baseBind.image.loadImage(localUri) {
             addListener(
                 onError = { _, _ ->
-                    Timber.w(
-                        "[ImageDetail] local file load FAIL uri=$localUri, fall back to network"
-                    )
-                    loadFromNetwork(imageUrl, isUrlMode)
+                    if (!isRetry) {
+                        Timber.w(
+                            "[ImageDetail] local file load FAIL uri=$localUri, try ECC self-healing"
+                        )
+                        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+                            val ctx = context ?: Shaft.getContext()
+                            val healed = ceui.pixiv.download.ImageIntegrityValidator.repairUriIfPossible(ctx, localUri)
+                            if (healed) {
+                                Timber.i("[ImageDetail] local file ECC repaired successfully: %s", localUri)
+                                withContext(Dispatchers.Main) {
+                                    if (shownTranslatedPath == null) {
+                                        loadFromLocal(localUri, imageUrl, isUrlMode, isRetry = true)
+                                    }
+                                }
+                            } else {
+                                Timber.w("[ImageDetail] local file ECC unrepairable, fall back to network")
+                                withContext(Dispatchers.Main) {
+                                    loadFromNetwork(imageUrl, isUrlMode)
+                                }
+                            }
+                        }
+                    } else {
+                        Timber.w("[ImageDetail] local file load failed after ECC retry, fall back to network")
+                        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.Main) {
+                            loadFromNetwork(imageUrl, isUrlMode)
+                        }
+                    }
                 }
             )
         }
@@ -841,7 +864,34 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
                         Timber.d(
                             "[ImageDetail] result callback. file=${file.absolutePath}, size=${file.length()}, url=$shortUrl"
                         )
-                        if (shownTranslatedPath == null) baseBind.image.loadImage(file)
+                        if (shownTranslatedPath == null) {
+                            baseBind.image.loadImage(file) {
+                                addListener(
+                                    onError = { _, _ ->
+                                        Timber.w(
+                                            "[ImageDetail] cached original file load FAIL: ${file.absolutePath}, try ECC"
+                                        )
+                                        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+                                            val result = ceui.pixiv.download.ImageIntegrityValidator.repairIfPossible(file)
+                                            if (result.repaired) {
+                                                Timber.i("[ImageDetail] cached original file repaired, reload: ${file.absolutePath}")
+                                                withContext(Dispatchers.Main) {
+                                                    if (shownTranslatedPath == null) {
+                                                        baseBind.image.loadImage(file)
+                                                    }
+                                                }
+                                            } else {
+                                                Timber.w("[ImageDetail] cached file ECC unrepairable, deleting cache and retrying")
+                                                file.delete()
+                                                withContext(Dispatchers.Main) {
+                                                    task.retry()
+                                                }
+                                            }
+                                        }
+                                    }
+                                )
+                            }
+                        }
                         if (isUrlMode) {
                             baseBind.downloadButton.visibility = View.VISIBLE
                             baseBind.downloadButton.setOnClick {
