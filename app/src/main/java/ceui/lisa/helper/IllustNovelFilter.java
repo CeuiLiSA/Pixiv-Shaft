@@ -14,6 +14,7 @@ import ceui.lisa.database.MuteEntity;
 import ceui.pixiv.api.model.Illust;
 import ceui.loxia.Novel;
 import ceui.lisa.models.TagsBean;
+import ceui.pixiv.db.mirror.AiFollowedAuthorExemption;
 import ceui.pixiv.ui.common.IllustMuteStore;
 import ceui.pixiv.ui.common.MutedUserStore;
 import ceui.pixiv.ui.common.NovelMuteStore;
@@ -81,7 +82,8 @@ public class IllustNovelFilter {
         return isAiExemptAuthor(
                 user.getId(),
                 Shaft.sSettings.getAiBlockExemptAuthorIds(),
-                Shaft.sSettings.getAiBlockExemptDisabledIds());
+                Shaft.sSettings.getAiBlockExemptDisabledIds())
+                || AiFollowedAuthorExemption.isExempt(user.getId());
     }
 
     /**

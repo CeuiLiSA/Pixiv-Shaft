@@ -206,6 +206,10 @@ interface BookmarkMirrorDao {
     @Query("SELECT * FROM bookmark_mirror_table WHERE shelfKey = :shelfKey AND targetId = :targetId LIMIT 1")
     fun findRow(shelfKey: String, targetId: Long): BookmarkMirrorEntity?
 
+    /** 公开与私人关注镜像的全部作者 ID；只投影主键，不读取 UserPreview JSON。 */
+    @Query("SELECT targetId FROM bookmark_mirror_table WHERE shelfKey IN (:publicKey, :privateKey)")
+    fun followedUserIds(publicKey: String, privateKey: String): List<Long>
+
     /** 这批作品里哪些在该账号的镜像中（公开/悄悄两架都算），走 targetId 索引。 */
     @Query("SELECT DISTINCT targetId FROM bookmark_mirror_table WHERE ownerUid = :ownerUid AND contentType = :contentType AND targetId IN (:targetIds)")
     fun mirroredAmong(ownerUid: Long, contentType: Int, targetIds: List<Long>): List<Long>
