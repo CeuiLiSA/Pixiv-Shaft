@@ -280,8 +280,8 @@ class UpdateBottomSheet : BottomSheetDialogFragment() {
 
     private fun installApk() {
         val apkFile = downloads.apkFile()
-        if (apkFile == null || !apkFile.exists() || apkFile.length() <= 0L) {
-            // 文件被清掉了（用户清理缓存 / 换目录）：当作断点不可用，退回重试。
+        if (apkFile == null || !apkFile.exists() || apkFile.length() <= 0L || !downloads.validateZip(apkFile)) {
+            // 文件被清掉了（用户清理缓存 / 换目录）或文件损坏：当作断点不可用，退回重试。
             release?.let { retryDownload(it) }
             Common.showToast(getString(R.string.update_apk_invalid))
             return

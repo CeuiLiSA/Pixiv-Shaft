@@ -34,6 +34,7 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.IOException
+import java.util.zip.ZipFile
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.TimeUnit
@@ -127,6 +128,24 @@ class ApkDownloadManager @Inject constructor(private val app: Application) {
         private const val STATUS_PAUSED = "PAUSED"
         private const val STATUS_FAILED = "FAILED"
         private const val STATUS_COMPLETED = "COMPLETED"
+
+        /**
+         * 校验 APK 压缩包完整性：检查文件存在、体积、EOCD 与 Central Directory 结构，
+         * 并确保清单文件 `AndroidManifest.xml` 存在。
+         */
+        fun validateZip(file: File?): Boolean {
+            if (file == null || !file.exists() || !file.isFile || file.length() < 22L) {
+                return false
+            }
+            return try {
+                ZipFile(file).use { zip ->
+                    zip.size() > 0 && zip.getEntry("AndroidManifest.xml") != null
+                }
+            } catch (e: Exception) {
+                Timber.tag(TAG).w(e, "APK ZIP 完整性校验失败: %s", file.absolutePath)
+                false
+            }
+        }
     }
 
     enum class Phase {
@@ -382,7 +401,8 @@ class ApkDownloadManager @Inject constructor(private val app: Application) {
         if (rec.status == STATUS_COMPLETED) {
             val apk = apkFile()
             if (apk != null && apk.exists() && apk.length() > 0 &&
-                (rec.totalBytes <= 0L || apk.length() == rec.totalBytes)
+                (rec.totalBytes <= 0L || apk.length() == rec.totalBytes) &&
+                validateZip(apk)
             ) {
                 publish(rec, Phase.COMPLETED, downloaded = apk.length())
                 if (rec.bannerPending) banner.markPending()
@@ -483,7 +503,7 @@ class ApkDownloadManager @Inject constructor(private val app: Application) {
 
     fun apkFile(): File? = dir()?.let { File(it, APK_FILE_NAME) }
 
-    fun hasApk(): Boolean = apkFile()?.let { it.exists() && it.length() > 0 } == true
+    fun validateZip(file: File?): Boolean = Companion.validateZip(file)
 
     // ---------------------------------------------------------------- 内部实现
 
@@ -1036,6 +1056,10 @@ class ApkDownloadManager @Inject constructor(private val app: Application) {
         if (rec.totalBytes > 0L && length != rec.totalBytes) {
             out.delete()
             throw IOException("拼装后长度不符：$length != ${rec.totalBytes}")
+        }
+        if (!validateZip(out)) {
+            out.delete()
+            throw IOException("拼装后 APK 校验失败：ZIP 结构损坏或缺失清单文件")
         }
         deleteParts(rec)
         return out
