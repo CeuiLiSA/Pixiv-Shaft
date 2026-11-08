@@ -14,7 +14,6 @@ import timber.log.Timber
 import java.io.File
 import java.io.FileOutputStream
 import java.util.concurrent.TimeUnit
-import java.util.UUID
 
 abstract class ModelDownloadManager {
 
@@ -45,7 +44,7 @@ abstract class ModelDownloadManager {
         onProgress: (bytesRead: Long, totalBytes: Long) -> Unit
     ): Boolean = withContext(Dispatchers.IO) {
         val url = model.downloadUrl ?: return@withContext false
-        val tempZip = File(context.cacheDir, "model_dl_${model.assetDir}_${UUID.randomUUID()}.zip")
+        val tempZip = ModelArchiveInstaller.createTempArchive(context.cacheDir, modelDir(context, model), model.assetDir)
         try {
             // 模型包都托管在 GitHub release 上：加速地址在这里插一次（「不使用」时原样返回）。
             val request = Request.Builder().url(GithubProxy.wrap(url)).build()
@@ -81,7 +80,7 @@ abstract class ModelDownloadManager {
             Timber.e(e, "$logTag download error: ${model.assetDir}")
             false
         } finally {
-            tempZip.delete()
+            ModelArchiveInstaller.releaseTempArchive(tempZip)
         }
     }
 
@@ -98,7 +97,9 @@ abstract class ModelDownloadManager {
         uri: Uri,
         onProgress: (bytesRead: Long, totalBytes: Long) -> Unit = { _, _ -> },
     ): Boolean = withContext(Dispatchers.IO) {
-        val tempZip = File(context.cacheDir, "model_import_${model.assetDir}_${UUID.randomUUID()}.zip")
+        val tempZip = ModelArchiveInstaller.createTempArchive(
+            context.cacheDir, modelDir(context, model), model.assetDir, importing = true,
+        )
         try {
             val input = context.contentResolver.openInputStream(uri) ?: return@withContext false
             var importedBytes = 0L
@@ -129,7 +130,7 @@ abstract class ModelDownloadManager {
             Timber.e(e, "$logTag import error: ${model.assetDir}")
             false
         } finally {
-            tempZip.delete()
+            ModelArchiveInstaller.releaseTempArchive(tempZip)
         }
     }
 
@@ -154,8 +155,7 @@ abstract class ModelDownloadManager {
     }
 
     fun deleteModel(context: Context, model: DownloadableModel) {
-        val dir = modelDir(context, model)
-        if (dir.exists()) dir.deleteRecursively()
+        ModelArchiveInstaller.delete(modelDir(context, model), context.cacheDir, model.assetDir)
     }
 
     companion object {
