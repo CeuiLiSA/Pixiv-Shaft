@@ -16,9 +16,9 @@ import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import retrofit2.HttpException
@@ -78,8 +78,9 @@ class EmailBackupV3ViewModel(initialMode: Mode) : ViewModel() {
     private val _state = MutableLiveData(UiState(mode = initialMode))
     val state: LiveData<UiState> = _state
 
-    private val _effects = MutableSharedFlow<Effect>(extraBufferCapacity = 8)
-    val effects: SharedFlow<Effect> = _effects.asSharedFlow()
+    // 页面 STOP 时仍需保留恢复完成事件；单消费者队列只交付一次，不重放已处理导航。
+    private val _effects = Channel<Effect>(Channel.BUFFERED)
+    val effects: Flow<Effect> = _effects.receiveAsFlow()
 
     private var countdownJob: Job? = null
 
@@ -269,7 +270,7 @@ class EmailBackupV3ViewModel(initialMode: Mode) : ViewModel() {
     }
 
     private fun emit(effect: Effect) {
-        _effects.tryEmit(effect)
+        _effects.trySend(effect)
     }
 
     private fun errorText(e: Throwable): String {
