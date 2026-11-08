@@ -8,9 +8,9 @@ import org.junit.rules.TemporaryFolder
 
 class SnapshotImportRecoveryTest {
     @get:Rule val temp = TemporaryFolder()
-    private fun recover() = SnapshotImportRecovery.recover(temp.root) { dir, _ ->
+    private fun recover() = SnapshotImportRecovery.recover(temp.root, valid = { dir, _ ->
         File(dir, "complete").isFile
-    }
+    })
 
     @Test fun `missing target restores the only valid backup`() {
         snapshot(".backup_my_id_1", "old")
@@ -18,12 +18,12 @@ class SnapshotImportRecoveryTest {
         assertEquals("old", File(temp.root, "my_id/complete").readText())
     }
 
-    @Test fun `complete target permits deleting an obsolete backup`() {
+    @Test fun `explicitly committed target permits deleting an obsolete backup`() {
         snapshot("my_id", "new")
-        snapshot(".backup_my_id_1", "old")
+        val backup = SnapshotImportRecovery.markCommitted(snapshot(".backup_my_id_1", "old"))
         recover()
         assertEquals("new", File(temp.root, "my_id/complete").readText())
-        assertFalse(File(temp.root, ".backup_my_id_1").exists())
+        assertFalse(backup.exists())
     }
 
     @Test fun `incomplete target is preserved while the old snapshot is recovered`() {

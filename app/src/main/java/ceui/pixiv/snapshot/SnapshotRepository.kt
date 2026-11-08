@@ -210,7 +210,7 @@ object SnapshotRepository {
                 root(context).mkdirs()
                 // 备份目录名带 BACKUP_PREFIX：合法快照 ID 只允许 [A-Za-z0-9_-]（见 requireSnapshotId），
                 // 所以带点前缀的名字永远不会与真快照目录撞车，也就永远不会被 list() 当成一张卡片。
-                val backup = File(target.parentFile, "$BACKUP_PREFIX${target.name}_${System.currentTimeMillis()}")
+                var backup = File(target.parentFile, "$BACKUP_PREFIX${target.name}_${System.currentTimeMillis()}")
                 if (target.exists()) {
                     if (!target.renameTo(backup)) {
                         throw SnapshotException("无法替换已有快照: ${manifest.snapshotId}")
@@ -224,31 +224,43 @@ object SnapshotRepository {
                     // rename 失败(理论上的分区差异)再回落到老路子。
                     if (!staging.renameTo(target)) {
                         target.mkdirs()
-                        staging.copyRecursively(target, overwrite = true)
+                        if (!staging.copyRecursively(target, overwrite = true)) {
+                            throw SnapshotException("无法完整复制快照: ${manifest.snapshotId}")
+                        }
                     }
-                    backup.deleteRecursively()
-                    SnapshotRuntimeCache.remove(manifest.snapshotId)
-                    SnapshotIndex.onSnapshotWritten(manifest.illustId, manifest.snapshotId, isAuto = false, manifest.createdAt)
-                    manifest
+                    // 复制中的 JSON 和全部路径也可能已经存在，必须等整份写完再标记提交完成。
+                    backup = SnapshotImportRecovery.markCommitted(backup)
                 } catch (e: Exception) {
                     target.deleteRecursively()
                     if (backup.exists()) backup.renameTo(target)
                     throw e
                 }
+                SnapshotRuntimeCache.remove(manifest.snapshotId)
+                SnapshotIndex.onSnapshotWritten(manifest.illustId, manifest.snapshotId, isAuto = false, manifest.createdAt)
+                backup.deleteRecursively()
+                manifest
             } finally {
                 staging.deleteRecursively()
             }
         }
     }
 
-    /** 恢复中断的替换事务；确认正式目录完整后才删除旧备份。 */
+    /** 恢复中断的替换事务，并同步已经完成冷启动扫描的索引。 */
     private fun sweepStaleBackups(context: Context) {
-        SnapshotImportRecovery.recover(root(context)) { directory, id ->
-            val manifest = SnapshotValidator.readJson<SnapshotManifest>(File(directory, SNAPSHOT_MANIFEST))
-                ?: return@recover false
-            manifest.snapshotId == id && manifest.schemaVersion == SNAPSHOT_SCHEMA_VERSION &&
-                runCatching { SnapshotValidator.validate(directory, manifest) }.isSuccess
-        }
+        SnapshotImportRecovery.recover(
+            root(context),
+            valid = { directory, id ->
+                val manifest = SnapshotValidator.readJson<SnapshotManifest>(File(directory, SNAPSHOT_MANIFEST))
+                manifest != null && manifest.snapshotId == id && manifest.schemaVersion == SNAPSHOT_SCHEMA_VERSION &&
+                    runCatching { SnapshotValidator.validate(directory, manifest) }.isSuccess
+            },
+            onRecovered = { directory, id ->
+                val manifest = SnapshotValidator.readJson<SnapshotManifest>(File(directory, SNAPSHOT_MANIFEST))
+                    ?: throw SnapshotException("恢复后的快照 manifest 损坏: $id")
+                SnapshotRuntimeCache.remove(id)
+                SnapshotIndex.onSnapshotWritten(manifest.illustId, id, isAuto = false, manifest.createdAt)
+            },
+        )
     }
 
     /**
