@@ -108,6 +108,9 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
      */
     private final Map<Integer, Uri> localPageUris = new ConcurrentHashMap<>();
     private volatile boolean localScanRunning = false;
+    // 首次绑定先等构造时启动的本地扫描，避免已下载页抢先发起原图网络任务。
+    private boolean initialLocalScanPending = true;
+    private boolean deferredInitialBind = false;
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
     /**
@@ -388,7 +391,10 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
                         changed = true;
                     }
                 }
-                if (changed) {
+                boolean refreshDeferred = deferredInitialBind;
+                deferredInitialBind = false;
+                initialLocalScanPending = false;
+                if (changed || refreshDeferred) {
                     notifyDataSetChanged();
                     Runnable listener = localPagesChangedListener;
                     if (listener != null) listener.run();
@@ -722,12 +728,8 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
      *   <li>其余 {@code obtain} ＝ 规则 4</li>
      * </ul>
      *
-     * <p>⚠️ <b>已知窗口</b>：{@code scanLocalDownloads()} 是异步的（构造时提交到 LOCAL_SCAN_EXECUTOR）。
-     * 若首个 bind 早于扫描返回，已下载的页会先走一次 {@code loadFromNetwork}；扫描回来后的
-     * {@code notifyDataSetChanged} 重绑再用本地文件把它盖掉。也就是说「本地已有」的页在最开始的
-     * 一两个 bind 上<b>可能</b>白发一次网络请求。这是「批量扫描 + 同步渲染」这个形状自带的，
-     * <b>不是漏抄规则</b> —— 换成逐页 await 的来源判定（同样是异步）也修不掉；要修得让首屏 bind
-     * 先等扫描结果。
+     * <p>首次绑定若早于异步下载库扫描结果，先等扫描回主线程再重绑。这样已下载页不会
+     * 抢先进入网络分支；未下载页扫描结束后照常加载。
      *
      * @param holder
      * @param position
@@ -748,6 +750,13 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
             return;
         }
         boundLocalPageUris.remove(holder.baseBind);
+        if (snapshotId == null && !allIllust.isGif() && initialLocalScanPending) {
+            deferredInitialBind = true;
+            holder.baseBind.reload.setVisibility(View.GONE);
+            holder.baseBind.progressLayout.donutProgress.setVisibility(View.VISIBLE);
+            holder.baseBind.progressLayout.donutProgress.setProgress(0);
+            return;
+        }
         loadFromNetwork(holder, position, changeSize);
     }
 
@@ -1165,6 +1174,9 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
                         holder.baseBind.reload.setVisibility(View.GONE);
                         holder.baseBind.progressLayout.donutProgress.setVisibility(View.GONE);
                         rememberDecodedRatio(holder, position, changeSize, resource);
+                        if (position == 0 && snapshotId == null) {
+                            SketchPreloader.warmUri(mContext, localUri);
+                        }
                         return false;
                     }
                 })
