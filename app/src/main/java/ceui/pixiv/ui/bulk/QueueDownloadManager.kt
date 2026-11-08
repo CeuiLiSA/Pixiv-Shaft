@@ -205,6 +205,9 @@ class QueueDownloadManager @Inject constructor(@ApplicationContext app: Context)
      */
     private val inFlight: LinkedHashMap<Long, InFlightIllust> = LinkedHashMap()
 
+    /** 有在飞页或待消费行时才转发 Manager 事件；由主循环写，桥接协程只读。 */
+    @Volatile private var queueNeedsManagerEvents: Boolean = false
+
     /**
      * 断点续传进度看门狗的跨尝试状态，键 = download_queue.id。inFlight 每次 pull 都会
      * 重建，装不下「历史最好进度」；这个 map 独立于 inFlight 存活，直到该行 SUCCESS /
@@ -409,9 +412,9 @@ class QueueDownloadManager @Inject constructor(@ApplicationContext app: Context)
     }
 
     /**
-     * 把 ManagerReactive.contentFlow 的 emit 桥到 [tickle]，让主循环既能响应队列变更，
-     * 也能响应 Manager 内部状态变更（addTask / state 翻转 / P 完成 remove / clearAll /
-     * pumpAvailableSlots / progress）。
+     * 队列有在飞页或待消费行时，把 ManagerReactive.contentFlow 的 emit 桥到 [tickle]，
+     * 响应 Manager 内部状态变更（addTask / state 翻转 / P 完成 remove / clearAll /
+     * pumpAvailableSlots / progress）。批量入列由 [resume] / [notifyNewItems] 显式唤醒。
      *
      * **必须挂在 [scope] 下，不能放进 [loopJob] 里 launch**：结构化并发下，loopJob 内
      * launch 出来的子协程抛异常会取消 loopJob 本身。这条桥每收到一次 invalidate 都要跑
@@ -423,7 +426,10 @@ class QueueDownloadManager @Inject constructor(@ApplicationContext app: Context)
     private fun startBridge() {
         if (bridgeJob?.isActive == true) return
         val job = scope.launch {
-            ManagerReactive.contentFlow.collect { tickle.trySend(Unit) }
+            ManagerReactive.contentFlow.collect {
+                // 普通单图的进度不应让空批量队列反复读写 download_queue。
+                if (queueNeedsManagerEvents) tickle.trySend(Unit)
+            }
         }
         bridgeJob = job
         job.invokeOnCompletion {
@@ -510,7 +516,7 @@ class QueueDownloadManager @Inject constructor(@ApplicationContext app: Context)
                 settleCompleted()
                 val didAdd = fillSlots()
                 // 只在真加了 P 时才 trigger pump —— ManagerReactive.contentFlow 桥到
-                // tickle 后，每个 progress 1% 都会唤醒主循环；空跑也调一遍就是每秒做
+                // tickle 后，有队列任务时每个 progress 都可能唤醒主循环；空跑也调一遍就是每秒做
                 // 几百次"全 content 扫描 + pump"，纯 CPU 浪费。
                 //
                 // triggerPump() 而不是 startAll()：startAll 会对 content 每条跑
@@ -529,6 +535,8 @@ class QueueDownloadManager @Inject constructor(@ApplicationContext app: Context)
                 Timber.tag(TAG).e(t, "[QUEUE-CONSUMER] tick threw")
             }
 
+            queueNeedsManagerEvents = inFlight.isNotEmpty()
+
             // inflight 空且没有 PENDING 了：纯空闲态，停下来等下一次 tickle（不再忙等）
             if (inFlight.isEmpty()) {
                 // 进真正的"空闲睡眠"前再修一次 DB —— dao.updateStatus 用 runCatching
@@ -539,6 +547,7 @@ class QueueDownloadManager @Inject constructor(@ApplicationContext app: Context)
                     .onFailure { Timber.tag(TAG).w(it, "[QUEUE-CONSUMER] idle resurrect failed") }
                 val hasPending = runCatching { dao.countByStatus(QueueStatus.PENDING) > 0 }
                     .getOrDefault(false)
+                queueNeedsManagerEvents = hasPending
                 if (!hasPending) {
                     // ugoira 行在 DB 里是 DOWNLOADING、也不在 inFlight，得单独确认没在飞
                     if (ugoiraInFlightRowIds.isEmpty()) {
