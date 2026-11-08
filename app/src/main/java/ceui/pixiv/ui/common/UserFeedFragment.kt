@@ -29,6 +29,7 @@ import ceui.pixiv.witstudio.theme.cardSurface
 import ceui.pixiv.witstudio.theme.pressScale
 import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestManager
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 
 /** 关注态局部重绑的 payload 标记（按引用识别）。 */
 private val PAYLOAD_USER_FOLLOW = Any()
@@ -57,6 +58,7 @@ private val PAYLOAD_USER_FOLLOW = Any()
  */
 abstract class UserFeedFragment(
     @LayoutRes contentLayoutId: Int = ceui.pixiv.feeds.R.layout.fragment_feed,
+    private val fadePreviewImagesOnLoad: Boolean = false,
 ) : FeedFragment(contentLayoutId) {
 
     /**
@@ -66,6 +68,7 @@ abstract class UserFeedFragment(
      * 直接命中、无查找，解析出的是同一个 RequestManager，行为等价。
      */
     private val userGlide: RequestManager by lazy { Glide.with(this) }
+    private val previewImageTransition = DrawableTransitionOptions.withCrossFade()
 
     /**
      * 卡底 / 胶囊 / 文字色都从宿主主色派生。换主题会重建 Activity 连同本 Fragment，
@@ -166,7 +169,15 @@ abstract class UserFeedFragment(
             val url = illusts.getOrNull(i)?.image_urls?.let { it.square_medium ?: it.medium }
                 ?: novelCovers.getOrNull(i - illusts.size)
             // 占位 / 补不上的空格是中性浅面（日夜各一档），不再是夜间也亮着的 #f2f2f2。
-            userGlide.load(GlideUtil.getUrl(url)).placeholder(R.color.v3_surface_2).into(iv)
+            val request = userGlide.load(GlideUtil.getUrl(url))
+                .placeholder(R.color.v3_surface_2)
+            // Glide 对 MEMORY_CACHE 自动跳过过渡；磁盘 / 网络加载从占位底淡入。
+            val imageRequest = if (fadePreviewImagesOnLoad) {
+                request.transition(previewImageTransition)
+            } else {
+                request
+            }
+            imageRequest.into(iv)
         }
 
         b.userName.text = user?.name ?: ""
