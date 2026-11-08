@@ -41,7 +41,8 @@ import java.util.concurrent.atomic.AtomicReference
  * 「刷新」本就该给新内容，不能把交接来的旧快照再摆一遍（对齐 legacy `autoRefresh()` 的语义：
  * 有交接数据就别自动刷，但用户手动刷照常走网络）。
  */
-class RecmdUserFeedFragment : UserFeedFragment(R.layout.fragment_toolbar_feed) {
+class RecmdUserFeedFragment :
+    UserFeedFragment(R.layout.fragment_toolbar_feed, fadePreviewImagesOnLoad = true) {
 
     private val binding by viewBinding(FragmentToolbarFeedBinding::bind)
 
