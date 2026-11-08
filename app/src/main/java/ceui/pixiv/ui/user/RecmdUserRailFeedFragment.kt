@@ -1,6 +1,7 @@
 package ceui.pixiv.ui.user
 
 import android.content.Intent
+import android.graphics.drawable.Drawable
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
@@ -23,7 +24,10 @@ import ceui.pixiv.feeds.feedRenderer
 import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.utils.clearGlideOnRecycle
 import ceui.pixiv.utils.setOnClick
+import ceui.pixiv.witstudio.theme.motionEnabled
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
+import com.bumptech.glide.request.transition.ViewPropertyAnimationFactory
 
 /**
  * 「推荐用户」横向货架（feeds 框架版，替代 legacy FragmentRecmdUserHorizontal + UserHAdapter +
@@ -84,15 +88,25 @@ class RecmdUserRailFeedFragment : FeedFragment() {
                     )
                 }
             },
-            recycle = { cell -> cell.binding.userHead.clearGlideOnRecycle() },
+            recycle = { cell ->
+                cell.binding.userHead.apply {
+                    animate().cancel()
+                    alpha = 1f
+                    clearGlideOnRecycle()
+                }
+            },
         ) { cell ->
             val user = cell.item.preview.user
             cell.binding.userName.text = user?.name ?: ""
-            Glide.with(cell.binding.userHead)
+            val avatar = cell.binding.userHead
+            avatar.animate().cancel()
+            avatar.alpha = 1f
+            val request = Glide.with(avatar)
                 .load(GlideUtil.getUrl(user?.profile_image_urls?.medium))
                 .placeholder(R.color.light_bg)
                 .error(R.drawable.no_profile)
-                .into(cell.binding.userHead)
+            val imageRequest = if (motionEnabled()) request.transition(avatarTransition) else request
+            imageRequest.into(avatar)
         }
 
     /**
@@ -110,6 +124,15 @@ class RecmdUserRailFeedFragment : FeedFragment() {
     }
 
     companion object {
+        // CircleImageView 会把 Drawable 合成静态位图，Glide 的 DrawableCrossFade 会定格在首帧。
+        // 改为对头像 View 做短淡入：Glide 仍交付原图，且此 factory 对 MEMORY_CACHE 自动跳过。
+        private val avatarTransition = DrawableTransitionOptions.with(
+            ViewPropertyAnimationFactory<Drawable> { avatar ->
+                avatar.alpha = 0f
+                avatar.animate().alpha(1f).setDuration(150).start()
+            },
+        )
+
         /** 页响应 → 条目。跑在 Default 线程、被 VM 长期持有，放伴生对象保证零捕获。 */
         private fun mapUsers(previews: List<UserPreview>): List<FeedItem> {
             return previews.mapNotNull { p ->
