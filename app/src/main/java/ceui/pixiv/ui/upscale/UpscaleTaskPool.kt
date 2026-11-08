@@ -34,11 +34,31 @@ object AiTaskQueue {
     private val queue = ArrayDeque<AiQueueItem>()
     private var runningTask: AiQueueItem? = null
     private val lock = Any()
+    private var resultCleanupInProgress = false
+
+    /** Reserve the result directories while idle. New tasks wait in the queue until cleanup ends. */
+    fun beginResultCleanup(): Boolean = synchronized(lock) {
+        if (resultCleanupInProgress || runningTask != null || queue.isNotEmpty()) return@synchronized false
+        resultCleanupInProgress = true
+        true
+    }
+
+    fun endResultCleanup() {
+        var nextTask: AiQueueItem? = null
+        synchronized(lock) {
+            resultCleanupInProgress = false
+            if (runningTask == null && queue.isNotEmpty()) {
+                nextTask = queue.removeFirst()
+                runningTask = nextTask
+            }
+        }
+        nextTask?.execute()
+    }
 
     fun enqueue(task: AiQueueItem) {
         var shouldExecute = false
         synchronized(lock) {
-            if (runningTask == null) {
+            if (runningTask == null && !resultCleanupInProgress) {
                 runningTask = task
                 shouldExecute = true
             } else {
@@ -60,7 +80,7 @@ object AiTaskQueue {
                 runningTask = null
             }
             queue.remove(task)
-            if (runningTask == null && queue.isNotEmpty()) {
+            if (runningTask == null && !resultCleanupInProgress && queue.isNotEmpty()) {
                 nextTask = queue.removeFirst()
                 runningTask = nextTask
             }
@@ -74,7 +94,7 @@ object AiTaskQueue {
             queue.removeAll { it.taskKey == taskKey }
             if (runningTask?.taskKey == taskKey) {
                 runningTask = null
-                if (queue.isNotEmpty()) {
+                if (!resultCleanupInProgress && queue.isNotEmpty()) {
                     nextTask = queue.removeFirst()
                     runningTask = nextTask
                 }

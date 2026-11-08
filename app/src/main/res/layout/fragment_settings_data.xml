@@ -196,7 +196,7 @@
             <RelativeLayout
                 android:id="@+id/clear_bulk_download_cache"
                 style="@style/M3SetRow"
-                android:background="@drawable/wit_row_bottom">
+                android:background="@drawable/wit_row_mid">
 
                 <LinearLayout
                     style="@style/M3SetTexts"
@@ -209,6 +209,28 @@
 
                 <TextView
                     android:id="@+id/bulk_download_cache_size"
+                    style="@style/M3SetValue" />
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:id="@+id/clear_ai_results"
+                style="@style/M3SetRow"
+                android:background="@drawable/wit_row_bottom">
+
+                <LinearLayout
+                    style="@style/M3SetTexts"
+                    android:layout_toStartOf="@id/ai_results_size"
+                    android:layout_marginEnd="12dp">
+
+                    <TextView
+                        style="@style/M3SetTitle"
+                        android:breakStrategy="balanced"
+                        android:text="@string/ai_results_manage" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/ai_results_size"
                     style="@style/M3SetValue" />
 
             </RelativeLayout>

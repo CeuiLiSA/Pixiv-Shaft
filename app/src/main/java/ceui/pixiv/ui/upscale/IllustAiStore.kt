@@ -132,6 +132,21 @@ object IllustAiStore {
         return states.filterKeys { it.startsWith(prefix) }.values.toList()
     }
 
+    /** Drop stale result paths after storage cleanup so visible artwork pages redraw their AI pills. */
+    fun pruneMissingResults() {
+        for (state in states.values) {
+            if (state.upscaleResultPath?.let { !File(it).exists() } == true) {
+                state.upscaleResultPath = null
+                state.upscaleStatus = UpscaleStatus.Idle
+            }
+            if (state.rembgResultPath?.let { !File(it).exists() } == true) {
+                state.rembgResultPath = null
+                state.rembgStatus = UpscaleStatus.Idle
+            }
+        }
+        _changes.postValue(Unit)
+    }
+
     fun clear(illustId: Long) {
         val prefix = "${illustId}_"
         states.keys.filter { it.startsWith(prefix) }.forEach { states.remove(it) }

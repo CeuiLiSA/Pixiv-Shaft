@@ -81,6 +81,7 @@ class MangaBatchTranslateCenter @Inject constructor(
     /** 看图页的单页 / 圈选流水线正在跑:共用模型,整部翻译入口此时拒绝启动。 */
     @Volatile
     private var singlePageBusy = false
+    private var resultCleanupInProgress = false
 
     /** 单页流水线是否在跑(只读;写入走 [beginSinglePage] / [endSinglePage])。 */
     val isSinglePageBusy: Boolean get() = singlePageBusy
@@ -90,7 +91,7 @@ class MangaBatchTranslateCenter @Inject constructor(
      * @return false = 整部翻译或另一个单页任务正在用模型,调用方不该启动
      */
     fun beginSinglePage(): Boolean {
-        if (isRunning || singlePageBusy) return false
+        if (isRunning || singlePageBusy || resultCleanupInProgress) return false
         singlePageBusy = true
         return true
     }
@@ -108,6 +109,25 @@ class MangaBatchTranslateCenter @Inject constructor(
 
     fun endSinglePage() {
         singlePageBusy = false
+    }
+
+    /** Main-thread gate: prevent a new translation while its generated PNGs are removed. */
+    fun beginResultCleanup(): Boolean {
+        if (isRunning || singlePageBusy || resultCleanupInProgress) return false
+        resultCleanupInProgress = true
+        return true
+    }
+
+    fun endResultCleanup() {
+        resultCleanupInProgress = false
+    }
+
+    fun pruneMissingResults() {
+        for (live in buckets.values) {
+            val current = live.value.orEmpty()
+            val remaining = current.filterValues { File(it).exists() }
+            if (remaining.size != current.size) live.value = remaining
+        }
     }
 
     @Volatile
@@ -179,7 +199,7 @@ class MangaBatchTranslateCenter @Inject constructor(
         ocrModel: MangaOcrModel,
         ctdModel: ComicTextDetectorModel,
     ): Boolean {
-        if (isRunning || singlePageBusy) return false
+        if (isRunning || singlePageBusy || resultCleanupInProgress) return false
         cancelledByUser = false
         currentIllust = illust
         job = scope.launch {
