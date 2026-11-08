@@ -34,6 +34,7 @@ import ceui.pixiv.imageloader.awaitFile
 import ceui.pixiv.imageloader.observeState
 import ceui.pixiv.plaza.ui.showPlazaError
 import ceui.pixiv.services.appServices
+import ceui.pixiv.snapshot.SNAPSHOT_LOCAL_URL_PREFIX
 import ceui.pixiv.ui.common.deleteImageById
 import ceui.pixiv.ui.common.getImageIdInGallery
 import ceui.pixiv.ui.common.saveImageToGallery
@@ -646,8 +647,8 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
      * 与观察者生命周期，收益只是少两个守卫，不划算。逐条对应关系（改这里前请先核对还成立）：
      *
      * - 第 1 段 `content://` 特判 ＝ 规则 1
-     * - `isSnapshotMode` 守卫 ＝ 规则 1 的 `shaftsnap://`。快照把 url 改写成存档地址，渲染层由 Glide
-     *   本地读，所以快照模式**不会**发网络请求；守卫的真正作用是「别让下载记录顶掉存档」。
+     * - `shaftsnap://` 前置分流 ＝ 规则 1；通过 resolver 解析真实 File 交给 Sketch。
+     *   `isSnapshotMode` 继续防止下载记录顶掉存档。
      * - `peekFile(imageUrl) == null` 前置 ＝ 规则 2。原图已在任务表里就跳过查库走同步快路径，零 DB 开销。
      * - 协程里的 `DownloadedPageIndex.page()` ＝ 规则 3
      * - 兜底 `loadFromNetwork` ＝ 规则 4
@@ -687,6 +688,15 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
         Timber.d("[ImageDetail] loadImage index=$index, isUrlMode=$isUrlMode, url=$shortUrl")
 
         if (imageUrl.isNullOrEmpty()) return
+
+        // 快照 URL 先解析为本地 File：Sketch 不认识 shaftsnap://，原图任务也只接受 HTTP(S)。
+        if (imageUrl.startsWith(SNAPSHOT_LOCAL_URL_PREFIX)) {
+            val source = PageImageSourceResolver.resolveCheap(imageUrl) ?: return
+            originalShown = true
+            baseBind.progressCircular.visibility = View.GONE
+            if (shownTranslatedPath == null) baseBind.image.loadImage(source.renderModel)
+            return
+        }
 
         // content:// URI（来自下载完成页的 SAF 路径）直接用 Sketch 加载，
         // 不走 TaskPool/Glide，因为 Glide 没有 SAF URI 的访问权限。

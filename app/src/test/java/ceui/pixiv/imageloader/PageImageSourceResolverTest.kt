@@ -120,6 +120,7 @@ class PageImageSourceResolverTest {
 
         assertEquals(PageImageSource.Origin.LocalUrl, local?.origin)
         assertEquals(archived, local?.file)
+        assertEquals(Uri.fromFile(archived), local?.renderModel)
     }
 
     @Test
