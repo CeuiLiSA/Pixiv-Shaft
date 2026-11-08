@@ -5,6 +5,7 @@ import android.content.Context
 import android.graphics.RectF
 import android.net.Uri
 import android.os.Bundle
+import android.os.SystemClock
 import android.text.TextUtils
 import android.view.GestureDetector
 import android.view.MotionEvent
@@ -695,6 +696,16 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
             return
         }
 
+        // 一级详情已确认本页有可读的下载文件，点击进来就直接显示，免去再查一次下载库的空态等待。
+        val entryIntent = (activity as? ImageDetailActivity)?.intent
+        val entryLocalUri = entryIntent
+            ?.takeIf { !isSnapshotMode && !isUrlMode && it.getIntExtra("index", -1) == index }
+            ?.getStringExtra(ImageDetailActivity.EXTRA_ENTRY_LOCAL_URI)
+        if (!entryLocalUri.isNullOrEmpty()) {
+            loadFromLocal(Uri.parse(entryLocalUri), imageUrl, isUrlMode)
+            return
+        }
+
         // 这一页原图若已下载到本地，直读本地文件秒展示，跳过 TaskPool 重新下原图。
         // 判定统一走 DownloadedPageIndex —— 与一级详情页 B 的批量扫描是**同一份规则**，
         // 不再各写一遍两段式。命中即用 Sketch 直读。
@@ -771,12 +782,14 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
         largeDisposable?.dispose()
         baseBind.progressCircular.visibility = View.GONE
         if (shownTranslatedPath != null) return
+        val loadStartMs = SystemClock.elapsedRealtime()
         baseBind.image.loadImage(localUri) {
             addListener(
-                onError = { _, _ ->
-                    Timber.w(
-                        "[ImageDetail] local file load FAIL uri=$localUri, fall back to network"
-                    )
+                onSuccess = { _, result ->
+                    Timber.d("[ImageDetail] local image READY index=$index ms=${SystemClock.elapsedRealtime() - loadStartMs} source=${result.dataFrom}")
+                },
+                onError = { _, result ->
+                    Timber.w(result.throwable, "[ImageDetail] local file load FAIL uri=$localUri, fall back to network")
                     loadFromNetwork(imageUrl, isUrlMode)
                 }
             )

@@ -2,8 +2,10 @@ package ceui.lisa.adapters;
 
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.RecyclerView;
 
 import ceui.lisa.activities.ImageDetailActivity;
@@ -54,6 +56,12 @@ public abstract class AbstractIllustAdapter<VH extends RecyclerView.ViewHolder>
         return allIllust.getPage_count();
     }
 
+    /** 已确认可读的本地页，供点击时直接交给大图页；默认没有。 */
+    @Nullable
+    protected Uri entryLocalUri(int position) {
+        return null;
+    }
+
     @Override
     public void onBindViewHolder(@NonNull VH holder, int position) {
         holder.itemView.setOnClickListener(v -> {
@@ -65,6 +73,12 @@ public abstract class AbstractIllustAdapter<VH extends RecyclerView.ViewHolder>
                 intent.putExtra(ceui.pixiv.snapshot.SnapshotManagerFragment.ARG_SNAPSHOT_IS_AUTO, snapshotIsAuto);
             }
             intent.putExtra("index", position);
+            if (snapshotId == null) {
+                Uri localUri = entryLocalUri(position);
+                if (localUri != null) {
+                    intent.putExtra(ImageDetailActivity.EXTRA_ENTRY_LOCAL_URI, localUri.toString());
+                }
+            }
             // 点击处的屏幕矩形:大图页(透明窗口)从这里展开进场,下拉收掉时缩回同一位置
             int[] loc = new int[2];
             v.getLocationOnScreen(loc);

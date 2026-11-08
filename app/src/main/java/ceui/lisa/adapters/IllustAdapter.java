@@ -266,6 +266,12 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
         return boundBindings.get(position);
     }
 
+    @Nullable
+    @Override
+    protected Uri entryLocalUri(int position) {
+        return localPageUris.get(position);
+    }
+
     /** 快照模式用：直接把某一页指向快照库里的本地文件，绑定时优先读本地、不走网络。 */
     public void putLocalPageUri(int page, @NonNull android.net.Uri uri) {
         localPageUris.put(page, uri);
