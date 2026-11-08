@@ -1825,7 +1825,7 @@ public class Manager {
             item.setCurrentSize(downloaded);
             item.setTotalSize(total);
             item.setState(DownloadItem.DownloadState.DOWNLOADING);
-            ManagerReactive.invalidate();
+            ManagerReactive.invalidateProgress();
             try {
                 Callback<DownloadProgress> callback = getCallback(item.getUuid());
                 if (callback != null) callback.doSomething(new DownloadProgress(progress, downloaded, total));
