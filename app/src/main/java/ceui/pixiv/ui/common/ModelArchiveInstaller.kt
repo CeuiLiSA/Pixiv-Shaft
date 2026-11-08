@@ -2,131 +2,127 @@ package ceui.pixiv.ui.common
 
 import java.io.File
 import java.io.IOException
-import java.util.UUID
 import java.util.zip.ZipInputStream
 
 /** 模型包先在暂存目录完整校验，提交失败时恢复旧目录。 */
 internal object ModelArchiveInstaller {
-    // 解压期间不持有清理锁，删除入口无需等待整包解压；活跃暂存目录单独保留。
-    private val artifactsLock = Any()
-    private val activeArchives = mutableSetOf<File>()
-    private var activeStaging: File? = null
-    private val uuid = Regex("[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}")
-
     fun isReady(dir: File, requiredFiles: List<String>): Boolean =
         requiredFiles.isNotEmpty() && requiredFiles.all {
             File(dir, it).let { file -> file.isFile && file.length() > 0L }
         }
 
+    fun recoverReady(dir: File, requiredFiles: List<String>): Boolean {
+        val backup = File(dir.parentFile, dir.name + ".backup")
+        if (!backup.exists()) return isReady(dir, requiredFiles)
+        synchronized(this) {
+            if (!backup.exists()) return isReady(dir, requiredFiles)
+            if (!dir.exists()) {
+                backup.renameTo(dir)
+            } else if (isReady(dir, requiredFiles)) {
+                backup.deleteRecursively()
+            } else if (isReady(backup, requiredFiles)) {
+                if (dir.deleteRecursively()) backup.renameTo(dir)
+            } else {
+                backup.deleteRecursively()
+            }
+            return isReady(dir, requiredFiles)
+        }
+    }
+
+    fun hasTempArtifacts(cacheDir: File, dir: File, assetDir: String): Boolean =
+        File(dir.parentFile, dir.name + ".staging").exists() ||
+            File(cacheDir, "model_dl_${assetDir}.zip").exists() ||
+            File(cacheDir, "model_import_${assetDir}.zip").exists()
+
     @Synchronized
-    fun install(archive: File, dir: File, requiredFiles: List<String>): Boolean {
-        synchronized(artifactsLock) { cleanStaging(dir) }
-        archive.inputStream().use { input ->
-            if (!input.readNBytesCompat(4).contentEquals(byteArrayOf(0x50, 0x4b, 0x03, 0x04))) return false
+    fun cleanTempArtifacts(cacheDir: File, dir: File, assetDir: String) {
+        File(dir.parentFile, dir.name + ".staging").deleteRecursively()
+        File(cacheDir, "model_dl_${assetDir}.zip").delete()
+        File(cacheDir, "model_import_${assetDir}.zip").delete()
+    }
+
+    @Synchronized
+    fun cleanResidue(cacheDir: File, dir: File, assetDir: String, requiredFiles: List<String>) {
+        if (!recoverReady(dir, requiredFiles)) dir.deleteRecursively()
+        val backup = File(dir.parentFile, dir.name + ".backup")
+        if (backup.exists() && !isReady(backup, requiredFiles)) backup.deleteRecursively()
+        cleanTempArtifacts(cacheDir, dir, assetDir)
+    }
+
+    @Synchronized
+    fun install(
+        archive: File,
+        dir: File,
+        requiredFiles: List<String>,
+        checkCancelled: () -> Unit = {},
+    ): Boolean {
+        checkCancelled()
+        val staging = File(dir.parentFile, dir.name + ".staging")
+        if (staging.exists() && !staging.deleteRecursively()) {
+            throw IOException("cannot remove old model staging directory")
         }
         val backup = File(dir.parentFile, dir.name + ".backup")
-        synchronized(artifactsLock) {
-            if (backup.exists()) {
-                if (!dir.exists()) {
-                    if (!backup.renameTo(dir)) throw IOException("cannot recover model backup")
-                } else if (isReady(dir, requiredFiles)) {
-                    if (!backup.deleteRecursively()) throw IOException("cannot remove old model backup")
-                } else {
-                    throw IOException("incomplete model with an unresolved backup")
-                }
-            }
-        }
-        val staging = synchronized(artifactsLock) {
-            File(dir.parentFile, dir.name + ".staging-" + UUID.randomUUID()).absoluteFile.also {
-                activeStaging = it
-            }
+        recoverReady(dir, requiredFiles)
+        if (backup.exists()) throw IOException("cannot resolve model backup")
+        archive.inputStream().use { input ->
+            if (!input.readNBytesCompat(4).contentEquals(byteArrayOf(0x50, 0x4b, 0x03, 0x04))) return false
         }
         try {
             if (!staging.mkdirs()) throw IOException("cannot create model staging directory")
             val prefix = staging.canonicalPath + File.separator
             ZipInputStream(archive.inputStream()).use { zip ->
+                val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
                 var entry = zip.nextEntry
                 while (entry != null) {
+                    checkCancelled()
                     if (!entry.isDirectory) {
                         val file = File(staging, entry.name)
                         if (!file.canonicalPath.startsWith(prefix)) {
                             throw SecurityException("zip entry escapes target dir: ${entry.name}")
                         }
                         file.parentFile?.mkdirs()
-                        file.outputStream().use { zip.copyTo(it) }
+                        file.outputStream().use { output ->
+                            while (true) {
+                                checkCancelled()
+                                val count = zip.read(buffer)
+                                if (count < 0) break
+                                output.write(buffer, 0, count)
+                            }
+                        }
                     }
                     zip.closeEntry()
                     entry = zip.nextEntry
                 }
             }
             if (!isReady(staging, requiredFiles)) return false
-            synchronized(artifactsLock) {
-                if (dir.exists() && !dir.renameTo(backup)) throw IOException("cannot back up installed model")
-                if (!staging.renameTo(dir)) {
-                    if (backup.exists() && !backup.renameTo(dir)) {
-                        throw IOException("cannot commit model or restore backup: ${backup.path}")
-                    }
-                    throw IOException("cannot commit model installation")
+            checkCancelled()
+            if (dir.exists() && !dir.renameTo(backup)) throw IOException("cannot back up installed model")
+            if (!staging.renameTo(dir)) {
+                if (backup.exists() && !backup.renameTo(dir)) {
+                    throw IOException("cannot commit model or restore backup: ${backup.path}")
                 }
-                backup.deleteRecursively()
+                throw IOException("cannot commit model installation")
             }
+            backup.deleteRecursively()
             return true
         } finally {
-            synchronized(artifactsLock) {
-                staging.deleteRecursively()
-                activeStaging = null
-            }
+            staging.deleteRecursively()
         }
     }
 
-    fun createTempArchive(
-        cacheDir: File, dir: File, assetDir: String, importing: Boolean = false,
-    ): File = synchronized(artifactsLock) {
-        // 下载前先释放上次解压占用的空间，避免等新 ZIP 写满缓存后才有机会清理。
-        cleanStaging(dir)
-        cleanArchives(cacheDir, assetDir)
+    @Synchronized
+    fun prepareTempArchive(cacheDir: File, dir: File, assetDir: String, importing: Boolean = false): File {
+        cleanTempArtifacts(cacheDir, dir, assetDir)
         val prefix = if (importing) "model_import_" else "model_dl_"
-        File(cacheDir, "$prefix${assetDir}_${UUID.randomUUID()}.zip").absoluteFile.also {
-            // 先登记再交给调用方写入；其他下载/导入清理时必须保留这个文件。
-            activeArchives.add(it)
-        }
+        return File(cacheDir, "$prefix${assetDir}.zip")
     }
 
-    fun releaseTempArchive(archive: File) {
-        synchronized(artifactsLock) {
-            archive.delete()
-            activeArchives.remove(archive.absoluteFile)
-        }
-    }
-
+    @Synchronized
     fun delete(dir: File, cacheDir: File, assetDir: String) {
-        synchronized(artifactsLock) {
-            dir.deleteRecursively()
-            File(dir.parentFile, dir.name + ".backup").deleteRecursively()
-            cleanStaging(dir)
-            cleanArchives(cacheDir, assetDir)
-        }
+        dir.deleteRecursively()
+        File(dir.parentFile, dir.name + ".backup").deleteRecursively()
+        cleanTempArtifacts(cacheDir, dir, assetDir)
     }
-
-    private fun cleanStaging(dir: File) {
-        dir.parentFile?.listFiles().orEmpty().filter {
-            it.isDirectory && it.absoluteFile != activeStaging && (it.name == dir.name + ".staging" ||
-                isTemporaryName(it.name, dir.name + ".staging-"))
-        }.forEach { it.deleteRecursively() }
-    }
-
-    private fun cleanArchives(cacheDir: File, assetDir: String) {
-        cacheDir.listFiles().orEmpty().filter { file ->
-            file.isFile && file.absoluteFile !in activeArchives &&
-                listOf("model_dl_${assetDir}", "model_import_${assetDir}").any { prefix ->
-                    file.name == "$prefix.zip" || isTemporaryName(file.name, "${prefix}_", ".zip")
-                }
-        }.forEach { it.delete() }
-    }
-
-    private fun isTemporaryName(name: String, prefix: String, suffix: String = ""): Boolean =
-        name.startsWith(prefix) && name.endsWith(suffix) &&
-            uuid.matches(name.removePrefix(prefix).removeSuffix(suffix))
 
     // InputStream.readNBytes 是较新平台 API；minSdk 24 用普通 read 循环。
     private fun java.io.InputStream.readNBytesCompat(count: Int): ByteArray {

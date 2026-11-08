@@ -1,7 +1,7 @@
 package ceui.pixiv.ui.common
 
 import java.io.File
-import java.util.UUID
+import java.util.concurrent.CancellationException
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 import org.junit.Assert.*
@@ -33,6 +33,12 @@ class ModelArchiveInstallerTest {
         assertFalse(File(temp.root, "model.backup").exists())
     }
 
+    @Test fun `complete package installs with no previous model`() {
+        val dir = File(temp.root, "model")
+        assertTrue(ModelArchiveInstaller.install(zip(required.associateWith { "new" }), dir, required))
+        assertTrue(ModelArchiveInstaller.isReady(dir, required))
+    }
+
     @Test fun `rejected package recovers a previous interrupted installation`() {
         val dir = installed()
         assertTrue(dir.renameTo(File(temp.root, "model.backup")))
@@ -50,76 +56,75 @@ class ModelArchiveInstallerTest {
         assertFalse(File(temp.root, "escaped").exists())
     }
 
-    @Test fun `repeated interrupted extraction is cleaned even before rejecting a bad zip`() {
+    @Test fun `cancel during extraction leaves the installed model intact`() {
         val dir = installed()
-        val backup = temp.newFolder("model.backup")
-        val otherModel = temp.newFolder("other.staging-${UUID.randomUUID()}")
-        val unrelated = temp.newFolder("model.staging-custom")
-        val badZip = temp.newFile().also { it.writeText("not a zip") }
-        repeat(3) {
-            val orphan = temp.newFolder("model.staging-${UUID.randomUUID()}")
-            File(orphan, "partial.onnx").writeText("unfinished")
-            val legacy = temp.newFolder("model.staging")
-            assertFalse(ModelArchiveInstaller.install(badZip, dir, required))
-            assertFalse(orphan.exists())
-            assertFalse(legacy.exists())
-        }
+        var checks = 0
+        try {
+            ModelArchiveInstaller.install(
+                zip(mapOf("encoder.onnx" to "new".repeat(10000), "decoder.onnx" to "new")),
+                dir,
+                required,
+            ) {
+                if (++checks >= 4) throw CancellationException("cancelled")
+            }
+            fail("expected cancellation")
+        } catch (_: CancellationException) { }
         required.forEach { assertEquals("old", File(dir, it).readText()) }
-        assertTrue(backup.exists())
-        assertTrue(otherModel.exists())
+        assertFalse(File(temp.root, "model.staging").exists())
+    }
+
+    @Test fun `fixed staging is cleared before rejecting a bad zip`() {
+        val dir = installed()
+        val staging = temp.newFolder("model.staging")
+        File(staging, "partial.onnx").writeText("unfinished")
+        val badZip = temp.newFile().also { it.writeText("not a zip") }
+        assertFalse(ModelArchiveInstaller.install(badZip, dir, required))
+        assertFalse(staging.exists())
+        required.forEach { assertEquals("old", File(dir, it).readText()) }
+    }
+
+    @Test fun `fixed cache paths clear interrupted archives`() {
+        val cache = temp.newFolder("cache")
+        val dir = installed()
+        val staging = temp.newFolder("model.staging")
+        val download = File(cache, "model_dl_model.zip").also { it.writeText("old") }
+        val imported = File(cache, "model_import_model.zip").also { it.writeText("old") }
+        val unrelated = File(cache, "model_dl_other.zip").also { it.writeText("keep") }
+        val archive = ModelArchiveInstaller.prepareTempArchive(cache, dir, "model")
+        assertEquals(download, archive)
+        assertFalse(download.exists())
+        assertFalse(imported.exists())
+        assertFalse(staging.exists())
         assertTrue(unrelated.exists())
     }
 
-    @Test fun `cache sweep removes orphan zips and preserves concurrent download and import`() {
-        val cache = temp.newFolder("cache")
+    @Test fun `deleting a model removes fixed recovery artifacts`() {
         val dir = installed()
-        val staging = temp.newFolder("model.staging-${UUID.randomUUID()}")
-        val stale = listOf(
-            "model_dl_model_${UUID.randomUUID()}.zip", "model_import_model_${UUID.randomUUID()}.zip",
-            "model_dl_model.zip", "model_import_model.zip",
-        ).map { File(cache, it).also { file -> file.writeText("orphan") } }
-        val other = File(cache, "model_dl_other_${UUID.randomUUID()}.zip").also { it.writeText("other") }
-        val unrelated = File(cache, "model_dl_model_custom.zip").also { it.writeText("keep") }
-        val download = ModelArchiveInstaller.createTempArchive(cache, dir, "model")
-        try {
-            download.writeText("downloading")
-            val imported = ModelArchiveInstaller.createTempArchive(cache, dir, "model", importing = true)
-            try {
-                imported.writeText("importing")
-                stale.forEach { assertFalse(it.exists()) }
-                assertFalse(staging.exists())
-                assertNotEquals(download, imported)
-                assertEquals("downloading", download.readText())
-                assertEquals("importing", imported.readText())
-                assertTrue(other.exists())
-                assertTrue(unrelated.exists())
-            } finally {
-                ModelArchiveInstaller.releaseTempArchive(imported)
-            }
-        } finally {
-            ModelArchiveInstaller.releaseTempArchive(download)
-        }
-        assertFalse(download.exists())
+        val cache = temp.newFolder("cache")
+        val backup = temp.newFolder("model.backup")
+        val staging = temp.newFolder("model.staging")
+        val download = File(cache, "model_dl_model.zip").also { it.writeText("old") }
+        val imported = File(cache, "model_import_model.zip").also { it.writeText("old") }
+        ModelArchiveInstaller.delete(dir, cache, "model")
+        listOf(dir, backup, staging, download, imported).forEach { assertFalse(it.exists()) }
     }
 
-    @Test fun `deleting a model removes recovery artifacts without deleting an active archive`() {
+    @Test fun `ready check restores a model left in backup`() {
         val dir = installed()
-        val cache = temp.newFolder("cache")
-        val active = ModelArchiveInstaller.createTempArchive(cache, dir, "model")
-        try {
-            active.writeText("downloading")
-            val backup = temp.newFolder("model.backup")
-            val staging = temp.newFolder("model.staging-${UUID.randomUUID()}")
-            val legacy = temp.newFolder("model.staging")
-            val orphan = File(cache, "model_import_model_${UUID.randomUUID()}.zip").also { it.writeText("orphan") }
-            val other = temp.newFolder("other")
-            ModelArchiveInstaller.delete(dir, cache, "model")
-            listOf(dir, backup, staging, legacy, orphan).forEach { assertFalse(it.exists()) }
-            assertTrue(other.exists())
-            assertEquals("downloading", active.readText())
-        } finally {
-            ModelArchiveInstaller.releaseTempArchive(active)
-        }
+        val backup = File(temp.root, "model.backup")
+        assertTrue(dir.renameTo(backup))
+        assertTrue(ModelArchiveInstaller.recoverReady(dir, required))
+        required.forEach { assertEquals("old", File(dir, it).readText()) }
+        assertFalse(backup.exists())
+    }
+
+    @Test fun `ready check removes backup after a completed replacement`() {
+        val dir = installed()
+        val backup = temp.newFolder("model.backup")
+        required.forEach { File(backup, it).writeText("older") }
+        assertTrue(ModelArchiveInstaller.recoverReady(dir, required))
+        assertFalse(backup.exists())
+        required.forEach { assertEquals("old", File(dir, it).readText()) }
     }
 
     private fun installed(): File = temp.newFolder("model").also { dir ->
