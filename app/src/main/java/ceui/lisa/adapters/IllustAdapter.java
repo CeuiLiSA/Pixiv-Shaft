@@ -752,6 +752,10 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
         boundLocalPageUris.remove(holder.baseBind);
         if (snapshotId == null && !allIllust.isGif() && initialLocalScanPending) {
             deferredInitialBind = true;
+            // 全量重绑进入等待时也要丢掉旧请求和标记；回收的 holder 不能继续显示上一页。
+            fragmentRequestManager.clear(holder.baseBind.illust);
+            holder.baseBind.illust.setImageDrawable(null);
+            holder.baseBind.illust.setTag(R.id.tag_image_url, null);
             holder.baseBind.reload.setVisibility(View.GONE);
             holder.baseBind.progressLayout.donutProgress.setVisibility(View.VISIBLE);
             holder.baseBind.progressLayout.donutProgress.setProgress(0);
