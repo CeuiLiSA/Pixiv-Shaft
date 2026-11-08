@@ -1053,10 +1053,8 @@ public class Manager {
                 passSize = 0;
                 targetUri = null;
             } else {
-                // 直写路径（file:// / gif zip）：保持原逻辑 —— query 现有长度做 append 续传，
-                // 现在就 insert 打开目标。
+                // 直写路径先解析目标。GIF factory 每次派发都会重建，insert 前 query 尚无 Uri。
                 long fileSize = MediaStoreUtil.length(factory.query(), context);
-                passSize = (!downloadItem.shouldStartNewDownload() && fileSize >= 0) ? fileSize : 0;
                 Uri opened;
                 try {
                     opened = factory.insert();
@@ -1089,6 +1087,11 @@ public class Manager {
                     return;
                 }
                 targetUri = opened;
+                if ("file".equals(opened.getScheme())) {
+                    // GIF insert 只准备缓存路径，不截断已有 ZIP；暂停继续的偏移取实际文件长度。
+                    fileSize = MediaStoreUtil.length(opened, context);
+                }
+                passSize = (!downloadItem.shouldStartNewDownload() && fileSize >= 0) ? fileSize : 0;
             }
 
             // 回主线程启动下载链（handle 赋值需要在一致的线程）
@@ -1676,23 +1679,32 @@ public class Manager {
                 Timber.tag("SharedImageDownload").d("NETWORK illustId=%d page=%d resumeBytes=%d",
                         downloadItem.getIllust().getId(), downloadItem.getIndex(), passSize);
                 response = client.newCall(rb.build()).execute();
-                if (!response.isSuccessful()) {
+                int code = response.code();
+                if (!response.isSuccessful() && code != 416) {
                     emitter.onError(new IOException("HTTP " + response.code()));
                     return;
                 }
                 ResponseBody body = response.body();
-                if (body == null) {
-                    emitter.onError(new IOException("Empty response body"));
-                    return;
-                }
-                inputStream = body.byteStream();
                 StageStore.WriteDecision decision = StageStore.decideWrite(
-                        response.code(), response.header("Content-Range"), body.contentLength(), passSize);
+                        code, response.header("Content-Range"), body != null ? body.contentLength() : -1L, passSize);
                 if (decision.mode == StageStore.WriteMode.ABORT) {
+                    if (code == 416 && "file".equals(targetUri.getScheme())) {
+                        runCatchingDelete(new File(targetUri.getPath()));
+                    }
                     throw new IOException("invalid direct-download range, restart fresh");
                 }
                 writeOffset = decision.startOffset;
                 totalSize = decision.total;
+                if (decision.mode == StageStore.WriteMode.ALREADY_COMPLETE) {
+                    // 暂停可能恰好落在末字节之后；416 也必须经过下面的落盘长度校验。
+                    inputStream = new java.io.ByteArrayInputStream(new byte[0]);
+                } else {
+                    if (body == null) {
+                        emitter.onError(new IOException("Empty response body"));
+                        return;
+                    }
+                    inputStream = body.byteStream();
+                }
             }
 
             if ("file".equals(targetUri.getScheme())) {
@@ -1714,6 +1726,15 @@ public class Manager {
             // 成功路径上的 close 不能吞：盘快满时缓冲里最后一段可能到 close 才真正落盘失败，
             // 吞掉就会把截断的文件当成下载成功记进「已完成」（pixez#1361）。抛出去走 onError 清理。
             outputStream.close(); outputStream = null;
+            if ("file".equals(targetUri.getScheme())) {
+                File target = new File(targetUri.getPath());
+                long actualSize = target.isFile() ? target.length() : -1L;
+                // append 可能在缓存被清理后新建空文件；逻辑计数仍含旧偏移，必须核对落盘长度。
+                if (actualSize != downloaded) {
+                    runCatchingDelete(target);
+                    throw new IOException("direct file length mismatch: " + actualSize + " != " + downloaded);
+                }
+            }
             emitter.onNext(targetUri.toString());
             emitter.onComplete();
         } finally {
