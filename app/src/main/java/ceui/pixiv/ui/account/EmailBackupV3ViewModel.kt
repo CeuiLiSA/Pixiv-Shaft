@@ -14,6 +14,7 @@ import ceui.pixiv.shaftapi.RestoreConfirmReq
 import ceui.pixiv.shaftapi.UidReq
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -82,6 +83,8 @@ class EmailBackupV3ViewModel(initialMode: Mode) : ViewModel() {
     val effects: SharedFlow<Effect> = _effects.asSharedFlow()
 
     private var countdownJob: Job? = null
+    private var requestCodeJob: Job? = null
+    private var flowVersion = 0L
 
     init {
         if (initialMode == Mode.BACKUP) checkBoundStatus()
@@ -104,6 +107,9 @@ class EmailBackupV3ViewModel(initialMode: Mode) : ViewModel() {
 
     fun setMode(mode: Mode) {
         if (cur().mode == mode) return
+        flowVersion++
+        requestCodeJob?.cancel()
+        requestCodeJob = null
         countdownJob?.cancel()
         _state.value = UiState(mode = mode) // mode switch resets the whole flow
         if (mode == Mode.BACKUP) checkBoundStatus()
@@ -113,11 +119,12 @@ class EmailBackupV3ViewModel(initialMode: Mode) : ViewModel() {
     private fun checkBoundStatus() {
         val uid = SessionManager.loggedInUid
         if (uid <= 0L) return // not logged in → leave the empty form as-is
+        val version = flowVersion
         update { it.copy(checkingStatus = true) }
         viewModelScope.launch {
             try {
                 val st = Client.pixshaft.bindStatus(UidReq(uid))
-                if (cur().mode != Mode.BACKUP) return@launch // mode switched mid-probe
+                if (version != flowVersion || cur().mode != Mode.BACKUP) return@launch
                 update {
                     it.copy(
                         checkingStatus = false,
@@ -126,10 +133,12 @@ class EmailBackupV3ViewModel(initialMode: Mode) : ViewModel() {
                         boundAt = st.updatedAt,
                     )
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 // Background probe; on failure fall back to the form silently.
                 Timber.w(e, "bind status check failed")
-                if (cur().mode != Mode.BACKUP) return@launch
+                if (version != flowVersion || cur().mode != Mode.BACKUP) return@launch
                 update { it.copy(checkingStatus = false, bound = false) }
             }
         }
@@ -174,21 +183,22 @@ class EmailBackupV3ViewModel(initialMode: Mode) : ViewModel() {
             return
         }
         update { it.copy(loading = true, status = null, statusIsError = false) }
-        viewModelScope.launch {
+        val version = flowVersion
+        requestCodeJob = viewModelScope.launch {
             try {
-                if (st.mode == Mode.BACKUP) {
+                val found = if (st.mode == Mode.BACKUP) {
                     Client.pixshaft.bindRequest(EmailReq(st.email))
-                    onCodeSent(st.email)
+                    true
                 } else {
-                    val ack = Client.pixshaft.restoreRequest(EmailReq(st.email))
-                    if (ack.found) {
-                        onCodeSent(st.email)
-                    } else {
-                        showError("该邮箱还没有账号备份")
-                    }
+                    Client.pixshaft.restoreRequest(EmailReq(st.email)).found
                 }
+                // 代次区分「备份 → 恢复 → 备份」，旧请求不能回写同名的新流程。
+                if (version != flowVersion) return@launch
+                if (found) onCodeSent(st.email) else showError("该邮箱还没有账号备份")
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
-                showError(errorText(e))
+                if (version == flowVersion) showError(errorText(e))
             }
         }
     }
