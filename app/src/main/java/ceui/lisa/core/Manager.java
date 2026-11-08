@@ -1648,9 +1648,8 @@ public class Manager {
     }
 
     /**
-     * 直写（file:// / gif zip）传输：保持历史行为不变 —— {@code passSize>0} 时带 Range
-     * 头 + append 模式续写目标文件，无 manifest / validator（file:// 没有 ContentProvider
-     * 的半成品窗口，暂停即续；跨失败续传只有 staged content:// 路径提供）。
+     * 直写（file:// / gif zip）传输：响应与 staged 路径共用续传决策。
+     * 服务器忽略 Range 返回 200 时必须截断重写，只有校验过起点的 206 才能追加。
      */
     private void runDirectTransfer(Context context, DownloadItem downloadItem, File cachedFile,
             Uri targetUri, String dlUrl, long passSize, OkHttpClient client,
@@ -1659,12 +1658,14 @@ public class Manager {
         InputStream inputStream = null;
         OutputStream outputStream = null;
         try {
-            long contentLength;
+            long writeOffset;
+            long totalSize;
             if (cachedFile != null) {
                 Common.showLog("[DL-CACHE] direct local copy, src=" + cachedFile.getAbsolutePath()
                         + " dst=" + targetUri);
                 inputStream = new java.io.FileInputStream(cachedFile);
-                contentLength = cachedFile.length();
+                writeOffset = 0L;
+                totalSize = cachedFile.length();
             } else {
                 Request.Builder rb = new Request.Builder()
                         .url(ceui.lisa.http.ImageHostManager.INSTANCE.rewrite(dlUrl))
@@ -1685,22 +1686,31 @@ public class Manager {
                     return;
                 }
                 inputStream = body.byteStream();
-                contentLength = body.contentLength();
+                StageStore.WriteDecision decision = StageStore.decideWrite(
+                        response.code(), response.header("Content-Range"), body.contentLength(), passSize);
+                if (decision.mode == StageStore.WriteMode.ABORT) {
+                    throw new IOException("invalid direct-download range, restart fresh");
+                }
+                writeOffset = decision.startOffset;
+                totalSize = decision.total;
             }
 
-            long totalSize = contentLength > 0 ? contentLength + passSize : 0;
             if ("file".equals(targetUri.getScheme())) {
-                outputStream = new java.io.FileOutputStream(targetUri.getPath(), passSize > 0);
+                outputStream = new java.io.FileOutputStream(targetUri.getPath(), writeOffset > 0);
             } else {
                 outputStream = context.getContentResolver()
-                        .openOutputStream(targetUri, passSize > 0 ? "wa" : "w");
+                        .openOutputStream(targetUri, writeOffset > 0 ? "wa" : "w");
             }
             if (outputStream == null) {
                 emitter.onError(new IOException("Cannot open output stream for " + targetUri));
                 return;
             }
-            pumpBytes(inputStream, outputStream, downloadItem, passSize, totalSize, cachedFile != null, emitter);
+            long downloaded = pumpBytes(inputStream, outputStream, downloadItem,
+                    writeOffset, totalSize, cachedFile != null, emitter);
             if (emitter.isDisposed()) return;
+            if (totalSize >= 0 && downloaded != totalSize) {
+                throw new IOException("incomplete direct download: " + downloaded + "/" + totalSize);
+            }
             // 成功路径上的 close 不能吞：盘快满时缓冲里最后一段可能到 close 才真正落盘失败，
             // 吞掉就会把截断的文件当成下载成功记进「已完成」（pixez#1361）。抛出去走 onError 清理。
             outputStream.close(); outputStream = null;
