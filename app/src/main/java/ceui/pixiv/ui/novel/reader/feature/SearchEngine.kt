@@ -49,7 +49,7 @@ object SearchEngine {
         val result = ArrayList<SearchHit>(hits.size)
         var pageCursor = 0
         for (hit in hits) {
-            while (pageCursor < pages.size && pages[pageCursor].charEnd < hit.absoluteStart) {
+            while (pageCursor < pages.size && pages[pageCursor].charEnd <= hit.absoluteStart) {
                 pageCursor++
             }
             val page = pages.getOrNull(pageCursor)
