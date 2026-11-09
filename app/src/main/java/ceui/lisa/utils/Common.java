@@ -24,9 +24,6 @@ import com.blankj.utilcode.util.AppUtils;
 import com.blankj.utilcode.util.FileIOUtils;
 import com.blankj.utilcode.util.FileUtils;
 import com.blankj.utilcode.util.Utils;
-import com.facebook.rebound.SimpleSpringListener;
-import com.facebook.rebound.Spring;
-import com.facebook.rebound.SpringChain;
 import com.hjq.toast.Toaster;
 import ceui.pixiv.witstudio.dialog.WitDialog;
 import ceui.pixiv.witstudio.dialog.WitDialogAction;
@@ -254,28 +251,6 @@ public class Common {
         } else {
             return "";
         }
-    }
-
-    public static void animate(LinearLayout linearLayout) {
-        SpringChain springChain = SpringChain.create(40, 8, 60, 10);
-
-        int childCount = linearLayout.getChildCount();
-        for (int i = 0; i < childCount; i++) {
-            final View view = linearLayout.getChildAt(i);
-
-            springChain.addSpring(new SimpleSpringListener() {
-                @Override
-                public void onSpringUpdate(Spring spring) {
-                    view.setTranslationX((float) spring.getCurrentValue());
-                }
-            });
-        }
-
-        List<Spring> springs = springChain.getAllSprings();
-        for (int i = 0; i < springs.size(); i++) {
-            springs.get(i).setCurrentValue(400);
-        }
-        springChain.setControlSpringIndex(0).getControlSpring().setEndValue(0);
     }
 
     public static void createDialog(Context context){

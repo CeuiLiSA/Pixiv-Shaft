@@ -89,6 +89,8 @@ android {
         versionCode 43600
         versionName "4.9.9"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        // 仅保留 App 实际支持的语言资源（对齐 locales_config.xml），剔除第三方库自带的 80+ 种未用语言
+        resourceConfigurations += ['zh', 'zh-rCN', 'zh-rTW', 'zh-rHK', 'en', 'ja', 'ko', 'ru', 'tr', 'id', 'in']
         ndk {
             // Production remains arm64-only. CI can request x86_64 so instrumented tests run on
             // GitHub's hardware-accelerated emulator without changing shipped APKs.
@@ -328,14 +330,8 @@ dependencies {
     ksp libs.hiltCompiler
     implementation libs.agentwebCore
     implementation libs.androidxWebkit
-    implementation libs.rebound
     implementation libs.htmlTextView
     implementation libs.materialDateTimePicker
-    implementation libs.flowingDrawer
-    // flowingdrawer-core declares these classes in its animation path but its published POM omits
-    // the dependency. Debug/D8 tolerated that; R8 correctly exposes the potential runtime crash.
-    implementation libs.nineOldAndroids
-    implementation libs.viewPagerTransforms
     implementation(libs.utilCode) {
         // 它在 POM 里带了 kotlin-android-extensions-runtime:1.3.72；Kotlin 2.2 起
         // kotlin-parcelize-runtime 自带 kotlinx.android.parcel.*，两份同名类会撞 checkDuplicateClasses。
@@ -347,15 +343,11 @@ dependencies {
     // Google Play In-App Review
     implementation libs.googleReview
 
-    implementation libs.colorPicker
     implementation libs.androidxSplashScreen
     implementation libs.roundedImageView
     // net.csdn.roundview.RoundImageView is inflated directly by comment/plaza XML layouts.
     implementation libs.roundView
     implementation libs.okhttp
-    // Tencent's current COS Android XML SDK. The backend still supplies STS
-    // credentials; no permanent COS secret belongs in the APK.
-    implementation libs.cosAndroid
     // SSE 标准解析(AiTranslator 流式翻译):与 okhttp 同版本,按规范处理多行 data/CRLF/注释行
     implementation libs.okhttpSse
 
@@ -363,7 +355,6 @@ dependencies {
     implementation libs.cronet
 
     implementation libs.lottie
-    implementation libs.hdImageView
 
     implementation project(path: ':models')
     // 列表框架（FeedSource / FeedViewModel / FeedFragment / FeedAdapter）。对 pixiv 一无所知，
