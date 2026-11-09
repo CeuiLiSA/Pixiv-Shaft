@@ -113,7 +113,8 @@ class MangaBatchTranslateCenter @Inject constructor(
 
     /** Main-thread gate: prevent a new translation while its generated PNGs are removed. */
     fun beginResultCleanup(): Boolean {
-        if (isRunning || singlePageBusy || resultCleanupInProgress) return false
+        // Cancellation makes isActive false before a blocking renderer/PNG writer has returned.
+        if (job?.isCompleted == false || singlePageBusy || resultCleanupInProgress) return false
         resultCleanupInProgress = true
         return true
     }

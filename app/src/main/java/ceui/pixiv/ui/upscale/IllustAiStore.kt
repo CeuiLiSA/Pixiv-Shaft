@@ -79,6 +79,27 @@ class PageAiState(
         acknowledgedResultKey = resultKey
     }
 
+    internal fun pruneMissingResults() {
+        val wasAcknowledged = acknowledgedResultKey == resultKey
+        var removed = false
+        if (upscaleResultPath?.let { !File(it).exists() } == true) {
+            upscaleResultPath = null
+            upscaleStatus = UpscaleStatus.Idle
+            removed = true
+        }
+        if (rembgResultPath?.let { !File(it).exists() } == true) {
+            rembgResultPath = null
+            rembgStatus = UpscaleStatus.Idle
+            removed = true
+        }
+        if (removed) {
+            // Generated filenames are deterministic: a later result at the same path is new.
+            // Keep the acknowledgement only for an already viewed result that survived cleanup.
+            acknowledgedResultKey = if (wasAcknowledged &&
+                (upscaleResultPath != null || rembgResultPath != null)) resultKey else null
+        }
+    }
+
     val isIndeterminate: Boolean
         get() = if (upscaleStatus == UpscaleStatus.Running) {
             upscaleProgress <= 0f
@@ -135,14 +156,7 @@ object IllustAiStore {
     /** Drop stale result paths after storage cleanup so visible artwork pages redraw their AI pills. */
     fun pruneMissingResults() {
         for (state in states.values) {
-            if (state.upscaleResultPath?.let { !File(it).exists() } == true) {
-                state.upscaleResultPath = null
-                state.upscaleStatus = UpscaleStatus.Idle
-            }
-            if (state.rembgResultPath?.let { !File(it).exists() } == true) {
-                state.rembgResultPath = null
-                state.rembgStatus = UpscaleStatus.Idle
-            }
+            state.pruneMissingResults()
         }
         _changes.postValue(Unit)
     }
