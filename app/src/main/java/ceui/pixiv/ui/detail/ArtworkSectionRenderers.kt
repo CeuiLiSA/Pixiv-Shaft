@@ -802,8 +802,14 @@ private fun ArtworkV3Fragment.renderCommentsPreview(
     // 非加载态时 comments 可能仍是 null(定论性失败),统一空列表处理。
     val comments = item.comments ?: emptyList()
     b.commentsEmpty.isVisible = comments.isEmpty()
-    // 同一个 TextView 兼任空态和失败态:「还没有评论」是拉成功且为空,报错文案是拉不到(#592)
-    b.commentsEmpty.text = item.loadFailedMessage ?: ctx.getString(R.string.v3_no_comments_yet)
+    // 同一个 TextView 兼任空态和失败态：快照未收录评论与已收录但为空要区分，失败优先显示报错(#592)。
+    b.commentsEmpty.text = item.loadFailedMessage ?: ctx.getString(
+        if (isSnapshotMode && snapshotId?.let { ceui.pixiv.snapshot.SnapshotRuntimeCache.get(it) }?.comments == null) {
+            R.string.snapshot_no_comments_toast
+        } else {
+            R.string.v3_no_comments_yet
+        },
+    )
 
     // 评论列表实例不变(滚动来回重绑)就跳过重新 inflate 三张预览卡;发新评论 / 首次拉到会换实例。
     if (b.commentsList.tag === comments) return
