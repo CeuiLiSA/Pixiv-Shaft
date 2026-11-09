@@ -113,11 +113,8 @@ open class FlipHorizontalTransformer : ABaseTransformer() {
 
     override fun onPostTransform(page: View, position: Float) {
         super.onPostTransform(page, position)
-        if (position <= -1f || position >= 1f) {
-            page.alpha = 0f
-        } else if (position == 0f) {
-            page.alpha = 1f
-        }
+        // Transparent back faces overlap the selected page and still receive child touches.
+        page.visibility = if (position > -0.5f && position < 0.5f) View.VISIBLE else View.INVISIBLE
     }
 }
 
@@ -132,11 +129,8 @@ open class FlipVerticalTransformer : ABaseTransformer() {
 
     override fun onPostTransform(page: View, position: Float) {
         super.onPostTransform(page, position)
-        if (position <= -1f || position >= 1f) {
-            page.alpha = 0f
-        } else if (position == 0f) {
-            page.alpha = 1f
-        }
+        // Transparent back faces overlap the selected page and still receive child touches.
+        page.visibility = if (position > -0.5f && position < 0.5f) View.VISIBLE else View.INVISIBLE
     }
 }
 
