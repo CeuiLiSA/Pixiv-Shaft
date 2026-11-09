@@ -26,7 +26,10 @@ enum class UpscaleModel(
         executableName = "librealcugan_ncnn.so",
         assetDir = "Real-CUGAN-pro",
         extractDir = "models-pro",
-        modelFiles = listOf("up2x-conservative.bin", "up2x-conservative.param"),
-        extraArgs = listOf("-n", "-1", "-s", "2")
+        modelFiles = listOf("up2x-no-denoise.bin", "up2x-no-denoise.param"),
+        // 1. 显式传 -n 0 (no-denoise)：Real-CUGAN Pro 的 conservative (-n -1) 模式存在上游模型训练残差振荡，
+        //    在高对比色差描边处（如深色/红色过渡区）会产生孤立品红/青色噪点；no-denoise 模式保留极高锐度的同时彻底消除彩噪。
+        // 2. 传 -c 1 (精确 GAP 全局同步) 与 -s 2 匹配 2x 模型。
+        extraArgs = listOf("-n", "0", "-s", "2", "-c", "1")
     );
 }

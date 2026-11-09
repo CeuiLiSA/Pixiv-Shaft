@@ -409,6 +409,8 @@ dependencies {
     implementation libs.muzei
 
     coreLibraryDesugaring libs.desugarJdkLibs
+
+    implementation libs.ncnn.android.shaft
 }
 
 // Gradle 9 下 dependencies 里的 `configurations { all*.exclude … }` 会在配置期解析配置，改用 configureEach。

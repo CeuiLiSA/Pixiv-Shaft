@@ -61,6 +61,7 @@ utilCode = "1.31.1"
 webkit = "1.17.1"
 work = "2.9.1"
 zoomImage = "1.4.0"
+ncnn-shaft = "20241226-shaft-+"
 
 [libraries]
 androidxAnnotation = { module = "androidx.annotation:annotation", version.ref = "androidxAnnotation" }
@@ -135,6 +136,7 @@ timber = { module = "com.jakewharton.timber:timber", version.ref = "timber" }
 toaster = { module = "com.github.getActivity:Toaster", version.ref = "toaster" }
 utilCode = { module = "com.blankj:utilcodex", version.ref = "utilCode" }
 zoomImage = { module = "io.github.panpf.zoomimage:zoomimage-view-sketch4", version.ref = "zoomImage" }
+ncnn-android-shaft = { module = "io.github.wangwang-code:ncnn-android-shaft", version.ref = "ncnn-shaft" }
 
 [plugins]
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
