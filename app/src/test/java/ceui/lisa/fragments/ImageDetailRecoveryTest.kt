@@ -8,12 +8,17 @@ import androidx.fragment.app.FragmentActivity
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.utils.Settings
+import ceui.pixiv.download.repairablePngBytes
 import ceui.pixiv.imageloader.ImageFetcher
 import ceui.pixiv.imageloader.ImageLoadTask
 import ceui.pixiv.imageloader.ImageRequest
 import ceui.pixiv.imageloader.ImageTaskRegistry
 import com.blankj.utilcode.util.Utils
 import com.github.panpf.sketch.request.ImageResult
+import com.github.panpf.sketch.request.ImageData
+import com.github.panpf.sketch.request.RequestInterceptor
+import com.github.panpf.sketch.Sketch
+import com.github.panpf.sketch.SingletonSketch
 import com.github.panpf.sketch.request.ImageRequest as SketchImageRequest
 import com.github.panpf.zoomimage.SketchZoomImageView
 import kotlinx.coroutines.CoroutineScope
@@ -37,6 +42,7 @@ import org.robolectric.util.ReflectionHelpers.ClassParameter
 import java.io.File
 import java.io.IOException
 import java.util.concurrent.atomic.AtomicInteger
+import java.time.Duration
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [28], application = ImageDetailRecoveryTest.TestApplication::class)
@@ -120,14 +126,48 @@ class ImageDetailRecoveryTest {
         shadowOf(Looper.getMainLooper()).idle()
     }
 
-    private fun seed(url: String): File {
-        val payload = ByteArray(200).apply {
+    @Test
+    fun `another decoder error after successful ECC repair still offers manual retry`() {
+        val requests = AtomicInteger()
+        // Fail at the image-loader boundary; no native decoder is needed for this recovery test.
+        val sketch = Sketch.Builder(host.get()).components {
+            addRequestInterceptor(object : RequestInterceptor {
+                override val key = "decode-failure"
+                override val sortWeight = 0
+                override fun equals(other: Any?) = this === other
+                override fun hashCode() = System.identityHashCode(this)
+                override fun toString() = key
+                override suspend fun intercept(chain: RequestInterceptor.Chain): Result<ImageData> {
+                    requests.incrementAndGet()
+                    return Result.failure(IOException("decode error"))
+                }
+            })
+        }.build()
+        SingletonSketch.setUnsafe(sketch)
+        image.measure(View.MeasureSpec.makeMeasureSpec(400, View.MeasureSpec.EXACTLY),
+            View.MeasureSpec.makeMeasureSpec(600, View.MeasureSpec.EXACTLY))
+        image.layout(0, 0, 400, 600)
+        try {
+            val (healthy, damaged) = repairablePngBytes()
+            val file = seed("https://example.test/healable.png", damaged)
+            await { errorVisible() }
+
+            assertArrayEquals(healthy, file.readBytes())
+            assertEquals(2, requests.get())
+            assertEquals(0, fetches.get())
+        } finally {
+            SingletonSketch.reset()
+            sketch.shutdown()
+        }
+    }
+
+    private fun seed(url: String, payload: ByteArray = ByteArray(200).apply {
             this[0] = 0xFF.toByte()
             this[1] = 0xD8.toByte()
             this[2] = 0xFF.toByte()
             this[198] = 0xFF.toByte()
             this[199] = 0xD9.toByte()
-        }
+        }): File {
         val file = File.createTempFile("recovery", ".jpg", host.get().cacheDir).also {
             it.writeBytes(payload)
             files += it
@@ -169,7 +209,7 @@ class ImageDetailRecoveryTest {
     private fun await(condition: () -> Boolean) {
         val deadline = System.nanoTime() + 3_000_000_000L
         while (!condition() && System.nanoTime() < deadline) {
-            shadowOf(Looper.getMainLooper()).idle()
+            shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(16))
             Thread.sleep(5)
         }
         assertTrue("recovery did not settle", condition())

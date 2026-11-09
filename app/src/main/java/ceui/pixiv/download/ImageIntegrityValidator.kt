@@ -2,10 +2,13 @@ package ceui.pixiv.download
 
 import android.content.Context
 import android.net.Uri
+import android.os.ParcelFileDescriptor
 import timber.log.Timber
 import java.io.File
 import java.io.FileInputStream
 import java.io.RandomAccessFile
+import java.nio.ByteBuffer
+import java.nio.channels.FileChannel
 import java.util.zip.CRC32
 import java.util.zip.Inflater
 
@@ -40,6 +43,8 @@ object ImageIntegrityValidator {
         val bit: Int,
         val typeStr: String
     )
+
+    private data class ByteRepair(val offset: Long, val original: Byte, val repaired: Byte)
 
     private val PNG_MAGIC = byteArrayOf(
         0x89.toByte(), 0x50.toByte(), 0x4E.toByte(), 0x47.toByte(),
@@ -140,18 +145,7 @@ object ImageIntegrityValidator {
 
                     val res = repairIfPossible(tempFile)
                     if (res.repaired) {
-                        // 只有在临时文件上确认 100% 修好，才写回 content:// 目标行！
-                        tempFile.inputStream().use { inp ->
-                            val out = runCatching { cr.openOutputStream(uri, "rwt") }.getOrNull()
-                                ?: cr.openOutputStream(uri, "w")
-                            if (out != null) {
-                                out.use { inp.copyTo(it) }
-                                Timber.tag("ImageIntegrity").i("显示侧就地修复并放回盘成功: %s", uri)
-                                true
-                            } else {
-                                false
-                            }
-                        }
+                        writeContentRepair(context, uri, tempFile)
                     } else {
                         false
                     }
@@ -165,6 +159,59 @@ object ImageIntegrityValidator {
             Timber.tag("ImageIntegrity").w(e, "repairUriIfPossible 处理异常: %s", uri)
             false
         }
+    }
+
+    private fun writeContentRepair(context: Context, uri: Uri, repairedFile: File): Boolean {
+        // 只改已验证的那一个字节。rwt / w 整图重写在断写时会把原图截断，无法安全回退。
+        // 云端/管道 provider 不支持随机访问时，校验或定位会失败，保持源文件不动。
+        val descriptor = context.contentResolver.openFileDescriptor(uri, "rw") ?: return false
+        return descriptor.use {
+            ParcelFileDescriptor.AutoCloseInputStream(it.dup()).use { input ->
+                val repair = findByteRepair(input.channel, repairedFile) ?: return false
+                val current = ByteBuffer.allocate(1)
+                if (input.channel.read(current, repair.offset) != 1 || current.array()[0] != repair.original) {
+                    return false
+                }
+                ParcelFileDescriptor.AutoCloseOutputStream(it.dup()).use { output ->
+                    val written = output.channel.write(ByteBuffer.wrap(byteArrayOf(repair.repaired)), repair.offset)
+                    if (written != 1) return false
+                }
+                Timber.tag("ImageIntegrity").i("显示侧就地修复并放回盘成功: %s", uri)
+                true
+            }
+        }
+    }
+
+    private fun findByteRepair(original: FileChannel, repairedFile: File): ByteRepair? {
+        if (original.size() != repairedFile.length()) return null
+        var repair: ByteRepair? = null
+        var offset = 0L
+        val fixedBytes = ByteArray(16384)
+        val source = ByteBuffer.allocate(16384)
+        repairedFile.inputStream().use { input ->
+            while (true) {
+                val count = input.read(fixedBytes)
+                if (count < 0) break
+                source.clear()
+                source.limit(count)
+                while (source.hasRemaining()) {
+                    if (original.read(source, offset + source.position()) <= 0) return null
+                }
+                for (i in 0 until count) {
+                    val old = source.array()[i]
+                    val fixed = fixedBytes[i]
+                    if (old != fixed) {
+                        // 同时确认 URI 仍对应最初读取的内容，没有被其他写入者替换。
+                        if (repair != null || Integer.bitCount((old.toInt() xor fixed.toInt()) and 0xFF) != 1) {
+                            return null
+                        }
+                        repair = ByteRepair(offset + i, old, fixed)
+                    }
+                }
+                offset += count
+            }
+        }
+        return repair.takeIf { offset == original.size() }
     }
 
     private fun isPng(header: ByteArray): Boolean {

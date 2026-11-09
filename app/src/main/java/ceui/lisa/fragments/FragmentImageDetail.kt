@@ -839,6 +839,38 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
             "[ImageDetail] task acquired. state=${task.state.value}, hasResult=${task.currentFile != null}, url=$shortUrl"
         )
 
+        fun renderOriginal(file: File) {
+            baseBind.image.loadImage(file) {
+                addListener(
+                    onError = { _, _ ->
+                        owner.lifecycleScope.launch {
+                            if (shownTranslatedPath != null) return@launch
+                            // 共享任务也可能直接返回快照/本地源文件；这些不是可删除的网络缓存。
+                            if (recoveryAttempted || isSnapshotMode ||
+                                !(imageUrl.startsWith("https://") || imageUrl.startsWith("http://"))) {
+                                baseBind.emptyFrame.visibility = View.VISIBLE
+                                return@launch
+                            }
+                            recoveryAttempted = true
+                            Timber.w("[ImageDetail] cached original file load FAIL: ${file.absolutePath}, try ECC")
+                            val result = withContext(Dispatchers.IO) {
+                                ceui.pixiv.download.ImageIntegrityValidator.repairIfPossible(file)
+                            }
+                            if (shownTranslatedPath != null) return@launch
+                            if (result.repaired) {
+                                Timber.i("[ImageDetail] cached original file repaired, reload: ${file.absolutePath}")
+                                renderOriginal(file)
+                            } else {
+                                Timber.w("[ImageDetail] cached file ECC unrepairable, deleting cache and retrying")
+                                withContext(Dispatchers.IO) { file.delete() }
+                                task.retry()
+                            }
+                        }
+                    }
+                )
+            }
+        }
+
         // 复用观察前先摘掉上一次（重试等重复调用），避免观察者叠加。
         imageDisposable?.dispose()
         imageDisposable =
@@ -864,35 +896,7 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
                             "[ImageDetail] result callback. file=${file.absolutePath}, size=${file.length()}, url=$shortUrl"
                         )
                         if (shownTranslatedPath == null) {
-                            baseBind.image.loadImage(file) {
-                                addListener(
-                                    onError = { _, _ ->
-                                        owner.lifecycleScope.launch {
-                                            if (shownTranslatedPath != null) return@launch
-                                            // 共享任务也可能直接返回快照/本地源文件；这些不是可删除的网络缓存。
-                                            if (recoveryAttempted || isSnapshotMode ||
-                                                !(imageUrl.startsWith("https://") || imageUrl.startsWith("http://"))) {
-                                                baseBind.emptyFrame.visibility = View.VISIBLE
-                                                return@launch
-                                            }
-                                            recoveryAttempted = true
-                                            Timber.w("[ImageDetail] cached original file load FAIL: ${file.absolutePath}, try ECC")
-                                            val result = withContext(Dispatchers.IO) {
-                                                ceui.pixiv.download.ImageIntegrityValidator.repairIfPossible(file)
-                                            }
-                                            if (shownTranslatedPath != null) return@launch
-                                            if (result.repaired) {
-                                                Timber.i("[ImageDetail] cached original file repaired, reload: ${file.absolutePath}")
-                                                baseBind.image.loadImage(file)
-                                            } else {
-                                                Timber.w("[ImageDetail] cached file ECC unrepairable, deleting cache and retrying")
-                                                withContext(Dispatchers.IO) { file.delete() }
-                                                task.retry()
-                                            }
-                                        }
-                                    }
-                                )
-                            }
+                            renderOriginal(file)
                         }
                         if (isUrlMode) {
                             baseBind.downloadButton.visibility = View.VISIBLE
