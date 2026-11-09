@@ -30,11 +30,9 @@ import ceui.pixiv.witstudio.theme.color
 import ceui.pixiv.witstudio.theme.dp
 import ceui.pixiv.witstudio.theme.label
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import timber.log.Timber
 import kotlinx.coroutines.currentCoroutineContext
 
@@ -175,7 +173,7 @@ internal object FollowingExportSheet {
                 val from = viewHolder.bindingAdapterPosition
                 val to = target.bindingAdapterPosition
                 if (from == RecyclerView.NO_POSITION || to == RecyclerView.NO_POSITION) return false
-                java.util.Collections.swap(options, from, to)
+                options.add(to, options.removeAt(from))
                 adapter.notifyItemMoved(from, to)
                 return true
             }
@@ -241,13 +239,13 @@ internal object FollowingExportSheet {
         filter: BookmarkFilter,
         fields: List<Field>
     ): Pair<String, Int> =
-        withContext(Dispatchers.IO) {
+        BookmarkLibraryRepo.withReadSnapshot(filter) { readPage ->
             val output = StringBuilder()
             var offset = 0
             var exported = 0
             do {
                 currentCoroutineContext().ensureActive()
-                val rows = BookmarkLibraryRepo.page(filter, PAGE_SIZE, offset)
+                val rows = readPage(PAGE_SIZE, offset)
                 rows.forEach { row ->
                     // 与屏幕上的 UserFeedItem 一致：坏 payload / 没有身份的行不算结果。
                     val user = BookmarkLibraryRepo.toUserPreview(row)?.user ?: return@forEach
