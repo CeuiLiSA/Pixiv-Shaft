@@ -8,8 +8,10 @@ import com.github.panpf.zoomimage.SketchZoomImageView
 import com.github.panpf.zoomimage.util.IntSizeCompat
 import com.github.panpf.zoomimage.util.OffsetCompat
 import com.github.panpf.zoomimage.zoom.ContentScaleCompat
+import com.github.panpf.zoomimage.zoom.ContinuousTransformType
 import com.github.panpf.zoomimage.zoom.ScalesCalculator
 import com.github.panpf.zoomimage.util.TransformCompat
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
@@ -36,7 +38,7 @@ fun setupZoomSync(
     right: SketchZoomImageView,
 ) {
     var source: SketchZoomImageView? = null
-    var activeTouch: SketchZoomImageView? = null
+    val activeTouch = MutableStateFlow<SketchZoomImageView?>(null)
     var ignoredTouch: SketchZoomImageView? = null
     var mirroringPinch = false
     var pinchRollbackPending = false
@@ -55,17 +57,26 @@ fun setupZoomSync(
             return@OnTouchListener true
         }
         if (action == MotionEvent.ACTION_DOWN) {
-            if (activeTouch != null && activeTouch !== touched) {
+            if (activeTouch.value != null && activeTouch.value !== touched) {
                 ignoredTouch = touched
                 return@OnTouchListener true
             }
-            activeTouch = touched
-        } else if (activeTouch !== touched) {
+            activeTouch.value = touched
+        } else if (activeTouch.value !== touched) {
             return@OnTouchListener true
         }
         val follower = if (touched === left) right else left
         when (action) {
             MotionEvent.ACTION_DOWN -> {
+                if (source != null && source !== touched) {
+                    // A tap on the other image must not complete a synthetic double tap.
+                    MotionEvent.obtain(event).also {
+                        it.action = MotionEvent.ACTION_CANCEL
+                        touched.onTouchEvent(it)
+                        forwardTouch(follower, it)
+                        it.recycle()
+                    }
+                }
                 source = touched
                 mirroringPinch = false
                 pinchRollbackPending = false
@@ -83,7 +94,7 @@ fun setupZoomSync(
                 if (event.actionMasked == MotionEvent.ACTION_UP || event.actionMasked == MotionEvent.ACTION_CANCEL) {
                     pinchRollbackPending = mirroringPinch
                     mirroringPinch = false
-                    activeTouch = null
+                    activeTouch.value = null
                 }
             }
         }
@@ -92,9 +103,14 @@ fun setupZoomSync(
     left.setOnTouchListener(tracker)
     right.setOnTouchListener(tracker)
 
-    // Original dimensions can arrive after the preview; keep both rubber-band thresholds aligned.
+    fun isIdle(): Boolean = activeTouch.value == null &&
+            left.zoomable.continuousTransformTypeState.value == ContinuousTransformType.NONE &&
+            right.zoomable.continuousTransformTypeState.value == ContinuousTransformType.NONE
+
+    // Freeze both thresholds throughout a gesture and its rebound. A calculator change resets
+    // transforms, and scale() cannot restore an overscrolled value without clamping it.
     lifecycleOwner.lifecycleScope.launch {
-        combine(
+        val sizesReady = combine(
             left.zoomable.contentSizeState, right.zoomable.contentSizeState,
             left.zoomable.containerSizeState, right.zoomable.containerSizeState,
             left.zoomable.contentOriginSizeState, right.zoomable.contentOriginSizeState,
@@ -102,15 +118,19 @@ fun setupZoomSync(
             sizes.take(4).all {
                 it.width > 0 && it.height > 0
             }
-        }.collect { ready ->
+        }
+        val idle = combine(
+            activeTouch,
+            left.zoomable.continuousTransformTypeState,
+            right.zoomable.continuousTransformTypeState,
+        ) { _, _, _ -> isIdle() }
+        combine(sizesReady, idle) { ready, isIdle -> ready && isIdle }.collect { ready ->
             if (!ready) return@collect
             kotlinx.coroutines.yield()
-            val leftBase = left.zoomable.baseTransformState.value.scaleX
-            val rightBase = right.zoomable.baseTransformState.value.scaleX
-            val leftMax = left.zoomable.maxScaleState.value / leftBase
-            val rightMax = right.zoomable.maxScaleState.value / rightBase
-            if (leftMax < rightMax) ensureFollowerZoomRange(right, left, rightBase, leftBase)
-            else if (rightMax < leftMax) ensureFollowerZoomRange(left, right, leftBase, rightBase)
+            if (!isIdle()) return@collect
+            val maxUserScale = maxOf(naturalMaxUserScale(left), naturalMaxUserScale(right))
+            setSyncedZoomRange(left, maxUserScale)
+            setSyncedZoomRange(right, maxUserScale)
         }
     }
 
@@ -159,7 +179,6 @@ private suspend fun mirrorUserTransform(
     val userOffsetX = srcTransform.offset.x - srcBase.offset.x * userScale
     val userOffsetY = srcTransform.offset.y - srcBase.offset.y * userScale
 
-    ensureFollowerZoomRange(src, dst, srcBaseScale, dstBaseScale)
     val dstFinalScale = userScale * dstBaseScale
     val dstFinalOffset = OffsetCompat(
         x = userOffsetX + dstBase.offset.x * userScale,
@@ -170,32 +189,34 @@ private suspend fun mirrorUserTransform(
     dst.zoomable.offset(dstFinalOffset, animated = false)
 }
 
-/** 让跟随图至少支持操控图的相对最大倍率，避免高分辨率图继续放大时另一张先被截断。 */
-private suspend fun ensureFollowerZoomRange(
-    src: SketchZoomImageView,
-    dst: SketchZoomImageView,
-    srcBaseScale: Float,
-    dstBaseScale: Float,
-) {
-    val sourceMaxUserScale = src.zoomable.maxScaleState.value / srcBaseScale
-    val followerMaxUserScale = dst.zoomable.maxScaleState.value / dstBaseScale
-    val calculator = dst.zoomable.scalesCalculatorState.value
-    val needsUpdate = if (calculator is MinimumUserMaxScalesCalculator) {
-        kotlin.math.abs(calculator.minimumUserMaxScale - sourceMaxUserScale) > 0.001f
-    } else {
-        sourceMaxUserScale > followerMaxUserScale + 0.001f
-    }
-    if (!needsUpdate) return
-
-    // Changing the calculator resets ZoomImage's transform, even during an active gesture.
-    val transform = dst.zoomable.transformState.value
-    dst.zoomable.setScalesCalculator(MinimumUserMaxScalesCalculator(sourceMaxUserScale))
-    dst.zoomable.scale(transform.scaleX, animated = false)
-    dst.zoomable.offset(transform.offset, animated = false)
+private fun naturalMaxUserScale(image: SketchZoomImageView): Float {
+    val zoomable = image.zoomable
+    val baseScale = zoomable.baseTransformState.value.scaleX
+    // The compare page uses fit transforms, without ReadMode.
+    return ScalesCalculator.Dynamic.calculateWithBase(
+        zoomable.containerSizeState.value,
+        zoomable.contentSizeState.value,
+        zoomable.contentOriginSizeState.value,
+        zoomable.contentScaleState.value,
+        baseScale,
+        initialScale = baseScale,
+    ).maxScale / baseScale
 }
 
-private data class MinimumUserMaxScalesCalculator(
-    val minimumUserMaxScale: Float,
+private suspend fun setSyncedZoomRange(image: SketchZoomImageView, maxUserScale: Float) {
+    val calculator = image.zoomable.scalesCalculatorState.value
+    if (calculator is SyncedUserMaxScalesCalculator &&
+        kotlin.math.abs(calculator.maxUserScale - maxUserScale) <= 0.001f
+    ) return
+
+    val transform = image.zoomable.transformState.value
+    image.zoomable.setScalesCalculator(SyncedUserMaxScalesCalculator(maxUserScale))
+    image.zoomable.scale(transform.scaleX, animated = false)
+    image.zoomable.offset(transform.offset, animated = false)
+}
+
+private data class SyncedUserMaxScalesCalculator(
+    val maxUserScale: Float,
 ) : ScalesCalculator {
     override fun calculateWithBase(
         containerSize: IntSizeCompat,
@@ -208,7 +229,8 @@ private data class MinimumUserMaxScalesCalculator(
         val result = ScalesCalculator.Dynamic.calculateWithBase(
             containerSize, contentSize, contentOriginSize, contentScale, baseScale, initialScale,
         )
-        return result.copy(maxScale = maxOf(result.maxScale, baseScale * this.minimumUserMaxScale))
+        val maxScale = baseScale * maxUserScale
+        return result.copy(mediumScale = minOf(result.mediumScale, maxScale), maxScale = maxScale)
     }
 
     @Suppress("DEPRECATION", "OVERRIDE_DEPRECATION")
@@ -219,7 +241,11 @@ private data class MinimumUserMaxScalesCalculator(
         contentScale: ContentScaleCompat,
         minScale: Float,
         initialScale: Float,
-    ): ScalesCalculator.Result = ScalesCalculator.Dynamic.calculate(
-        containerSize, contentSize, contentOriginSize, contentScale, minScale, initialScale,
-    )
+    ): ScalesCalculator.Result {
+        val result = ScalesCalculator.Dynamic.calculate(
+            containerSize, contentSize, contentOriginSize, contentScale, minScale, initialScale,
+        )
+        val maxScale = minScale * maxUserScale
+        return result.copy(mediumScale = minOf(result.mediumScale, maxScale), maxScale = maxScale)
+    }
 }

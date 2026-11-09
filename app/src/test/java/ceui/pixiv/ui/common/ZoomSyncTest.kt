@@ -8,10 +8,14 @@ import android.view.MotionEvent
 import android.view.View
 import android.widget.FrameLayout
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.lifecycleScope
 import ceui.lisa.activities.Shaft
 import com.github.panpf.zoomimage.SketchZoomImageView
 import com.github.panpf.zoomimage.util.IntSizeCompat
 import com.github.panpf.zoomimage.util.OffsetCompat
+import com.github.panpf.zoomimage.view.zoom.ZoomAnimationSpec
+import com.github.panpf.zoomimage.zoom.ContinuousTransformType
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -21,10 +25,12 @@ import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
+import org.robolectric.annotation.LooperMode
 import java.time.Duration
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [35], application = ZoomSyncTest.TestApplication::class)
+@LooperMode(LooperMode.Mode.PAUSED)
 class ZoomSyncTest {
     class TestApplication : Shaft() {
         override fun onCreate() = Unit
@@ -289,6 +295,91 @@ class ZoomSyncTest {
                 touch(active, dragStart, 48, MotionEvent.ACTION_CANCEL, floatArrayOf(25f))
                 shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(600))
             }
+        }
+    }
+
+    @Test
+    fun tapsOnDifferentImagesDoNotTriggerDoubleTapZoom() {
+        withSyncedImages { original, enhanced ->
+            for ((first, second) in listOf(original to enhanced, enhanced to original)) {
+                val start = SystemClock.uptimeMillis()
+                touch(first, start, 0, MotionEvent.ACTION_DOWN, floatArrayOf(40f))
+                touch(first, start, 16, MotionEvent.ACTION_UP, floatArrayOf(40f))
+                touch(second, start, 100, MotionEvent.ACTION_DOWN, floatArrayOf(40f))
+                touch(second, start, 116, MotionEvent.ACTION_UP, floatArrayOf(40f))
+                shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(600))
+
+                assertEquals(1f, original.zoomable.userTransformState.value.scaleX, 0.01f)
+                assertEquals(1f, enhanced.zoomable.userTransformState.value.scaleX, 0.01f)
+            }
+        }
+    }
+
+    @Test
+    fun originalSizeUpdatePreservesAnOverscrolledPinch() {
+        withSyncedImages { original, enhanced ->
+            original.zoomable.setAnimationSpec(ZoomAnimationSpec.Default)
+            enhanced.zoomable.setAnimationSpec(ZoomAnimationSpec.Default)
+            val start = SystemClock.uptimeMillis()
+            touch(original, start, 0, MotionEvent.ACTION_DOWN, floatArrayOf(40f))
+            touch(original, start, 16, MotionEvent.ACTION_UP, floatArrayOf(40f))
+            val previousMaxUserScale = original.zoomable.maxScaleState.value /
+                    original.zoomable.baseTransformState.value.scaleX
+            val rollbackLimits = mutableListOf<Float>()
+            (original.context as FragmentActivity).lifecycleScope.launch {
+                original.zoomable.transformState.collect {
+                    if (original.zoomable.continuousTransformTypeState.value == ContinuousTransformType.ROLLBACK) {
+                        rollbackLimits += original.zoomable.maxScaleState.value /
+                                original.zoomable.baseTransformState.value.scaleX
+                    }
+                }
+            }
+            runBlocking { original.zoomable.scale(original.zoomable.maxScaleState.value * 0.95f) }
+            shadowOf(Looper.getMainLooper()).idle()
+
+            val pinchStart = SystemClock.uptimeMillis() + 500
+            touch(original, pinchStart, 0, MotionEvent.ACTION_DOWN, floatArrayOf(40f))
+            touch(
+                original, pinchStart, 16,
+                MotionEvent.ACTION_POINTER_DOWN or (1 shl MotionEvent.ACTION_POINTER_INDEX_SHIFT),
+                floatArrayOf(40f, 60f),
+            )
+            touch(original, pinchStart, 32, MotionEvent.ACTION_MOVE, floatArrayOf(15f, 85f))
+            touch(original, pinchStart, 48, MotionEvent.ACTION_MOVE, floatArrayOf(5f, 95f))
+            val before = original.zoomable.userTransformState.value
+            assertTrue(original.zoomable.transformState.value.scaleX > original.zoomable.maxScaleState.value)
+
+            enhanced.zoomable.setContentOriginSize(IntSizeCompat(810, 810))
+            shadowOf(Looper.getMainLooper()).idle()
+
+            val after = original.zoomable.userTransformState.value
+            assertEquals(before.scaleX, after.scaleX, 0.01f)
+            assertEquals(before.offset.x, after.offset.x, 1f)
+            assertEquals(before.offset.y, after.offset.y, 1f)
+            assertEquals(after.scaleX, enhanced.zoomable.userTransformState.value.scaleX, 0.01f)
+
+            touch(original, pinchStart, 64, MotionEvent.ACTION_MOVE, floatArrayOf(0f, 100f))
+            val continued = original.zoomable.userTransformState.value
+            assertEquals(continued.scaleX, enhanced.zoomable.userTransformState.value.scaleX, 0.01f)
+            assertEquals(continued.offset.x, enhanced.zoomable.userTransformState.value.offset.x, 1f)
+            assertEquals(continued.offset.y, enhanced.zoomable.userTransformState.value.offset.y, 1f)
+            touch(original, pinchStart, 80, MotionEvent.ACTION_CANCEL, floatArrayOf(0f, 100f))
+
+            shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(600))
+            assertTrue("The rebound must be observed", rollbackLimits.isNotEmpty())
+            assertTrue(rollbackLimits.all { kotlin.math.abs(it - previousMaxUserScale) < 0.01f })
+            val nextMaxUserScale = original.zoomable.maxScaleState.value /
+                    original.zoomable.baseTransformState.value.scaleX
+            assertTrue(nextMaxUserScale > previousMaxUserScale)
+            assertEquals(
+                nextMaxUserScale,
+                enhanced.zoomable.maxScaleState.value / enhanced.zoomable.baseTransformState.value.scaleX,
+                0.01f,
+            )
+            val settled = original.zoomable.userTransformState.value
+            assertEquals(settled.scaleX, enhanced.zoomable.userTransformState.value.scaleX, 0.01f)
+            assertEquals(settled.offset.x, enhanced.zoomable.userTransformState.value.offset.x, 1f)
+            assertEquals(settled.offset.y, enhanced.zoomable.userTransformState.value.offset.y, 1f)
         }
     }
 
