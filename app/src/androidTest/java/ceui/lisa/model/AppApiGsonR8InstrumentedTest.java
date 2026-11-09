@@ -203,12 +203,18 @@ public final class AppApiGsonR8InstrumentedTest {
         Object gson = Gson.class.getDeclaredConstructor().newInstance();
         for (Method method : Gson.class.getDeclaredMethods()) {
             Class<?>[] params = method.getParameterTypes();
-            if (params.length == 2 && params[0] == String.class && params[1] == Class.class) {
+            // R8 can reorder prototype parameters once the removed dependencies no longer
+            // call this overload. Match both types and pass arguments in the residual order.
+            if (params.length == 2
+                    && ((params[0] == String.class && params[1] == Class.class)
+                    || (params[0] == Class.class && params[1] == String.class))) {
                 method.setAccessible(true);
-                return method.invoke(gson, json, type);
+                Object[] args = params[0] == String.class
+                        ? new Object[]{json, type} : new Object[]{type, json};
+                return method.invoke(gson, args);
             }
         }
-        throw new AssertionError("Missing Gson string/class parser");
+        throw new AssertionError("Missing Gson parser accepting String and Class");
     }
 
     private static String encodeWire(Object value) throws Exception {
