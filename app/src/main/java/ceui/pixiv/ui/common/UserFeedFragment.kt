@@ -26,6 +26,7 @@ import ceui.pixiv.utils.pinHostGlide
 import ceui.pixiv.utils.playToggleHaptic
 import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.pixiv.witstudio.theme.cardSurface
+import ceui.pixiv.witstudio.theme.motionEnabled
 import ceui.pixiv.witstudio.theme.pressScale
 import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestManager
@@ -171,8 +172,8 @@ abstract class UserFeedFragment(
             // 占位 / 补不上的空格是中性浅面（日夜各一档），不再是夜间也亮着的 #f2f2f2。
             val request = userGlide.load(GlideUtil.getUrl(url))
                 .placeholder(R.color.v3_surface_2)
-            // Glide 对 MEMORY_CACHE 自动跳过过渡；磁盘 / 网络加载从占位底淡入。
-            val imageRequest = if (fadePreviewImagesOnLoad) {
+            // Glide 对 MEMORY_CACHE 自动跳过过渡；TransitionDrawable 不跟随系统动画开关，需显式判断。
+            val imageRequest = if (fadePreviewImagesOnLoad && motionEnabled()) {
                 request.transition(previewImageTransition)
             } else {
                 request
