@@ -379,8 +379,9 @@ class QueueDownloadManager @Inject constructor(@ApplicationContext app: Context)
      */
     private suspend fun runColdStart() {
         // 冷启动：上次崩溃残留的 DOWNLOADING 全部归位为 PENDING
-        runCatching { dao.resurrectInProgress() }
+        idleRecoveryPending = runCatching { dao.resurrectInProgress() }
             .onFailure { Timber.tag(TAG).e(it, "resurrectInProgress failed") }
+            .isFailure
 
         // issue #857：清理上一次会话遗留的 IS_PENDING=1 行（4.6.0~4.6.4 版本
         // 在网络抖动时下载失败留下的 0 字节 `.pending-NNNN` 文件）。这一时刻
@@ -547,9 +548,13 @@ class QueueDownloadManager @Inject constructor(@ApplicationContext app: Context)
                     if (recovered.isSuccess) idleRecoveryPending = false
                 }
                 val hasPending = runCatching { dao.countByStatus(QueueStatus.PENDING) > 0 }
-                    .getOrDefault(false)
+                    .onFailure { Timber.tag(TAG).w(it, "[QUEUE-CONSUMER] pending count failed") }
+                    .getOrDefault(true) // 查询失败代表状态未知，保留事件唤醒与兜底轮询。
                 queueNeedsManagerEvents = hasPending
-                if (!hasPending) {
+                // 恢复失败时仍有收尾工作，不能释放本批手动放行或进入无限等待。
+                // 运行中的动图由 worker finally 唤醒；等待它时不做周期性空转。
+                val recoveryNeedsRetry = idleRecoveryPending && ugoiraInFlightRowIds.isEmpty()
+                if (!hasPending && !recoveryNeedsRetry) {
                     // ugoira 行在 DB 里是 DOWNLOADING、也不在 inFlight，得单独确认没在飞
                     if (ugoiraInFlightRowIds.isEmpty()) {
                         maybeToastBatchSummary()
