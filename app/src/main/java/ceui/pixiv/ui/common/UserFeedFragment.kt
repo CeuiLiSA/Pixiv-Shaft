@@ -1,6 +1,9 @@
 package ceui.pixiv.ui.common
 
+import android.content.Context
+import android.graphics.drawable.Drawable
 import android.os.Bundle
+import android.provider.Settings
 import android.view.View
 import androidx.annotation.LayoutRes
 import androidx.core.view.isVisible
@@ -26,10 +29,14 @@ import ceui.pixiv.utils.pinHostGlide
 import ceui.pixiv.utils.playToggleHaptic
 import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.pixiv.witstudio.theme.cardSurface
+import ceui.pixiv.witstudio.theme.motionEnabled
 import ceui.pixiv.witstudio.theme.pressScale
 import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestManager
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
+import com.bumptech.glide.request.transition.DrawableCrossFadeFactory
+import com.bumptech.glide.request.transition.NoTransition
+import com.bumptech.glide.request.transition.TransitionFactory
 
 /** 关注态局部重绑的 payload 标记（按引用识别）。 */
 private val PAYLOAD_USER_FOLLOW = Any()
@@ -68,7 +75,9 @@ abstract class UserFeedFragment(
      * 直接命中、无查找，解析出的是同一个 RequestManager，行为等价。
      */
     private val userGlide: RequestManager by lazy { Glide.with(this) }
-    private val previewImageTransition = DrawableTransitionOptions.withCrossFade()
+    private val previewImageTransition by lazy {
+        DrawableTransitionOptions.with(userPreviewImageTransitionFactory(requireContext()))
+    }
 
     /**
      * 卡底 / 胶囊 / 文字色都从宿主主色派生。换主题会重建 Activity 连同本 Fragment，
@@ -171,7 +180,7 @@ abstract class UserFeedFragment(
             // 占位 / 补不上的空格是中性浅面（日夜各一档），不再是夜间也亮着的 #f2f2f2。
             val request = userGlide.load(GlideUtil.getUrl(url))
                 .placeholder(R.color.v3_surface_2)
-            // Glide 对 MEMORY_CACHE 自动跳过过渡；磁盘 / 网络加载从占位底淡入。
+            // 图片就绪时检查系统动画开关；Glide 对 MEMORY_CACHE 自动跳过过渡。
             val imageRequest = if (fadePreviewImagesOnLoad) {
                 request.transition(previewImageTransition)
             } else {
@@ -255,6 +264,20 @@ abstract class UserFeedFragment(
     private fun applyFollow(viewModel: FeedViewModel<*>, userId: Long, followed: Boolean) {
         viewModel.updateItems(UserFeedItem::class.java) { item ->
             if (item.user?.id == userId) item.withFollowed(followed) else item
+        }
+    }
+}
+
+/** Drawable 过渡不受系统 animator 时长缩放控制，须在图片就绪时检查（包括 Android 7.x）。 */
+internal fun userPreviewImageTransitionFactory(context: Context): TransitionFactory<Drawable> {
+    val resolver = context.contentResolver
+    val crossFade = DrawableCrossFadeFactory.Builder().build()
+    return TransitionFactory { dataSource, isFirstResource ->
+        val scale = Settings.Global.getFloat(resolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f)
+        if (scale != 0f && motionEnabled()) {
+            crossFade.build(dataSource, isFirstResource)
+        } else {
+            NoTransition.get<Drawable>()
         }
     }
 }
