@@ -206,6 +206,12 @@ interface BookmarkMirrorDao {
     @Query("SELECT * FROM bookmark_mirror_table WHERE shelfKey = :shelfKey AND targetId = :targetId LIMIT 1")
     fun findRow(shelfKey: String, targetId: Long): BookmarkMirrorEntity?
 
+    /** 两架均完成首次同步才返回关注 ID；就绪判断与 ID 读取使用同一份 SQL 快照。 */
+    @Query("SELECT targetId FROM bookmark_mirror_table WHERE shelfKey IN (:publicKey, :privateKey) " +
+        "AND (SELECT COUNT(*) FROM bookmark_mirror_state_table " +
+        "WHERE shelfKey IN (:publicKey, :privateKey) AND firstCompletedAt > 0) = 2")
+    fun followedUserIds(publicKey: String, privateKey: String): List<Long>
+
     /** 这批作品里哪些在该账号的镜像中（公开/悄悄两架都算），走 targetId 索引。 */
     @Query("SELECT DISTINCT targetId FROM bookmark_mirror_table WHERE ownerUid = :ownerUid AND contentType = :contentType AND targetId IN (:targetIds)")
     fun mirroredAmong(ownerUid: Long, contentType: Int, targetIds: List<Long>): List<Long>

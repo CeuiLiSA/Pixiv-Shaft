@@ -955,6 +955,13 @@
     <string name="ai_block_strength_blur">Blur with particles</string>
     <string name="ai_block_exempt_authors">Exempt author list</string>
     <string name="ai_block_exempt_hint">Add author IDs one by one. Tap a chip to temporarily disable its exemption, or tap the trash icon to remove it.\nA restart is recommended after changing the list.</string>
+    <string name="ai_block_exempt_followed">Also exempt followed authors (including private follows)</string>
+    <string name="ai_block_follow_mirror_public_unready">Public follows mirror is not ready</string>
+    <string name="ai_block_follow_mirror_private_unready">Private follows mirror is not ready</string>
+    <string name="ai_block_follow_mirror_both_unready">Public and private follows mirrors are not ready</string>
+    <string name="ai_block_follow_mirror_disabled">Bookmark mirroring is turned off</string>
+    <string name="ai_block_follow_mirror_checking">Checking follows mirrors…</string>
+    <string name="ai_block_follow_mirror_unavailable_format">[Switch unavailable] %1$s</string>
     <string name="ai_block_exempt_add">Add</string>
     <string name="ai_block_exempt_input_hint">Enter author ID</string>
     <string name="ai_block_exempt_empty">No exempt authors yet</string>

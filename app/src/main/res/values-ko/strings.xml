@@ -955,6 +955,13 @@
     <string name="ai_block_strength_blur">흐림 + 파티클</string>
     <string name="ai_block_exempt_authors">제외 작가 목록</string>
     <string name="ai_block_exempt_hint">작가 ID를 하나씩 추가합니다. 칩을 탭하면 일시적으로 예외를 끄고, 휴지통 아이콘을 누르면 삭제됩니다\n목록 변경 후 앱 재시작을 권장합니다</string>
+    <string name="ai_block_exempt_followed">팔로우한 작가도 제외 (비공개 팔로우 포함)</string>
+    <string name="ai_block_follow_mirror_public_unready">공개 팔로우 미러가 준비되지 않았습니다</string>
+    <string name="ai_block_follow_mirror_private_unready">비공개 팔로우 미러가 준비되지 않았습니다</string>
+    <string name="ai_block_follow_mirror_both_unready">공개 및 비공개 팔로우 미러가 준비되지 않았습니다</string>
+    <string name="ai_block_follow_mirror_disabled">북마크 미러 기능이 꺼져 있습니다</string>
+    <string name="ai_block_follow_mirror_checking">팔로우 미러 확인 중…</string>
+    <string name="ai_block_follow_mirror_unavailable_format">[스위치 사용 불가] %1$s</string>
     <string name="ai_block_exempt_add">추가</string>
     <string name="ai_block_exempt_input_hint">작가 ID 입력</string>
     <string name="ai_block_exempt_empty">아직 예외 작가가 없습니다</string>

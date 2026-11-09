@@ -955,6 +955,13 @@
     <string name="ai_block_strength_blur">Bulanık + parçacık</string>
     <string name="ai_block_exempt_authors">Muaf yazar listesi</string>
     <string name="ai_block_exempt_hint">Yazar ID\'lerini tek tek ekleyin. Bir çipe dokunmak muafiyeti geçici olarak kapatır, çöp kutusu simgesi siler.\nListe değişikliğinden sonra uygulamayı yeniden başlatmanız önerilir</string>
+    <string name="ai_block_exempt_followed">Takip edilen yazarları da muaf tut (özel takipler dahil)</string>
+    <string name="ai_block_follow_mirror_public_unready">Herkese açık takiplerin aynası hazır değil</string>
+    <string name="ai_block_follow_mirror_private_unready">Özel takiplerin aynası hazır değil</string>
+    <string name="ai_block_follow_mirror_both_unready">Herkese açık ve özel takiplerin aynaları hazır değil</string>
+    <string name="ai_block_follow_mirror_disabled">Yer imi yansıtma kapalı</string>
+    <string name="ai_block_follow_mirror_checking">Takip aynaları kontrol ediliyor…</string>
+    <string name="ai_block_follow_mirror_unavailable_format">[Anahtar kullanılamıyor] %1$s</string>
     <string name="ai_block_exempt_add">Ekle</string>
     <string name="ai_block_exempt_input_hint">Yazar ID girin</string>
     <string name="ai_block_exempt_empty">Henüz muaf yazar yok</string>
