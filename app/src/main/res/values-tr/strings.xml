@@ -3641,4 +3641,16 @@
     <string name="chrome_custom_tabs_desc">Chrome mevcut olduğunda web bağlantılarını açmak için Chrome Custom Tabs kullanın</string>
     <string name="chrome_custom_tabs_not_found">Chrome bulunamadı, otomatik olarak devre dışı bırakıldı</string>
     <string name="open_with_chrome">Chrome ile aç</string>
+    <string name="ai_results_manage">Yapay zekâ sonuç görsellerini yönet</string>
+    <string name="ai_results_upscale">Yükseltilmiş görseller</string>
+    <string name="ai_results_rembg">Arka planı kaldırılmış görseller</string>
+    <string name="ai_results_manga">Çevrilmiş manga görselleri</string>
+    <string name="ai_results_item_stats">%1$d görsel · %2$s</string>
+    <string name="ai_results_dialog_hint">Yalnızca seçilen uygulama içi sonuçlar silinir. Galeri kopyaları ve yapay zekâ modelleri korunur.</string>
+    <string name="ai_results_clear">Seçilenleri temizle</string>
+    <string name="ai_results_none_selected">En az bir kategori seçin</string>
+    <string name="ai_results_busy">Bir yapay zekâ görevi çalışıyor. Daha sonra tekrar deneyin.</string>
+    <string name="ai_results_clear_success">Seçilen sonuç görselleri temizlendi</string>
+    <string name="ai_results_clear_failed">Bazı görseller silinemedi. Tekrar deneyin.</string>
+    <string name="ai_results_stats_failed">Boyut hesaplanamadı</string>
 </resources>

@@ -10,6 +10,9 @@ import android.os.Build;
 import android.os.CancellationSignal;
 import android.os.Environment;
 import android.os.OperationCanceledException;
+import android.os.Handler;
+import android.os.Looper;
+import android.text.format.Formatter;
 import androidx.annotation.NonNull;
 import timber.log.Timber;
 import android.provider.DocumentsContract;
@@ -62,6 +65,11 @@ import ceui.pixiv.cache.OriginalImageCacheManager;
 import ceui.pixiv.cache.ImageCacheQuotaState;
 import ceui.pixiv.session.SessionManager;
 import ceui.pixiv.ui.bulk.UgoiraEngine;
+import ceui.pixiv.ui.upscale.AiResultStorage;
+import ceui.pixiv.ui.upscale.AiTaskQueue;
+import ceui.pixiv.ui.upscale.IllustAiStore;
+import ceui.pixiv.ui.translate.MangaBatchTranslateCenter;
+import ceui.pixiv.services.ServicesProvider;
 
 /** 设置 · 备份与缓存 */
 public class FragmentSettingsData extends SettingsPageFragment<FragmentSettingsDataBinding> {
@@ -79,6 +87,8 @@ public class FragmentSettingsData extends SettingsPageFragment<FragmentSettingsD
     private boolean bulkWipeRunning;
     private CancellationSignal bulkSizeSignal;
     private CancellationSignal manageDialogSignal;
+    private boolean aiResultsBusy;
+    private int aiStatsGeneration;
 
     @Override
     public void initLayout() {
@@ -244,6 +254,7 @@ public class FragmentSettingsData extends SettingsPageFragment<FragmentSettingsD
         // 已下载的内容仍能在系统相册看到。
         loadBulkDownloadCacheSizeAsync(baseBind.bulkDownloadCacheSize);
         baseBind.clearBulkDownloadCache.setOnClickListener(v -> showManageBulkDownloadDialog());
+        baseBind.clearAiResults.setOnClickListener(v -> showManageAiResultsDialog());
 
         // 图片缓存「预期上限」（issue #1120）。只写设置：Glide 的 maxSize 只在初始化时读一次，
         // 改完必须重启 App 才生效（与图片加速代理同款限制），所以提示重启而不是「设置成功」。
@@ -257,6 +268,7 @@ public class FragmentSettingsData extends SettingsPageFragment<FragmentSettingsD
     public void onResume() {
         super.onResume();
         refreshWebDavLabel();
+        loadAiResultsSizeAsync();
     }
 
     /** WebDAV 入口行的状态文字：有备份记录时显示上次结果，否则显示功能简介。 */
@@ -543,6 +555,129 @@ public class FragmentSettingsData extends SettingsPageFragment<FragmentSettingsD
             dialog.dismiss();
         });
         builder.show();
+    }
+
+    private void loadAiResultsSizeAsync() {
+        if (baseBind == null || aiResultsBusy) return;
+        final int generation = ++aiStatsGeneration;
+        final TextView target = baseBind.aiResultsSize;
+        final Context app = mContext.getApplicationContext();
+        target.setText("…");
+        new Thread(() -> {
+            String label;
+            try {
+                label = Formatter.formatShortFileSize(app, AiResultStorage.scan(app).getTotalBytes());
+            } catch (Exception e) {
+                Timber.w(e, "AI result size scan failed");
+                label = app.getString(R.string.ai_results_stats_failed);
+            }
+            final String result = label;
+            target.post(() -> {
+                if (isAdded() && baseBind != null && generation == aiStatsGeneration) {
+                    target.setText(result);
+                }
+            });
+        }, "ai-results-size").start();
+    }
+
+    private void showManageAiResultsDialog() {
+        if (aiResultsBusy || getActivity() == null || getActivity().isFinishing()) return;
+        aiResultsBusy = true;
+        final Context app = mContext.getApplicationContext();
+        new Thread(() -> {
+            AiResultStorage.Stats stats = null;
+            try {
+                stats = AiResultStorage.scan(app);
+            } catch (Exception e) {
+                Timber.w(e, "AI result stats failed");
+            }
+            final AiResultStorage.Stats result = stats;
+            new Handler(Looper.getMainLooper()).post(() -> {
+                aiResultsBusy = false;
+                if (!isAdded() || baseBind == null) return;
+                if (result == null) {
+                    Common.showToast(R.string.ai_results_stats_failed);
+                } else {
+                    showManageAiResultsDialogWithStats(result);
+                }
+            });
+        }, "ai-results-stats").start();
+    }
+
+    private void showManageAiResultsDialogWithStats(AiResultStorage.Stats stats) {
+        WitDialog.MultiCheckableDialogBuilder builder =
+                new WitDialog.MultiCheckableDialogBuilder(requireContext());
+        builder.setTitle(R.string.ai_results_manage);
+        builder.setCollapsibleHint(getString(R.string.ai_results_dialog_hint));
+        builder.setHintExpanded(true);
+        builder.addItem(getString(R.string.ai_results_upscale), (dialog, index) -> {});
+        builder.addItem(getString(R.string.ai_results_rembg), (dialog, index) -> {});
+        builder.addItem(getString(R.string.ai_results_manga), (dialog, index) -> {});
+        builder.setCheckedItems(new int[0]);
+        builder.addAction(R.string.cancel, (dialog, index) -> dialog.dismiss());
+        builder.addAction(0, R.string.ai_results_clear, WitDialogAction.ACTION_PROP_NEGATIVE, (dialog, index) -> {
+            boolean[] selected = new boolean[3];
+            for (int checked : builder.getCheckedItemIndexes()) selected[checked] = true;
+            if (!selected[0] && !selected[1] && !selected[2]) {
+                Common.showToast(R.string.ai_results_none_selected);
+                return;
+            }
+            dialog.dismiss();
+            clearAiResults(selected);
+        });
+        WitDialog dialog = builder.create();
+        builder.setItemStatus(0, getString(R.string.ai_results_item_stats, stats.getUpscale().getCount(),
+                Formatter.formatShortFileSize(mContext, stats.getUpscale().getBytes())), null);
+        builder.setItemStatus(1, getString(R.string.ai_results_item_stats, stats.getRembg().getCount(),
+                Formatter.formatShortFileSize(mContext, stats.getRembg().getBytes())), null);
+        builder.setItemStatus(2, getString(R.string.ai_results_item_stats, stats.getManga().getCount(),
+                Formatter.formatShortFileSize(mContext, stats.getManga().getBytes())), null);
+        dialog.show();
+    }
+
+    private void clearAiResults(boolean[] selected) {
+        if (aiResultsBusy) return;
+        final boolean needAiGate = selected[0] || selected[1];
+        final boolean needMangaGate = selected[2];
+        if (needAiGate && !AiTaskQueue.INSTANCE.beginResultCleanup()) {
+            Common.showToast(R.string.ai_results_busy);
+            return;
+        }
+        final Context app = mContext.getApplicationContext();
+        final MangaBatchTranslateCenter center =
+                ((ServicesProvider) app).getMangaBatchTranslateCenter();
+        if (needMangaGate && !center.beginResultCleanup()) {
+            if (needAiGate) AiTaskQueue.INSTANCE.endResultCleanup();
+            Common.showToast(R.string.ai_results_busy);
+            return;
+        }
+        aiResultsBusy = true;
+        ++aiStatsGeneration;
+        baseBind.aiResultsSize.setText("…");
+        new Thread(() -> {
+            boolean complete;
+            try {
+                complete = AiResultStorage.clear(app, selected[0], selected[1], selected[2]);
+            } catch (Exception e) {
+                Timber.w(e, "AI result cleanup failed");
+                complete = false;
+            }
+            final boolean success = complete;
+            new Handler(Looper.getMainLooper()).post(() -> {
+                try {
+                    if (needMangaGate) center.pruneMissingResults();
+                    if (needAiGate) IllustAiStore.INSTANCE.pruneMissingResults();
+                } finally {
+                    if (needMangaGate) center.endResultCleanup();
+                    if (needAiGate) AiTaskQueue.INSTANCE.endResultCleanup();
+                    aiResultsBusy = false;
+                }
+                if (isAdded() && baseBind != null) {
+                    Common.showToast(success ? R.string.ai_results_clear_success : R.string.ai_results_clear_failed);
+                    loadAiResultsSizeAsync();
+                }
+            });
+        }, "ai-results-clear").start();
     }
 
     private void loadCacheSizeAsync(TextView target, File folder) {

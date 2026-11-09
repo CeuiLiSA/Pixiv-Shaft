@@ -3627,4 +3627,16 @@
     <string name="chrome_custom_tabs_desc">有 Chrome 時使用 Chrome Custom Tabs 開啟網頁連結</string>
     <string name="chrome_custom_tabs_not_found">未發現Chrome，已自動停用</string>
     <string name="open_with_chrome">使用Chrome開啟</string>
+    <string name="ai_results_manage">管理 AI 結果圖</string>
+    <string name="ai_results_upscale">畫質提升結果</string>
+    <string name="ai_results_rembg">去背結果</string>
+    <string name="ai_results_manga">漫畫譯圖</string>
+    <string name="ai_results_item_stats">%1$d 張 · %2$s</string>
+    <string name="ai_results_dialog_hint">僅清理勾選的應用內結果圖；已儲存到相簿的圖片和 AI 模型不會刪除。</string>
+    <string name="ai_results_clear">清理所選</string>
+    <string name="ai_results_none_selected">請先勾選要清理的類別</string>
+    <string name="ai_results_busy">相關 AI 工作正在執行，請稍後再試</string>
+    <string name="ai_results_clear_success">所選結果圖已清理</string>
+    <string name="ai_results_clear_failed">部分結果圖未能清理，請重試</string>
+    <string name="ai_results_stats_failed">統計失敗</string>
 </resources>

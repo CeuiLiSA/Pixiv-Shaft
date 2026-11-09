@@ -3627,4 +3627,16 @@
     <string name="chrome_custom_tabs_desc">Chrome がインストールされている場合、Chrome Custom Tabs でリンクを開きます</string>
     <string name="chrome_custom_tabs_not_found">Chrome が見つからないため、自動的に無効化されました</string>
     <string name="open_with_chrome">Chromeで開く</string>
+    <string name="ai_results_manage">AI 結果画像を管理</string>
+    <string name="ai_results_upscale">高画質化した画像</string>
+    <string name="ai_results_rembg">背景を削除した画像</string>
+    <string name="ai_results_manga">漫画の翻訳画像</string>
+    <string name="ai_results_item_stats">%1$d 枚 · %2$s</string>
+    <string name="ai_results_dialog_hint">選択したアプリ内の結果画像のみ削除します。ギャラリーに保存した画像と AI モデルは残ります。</string>
+    <string name="ai_results_clear">選択した項目を削除</string>
+    <string name="ai_results_none_selected">削除する項目を選択してください</string>
+    <string name="ai_results_busy">AI 処理中です。後でもう一度お試しください。</string>
+    <string name="ai_results_clear_success">選択した結果画像を削除しました</string>
+    <string name="ai_results_clear_failed">一部の画像を削除できませんでした。再度お試しください。</string>
+    <string name="ai_results_stats_failed">サイズを計算できませんでした</string>
 </resources>

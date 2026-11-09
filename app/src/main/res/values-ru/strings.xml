@@ -3669,4 +3669,16 @@
     <string name="chrome_custom_tabs_desc">Использовать Chrome Custom Tabs для открытия веб-ссылок при наличии Chrome</string>
     <string name="chrome_custom_tabs_not_found">Chrome не найден, автоматически отключено</string>
     <string name="open_with_chrome">Открыть в Chrome</string>
+    <string name="ai_results_manage">Управление результатами ИИ</string>
+    <string name="ai_results_upscale">Улучшенные изображения</string>
+    <string name="ai_results_rembg">Изображения без фона</string>
+    <string name="ai_results_manga">Переведённые страницы манги</string>
+    <string name="ai_results_item_stats">Изображений: %1$d · %2$s</string>
+    <string name="ai_results_dialog_hint">Будут удалены только выбранные результаты в приложении. Копии в галерее и модели ИИ сохранятся.</string>
+    <string name="ai_results_clear">Удалить выбранное</string>
+    <string name="ai_results_none_selected">Выберите хотя бы одну категорию</string>
+    <string name="ai_results_busy">Задача ИИ выполняется. Повторите позже.</string>
+    <string name="ai_results_clear_success">Выбранные изображения удалены</string>
+    <string name="ai_results_clear_failed">Не все изображения удалось удалить. Повторите попытку.</string>
+    <string name="ai_results_stats_failed">Не удалось подсчитать размер</string>
 </resources>

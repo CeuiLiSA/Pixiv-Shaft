@@ -3640,4 +3640,16 @@
     <string name="chrome_custom_tabs_desc">Use Chrome Custom Tabs to open web links when Chrome is available</string>
     <string name="chrome_custom_tabs_not_found">Chrome not found, automatically disabled</string>
     <string name="open_with_chrome">Open with Chrome</string>
+    <string name="ai_results_manage">Manage AI result images</string>
+    <string name="ai_results_upscale">Upscaled images</string>
+    <string name="ai_results_rembg">Background removal images</string>
+    <string name="ai_results_manga">Translated manga images</string>
+    <string name="ai_results_item_stats">%1$d images · %2$s</string>
+    <string name="ai_results_dialog_hint">Only selected in-app results will be removed. Gallery copies and AI models are kept.</string>
+    <string name="ai_results_clear">Clear selected</string>
+    <string name="ai_results_none_selected">Select at least one category</string>
+    <string name="ai_results_busy">An AI task is running. Try again later.</string>
+    <string name="ai_results_clear_success">Selected result images cleared</string>
+    <string name="ai_results_clear_failed">Some result images could not be removed. Try again.</string>
+    <string name="ai_results_stats_failed">Could not calculate size</string>
 </resources>

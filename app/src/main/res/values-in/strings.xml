@@ -3603,4 +3603,16 @@
     <string name="chrome_custom_tabs_desc">Gunakan Chrome Custom Tabs untuk membuka tautan web jika Chrome tersedia</string>
     <string name="chrome_custom_tabs_not_found">Chrome tidak ditemukan, dinonaktifkan otomatis</string>
     <string name="open_with_chrome">Buka dengan Chrome</string>
+    <string name="ai_results_manage">Kelola gambar hasil AI</string>
+    <string name="ai_results_upscale">Gambar yang ditingkatkan</string>
+    <string name="ai_results_rembg">Gambar tanpa latar</string>
+    <string name="ai_results_manga">Gambar manga terjemahan</string>
+    <string name="ai_results_item_stats">%1$d gambar · %2$s</string>
+    <string name="ai_results_dialog_hint">Hanya hasil dalam aplikasi yang dipilih akan dihapus. Salinan di galeri dan model AI tetap ada.</string>
+    <string name="ai_results_clear">Hapus pilihan</string>
+    <string name="ai_results_none_selected">Pilih setidaknya satu kategori</string>
+    <string name="ai_results_busy">Tugas AI sedang berjalan. Coba lagi nanti.</string>
+    <string name="ai_results_clear_success">Gambar hasil yang dipilih telah dihapus</string>
+    <string name="ai_results_clear_failed">Beberapa gambar tidak dapat dihapus. Coba lagi.</string>
+    <string name="ai_results_stats_failed">Ukuran tidak dapat dihitung</string>
 </resources>

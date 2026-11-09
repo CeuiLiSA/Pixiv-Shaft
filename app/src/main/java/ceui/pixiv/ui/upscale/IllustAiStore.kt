@@ -79,6 +79,27 @@ class PageAiState(
         acknowledgedResultKey = resultKey
     }
 
+    internal fun pruneMissingResults() {
+        val wasAcknowledged = acknowledgedResultKey == resultKey
+        var removed = false
+        if (upscaleResultPath?.let { !File(it).exists() } == true) {
+            upscaleResultPath = null
+            if (upscaleStatus == UpscaleStatus.Done) upscaleStatus = UpscaleStatus.Idle
+            removed = true
+        }
+        if (rembgResultPath?.let { !File(it).exists() } == true) {
+            rembgResultPath = null
+            if (rembgStatus == UpscaleStatus.Done) rembgStatus = UpscaleStatus.Idle
+            removed = true
+        }
+        if (removed) {
+            // Generated filenames are deterministic: a later result at the same path is new.
+            // Keep the acknowledgement only for an already viewed result that survived cleanup.
+            acknowledgedResultKey = if (wasAcknowledged &&
+                (upscaleResultPath != null || rembgResultPath != null)) resultKey else null
+        }
+    }
+
     val isIndeterminate: Boolean
         get() = if (upscaleStatus == UpscaleStatus.Running) {
             upscaleProgress <= 0f
@@ -130,6 +151,17 @@ object IllustAiStore {
     fun allPages(illustId: Long): List<PageAiState> {
         val prefix = "${illustId}_"
         return states.filterKeys { it.startsWith(prefix) }.values.toList()
+    }
+
+    /** Drop stale result paths after storage cleanup so visible artwork pages redraw their AI pills. */
+    fun pruneMissingResults() {
+        // Detail observers restore state from these pools; invalidate them before notifying views.
+        UpscaleTaskPool.pruneMissingResults()
+        RembgTaskPool.pruneMissingResults()
+        for (state in states.values) {
+            state.pruneMissingResults()
+        }
+        _changes.postValue(Unit)
     }
 
     fun clear(illustId: Long) {

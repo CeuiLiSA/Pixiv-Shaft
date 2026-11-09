@@ -3627,4 +3627,16 @@
     <string name="chrome_custom_tabs_desc">Chrome이 설치되어 있는 경우 Chrome Custom Tabs로 웹 링크를 엽니다</string>
     <string name="chrome_custom_tabs_not_found">Chrome을 찾을 수 없어 자동으로 비활성화되었습니다</string>
     <string name="open_with_chrome">Chrome으로 열기</string>
+    <string name="ai_results_manage">AI 결과 이미지 관리</string>
+    <string name="ai_results_upscale">화질 개선 이미지</string>
+    <string name="ai_results_rembg">배경 제거 이미지</string>
+    <string name="ai_results_manga">만화 번역 이미지</string>
+    <string name="ai_results_item_stats">%1$d장 · %2$s</string>
+    <string name="ai_results_dialog_hint">선택한 앱 내부 결과 이미지만 삭제합니다. 갤러리에 저장한 이미지와 AI 모델은 유지됩니다.</string>
+    <string name="ai_results_clear">선택 항목 삭제</string>
+    <string name="ai_results_none_selected">삭제할 항목을 선택하세요</string>
+    <string name="ai_results_busy">AI 작업이 실행 중입니다. 나중에 다시 시도하세요.</string>
+    <string name="ai_results_clear_success">선택한 결과 이미지를 삭제했습니다</string>
+    <string name="ai_results_clear_failed">일부 이미지를 삭제하지 못했습니다. 다시 시도하세요.</string>
+    <string name="ai_results_stats_failed">크기를 계산하지 못했습니다</string>
 </resources>
