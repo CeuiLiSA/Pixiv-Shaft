@@ -290,12 +290,10 @@ object ImageIntegrityValidator {
 
         // —— 准则：只有真的修好才放回盘 ——
         val repair = pendingRepairs[0]
-        if (repair.typeStr == "IDAT") {
-            // 在内存流中应用虚拟翻转，对整个 zlib 数据流执行 Adler-32 预检
-            val adlerVerified = verifyPngZlibStream(file, repair.absOffset, repair.bit)
-            if (!adlerVerified) {
-                return IntegrityResult.error("PNG IDAT 单比特自愈预检失败（zlib Adler-32 不匹配），保持原盘未动")
-            }
+        // 元数据 Chunk 的 CRC 可修复也不代表图像数据可解码；所有写回都先验证 IDAT 流。
+        val adlerVerified = verifyPngZlibStream(file, repair.absOffset, repair.bit)
+        if (!adlerVerified) {
+            return IntegrityResult.error("PNG 单比特自愈预检失败（zlib Adler-32 不匹配），保持原盘未动")
         }
 
         // 预检 100% 确认无假阳性，现在才写回原盘

@@ -216,6 +216,56 @@ class ImageIntegrityValidatorTest {
     }
 
     @Test
+    fun `metadata repair does not write when the image stream fails Adler validation`() {
+        val file = createValidPng()
+        RandomAccessFile(file, "rw").use { raf ->
+            raf.seek(33)
+            val data = ByteArray(raf.readInt())
+            raf.seek(41)
+            raf.readFully(data)
+            data[data.lastIndex] = (data.last().toInt() xor 1).toByte()
+            raf.seek(41)
+            raf.write(data)
+            val crc = CRC32().apply {
+                update("IDAT".toByteArray(Charsets.US_ASCII))
+                update(data)
+            }
+            raf.writeInt(crc.value.toInt())
+
+            // A separate one-bit IHDR error is repairable by CRC, but the image is still broken.
+            raf.seek(19)
+            val width = raf.read()
+            raf.seek(19)
+            raf.write(width xor 1)
+        }
+        val damaged = file.readBytes()
+
+        val result = ImageIntegrityValidator.validateAndRepair(file)
+
+        assertFalse(result.isValid)
+        assertFalse(result.repaired)
+        org.junit.Assert.assertArrayEquals(damaged, file.readBytes())
+    }
+
+    @Test
+    fun `metadata repair still restores the file when the image stream is valid`() {
+        val file = createValidPng()
+        val original = file.readBytes()
+        RandomAccessFile(file, "rw").use { raf ->
+            raf.seek(19)
+            val width = raf.read()
+            raf.seek(19)
+            raf.write(width xor 1)
+        }
+
+        val result = ImageIntegrityValidator.validateAndRepair(file)
+
+        assertTrue(result.isValid)
+        assertTrue(result.repaired)
+        org.junit.Assert.assertArrayEquals(original, file.readBytes())
+    }
+
+    @Test
     fun `validateJpeg - valid and truncated`() {
         val validJpeg = tempFolder.newFile("test.jpg").apply {
             writeBytes(ByteArray(200) { 0 }.apply {
