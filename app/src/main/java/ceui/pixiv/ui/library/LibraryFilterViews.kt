@@ -258,9 +258,14 @@ internal class LibraryFilterViews(private val context: Context) {
 
     // ─────────────────────────── 多选：胶囊 ───────────────────────────
 
-    /** 可多选的筛选胶囊。[count] 是次级小标（标签 / 作者的命中数）。 */
-    fun filterChip(text: CharSequence, count: Int? = null, onClick: (TextView) -> Unit): TextView =
-        chip(withCount(text, count)).apply {
+    /** 可多选胶囊；导出字段传 [pillShape]，让选中/未选与按压波纹同为全圆。 */
+    fun filterChip(
+        text: CharSequence,
+        count: Int? = null,
+        pillShape: Boolean = false,
+        onClick: (TextView) -> Unit,
+    ): TextView =
+        chip(withCount(text, count), pillShape).apply {
             setOnClickListener { onClick(this) }
             layoutParams = FlexboxLayout.LayoutParams(-2, -2).also {
                 it.marginEnd = context.dp(CHIP_GAP)
@@ -289,9 +294,10 @@ internal class LibraryFilterViews(private val context: Context) {
 
     /**
      * 胶囊本体：可见 36dp，上下各 6dp 透明沿补足 48dp 热区。未选 10dp 圆角，选中变全圆 ——
-     * MD3-E 用形状变化说明状态，颜色之外多一条线索。
+     * MD3-E 用形状变化说明状态，颜色之外多一条线索。导出字段的 [pillShape] 例外：
+     * 两态和按压波纹遮罩都用 18dp 圆角，拖拽时外形不跳变。
      */
-    private fun chip(text: CharSequence): TextView = context.label(text, 14f, 500, idleText).apply {
+    private fun chip(text: CharSequence, pillShape: Boolean = false): TextView = context.label(text, 14f, 500, idleText).apply {
         gravity = Gravity.CENTER_VERTICAL
         // 单行必须先于 minHeight：setSingleLine 内部走 setLines(1)，会把最小高度一并改成
         // 「一行」，顺序反了胶囊就塌成文字高度、上下内边距全没了。
@@ -299,10 +305,11 @@ internal class LibraryFilterViews(private val context: Context) {
         ellipsize = TextUtils.TruncateAt.END
         minHeight = context.dp(48)
         maxWidth = context.resources.displayMetrics.widthPixels - context.dp(CHIP_MAX_WIDTH_INSET)
+        val idleRadius = context.dpF(if (pillShape) 18f else 10f)
         val visible = RippleDrawable(
             ColorStateList.valueOf(palette.alpha20),
-            selectedStates(shape(context.dpF(18f), selectedFill), shape(context.dpF(10f), idleFill)),
-            shape(context.dpF(10f), Color.WHITE),
+            selectedStates(shape(context.dpF(18f), selectedFill), shape(idleRadius, idleFill)),
+            shape(idleRadius, Color.WHITE),
         )
         // 背景先设、内边距后设：InsetDrawable 会把 inset 报成 View 的 padding，顺序反了就被它覆盖。
         background = InsetDrawable(visible, 0, context.dp(CHIP_EDGE), 0, context.dp(CHIP_EDGE))

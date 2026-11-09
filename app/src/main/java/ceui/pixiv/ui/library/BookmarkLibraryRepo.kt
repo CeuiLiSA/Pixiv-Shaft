@@ -1,5 +1,6 @@
 package ceui.pixiv.ui.library
 
+import androidx.room.withTransaction
 import ceui.lisa.activities.Shaft
 import ceui.lisa.database.AppDatabase
 import ceui.loxia.Novel
@@ -34,6 +35,21 @@ object BookmarkLibraryRepo {
 
     private val dao: BookmarkMirrorDao
         get() = AppDatabase.getAppDatabase(Shaft.getContext()).bookmarkMirrorDao()
+
+    /** 导出期间固定同一份镜像；跨页插入、删除或重排不能改变后续 OFFSET 的含义。 */
+    internal suspend fun <T> withReadSnapshot(
+        filter: BookmarkFilter,
+        block: suspend (readPage: (limit: Int, offset: Int) -> List<BookmarkMirrorEntity>) -> T,
+    ): T =
+        withContext(Dispatchers.IO) {
+            val database = AppDatabase.getAppDatabase(Shaft.getContext())
+            database.withTransaction {
+                // 同步 DAO 必须留在事务线程，不能调用会切换到 IO 的 page()。
+                block { limit, offset ->
+                    database.bookmarkMirrorDao().rawRows(BookmarkMirrorQuery.rows(filter, limit, offset))
+                }
+            }
+        }
 
     suspend fun page(filter: BookmarkFilter, limit: Int, offset: Int, afterSeq: Long? = null): List<BookmarkMirrorEntity> =
         withContext(Dispatchers.IO) {
