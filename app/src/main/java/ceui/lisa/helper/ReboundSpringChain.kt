@@ -114,6 +114,11 @@ object ReboundSpringChain {
         // 取消该容器上未完成的旧动画任务，防止多重触发竞态
         activeTasks[container]?.run()
 
+        // onCreateView 调用时尚未 attach；post 会晚于首帧，入场初态必须同步就绪。
+        for (i in 0 until container.childCount) {
+            container.getChildAt(i).translationX = initialOffset
+        }
+
         val postRunnable = Runnable {
             if (!container.isAttachedToWindow && container.windowToken == null) {
                 activeTasks.remove(container)
@@ -145,9 +150,7 @@ object ReboundSpringChain {
             springs[0].endVal = 0.0
 
             val views = Array(count) { i ->
-                val child = container.getChildAt(i)
-                child.translationX = initialOffset
-                child
+                container.getChildAt(i)
             }
 
             val choreographer = Choreographer.getInstance()
