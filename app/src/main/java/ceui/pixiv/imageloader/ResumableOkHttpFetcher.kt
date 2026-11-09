@@ -122,6 +122,16 @@ class ResumableOkHttpFetcher(
                 StageStore.WriteMode.ALREADY_COMPLETE -> {
                     onProgress(ImageFetcher.Progress(99, existingLen, decision.total))
                     response.close()
+
+                    val integrity = ceui.pixiv.download.ImageIntegrityValidator.validateAndRepair(partFile)
+                    if (!integrity.isValid) {
+                        StageStore.clear(stagingDir, key)
+                        throw IOException("Image integrity check failed: ${integrity.reason}")
+                    }
+                    if (integrity.repaired) {
+                        Timber.tag("ImageIntegrity").i("[ResumableFetcher] ${integrity.reason}")
+                    }
+
                     OriginalImageCacheManager.commit(cacheDir, stagingDir, url, partFile)
                 }
 
@@ -179,6 +189,15 @@ class ResumableOkHttpFetcher(
                             StageStore.clear(stagingDir, key)
                             throw IOException("Stage length mismatch: stagedLen=$stagedLen != expected=${decision.total}")
                         }
+                    }
+
+                    val integrity = ceui.pixiv.download.ImageIntegrityValidator.validateAndRepair(partFile)
+                    if (!integrity.isValid) {
+                        StageStore.clear(stagingDir, key)
+                        throw IOException("Image integrity check failed: ${integrity.reason}")
+                    }
+                    if (integrity.repaired) {
+                        Timber.tag("ImageIntegrity").i("[ResumableFetcher] ${integrity.reason}")
                     }
 
                     OriginalImageCacheManager.commit(cacheDir, stagingDir, url, partFile)

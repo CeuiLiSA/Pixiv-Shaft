@@ -775,7 +775,8 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
      * 直接 Sketch 读已下载的本地文件（content:// 或 file://），不走 TaskPool 网络下载。 读失败（文件被移动/删除/无权限）就回退网络路径重新下，行为与
      * IllustAdapter 一致。
      */
-    private fun loadFromLocal(localUri: Uri, imageUrl: String, isUrlMode: Boolean) {
+    private fun loadFromLocal(localUri: Uri, imageUrl: String, isUrlMode: Boolean, isRetry: Boolean = false) {
+        val owner = viewLifecycleOwner
         // 本地已有原图，直读即最终图 —— 摘掉 large 占位观察，别让晚到的 large 回盖已显示的原图。
         originalShown = true
         largeDisposable?.dispose()
@@ -784,10 +785,28 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
         baseBind.image.loadImage(localUri) {
             addListener(
                 onError = { _, _ ->
-                    Timber.w(
-                        "[ImageDetail] local file load FAIL uri=$localUri, fall back to network"
-                    )
-                    loadFromNetwork(imageUrl, isUrlMode)
+                    // 捕获发起请求的 owner，晚到的解码失败不能再向已销毁的 View 索取 owner。
+                    owner.lifecycleScope.launch {
+                        if (shownTranslatedPath != null) return@launch
+                        if (!isRetry) {
+                            Timber.w("[ImageDetail] local file load FAIL uri=$localUri, try ECC self-healing")
+                            val ctx = context ?: Shaft.getContext()
+                            val healed = withContext(Dispatchers.IO) {
+                                ceui.pixiv.download.ImageIntegrityValidator.repairUriIfPossible(ctx, localUri)
+                            }
+                            if (shownTranslatedPath != null) return@launch
+                            if (healed) {
+                                Timber.i("[ImageDetail] local file ECC repaired successfully: %s", localUri)
+                                loadFromLocal(localUri, imageUrl, isUrlMode, isRetry = true)
+                            } else {
+                                Timber.w("[ImageDetail] local file ECC unrepairable, fall back to network")
+                                loadFromNetwork(imageUrl, isUrlMode)
+                            }
+                        } else {
+                            Timber.w("[ImageDetail] local file load failed after ECC retry, fall back to network")
+                            loadFromNetwork(imageUrl, isUrlMode)
+                        }
+                    }
                 }
             )
         }
@@ -818,6 +837,9 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
     }
 
     private fun loadFromNetwork(imageUrl: String, isUrlMode: Boolean) {
+        val owner = viewLifecycleOwner
+        // 同一轮展示最多自动恢复一次。下载成功不代表该设备一定能解码，不能无限重下。
+        var recoveryAttempted = false
         val shortUrl = imageUrl.substringAfterLast('/')
         // V3 imageloader：同一 url 与一级详情页 IllustAdapter 共享同一个进程级任务/进度/结果，不各下一次。
         val task = ImageLoaderV3.obtainOriginal(imageUrl)
@@ -827,10 +849,42 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
             "[ImageDetail] task acquired. state=${task.state.value}, hasResult=${task.currentFile != null}, url=$shortUrl"
         )
 
+        fun renderOriginal(file: File) {
+            baseBind.image.loadImage(file) {
+                addListener(
+                    onError = { _, _ ->
+                        owner.lifecycleScope.launch {
+                            if (shownTranslatedPath != null) return@launch
+                            // 共享任务也可能直接返回快照/本地源文件；这些不是可删除的网络缓存。
+                            if (recoveryAttempted || isSnapshotMode ||
+                                !(imageUrl.startsWith("https://") || imageUrl.startsWith("http://"))) {
+                                baseBind.emptyFrame.visibility = View.VISIBLE
+                                return@launch
+                            }
+                            recoveryAttempted = true
+                            Timber.w("[ImageDetail] cached original file load FAIL: ${file.absolutePath}, try ECC")
+                            val result = withContext(Dispatchers.IO) {
+                                ceui.pixiv.download.ImageIntegrityValidator.repairIfPossible(file)
+                            }
+                            if (shownTranslatedPath != null) return@launch
+                            if (result.repaired) {
+                                Timber.i("[ImageDetail] cached original file repaired, reload: ${file.absolutePath}")
+                                renderOriginal(file)
+                            } else {
+                                Timber.w("[ImageDetail] cached file ECC unrepairable, deleting cache and retrying")
+                                withContext(Dispatchers.IO) { file.delete() }
+                                task.retry()
+                            }
+                        }
+                    }
+                )
+            }
+        }
+
         // 复用观察前先摘掉上一次（重试等重复调用），避免观察者叠加。
         imageDisposable?.dispose()
         imageDisposable =
-            task.observeState(viewLifecycleOwner) { state ->
+            task.observeState(owner) { state ->
                 when (state) {
                     ImageLoadState.Idle -> {
                         // 对齐旧 setUpWithTaskStatus 的 NotStart：先亮出进度条(0)，别留空白。
@@ -851,7 +905,9 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
                         Timber.d(
                             "[ImageDetail] result callback. file=${file.absolutePath}, size=${file.length()}, url=$shortUrl"
                         )
-                        if (shownTranslatedPath == null) baseBind.image.loadImage(file)
+                        if (shownTranslatedPath == null) {
+                            renderOriginal(file)
+                        }
                         if (isUrlMode) {
                             baseBind.downloadButton.visibility = View.VISIBLE
                             baseBind.downloadButton.setOnClick {

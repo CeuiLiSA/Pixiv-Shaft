@@ -1,5 +1,6 @@
 package ceui.lisa.adapters;
 
+import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -50,6 +51,7 @@ import ceui.lisa.activities.Shaft;
 import ceui.lisa.databinding.RecyIllustDetailBinding;
 import ceui.lisa.download.IllustDownload;
 import ceui.pixiv.api.model.Illust;
+import ceui.pixiv.download.ImageIntegrityValidator;
 import ceui.lisa.transformer.LargeBitmapScaleTransformer;
 import ceui.lisa.transformer.UniformScaleTransformation;
 import ceui.lisa.utils.Common;
@@ -1108,6 +1110,10 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
      * 上层 detachTaskObservers 统一清理，本路径不挂 LiveData observer，不会累积(#912)。
      */
     private void loadFromLocalFile(ViewHolder<RecyIllustDetailBinding> holder, int position, boolean changeSize, Uri localUri) {
+        loadFromLocalFile(holder, position, changeSize, localUri, false);
+    }
+
+    private void loadFromLocalFile(ViewHolder<RecyIllustDetailBinding> holder, int position, boolean changeSize, Uri localUri, boolean isRetry) {
         boolean isLoadOriginalImage = wantsOriginal(position);
         final String imageUrl = IllustDownload.getUrl(allIllust, position,
                 isLoadOriginalImage ? Params.IMAGE_RESOLUTION_ORIGINAL : Params.IMAGE_RESOLUTION_LARGE);
@@ -1133,7 +1139,27 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
                     @Override
                     public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Bitmap> target, boolean isFirstResource) {
                         if (!imageUrl.equals(holder.baseBind.illust.getTag(R.id.tag_image_url))) return false;
-                        Timber.w(e, "[IllustAdapter] local file load FAIL pos=%d, fall back to network", position);
+                        if (!isRetry && snapshotId == null) {
+                            Timber.w(e, "[IllustAdapter] local file load FAIL pos=%d, try ECC repair: %s", position, localUri);
+                            LOCAL_SCAN_EXECUTOR.execute(() -> {
+                                Context ctx = mContext != null ? mContext : Shaft.getContext();
+                                boolean healed = ImageIntegrityValidator.repairUriIfPossible(ctx, localUri);
+                                holder.baseBind.illust.post(() -> {
+                                    if (released || mFragment == null || mFragment.getView() == null) return;
+                                    if (!imageUrl.equals(holder.baseBind.illust.getTag(R.id.tag_image_url))) return;
+                                    if (healed) {
+                                        Timber.i("[IllustAdapter] local file ECC healed, retry loading pos=%d", position);
+                                        loadFromLocalFile(holder, position, changeSize, localUri, true);
+                                    } else {
+                                        Timber.w("[IllustAdapter] local file ECC unrepairable pos=%d, fall back to network", position);
+                                        localPageUris.remove(position);
+                                        loadIllust(holder, position, changeSize);
+                                    }
+                                });
+                            });
+                            return true;
+                        }
+                        Timber.w(e, "[IllustAdapter] local file load FAIL after ECC retry pos=%d, fall back to network", position);
                         localPageUris.remove(position);
                         // Glide forbids starting/clearing a load from inside a Target/RequestListener
                         // callback. loadFromNetwork() observes the per-URL task's *sticky* result
