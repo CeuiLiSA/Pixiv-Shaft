@@ -24,7 +24,10 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.gson.Gson
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.Locale
 
@@ -46,6 +49,7 @@ class UpdateBottomSheet : BottomSheetDialogFragment() {
     private var sheet: UpdateSheetView? = null
 
     private var pendingInstallFile: File? = null
+    private var installJob: Job? = null
 
     /** 主操作当前对应的动作，见 [setPrimary]。 */
     private var lastPrimaryKey: String? = null
@@ -53,11 +57,12 @@ class UpdateBottomSheet : BottomSheetDialogFragment() {
     private val installPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) {
-        val file = pendingInstallFile ?: return@registerForActivityResult
+        if (pendingInstallFile == null) return@registerForActivityResult
+        pendingInstallFile = null
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
             requireContext().packageManager.canRequestPackageInstalls()
         ) {
-            doInstall(file)
+            installApk()
         }
     }
 
@@ -279,25 +284,33 @@ class UpdateBottomSheet : BottomSheetDialogFragment() {
     }
 
     private fun installApk() {
-        val apkFile = downloads.apkFile()
-        if (apkFile == null || !apkFile.exists() || apkFile.length() <= 0L || !downloads.validateZip(apkFile)) {
-            // 文件被清掉了（用户清理缓存 / 换目录）或文件损坏：当作断点不可用，退回重试。
-            release?.let { retryDownload(it) }
-            Common.showToast(getString(R.string.update_apk_invalid))
-            return
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            if (!requireContext().packageManager.canRequestPackageInstalls()) {
-                pendingInstallFile = apkFile
-                val intent = Intent(
-                    android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
-                    Uri.parse("package:${requireContext().packageName}")
-                )
-                installPermissionLauncher.launch(intent)
-                return
+        if (installJob?.isActive == true) return
+        installJob = viewLifecycleOwner.lifecycleScope.launch {
+            val state = downloads.state.value
+            if (state.phase != ApkDownloadManager.Phase.COMPLETED || state.tag != release?.tagName) return@launch
+            val apkFile = downloads.apkFile()
+            val valid = withContext(Dispatchers.IO) { downloads.validateZip(apkFile) }
+            // 另一张 sheet 可能已重新下载；即使版本和字节数相同，也不能应用上一轮的结果。
+            if (downloads.state.value !== state) return@launch
+            if (!valid || apkFile == null) {
+                // 文件被清掉或损坏：断点不可用，从头重试。
+                release?.let { retryDownload(it) }
+                Common.showToast(getString(R.string.update_apk_invalid))
+                return@launch
             }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                if (!requireContext().packageManager.canRequestPackageInstalls()) {
+                    pendingInstallFile = apkFile
+                    val intent = Intent(
+                        android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
+                        Uri.parse("package:${requireContext().packageName}")
+                    )
+                    installPermissionLauncher.launch(intent)
+                    return@launch
+                }
+            }
+            doInstall(apkFile)
         }
-        doInstall(apkFile)
     }
 
     private fun doInstall(apkFile: File) {
