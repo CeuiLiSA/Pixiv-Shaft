@@ -11,7 +11,6 @@ import com.github.panpf.zoomimage.zoom.ContentScaleCompat
 import com.github.panpf.zoomimage.zoom.ScalesCalculator
 import com.github.panpf.zoomimage.util.TransformCompat
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 /**
@@ -39,7 +38,6 @@ fun setupZoomSync(
     var source: SketchZoomImageView? = null
     var activeTouch: SketchZoomImageView? = null
     var ignoredTouch: SketchZoomImageView? = null
-    var pendingDown: MotionEvent? = null
     var mirroringPinch = false
     var pinchRollbackPending = false
     fun forwardTouch(dst: SketchZoomImageView, event: MotionEvent) {
@@ -69,27 +67,20 @@ fun setupZoomSync(
         when (action) {
             MotionEvent.ACTION_DOWN -> {
                 source = touched
-                pendingDown?.recycle()
-                pendingDown = MotionEvent.obtain(event)
                 mirroringPinch = false
                 pinchRollbackPending = false
+                // Keep both gesture detectors' drag and tap history identical before a pinch.
+                forwardTouch(follower, event)
             }
 
             MotionEvent.ACTION_POINTER_DOWN -> {
-                if (!mirroringPinch) {
-                    pendingDown?.let { forwardTouch(follower, it) }
-                    pendingDown?.recycle()
-                    pendingDown = null
-                    mirroringPinch = true
-                }
+                mirroringPinch = true
                 forwardTouch(follower, event)
             }
 
             else -> {
-                if (mirroringPinch) forwardTouch(follower, event)
+                forwardTouch(follower, event)
                 if (event.actionMasked == MotionEvent.ACTION_UP || event.actionMasked == MotionEvent.ACTION_CANCEL) {
-                    pendingDown?.recycle()
-                    pendingDown = null
                     pinchRollbackPending = mirroringPinch
                     mirroringPinch = false
                     activeTouch = null
@@ -101,23 +92,26 @@ fun setupZoomSync(
     left.setOnTouchListener(tracker)
     right.setOnTouchListener(tracker)
 
-    // The same pinch must reach the same rubber-band threshold on both images.
+    // Original dimensions can arrive after the preview; keep both rubber-band thresholds aligned.
     lifecycleOwner.lifecycleScope.launch {
         combine(
             left.zoomable.contentSizeState, right.zoomable.contentSizeState,
             left.zoomable.containerSizeState, right.zoomable.containerSizeState,
-        ) { leftContent, rightContent, leftContainer, rightContainer ->
-            listOf(leftContent, rightContent, leftContainer, rightContainer).all {
+            left.zoomable.contentOriginSizeState, right.zoomable.contentOriginSizeState,
+        ) { sizes ->
+            sizes.take(4).all {
                 it.width > 0 && it.height > 0
             }
-        }.first { it }
-        kotlinx.coroutines.yield()
-        val leftBase = left.zoomable.baseTransformState.value.scaleX
-        val rightBase = right.zoomable.baseTransformState.value.scaleX
-        val leftMax = left.zoomable.maxScaleState.value / leftBase
-        val rightMax = right.zoomable.maxScaleState.value / rightBase
-        if (leftMax < rightMax) ensureFollowerZoomRange(right, left, rightBase, leftBase)
-        else if (rightMax < leftMax) ensureFollowerZoomRange(left, right, leftBase, rightBase)
+        }.collect { ready ->
+            if (!ready) return@collect
+            kotlinx.coroutines.yield()
+            val leftBase = left.zoomable.baseTransformState.value.scaleX
+            val rightBase = right.zoomable.baseTransformState.value.scaleX
+            val leftMax = left.zoomable.maxScaleState.value / leftBase
+            val rightMax = right.zoomable.maxScaleState.value / rightBase
+            if (leftMax < rightMax) ensureFollowerZoomRange(right, left, rightBase, leftBase)
+            else if (rightMax < leftMax) ensureFollowerZoomRange(left, right, leftBase, rightBase)
+        }
     }
 
     fun shouldMirror(active: SketchZoomImageView, transform: TransformCompat): Boolean {
@@ -177,7 +171,7 @@ private suspend fun mirrorUserTransform(
 }
 
 /** 让跟随图至少支持操控图的相对最大倍率，避免高分辨率图继续放大时另一张先被截断。 */
-private fun ensureFollowerZoomRange(
+private suspend fun ensureFollowerZoomRange(
     src: SketchZoomImageView,
     dst: SketchZoomImageView,
     srcBaseScale: Float,
@@ -186,13 +180,18 @@ private fun ensureFollowerZoomRange(
     val sourceMaxUserScale = src.zoomable.maxScaleState.value / srcBaseScale
     val followerMaxUserScale = dst.zoomable.maxScaleState.value / dstBaseScale
     val calculator = dst.zoomable.scalesCalculatorState.value
-    if (calculator is MinimumUserMaxScalesCalculator) {
-        if (kotlin.math.abs(calculator.minimumUserMaxScale - sourceMaxUserScale) > 0.001f) {
-            dst.zoomable.setScalesCalculator(MinimumUserMaxScalesCalculator(sourceMaxUserScale))
-        }
-    } else if (sourceMaxUserScale > followerMaxUserScale + 0.001f) {
-        dst.zoomable.setScalesCalculator(MinimumUserMaxScalesCalculator(sourceMaxUserScale))
+    val needsUpdate = if (calculator is MinimumUserMaxScalesCalculator) {
+        kotlin.math.abs(calculator.minimumUserMaxScale - sourceMaxUserScale) > 0.001f
+    } else {
+        sourceMaxUserScale > followerMaxUserScale + 0.001f
     }
+    if (!needsUpdate) return
+
+    // Changing the calculator resets ZoomImage's transform, even during an active gesture.
+    val transform = dst.zoomable.transformState.value
+    dst.zoomable.setScalesCalculator(MinimumUserMaxScalesCalculator(sourceMaxUserScale))
+    dst.zoomable.scale(transform.scaleX, animated = false)
+    dst.zoomable.offset(transform.offset, animated = false)
 }
 
 private data class MinimumUserMaxScalesCalculator(

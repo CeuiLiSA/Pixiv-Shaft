@@ -10,6 +10,7 @@ import android.widget.FrameLayout
 import androidx.fragment.app.FragmentActivity
 import ceui.lisa.activities.Shaft
 import com.github.panpf.zoomimage.SketchZoomImageView
+import com.github.panpf.zoomimage.util.IntSizeCompat
 import com.github.panpf.zoomimage.util.OffsetCompat
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
@@ -143,6 +144,174 @@ class ZoomSyncTest {
                 assertEquals(settled.offset.x, followerSettled.offset.x, 1f)
                 assertEquals(settled.offset.y, followerSettled.offset.y, 1f)
             }
+        } finally {
+            host.pause().stop().destroy()
+        }
+    }
+
+    @Test
+    fun dragBeforePinchStaysAlignedWhenReturningToOneFinger() {
+        withSyncedImages { original, enhanced ->
+            for (active in listOf(original, enhanced)) {
+                val follower = if (active === original) enhanced else original
+                val start = SystemClock.uptimeMillis()
+                touch(active, start, 0, MotionEvent.ACTION_DOWN, floatArrayOf(50f))
+                touch(active, start, 16, MotionEvent.ACTION_UP, floatArrayOf(50f))
+                runBlocking {
+                    active.zoomable.scale(active.zoomable.baseTransformState.value.scaleX * 4f)
+                }
+                shadowOf(Looper.getMainLooper()).idle()
+
+                val dragStart = SystemClock.uptimeMillis() + 500
+                touch(active, dragStart, 0, MotionEvent.ACTION_DOWN, floatArrayOf(50f))
+                touch(active, dragStart, 16, MotionEvent.ACTION_MOVE, floatArrayOf(45f))
+                touch(active, dragStart, 32, MotionEvent.ACTION_MOVE, floatArrayOf(25f))
+                touch(
+                    active, dragStart, 48,
+                    MotionEvent.ACTION_POINTER_DOWN or (1 shl MotionEvent.ACTION_POINTER_INDEX_SHIFT),
+                    floatArrayOf(25f, 65f),
+                )
+                touch(active, dragStart, 64, MotionEvent.ACTION_MOVE, floatArrayOf(15f, 75f))
+                touch(
+                    active, dragStart, 80,
+                    MotionEvent.ACTION_POINTER_UP or (1 shl MotionEvent.ACTION_POINTER_INDEX_SHIFT),
+                    floatArrayOf(15f, 75f),
+                )
+                touch(active, dragStart, 96, MotionEvent.ACTION_MOVE, floatArrayOf(10f))
+
+                val activeTransform = active.zoomable.userTransformState.value
+                val followerTransform = follower.zoomable.userTransformState.value
+                assertEquals(activeTransform.scaleX, followerTransform.scaleX, 0.01f)
+                assertEquals(activeTransform.offset.x, followerTransform.offset.x, 1f)
+                assertEquals(activeTransform.offset.y, followerTransform.offset.y, 1f)
+                touch(active, dragStart, 112, MotionEvent.ACTION_UP, floatArrayOf(10f))
+                shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(600))
+            }
+        }
+    }
+
+    @Test
+    fun pinchStaysAlignedWhenOriginalSizeArrivesAfterSetup() {
+        withSyncedImages { original, enhanced ->
+            enhanced.zoomable.setContentOriginSize(IntSizeCompat(1600, 1600))
+            shadowOf(Looper.getMainLooper()).idle()
+
+            val start = SystemClock.uptimeMillis()
+            touch(original, start, 0, MotionEvent.ACTION_DOWN, floatArrayOf(40f))
+            touch(original, start, 16, MotionEvent.ACTION_UP, floatArrayOf(40f))
+            val maxScale = original.zoomable.maxScaleState.value
+            runBlocking { original.zoomable.scale(maxScale * 0.95f) }
+            shadowOf(Looper.getMainLooper()).idle()
+
+            val pinchStart = SystemClock.uptimeMillis() + 500
+            touch(original, pinchStart, 0, MotionEvent.ACTION_DOWN, floatArrayOf(40f))
+            touch(
+                original, pinchStart, 16,
+                MotionEvent.ACTION_POINTER_DOWN or (1 shl MotionEvent.ACTION_POINTER_INDEX_SHIFT),
+                floatArrayOf(40f, 60f),
+            )
+            touch(original, pinchStart, 32, MotionEvent.ACTION_MOVE, floatArrayOf(15f, 85f))
+            touch(original, pinchStart, 48, MotionEvent.ACTION_MOVE, floatArrayOf(5f, 95f))
+
+            val originalTransform = original.zoomable.userTransformState.value
+            val enhancedTransform = enhanced.zoomable.userTransformState.value
+            assertEquals(originalTransform.scaleX, enhancedTransform.scaleX, 0.05f)
+            assertEquals(originalTransform.offset.x, enhancedTransform.offset.x, 1f)
+            assertEquals(originalTransform.offset.y, enhancedTransform.offset.y, 1f)
+            touch(original, pinchStart, 64, MotionEvent.ACTION_CANCEL, floatArrayOf(5f, 95f))
+        }
+    }
+
+    @Test
+    fun originalSizeUpdatePreservesAnActivePinch() {
+        withSyncedImages { original, enhanced ->
+            val start = SystemClock.uptimeMillis()
+            touch(original, start, 0, MotionEvent.ACTION_DOWN, floatArrayOf(40f))
+            touch(original, start, 16, MotionEvent.ACTION_UP, floatArrayOf(40f))
+            runBlocking {
+                original.zoomable.scale(original.zoomable.baseTransformState.value.scaleX * 4f)
+            }
+            shadowOf(Looper.getMainLooper()).idle()
+
+            val pinchStart = SystemClock.uptimeMillis() + 500
+            touch(original, pinchStart, 0, MotionEvent.ACTION_DOWN, floatArrayOf(40f))
+            touch(
+                original, pinchStart, 16,
+                MotionEvent.ACTION_POINTER_DOWN or (1 shl MotionEvent.ACTION_POINTER_INDEX_SHIFT),
+                floatArrayOf(40f, 60f),
+            )
+            touch(original, pinchStart, 32, MotionEvent.ACTION_MOVE, floatArrayOf(30f, 70f))
+            val before = original.zoomable.userTransformState.value
+
+            enhanced.zoomable.setContentOriginSize(IntSizeCompat(1600, 1600))
+            shadowOf(Looper.getMainLooper()).idle()
+
+            val after = original.zoomable.userTransformState.value
+            assertEquals(before.scaleX, after.scaleX, 0.01f)
+            assertEquals(before.offset.x, after.offset.x, 1f)
+            assertEquals(before.offset.y, after.offset.y, 1f)
+            assertEquals(after.scaleX, enhanced.zoomable.userTransformState.value.scaleX, 0.01f)
+            assertEquals(after.offset.x, enhanced.zoomable.userTransformState.value.offset.x, 1f)
+            assertEquals(after.offset.y, enhanced.zoomable.userTransformState.value.offset.y, 1f)
+            touch(original, pinchStart, 48, MotionEvent.ACTION_CANCEL, floatArrayOf(30f, 70f))
+        }
+    }
+
+    @Test
+    fun doubleTapAndSingleFingerDragRemainSynchronized() {
+        withSyncedImages { original, enhanced ->
+            for (active in listOf(original, enhanced)) {
+                val follower = if (active === original) enhanced else original
+                val start = SystemClock.uptimeMillis()
+                touch(active, start, 0, MotionEvent.ACTION_DOWN, floatArrayOf(40f))
+                touch(active, start, 16, MotionEvent.ACTION_UP, floatArrayOf(40f))
+                touch(active, start, 100, MotionEvent.ACTION_DOWN, floatArrayOf(40f))
+                touch(active, start, 116, MotionEvent.ACTION_UP, floatArrayOf(40f))
+                shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(600))
+
+                assertTrue(active.zoomable.userTransformState.value.scaleX > 1f)
+                assertEquals(
+                    active.zoomable.userTransformState.value.scaleX,
+                    follower.zoomable.userTransformState.value.scaleX,
+                    0.01f,
+                )
+
+                val before = active.zoomable.userTransformState.value.offset
+                val dragStart = SystemClock.uptimeMillis()
+                touch(active, dragStart, 0, MotionEvent.ACTION_DOWN, floatArrayOf(60f))
+                touch(active, dragStart, 16, MotionEvent.ACTION_MOVE, floatArrayOf(50f))
+                touch(active, dragStart, 32, MotionEvent.ACTION_MOVE, floatArrayOf(25f))
+                val after = active.zoomable.userTransformState.value
+                assertTrue(after.offset.x < before.x)
+                assertEquals(after.scaleX, follower.zoomable.userTransformState.value.scaleX, 0.01f)
+                assertEquals(after.offset.x, follower.zoomable.userTransformState.value.offset.x, 1f)
+                assertEquals(after.offset.y, follower.zoomable.userTransformState.value.offset.y, 1f)
+                touch(active, dragStart, 48, MotionEvent.ACTION_CANCEL, floatArrayOf(25f))
+                shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(600))
+            }
+        }
+    }
+
+    private fun withSyncedImages(block: (SketchZoomImageView, SketchZoomImageView) -> Unit) {
+        val host = Robolectric.buildActivity(FragmentActivity::class.java).setup()
+        try {
+            val original = SketchZoomImageView(host.get())
+            val enhanced = SketchZoomImageView(host.get())
+            host.get().setContentView(FrameLayout(host.get()).apply {
+                addView(original, FrameLayout.LayoutParams(100, 100))
+                addView(enhanced, FrameLayout.LayoutParams(100, 100))
+            })
+            original.setImageBitmap(bitmap(400))
+            enhanced.setImageBitmap(bitmap(800))
+            val exact = View.MeasureSpec.makeMeasureSpec(100, View.MeasureSpec.EXACTLY)
+            listOf(original, enhanced).forEach {
+                it.measure(exact, exact)
+                it.layout(0, 0, 100, 100)
+            }
+            shadowOf(Looper.getMainLooper()).idle()
+            setupZoomSync(host.get(), original, enhanced)
+            shadowOf(Looper.getMainLooper()).idle()
+            block(original, enhanced)
         } finally {
             host.pause().stop().destroy()
         }
