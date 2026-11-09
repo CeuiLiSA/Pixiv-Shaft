@@ -14,6 +14,7 @@ import ceui.lisa.database.MuteEntity;
 import ceui.pixiv.api.model.Illust;
 import ceui.loxia.Novel;
 import ceui.lisa.models.TagsBean;
+import ceui.pixiv.db.mirror.AiFollowedAuthorExemption;
 import ceui.pixiv.ui.common.IllustMuteStore;
 import ceui.pixiv.ui.common.MutedUserStore;
 import ceui.pixiv.ui.common.NovelMuteStore;
@@ -75,13 +76,20 @@ public class IllustNovelFilter {
     }
 
     private static boolean isAiExemptAuthor(User user) {
+        return isAiExemptAuthor(user, false);
+    }
+
+    private static boolean isAiExemptAuthor(User user, boolean forFiltering) {
         if (user == null) {
             return false;
         }
         return isAiExemptAuthor(
                 user.getId(),
                 Shaft.sSettings.getAiBlockExemptAuthorIds(),
-                Shaft.sSettings.getAiBlockExemptDisabledIds());
+                Shaft.sSettings.getAiBlockExemptDisabledIds())
+                || (forFiltering
+                ? AiFollowedAuthorExemption.isExemptForFiltering(user.getId())
+                : AiFollowedAuthorExemption.isExempt(user.getId()));
     }
 
     /**
@@ -182,7 +190,9 @@ public class IllustNovelFilter {
      * 「打码」，不是筛选条件本身。
      */
     public static boolean shouldHideAi(Illust illust, boolean excludeAi) {
-        return isAiBlocked(excludeAi, illust)
+        // 过滤后被剔掉的条目不会随快照刷新自动恢复；这里必须现读失效后的名单。
+        // 即使强度为模糊也先取得新名单，后续 legacy/搜索的 shouldBlurAi 剔除路径共用它。
+        return excludeAi && isAiWork(illust) && !isAiExemptAuthor(illust.getUser(), true)
                 && Shaft.sSettings.getAiBlockStrength() == 0;
     }
 
@@ -218,7 +228,7 @@ public class IllustNovelFilter {
 
     /** 小说版 {@link #shouldHideAi(Illust, boolean)}。 */
     public static boolean shouldHideAi(Novel novel, boolean excludeAi) {
-        return isAiBlocked(excludeAi, novel)
+        return excludeAi && isAiWork(novel) && !isAiExemptAuthor(novel.getUser(), true)
                 && Shaft.sSettings.getAiBlockStrength() == 0;
     }
 

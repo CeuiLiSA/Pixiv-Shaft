@@ -268,6 +268,9 @@ internal class BookmarkLibraryUi(
         // 所以这条退路只为「原序 + 最新」这两点存在。
         binding.toolbar.menu.add(0, MENU_CLASSIC, 0, profile.openClassic)
         binding.toolbar.menu.add(0, MENU_REBUILD, 1, R.string.bookmark_library_rebuild)
+        if (contentType == MirrorContentType.USER) {
+            binding.toolbar.menu.add(0, MENU_EXPORT, 2, R.string.following_export_menu)
+        }
         binding.toolbar.setOnMenuItemClickListener { item ->
             when (item.itemId) {
                 MENU_CLASSIC -> {
@@ -276,6 +279,10 @@ internal class BookmarkLibraryUi(
                 }
                 MENU_REBUILD -> {
                     rebuildMirror()
+                    true
+                }
+                MENU_EXPORT -> {
+                    FollowingExportSheet.show(fragment, viewModel)
                     true
                 }
                 else -> false
@@ -703,6 +710,7 @@ internal class BookmarkLibraryUi(
         private const val SEARCH_DEBOUNCE_MS = 280L
         private const val MENU_REBUILD = 1
         private const val MENU_CLASSIC = 2
+        private const val MENU_EXPORT = 3
 
         /** 内容类型入参。**必须由路由方引用这个常量**，别在别处再抄一遍字面量。 */
         const val ARG_CONTENT_TYPE = "bookmark_library_content_type"

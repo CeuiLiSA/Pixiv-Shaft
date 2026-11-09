@@ -16,6 +16,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
+import org.robolectric.shadows.ShadowUiAutomation
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [24, 25, 26, 35])
@@ -25,7 +26,7 @@ class UserPreviewImageTransitionTest {
     @Test
     fun disablingAnimationsDuringLoadShowsDiskAndNetworkImagesImmediately() {
         setAnimationScale(1f)
-        val factory = userPreviewImageTransitionFactory(context)
+        val factory = UserPreviewTransitionFactory(context)
         setAnimationScale(0f)
 
         for (source in listOf(DataSource.DATA_DISK_CACHE, DataSource.RESOURCE_DISK_CACHE, DataSource.REMOTE)) {
@@ -37,7 +38,7 @@ class UserPreviewImageTransitionTest {
     @Test
     fun reEnablingAnimationsUsesTheSameFactoryForTheNextImage() {
         setAnimationScale(0f)
-        val factory = userPreviewImageTransitionFactory(context)
+        val factory = UserPreviewTransitionFactory(context)
         val first = ColorDrawable(Color.RED)
         assertSame(first, deliver(factory, first, DataSource.REMOTE))
 
@@ -50,7 +51,7 @@ class UserPreviewImageTransitionTest {
         setAnimationScale(1f)
         val image = ColorDrawable(Color.RED)
 
-        assertSame(image, deliver(userPreviewImageTransitionFactory(context), image, DataSource.MEMORY_CACHE))
+        assertSame(image, deliver(UserPreviewTransitionFactory(context), image, DataSource.MEMORY_CACHE))
     }
 
     @Test
@@ -58,13 +59,14 @@ class UserPreviewImageTransitionTest {
         setAnimationScale(0.5f)
 
         assertTrue(
-            deliver(userPreviewImageTransitionFactory(context), ColorDrawable(Color.RED), DataSource.REMOTE)
+            deliver(UserPreviewTransitionFactory(context), ColorDrawable(Color.RED), DataSource.REMOTE)
                 is TransitionDrawable,
         )
     }
 
     private fun setAnimationScale(scale: Float) {
         Settings.Global.putFloat(context.contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, scale)
+        ShadowUiAutomation.setAnimationScaleCompat(scale)
     }
 
     private fun deliver(factory: TransitionFactory<Drawable>, image: Drawable, source: DataSource): Drawable {

@@ -46,6 +46,7 @@ public class FragmentSettingsExperimental extends SettingsPageFragment<FragmentS
         bindLogFileRow();
         bindTriggerCrashRow();
         bindDebugMirrorBannerRow();
+        bindDebugClearFollowingMirrorRow();
         bindDebugUpdateSheetRow();
         bindDbCallTraceRow();
         bindDebugFakeInvalidRow();
@@ -197,6 +198,16 @@ public class FragmentSettingsExperimental extends SettingsPageFragment<FragmentS
         }
         baseBind.debugMirrorBannerRela.setOnClickListener(v ->
                 ceui.pixiv.ui.debug.DebugMirrorBannerTrigger.show(mContext));
+    }
+
+    /** 仅 debug：清空选中的关注书架和它的同步状态。 */
+    private void bindDebugClearFollowingMirrorRow() {
+        if (!ceui.lisa.BuildConfig.DEBUG) {
+            baseBind.debugClearFollowMirrorRela.setVisibility(View.GONE);
+            return;
+        }
+        baseBind.debugClearFollowMirrorRela.setOnClickListener(v ->
+                ceui.pixiv.ui.debug.DebugClearFollowingMirror.show(this));
     }
 
     /**

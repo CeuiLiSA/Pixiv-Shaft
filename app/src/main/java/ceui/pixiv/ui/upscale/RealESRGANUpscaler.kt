@@ -12,7 +12,7 @@ import java.security.MessageDigest
 
 object NcnnUpscaler {
 
-    private val PROGRESS_REGEX = Regex("""(\d+\.?\d*)%\s*\[\s*[\d.]+s\s*/\s*([\d.]+)\s*ETA""")
+    private val PROGRESS_REGEX = Regex("""(\d+\.?\d*)%(?:\s*\[\s*[\d.]+s\s*/\s*([\d.]+)\s*ETA)?""")
     private val TILE_REGEX = Regex("""TILE (\d+)""")
 
     private fun cacheDir(context: Context): File {
@@ -83,11 +83,10 @@ object NcnnUpscaler {
             Timber.d("$tag: input ${bitmap.width}x${bitmap.height} → 2x → ${bitmap.width * 2}x${bitmap.height * 2}")
 
             // Pre-compute estimated total tile rows for CUGAN tile-counter progress
-            // process_se_very_rough: stage0(tile=32,step=3) + stage2(tile=64,step=1)
+            // Real-CUGAN -c 1 runs 4 passes of stage0 (gap0..3) + 1 pass of stage2, all at tile=64.
             // sync_gap is excluded (near-instant, no progress reported)
-            val yt32 = (bitmap.height + 31) / 32
             val yt64 = (bitmap.height + 63) / 64
-            val estimatedTotalTiles = (yt32 + 2) / 3 + yt64
+            val estimatedTotalTiles = yt64 * 5
 
             bitmap.recycle()
 
@@ -112,8 +111,8 @@ object NcnnUpscaler {
                 Timber.d("$tag: $line")
                 PROGRESS_REGEX.find(line)?.let { match ->
                     val percent = match.groupValues[1].toFloatOrNull() ?: return@let
-                    val eta = match.groupValues[2].toFloatOrNull() ?: 0f
-                    onProgress?.invoke(percent / 100f, eta)
+                    val eta = match.groupValues.getOrNull(2)?.toFloatOrNull() ?: 0f
+                    onProgress?.invoke((percent / 100f).coerceIn(0f, 1f), eta)
                     return@forEachLine
                 }
                 TILE_REGEX.find(line)?.let { match ->

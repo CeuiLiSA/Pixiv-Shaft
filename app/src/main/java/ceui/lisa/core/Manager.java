@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -1615,6 +1616,22 @@ public class Manager {
                 }
             }
 
+            // 完整性校验与 ECC 自愈门禁：commit 前检测脏数据/位翻转
+            ceui.pixiv.download.ImageIntegrityValidator.IntegrityResult integrity =
+                    ceui.pixiv.download.ImageIntegrityValidator.validateAndRepair(stageFile);
+            if (!integrity.isValid) {
+                Common.showLog("[STAGED-DL] integrity check failed: " + integrity.reason
+                        + ", reset + restart");
+                StageStore.clear(stageDir, stageKey);
+                emitter.onError(new IOException("image integrity check failed: " + integrity.reason));
+                return;
+            }
+            if (integrity.repaired) {
+                Common.showLog("[STAGED-DL] " + integrity.reason);
+                Timber.tag("SharedImageDownload").i("SELF_HEALED illustId=%d page=%d %s",
+                        downloadItem.getIllust().getId(), downloadItem.getIndex(), integrity.reason);
+            }
+
             // —— commit：延迟 insert 目标行，写 stage → 目标；成功后删 stage + manifest ——
             Uri targetUri = factory.insert();
             if (targetUri == null) {
@@ -1704,6 +1721,22 @@ public class Manager {
             // 成功路径上的 close 不能吞：盘快满时缓冲里最后一段可能到 close 才真正落盘失败，
             // 吞掉就会把截断的文件当成下载成功记进「已完成」（pixez#1361）。抛出去走 onError 清理。
             outputStream.close(); outputStream = null;
+
+            if ("file".equals(targetUri.getScheme())) {
+                java.io.File targetFile = new java.io.File(Objects.requireNonNull(targetUri.getPath()));
+                ceui.pixiv.download.ImageIntegrityValidator.IntegrityResult directIntegrity =
+                        ceui.pixiv.download.ImageIntegrityValidator.validateAndRepair(targetFile);
+                if (!directIntegrity.isValid) {
+                    Common.showLog("[DIRECT-DL] integrity check failed: " + directIntegrity.reason
+                            + ", deleting target file");
+                    targetFile.delete();
+                    emitter.onError(new IOException("image integrity check failed: " + directIntegrity.reason));
+                    return;
+                }
+                if (directIntegrity.repaired) {
+                    Common.showLog("[DIRECT-DL] " + directIntegrity.reason);
+                }
+            }
             emitter.onNext(targetUri.toString());
             emitter.onComplete();
         } finally {
@@ -1825,7 +1858,7 @@ public class Manager {
             item.setCurrentSize(downloaded);
             item.setTotalSize(total);
             item.setState(DownloadItem.DownloadState.DOWNLOADING);
-            ManagerReactive.invalidate();
+            ManagerReactive.invalidateProgress();
             try {
                 Callback<DownloadProgress> callback = getCallback(item.getUuid());
                 if (callback != null) callback.doSomething(new DownloadProgress(progress, downloaded, total));

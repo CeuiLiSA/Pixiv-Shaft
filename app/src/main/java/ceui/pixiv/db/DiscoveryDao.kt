@@ -17,6 +17,10 @@ interface DiscoveryDao {
     @Query("SELECT * FROM discovery_table WHERE shown = 0 ORDER BY score DESC LIMIT :limit OFFSET :offset")
     fun getUnshown(limit: Int = 50, offset: Int = 0): List<DiscoveryEntity>
 
+    // 初始化只用 ID，避免把整池的 illustJson 读入 CursorWindow。
+    @Query("SELECT illustId FROM discovery_table WHERE shown = 0 ORDER BY score DESC LIMIT :limit OFFSET :offset")
+    fun getUnshownIds(limit: Int, offset: Int = 0): List<Long>
+
     @Query("UPDATE discovery_table SET shown = 1 WHERE illustId = :illustId")
     fun markShown(illustId: Long)
 
