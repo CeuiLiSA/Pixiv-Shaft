@@ -27,6 +27,7 @@ import ceui.pixiv.db.mirror.BookmarkShelf
 import ceui.pixiv.db.mirror.BookmarkSort
 import ceui.pixiv.db.mirror.MirrorContentType
 import ceui.pixiv.db.mirror.MirrorRestrict
+import ceui.pixiv.witstudio.dialog.WitBottomSheet
 import com.blankj.utilcode.util.Utils
 import com.google.gson.Gson
 import com.hjq.toast.Toaster
@@ -40,6 +41,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.job
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
@@ -177,6 +179,34 @@ class FollowingExportSheetTest {
         assertTrue(BookmarkLibraryRepo.page(BookmarkFilter(shelf.key), 300, 0).isEmpty())
     }
 
+    @Test fun `dismissing while export waits for a transaction prevents a late clipboard write`() = runTest(dispatcher) {
+        insert(shelf, 1..1)
+        ClipBoardUtils.putTextIntoClipboard(host, "keep clipboard", false)
+        show()
+        val writing = CompletableDeferred<Unit>()
+        val releaseWriter = CompletableDeferred<Unit>()
+        val writer = async(Dispatchers.IO) {
+            db.withTransaction {
+                writing.complete(Unit)
+                releaseWriter.await()
+            }
+        }
+        writing.await()
+        val sheet = requireNotNull(ShadowDialog.getLatestDialog()) as WitBottomSheet
+        copyButton().performClick()
+        val exports = (owner.viewLifecycleOwner.lifecycleScope.coroutineContext.job.children +
+            sheet.lifecycleScope.coroutineContext.job.children).toList()
+        runCurrent()
+
+        // Dialog 的 OnDismissListener 要到下一条主线程消息才回调；窗口此时已经关闭。
+        sheet.dismiss()
+        releaseWriter.complete(Unit)
+        writer.await()
+        exports.forEach { it.join() }
+
+        assertEquals("keep clipboard", ClipBoardUtils.getClipboardContent(host))
+    }
+
     private fun insert(targetShelf: BookmarkShelf, ids: IntRange, prefix: String = "user") {
         db.bookmarkMirrorDao().insertRows(ids.map { id ->
             BookmarkMirrorMapper.fromUserPreview(
@@ -213,10 +243,15 @@ class FollowingExportSheetTest {
     }
 
     private suspend fun copy(): String? {
-        val dialog = requireNotNull(ShadowDialog.getLatestDialog())
-        (dialog.window!!.decorView as ViewGroup).descendants.filterIsInstance<TextView>()
-            .single { it.text == host.getString(R.string.following_export_copy) }.performClick()
-        owner.viewLifecycleOwner.lifecycleScope.coroutineContext.job.children.toList().forEach { it.join() }
+        val sheet = requireNotNull(ShadowDialog.getLatestDialog()) as WitBottomSheet
+        copyButton().performClick()
+        sheet.lifecycleScope.coroutineContext.job.children.toList().forEach { it.join() }
         return ClipBoardUtils.getClipboardContent(host)
+    }
+
+    private fun copyButton(): TextView {
+        val dialog = requireNotNull(ShadowDialog.getLatestDialog())
+        return (dialog.window!!.decorView as ViewGroup).descendants.filterIsInstance<TextView>()
+            .single { it.text == host.getString(R.string.following_export_copy) }
     }
 }

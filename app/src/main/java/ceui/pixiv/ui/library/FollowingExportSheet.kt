@@ -30,7 +30,6 @@ import ceui.pixiv.witstudio.theme.color
 import ceui.pixiv.witstudio.theme.dp
 import ceui.pixiv.witstudio.theme.label
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -55,7 +54,6 @@ internal object FollowingExportSheet {
         val parts = LibraryFilterViews(context)
         val palette = V3Palette.from(context)
         val sheet = WitBottomSheet(context)
-        var exportJob: Job? = null
         val owner = fragment.viewLifecycleOwner
         val observer = object : DefaultLifecycleObserver {
             override fun onDestroy(owner: LifecycleOwner) {
@@ -64,7 +62,6 @@ internal object FollowingExportSheet {
         }
         owner.lifecycle.addObserver(observer)
         sheet.setOnDismissListener {
-            exportJob?.cancel()
             owner.lifecycle.removeObserver(observer)
         }
 
@@ -199,7 +196,8 @@ internal object FollowingExportSheet {
             }
             copyButton.isEnabled = false
             copyButton.text = context.getString(R.string.following_export_preparing)
-            exportJob = owner.lifecycleScope.launch {
+            // 窗口关闭时同步取消；OnDismissListener 要等下一条主线程消息才回调。
+            sheet.lifecycleScope.launch {
                 try {
                     val (text, count) = buildExport(filter, fields)
                     if (count == 0) {
