@@ -1139,13 +1139,13 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
                     @Override
                     public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Bitmap> target, boolean isFirstResource) {
                         if (!imageUrl.equals(holder.baseBind.illust.getTag(R.id.tag_image_url))) return false;
-                        if (!isRetry) {
+                        if (!isRetry && snapshotId == null) {
                             Timber.w(e, "[IllustAdapter] local file load FAIL pos=%d, try ECC repair: %s", position, localUri);
                             LOCAL_SCAN_EXECUTOR.execute(() -> {
                                 Context ctx = mContext != null ? mContext : Shaft.getContext();
                                 boolean healed = ImageIntegrityValidator.repairUriIfPossible(ctx, localUri);
                                 holder.baseBind.illust.post(() -> {
-                                    if (mFragment == null || mFragment.getView() == null) return;
+                                    if (released || mFragment == null || mFragment.getView() == null) return;
                                     if (!imageUrl.equals(holder.baseBind.illust.getTag(R.id.tag_image_url))) return;
                                     if (healed) {
                                         Timber.i("[IllustAdapter] local file ECC healed, retry loading pos=%d", position);

@@ -48,6 +48,10 @@ object ImageIntegrityValidator {
 
     private const val CRC32_POLY = 0xEDB88320.toInt()
 
+    // 列表和大图页可能同时修复同一份文件；校验与回写必须串行，否则会把已修好的 bit 再翻坏。
+    // 固定数量的锁避免按路径永久积累锁对象，不同文件仍可并行校验。
+    private val repairLocks = Array(32) { Any() }
+
     private val CRC32_TABLE = IntArray(256) { i ->
         var c = i
         for (j in 0 until 8) {
@@ -71,7 +75,13 @@ object ImageIntegrityValidator {
      */
     @JvmStatic
     fun repairIfPossible(file: File?): IntegrityResult {
-        if (file == null || !file.isFile || file.length() <= 0L) {
+        if (file == null) return IntegrityResult.error("文件不存在或为空")
+        val lock = repairLocks[(file.absolutePath.hashCode() and Int.MAX_VALUE) % repairLocks.size]
+        return synchronized(lock) { validateFile(file) }
+    }
+
+    private fun validateFile(file: File): IntegrityResult {
+        if (!file.isFile || file.length() <= 0L) {
             return IntegrityResult.error("文件不存在或为空")
         }
 
@@ -122,10 +132,11 @@ object ImageIntegrityValidator {
                 }
             } else if (scheme == "content") {
                 val cr = context.contentResolver
-                val tempFile = File(context.cacheDir, "ecc_heal_${System.currentTimeMillis()}.tmp")
+                val tempFile = File.createTempFile("ecc_heal_", ".tmp", context.cacheDir)
                 try {
-                    val input = cr.openInputStream(uri) ?: return false
-                    tempFile.outputStream().use { out -> input.copyTo(out) }
+                    (cr.openInputStream(uri) ?: return false).use { input ->
+                        tempFile.outputStream().use { out -> input.copyTo(out) }
+                    }
 
                     val res = repairIfPossible(tempFile)
                     if (res.repaired) {
@@ -379,7 +390,12 @@ object ImageIntegrityValidator {
                             remaining -= n
                             inflater.setInput(readBuf, 0, n)
                             while (!inflater.needsInput() && !inflater.finished()) {
-                                inflater.inflate(outBuf)
+                                val inflated = inflater.inflate(outBuf)
+                                // PNG 不使用预置字典；needsDictionary 时 inflate 返回 0，
+                                // 既不消耗输入也不结束，必须拒绝而不是在 IO worker 上空转。
+                                if (inflated == 0 && !inflater.needsInput() && !inflater.finished()) {
+                                    return false
+                                }
                             }
                         }
                     } else {
