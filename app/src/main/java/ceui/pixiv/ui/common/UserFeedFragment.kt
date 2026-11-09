@@ -1,6 +1,10 @@
 package ceui.pixiv.ui.common
 
+import android.content.Context
+import android.graphics.drawable.Drawable
+import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.view.View
 import androidx.annotation.LayoutRes
 import androidx.core.view.isVisible
@@ -30,7 +34,12 @@ import ceui.pixiv.witstudio.theme.motionEnabled
 import ceui.pixiv.witstudio.theme.pressScale
 import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestManager
+import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
+import com.bumptech.glide.request.transition.DrawableCrossFadeFactory
+import com.bumptech.glide.request.transition.NoTransition
+import com.bumptech.glide.request.transition.Transition
+import com.bumptech.glide.request.transition.TransitionFactory
 
 /** 关注态局部重绑的 payload 标记（按引用识别）。 */
 private val PAYLOAD_USER_FOLLOW = Any()
@@ -69,7 +78,9 @@ abstract class UserFeedFragment(
      * 直接命中、无查找，解析出的是同一个 RequestManager，行为等价。
      */
     private val userGlide: RequestManager by lazy { Glide.with(this) }
-    private val previewImageTransition = DrawableTransitionOptions.withCrossFade()
+    private val previewImageTransition by lazy(LazyThreadSafetyMode.NONE) {
+        DrawableTransitionOptions().transition(UserPreviewTransitionFactory(requireContext()))
+    }
 
     /**
      * 卡底 / 胶囊 / 文字色都从宿主主色派生。换主题会重建 Activity 连同本 Fragment，
@@ -172,8 +183,8 @@ abstract class UserFeedFragment(
             // 占位 / 补不上的空格是中性浅面（日夜各一档），不再是夜间也亮着的 #f2f2f2。
             val request = userGlide.load(GlideUtil.getUrl(url))
                 .placeholder(R.color.v3_surface_2)
-            // Glide 对 MEMORY_CACHE 自动跳过过渡；TransitionDrawable 不跟随系统动画开关，需显式判断。
-            val imageRequest = if (fadePreviewImagesOnLoad && motionEnabled()) {
+            // 过渡工厂在图片就绪时检查系统动画开关，并让内存缓存命中直接显示。
+            val imageRequest = if (fadePreviewImagesOnLoad) {
                 request.transition(previewImageTransition)
             } else {
                 request
@@ -257,6 +268,22 @@ abstract class UserFeedFragment(
         viewModel.updateItems(UserFeedItem::class.java) { item ->
             if (item.user?.id == userId) item.withFollowed(followed) else item
         }
+    }
+}
+
+/** 手动计时的 TransitionDrawable 不跟随系统动画开关，需在每次图片就绪时现读。 */
+internal class UserPreviewTransitionFactory(context: Context) : TransitionFactory<Drawable> {
+    private val contentResolver = context.applicationContext.contentResolver
+    private val crossFade = DrawableCrossFadeFactory.Builder().build()
+
+    override fun build(dataSource: DataSource, isFirstResource: Boolean): Transition<Drawable> {
+        val enabled = if (Build.VERSION.SDK_INT >= 26) {
+            motionEnabled()
+        } else {
+            // motionEnabled() 在 API 24/25 恒为 true；沿用 FeedSkeletonView 的读取方式。
+            Settings.Global.getFloat(contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f) != 0f
+        }
+        return if (enabled) crossFade.build(dataSource, isFirstResource) else NoTransition.get()
     }
 }
 
