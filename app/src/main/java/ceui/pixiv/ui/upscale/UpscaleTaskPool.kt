@@ -208,6 +208,14 @@ object UpscaleTaskPool {
 
     fun getTask(key: String): UpscaleTask? = _tasks[key]
 
+    internal fun pruneMissingResults() {
+        for ((key, task) in _tasks) {
+            if (task.status.value == UpscaleStatus.Done && task.resultFile.value?.exists() == false) {
+                _tasks.remove(key, task)
+            }
+        }
+    }
+
     fun findTasksForIllust(illustId: Long): List<Pair<Int, UpscaleTask>> {
         val prefix = "illust_${illustId}_"
         val legacyPrefix = "illust_${illustId}"
@@ -340,6 +348,14 @@ object RembgTaskPool {
     private val _tasks = ConcurrentHashMap<String, RembgTask>()
 
     fun getTask(key: String): RembgTask? = _tasks[key]
+
+    internal fun pruneMissingResults() {
+        for ((key, task) in _tasks) {
+            if (task.status.value == UpscaleStatus.Done && task.resultFile.value?.exists() == false) {
+                _tasks.remove(key, task)
+            }
+        }
+    }
 
     fun findTasksForIllust(illustId: Long): List<Pair<Int, RembgTask>> {
         val prefix = "rembg_${illustId}_"

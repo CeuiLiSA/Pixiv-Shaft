@@ -84,12 +84,12 @@ class PageAiState(
         var removed = false
         if (upscaleResultPath?.let { !File(it).exists() } == true) {
             upscaleResultPath = null
-            upscaleStatus = UpscaleStatus.Idle
+            if (upscaleStatus == UpscaleStatus.Done) upscaleStatus = UpscaleStatus.Idle
             removed = true
         }
         if (rembgResultPath?.let { !File(it).exists() } == true) {
             rembgResultPath = null
-            rembgStatus = UpscaleStatus.Idle
+            if (rembgStatus == UpscaleStatus.Done) rembgStatus = UpscaleStatus.Idle
             removed = true
         }
         if (removed) {
@@ -155,6 +155,9 @@ object IllustAiStore {
 
     /** Drop stale result paths after storage cleanup so visible artwork pages redraw their AI pills. */
     fun pruneMissingResults() {
+        // Detail observers restore state from these pools; invalidate them before notifying views.
+        UpscaleTaskPool.pruneMissingResults()
+        RembgTaskPool.pruneMissingResults()
         for (state in states.values) {
             state.pruneMissingResults()
         }

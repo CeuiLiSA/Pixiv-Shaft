@@ -90,6 +90,39 @@ class AiResultCleanupTest {
         assertFalse(state.hasUnacknowledgedResult)
     }
 
+    @Test fun `cleanup preserves a new upscale preparation or queued task`() {
+        for (status in listOf(UpscaleStatus.Preparing, UpscaleStatus.Queued)) {
+            val file = result("upscale-cache/result.png")
+            val state = IllustAiStore.getOrCreate(illustId, 0)
+            state.upscaleResultPath = file.absolutePath
+            assertTrue(AiResultStorage.clear(context, true, false, false))
+            // The user can leave settings and start again before the cleanup callback arrives.
+            state.upscaleStatus = status
+
+            IllustAiStore.pruneMissingResults()
+
+            assertNull(state.upscaleResultPath)
+            assertEquals(status, state.upscaleStatus)
+            assertTrue(state.isWorking)
+        }
+    }
+
+    @Test fun `cleanup preserves a new background removal preparation or queued task`() {
+        for (status in listOf(UpscaleStatus.Preparing, UpscaleStatus.Queued)) {
+            val file = result("rembg-cache/result.png")
+            val state = IllustAiStore.getOrCreate(illustId, 0)
+            state.rembgResultPath = file.absolutePath
+            assertTrue(AiResultStorage.clear(context, false, true, false))
+            state.rembgStatus = status
+
+            IllustAiStore.pruneMissingResults()
+
+            assertNull(state.rembgResultPath)
+            assertEquals(status, state.rembgStatus)
+            assertTrue(state.isWorking)
+        }
+    }
+
     @Test fun `all category selections delete only their generated images`() {
         for (selection in 0..7) {
             val upscale = result("upscale-cache/result.PNG")

@@ -71,7 +71,8 @@ class MangaBatchTranslateCenter @Inject constructor(
     val status: LiveData<BatchStatus?> get() = _status
 
     private var job: Job? = null
-    val isRunning: Boolean get() = job?.isActive == true
+    /** Cancellation leaves blocking model/render work running until the coroutine has completed. */
+    val isRunning: Boolean get() = job?.isCompleted == false
 
     /** 正在跑的那部作品,悬浮窗点一下跳回看图页用。 */
     @Volatile
@@ -113,8 +114,7 @@ class MangaBatchTranslateCenter @Inject constructor(
 
     /** Main-thread gate: prevent a new translation while its generated PNGs are removed. */
     fun beginResultCleanup(): Boolean {
-        // Cancellation makes isActive false before a blocking renderer/PNG writer has returned.
-        if (job?.isCompleted == false || singlePageBusy || resultCleanupInProgress) return false
+        if (isRunning || singlePageBusy || resultCleanupInProgress) return false
         resultCleanupInProgress = true
         return true
     }

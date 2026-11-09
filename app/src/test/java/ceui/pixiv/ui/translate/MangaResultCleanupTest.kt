@@ -4,9 +4,15 @@ import android.app.Application
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.setMain
+import ceui.pixiv.api.model.Illust
 import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -71,5 +77,33 @@ class MangaResultCleanupTest {
         }
         assertTrue(center.beginSinglePage())
         center.endSinglePage()
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test fun `cancelling batch cannot be replaced while its writer is still finishing`() {
+        val dispatcher = StandardTestDispatcher()
+        Dispatchers.setMain(dispatcher)
+        val center = center()
+        val finishWrite = CompletableDeferred<Unit>()
+        val batch = CoroutineScope(Dispatchers.Unconfined).launch {
+            withContext(NonCancellable) { finishWrite.await() }
+        }
+        ReflectionHelpers.setField(center, "job", batch)
+        batch.cancel()
+        try {
+            // Replacing this job lets the old batch's finally block erase the new job reference,
+            // after which cleanup can no longer see the writer belonging to the new batch.
+            assertFalse(center.start(Illust(id = 1341L), emptyList(),
+                MangaOcrModel.MANGA_OCR_BASE, ComicTextDetectorModel.CTD_BASE))
+            assertFalse(center.beginSinglePage())
+            assertFalse(center.beginResultCleanup())
+        } finally {
+            ReflectionHelpers.getField<Job?>(center, "job")?.cancel()
+            center.endSinglePage()
+            center.endResultCleanup()
+            finishWrite.complete(Unit)
+            dispatcher.scheduler.runCurrent()
+            Dispatchers.resetMain()
+        }
     }
 }
