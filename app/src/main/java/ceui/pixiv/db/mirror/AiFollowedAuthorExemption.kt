@@ -30,17 +30,25 @@ object AiFollowedAuthorExemption {
     }
 
     @JvmStatic
-    fun isExempt(userId: Long): Boolean {
+    fun isExempt(userId: Long): Boolean = isExempt(userId, allowStale = true)
+
+    /** 一次性过滤不能等后台刷新后再纠正，必须使用本次失效之后的快照。 */
+    @JvmStatic
+    fun isExemptForFiltering(userId: Long): Boolean = isExempt(userId, allowStale = false)
+
+    private fun isExempt(userId: Long, allowStale: Boolean): Boolean {
         if (userId <= 0L || !Shaft.sSettings.isAiBlockExemptFollowedAuthors ||
             !Shaft.sSettings.isBookmarkMirrorEnabled
         ) return false
         val uid = SessionManager.loggedInUid
-        return uid > 0L && snapshots.contains(uid, userId)
+        if (uid <= 0L) return false
+        return if (allowStale) snapshots.containsCached(uid, userId) else snapshots.contains(uid, userId)
     }
 }
 
 /**
- * 同账号已有快照时，bind 只读内存；任意镜像页写入引起的表级通知都在后台合并刷新。
+ * [containsCached] 给 bind 只读已有内存快照；表级通知在后台合并刷新。
+ * [contains] 给一次性过滤：失效后先加载最新快照，避免按旧名单剔掉条目后无法恢复。
  * 首次/切号保留同步加载兜底（同 MutedWorkStore），避免首批过滤漏掉豁免；慢查询不阻塞同账号读热路径。
  */
 internal class FollowedAuthorSnapshotCache(
@@ -53,12 +61,18 @@ internal class FollowedAuthorSnapshotCache(
     private val refreshScheduled = AtomicBoolean()
     @Volatile private var snapshot: Snapshot? = null
 
-    fun contains(ownerUid: Long, userId: Long): Boolean {
+    fun contains(ownerUid: Long, userId: Long): Boolean = contains(ownerUid, userId, allowStale = false)
+
+    fun containsCached(ownerUid: Long, userId: Long): Boolean = contains(ownerUid, userId, allowStale = true)
+
+    private fun contains(ownerUid: Long, userId: Long, allowStale: Boolean): Boolean {
         if (ownerUid <= 0L || userId <= 0L) return false
         val current = snapshot
-        val loaded = if (current != null && current.ownerUid == ownerUid) current else {
+        val loaded = if (current != null && current.ownerUid == ownerUid &&
+            (allowStale || current.revision == revision.get())
+        ) current else {
             synchronized(this) {
-                snapshot?.takeIf { it.ownerUid == ownerUid }
+                snapshot?.takeIf { it.ownerUid == ownerUid && (allowStale || it.revision == revision.get()) }
                     ?: readSnapshot(ownerUid).also { snapshot = it }
             }
         }
