@@ -26,6 +26,24 @@ class SnapshotImportRecoveryTest {
         assertFalse(backup.exists())
     }
 
+    @Test fun `committed backup interrupted while being deleted is still removed`() {
+        snapshot("my_id", "new")
+        val backup = SnapshotImportRecovery.markCommitted(temp.newFolder(".backup_my_id_1"))
+        File(backup, "partial").writeText("half deleted")
+        recover()
+        assertEquals("new", File(temp.root, "my_id/complete").readText())
+        assertFalse(backup.exists())
+    }
+
+    @Test fun `committed backup does not resurrect a snapshot deleted afterwards`() {
+        val backup = SnapshotImportRecovery.markCommitted(snapshot(".backup_my_id_2", "old"))
+        val older = snapshot(".backup_my_id_1", "older")
+        recover()
+        assertFalse(File(temp.root, "my_id").exists())
+        assertFalse(backup.exists())
+        assertFalse(older.exists())
+    }
+
     @Test fun `incomplete target is preserved while the old snapshot is recovered`() {
         val partial = temp.newFolder("my_id")
         File(partial, "partial").writeText("unfinished")

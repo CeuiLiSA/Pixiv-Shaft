@@ -31,13 +31,15 @@ internal object SnapshotImportRecovery {
         }.sortedByDescending { it.time }
         val settled = mutableSetOf<String>()
         for ((backup, id, _, committed) in backups) {
-            if (!valid(backup, id)) continue
             val target = File(root, id)
-            if ((committed || id in settled) && valid(target, id)) {
-                if (settled.add(id)) onRecovered(target, id)
+            // 提交标记落下时目标已整份写完，带标记的备份及更早的备份都已作废：删到一半被杀的
+            // 不完整备份照样回收；目标之后被用户删掉也不能拿旧副本复活。
+            if (committed || id in settled) {
+                if (settled.add(id) && valid(target, id)) onRecovered(target, id)
                 backup.deleteRecursively()
                 continue
             }
+            if (!valid(backup, id)) continue
             // 不完整的新目录也保留，恢复失败时能原样退回，不删除用户文件。
             val displaced = if (target.exists()) {
                 File(root, ".incomplete_${id}_${UUID.randomUUID()}")
