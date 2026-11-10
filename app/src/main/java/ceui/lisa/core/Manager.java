@@ -1054,10 +1054,8 @@ public class Manager {
                 passSize = 0;
                 targetUri = null;
             } else {
-                // 直写路径（file:// / gif zip）：保持原逻辑 —— query 现有长度做 append 续传，
-                // 现在就 insert 打开目标。
+                // 直写路径先解析目标。GIF factory 每次派发都会重建，insert 前 query 尚无 Uri。
                 long fileSize = MediaStoreUtil.length(factory.query(), context);
-                passSize = (!downloadItem.shouldStartNewDownload() && fileSize >= 0) ? fileSize : 0;
                 Uri opened;
                 try {
                     opened = factory.insert();
@@ -1090,6 +1088,11 @@ public class Manager {
                     return;
                 }
                 targetUri = opened;
+                if ("file".equals(opened.getScheme())) {
+                    // GIF insert 只准备缓存路径，不截断已有 ZIP；暂停继续的偏移取实际文件长度。
+                    fileSize = MediaStoreUtil.length(opened, context);
+                }
+                passSize = (!downloadItem.shouldStartNewDownload() && fileSize >= 0) ? fileSize : 0;
             }
 
             // 回主线程启动下载链（handle 赋值需要在一致的线程）
@@ -1665,9 +1668,8 @@ public class Manager {
     }
 
     /**
-     * 直写（file:// / gif zip）传输：保持历史行为不变 —— {@code passSize>0} 时带 Range
-     * 头 + append 模式续写目标文件，无 manifest / validator（file:// 没有 ContentProvider
-     * 的半成品窗口，暂停即续；跨失败续传只有 staged content:// 路径提供）。
+     * 直写（file:// / gif zip）传输：响应与 staged 路径共用续传决策。
+     * 服务器忽略 Range 返回 200 时必须截断重写，只有校验过起点的 206 才能追加。
      */
     private void runDirectTransfer(Context context, DownloadItem downloadItem, File cachedFile,
             Uri targetUri, String dlUrl, long passSize, OkHttpClient client,
@@ -1676,12 +1678,14 @@ public class Manager {
         InputStream inputStream = null;
         OutputStream outputStream = null;
         try {
-            long contentLength;
+            long writeOffset;
+            long totalSize;
             if (cachedFile != null) {
                 Common.showLog("[DL-CACHE] direct local copy, src=" + cachedFile.getAbsolutePath()
                         + " dst=" + targetUri);
                 inputStream = new java.io.FileInputStream(cachedFile);
-                contentLength = cachedFile.length();
+                writeOffset = 0L;
+                totalSize = cachedFile.length();
             } else {
                 Request.Builder rb = new Request.Builder()
                         .url(ceui.lisa.http.ImageHostManager.INSTANCE.rewrite(dlUrl))
@@ -1692,38 +1696,65 @@ public class Manager {
                 Timber.tag("SharedImageDownload").d("NETWORK illustId=%d page=%d resumeBytes=%d",
                         downloadItem.getIllust().getId(), downloadItem.getIndex(), passSize);
                 response = client.newCall(rb.build()).execute();
-                if (!response.isSuccessful()) {
+                int code = response.code();
+                if (!response.isSuccessful() && code != 416) {
                     emitter.onError(new IOException("HTTP " + response.code()));
                     return;
                 }
                 ResponseBody body = response.body();
-                if (body == null) {
-                    emitter.onError(new IOException("Empty response body"));
-                    return;
+                StageStore.WriteDecision decision = StageStore.decideWrite(
+                        code, response.header("Content-Range"), body != null ? body.contentLength() : -1L, passSize);
+                if (decision.mode == StageStore.WriteMode.ABORT) {
+                    // 同 staged 路径：ABORT 一律弃掉 partial。GIF 每次派发都按现有 zip 长度续传，
+                    // 留着前缀重试只会发同一个 Range、撞同一个 ABORT，永远下不完。
+                    if ("file".equals(targetUri.getScheme())) {
+                        runCatchingDelete(new File(targetUri.getPath()));
+                    }
+                    throw new IOException("invalid direct-download range, restart fresh");
                 }
-                inputStream = body.byteStream();
-                contentLength = body.contentLength();
+                writeOffset = decision.startOffset;
+                totalSize = decision.total;
+                if (decision.mode == StageStore.WriteMode.ALREADY_COMPLETE) {
+                    // 暂停可能恰好落在末字节之后；416 也必须经过下面的落盘长度校验。
+                    inputStream = new java.io.ByteArrayInputStream(new byte[0]);
+                } else {
+                    if (body == null) {
+                        emitter.onError(new IOException("Empty response body"));
+                        return;
+                    }
+                    inputStream = body.byteStream();
+                }
             }
 
-            long totalSize = contentLength > 0 ? contentLength + passSize : 0;
             if ("file".equals(targetUri.getScheme())) {
-                outputStream = new java.io.FileOutputStream(targetUri.getPath(), passSize > 0);
+                outputStream = new java.io.FileOutputStream(targetUri.getPath(), writeOffset > 0);
             } else {
                 outputStream = context.getContentResolver()
-                        .openOutputStream(targetUri, passSize > 0 ? "wa" : "w");
+                        .openOutputStream(targetUri, writeOffset > 0 ? "wa" : "w");
             }
             if (outputStream == null) {
                 emitter.onError(new IOException("Cannot open output stream for " + targetUri));
                 return;
             }
-            pumpBytes(inputStream, outputStream, downloadItem, passSize, totalSize, cachedFile != null, emitter);
+            long downloaded = pumpBytes(inputStream, outputStream, downloadItem,
+                    writeOffset, totalSize, cachedFile != null, emitter);
             if (emitter.isDisposed()) return;
+            if (totalSize >= 0 && downloaded != totalSize) {
+                throw new IOException("incomplete direct download: " + downloaded + "/" + totalSize);
+            }
             // 成功路径上的 close 不能吞：盘快满时缓冲里最后一段可能到 close 才真正落盘失败，
             // 吞掉就会把截断的文件当成下载成功记进「已完成」（pixez#1361）。抛出去走 onError 清理。
             outputStream.close(); outputStream = null;
 
             if ("file".equals(targetUri.getScheme())) {
                 java.io.File targetFile = new java.io.File(Objects.requireNonNull(targetUri.getPath()));
+                long actualSize = targetFile.isFile() ? targetFile.length() : -1L;
+                // append 可能在缓存被清理后新建空文件；逻辑计数仍含旧偏移，必须核对落盘长度。
+                // 长度先于完整性门禁：缺前缀的文件不该再交给 ECC 去"修"。
+                if (actualSize != downloaded) {
+                    runCatchingDelete(targetFile);
+                    throw new IOException("direct file length mismatch: " + actualSize + " != " + downloaded);
+                }
                 ceui.pixiv.download.ImageIntegrityValidator.IntegrityResult directIntegrity =
                         ceui.pixiv.download.ImageIntegrityValidator.validateAndRepair(targetFile);
                 if (!directIntegrity.isValid) {
