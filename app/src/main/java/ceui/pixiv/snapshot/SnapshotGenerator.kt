@@ -369,6 +369,8 @@ object SnapshotGenerator {
         authorName = bean.user?.name,
         authorId = bean.user?.id,
         coverPath = pagePaths.firstOrNull(),
+        coverWidth = bean.width,
+        coverHeight = bean.height,
         fileCount = fileCount,
         totalSize = totalSize,
     )
@@ -389,6 +391,8 @@ object SnapshotGenerator {
         authorName = bean.user?.name,
         authorId = bean.user?.id,
         coverPath = pagePaths.firstOrNull(),
+        coverWidth = bean.width,
+        coverHeight = bean.height,
         fileCount = fileCount,
         totalSize = totalSize,
     )

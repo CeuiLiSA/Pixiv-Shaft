@@ -12,6 +12,12 @@ import ceui.pixiv.feeds.FeedAdapter
 import ceui.pixiv.feeds.scrollFeedItemToOffset
 import kotlin.math.roundToInt
 
+/** 让非 feeds 的图片列表复用同一套齐行分行算法。 */
+internal interface JustifiedItemSource {
+    fun aspectRatioAt(position: Int): Float
+    fun isFullSpanAt(position: Int): Boolean = false
+}
+
 /**
  * 齐行布局的目标行高 = 列宽 × 1.4，即瀑布流里一张常见竖图卡的高度：「每行 2 列」时一行约两张竖图，
  * 和瀑布流的图一样大。直接拿列宽当行高时一行能塞三张竖图，图明显偏小。
@@ -40,6 +46,7 @@ internal const val JUSTIFIED_ROW_HEIGHT_FACTOR = 1.4f
  * OrientationHelper 的排版全部经由这几个 getter 取 padding，View 自己的 padding 只管裁剪
  * （这些列表都是 clipToPadding=false）。
  */
+
 internal class JustifiedLayoutManager(
     context: Context,
     /** 手机上「每行几列」设置；目标行高按它折算，平板按宽度自适应加列（同 [ceui.lisa.helper.StaggeredManager.adaptive]）。 */
@@ -131,24 +138,33 @@ internal class JustifiedLayoutManager(
 
     private fun ensureRows() {
         if (!dirty) return
-        val adapter = attachedView?.adapter as? FeedAdapter
-        val items = adapter?.currentList.orEmpty()
+        val adapter = attachedView?.adapter
+        val feed = adapter as? FeedAdapter
+        val items = feed?.currentList
+        val other = adapter as? JustifiedItemSource
         val width = spanCount
-        val n = items.size
+        val n = items?.size ?: adapter?.itemCount ?: 0
         spans = IntArray(n) { 1 }
         fullSpan = BooleanArray(n)
         dirty = false
-        // 还没量到真实宽度 / 还没装 adapter：先全给 1 格；之后的 setSpanCount / 换 adapter 会再失效
-        if (adapter == null || width <= 1) return
+        // 还没量到真实宽度 / 还没装可分行的数据源，等 setSpanCount / 换 adapter 再失效
+        if ((feed == null && other == null) || width <= 1) return
 
         // 每张卡的左右装饰间距之和；width 已是扣掉列表 padding 后的内容宽
         val inset = 2 * halfSpacePx
         val columns = columnsFor(width)
         val columnWidth = (width - columns * inset).toFloat() / columns
         val aspects = FloatArray(n) { i ->
-            (items[i] as? IllustFeedItem)?.let { 1f / heightRatioOf(it.illust) } ?: 1f
+            if (items != null) {
+                (items[i] as? IllustFeedItem)?.let { 1f / heightRatioOf(it.illust) } ?: 1f
+            } else {
+                other?.aspectRatioAt(i) ?: 1f
+            }
         }
-        for (i in 0 until n) fullSpan[i] = adapter.spanSizeAt(i, width) >= width
+        for (i in 0 until n) {
+            fullSpan[i] = if (feed != null) feed.spanSizeAt(i, width) >= width
+                else other?.isFullSpanAt(i) == true
+        }
         spans = packJustifiedRows(
             aspects, fullSpan, width, inset, columnWidth * JUSTIFIED_ROW_HEIGHT_FACTOR,
         )

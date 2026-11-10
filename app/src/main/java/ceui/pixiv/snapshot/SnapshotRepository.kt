@@ -18,6 +18,7 @@ data class SnapshotSummary(
     val fileCount: Int,
     val totalSize: Long,
     val coverFile: File?,
+    val coverHeightRatio: Float = 1f,
 )
 
 data class SnapshotViewerData(
@@ -114,7 +115,10 @@ object SnapshotRepository {
                         }
                     }
                 }
-                SnapshotSummary(displayManifest, fileCount, totalSize, coverFile)
+                SnapshotSummary(
+                    displayManifest, fileCount, totalSize, coverFile,
+                    snapshotCoverHeightRatio(snapshotDir, displayManifest.coverWidth, displayManifest.coverHeight, coverFile),
+                )
             }
             ?.sortedByDescending { it.manifest.createdAt }
             ?: emptyList()
