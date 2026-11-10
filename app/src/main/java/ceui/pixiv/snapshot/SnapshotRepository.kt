@@ -9,6 +9,8 @@ import ceui.pixiv.ui.bulk.readFramesDir
 import ceui.pixiv.ui.detail.OfflineUgoira
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.io.File
 
 data class SnapshotSummary(
@@ -64,6 +66,8 @@ data class SnapshotViewerData(
  * 目录即快照，ZIP/SAF 只做一次性导入导出，不持久化任何 URI。
  */
 object SnapshotRepository {
+
+    private val importMutex = Mutex()
 
     /**
      * 快照库根目录。**只算路径，不建目录**：它在 Glide 的图片加载路径上被调用
@@ -181,68 +185,82 @@ object SnapshotRepository {
             out.use { SnapshotArchive.zipDirectory(snapshotDir, it) }
         }
 
-    suspend fun import(context: Context, uri: Uri): SnapshotManifest = withContext(Dispatchers.IO) {
-        val staging = File(context.cacheDir, "snapshot_staging_${System.currentTimeMillis()}")
-        sweepStaleBackups(context)
-        try {
-            staging.mkdirs()
-            // 直接从 SAF 流解到 staging：先落一份完整 ZIP 到 cacheDir 再解，等于同一份数据
-            // 写两遍、峰值还要多占一个快照大小的可用空间(原图快照动辄几百 MB)，而 ZipInputStream
-            // 本来就是顺序读，落盘那一趟没有换来任何东西。
-            context.contentResolver.openInputStream(uri)?.use { input ->
-                SnapshotArchive.unzip(input, staging)
-            } ?: throw SnapshotException("无法读取所选文件")
-            val manifest = SnapshotValidator.readJson<SnapshotManifest>(File(staging, SNAPSHOT_MANIFEST))
-                ?: throw SnapshotException("不是有效的 .shaftsnap 快照：缺少 manifest.json")
-            if (manifest.schemaVersion != SNAPSHOT_SCHEMA_VERSION) {
-                throw SnapshotException("不支持的快照版本: ${manifest.schemaVersion}")
-            }
-            requireSnapshotId(manifest.snapshotId)
-            SnapshotValidator.validate(staging, manifest)
-            val target = dir(context, manifest.snapshotId)
-            // 首次导入时快照库根目录还不存在(root() 刻意不建目录),不先建出来的话下面那次
-            // rename 必然失败、白白回落到全量拷贝。
-            root(context).mkdirs()
-            // 备份目录名带 BACKUP_PREFIX：合法快照 ID 只允许 [A-Za-z0-9_-]（见 requireSnapshotId），
-            // 所以带点前缀的名字永远不会与真快照目录撞车，也就永远不会被 list() 当成一张卡片。
-            val backup = File(target.parentFile, "$BACKUP_PREFIX${target.name}_${System.currentTimeMillis()}")
-            if (target.exists()) {
-                if (!target.renameTo(backup)) {
-                    throw SnapshotException("无法替换已有快照: ${manifest.snapshotId}")
-                }
-            }
+    suspend fun import(context: Context, uri: Uri): SnapshotManifest = importMutex.withLock {
+        withContext(Dispatchers.IO) {
+            val staging = File(context.cacheDir, "snapshot_staging_${System.currentTimeMillis()}")
+            sweepStaleBackups(context)
             try {
-                // cacheDir 与 filesDir 同在 app 数据目录下(同一挂载点),rename 就是改个目录项,
-                // 零字节拷贝。copyRecursively 等于把刚解压出来的这一份再写一遍 —— 几百 MB 的
-                // 原图快照会白白多花一倍时间、峰值还要多占一个快照大小的可用空间,正是
-                // 「导入不再先落一份完整 ZIP」那次要避免的同一件事。
-                // rename 失败(理论上的分区差异)再回落到老路子。
-                if (!staging.renameTo(target)) {
-                    target.mkdirs()
-                    staging.copyRecursively(target, overwrite = true)
+                staging.mkdirs()
+                // 直接从 SAF 流解到 staging：先落一份完整 ZIP 到 cacheDir 再解，等于同一份数据
+                // 写两遍、峰值还要多占一个快照大小的可用空间(原图快照动辄几百 MB)，而 ZipInputStream
+                // 本来就是顺序读，落盘那一趟没有换来任何东西。
+                context.contentResolver.openInputStream(uri)?.use { input ->
+                    SnapshotArchive.unzip(input, staging)
+                } ?: throw SnapshotException("无法读取所选文件")
+                val manifest = SnapshotValidator.readJson<SnapshotManifest>(File(staging, SNAPSHOT_MANIFEST))
+                    ?: throw SnapshotException("不是有效的 .shaftsnap 快照：缺少 manifest.json")
+                if (manifest.schemaVersion != SNAPSHOT_SCHEMA_VERSION) {
+                    throw SnapshotException("不支持的快照版本: ${manifest.schemaVersion}")
                 }
-                backup.deleteRecursively()
+                requireSnapshotId(manifest.snapshotId)
+                SnapshotValidator.validate(staging, manifest)
+                val target = dir(context, manifest.snapshotId)
+                // 首次导入时快照库根目录还不存在(root() 刻意不建目录),不先建出来的话下面那次
+                // rename 必然失败、白白回落到全量拷贝。
+                root(context).mkdirs()
+                // 备份目录名带 BACKUP_PREFIX：合法快照 ID 只允许 [A-Za-z0-9_-]（见 requireSnapshotId），
+                // 所以带点前缀的名字永远不会与真快照目录撞车，也就永远不会被 list() 当成一张卡片。
+                var backup = File(target.parentFile, "$BACKUP_PREFIX${target.name}_${System.currentTimeMillis()}")
+                if (target.exists()) {
+                    if (!target.renameTo(backup)) {
+                        throw SnapshotException("无法替换已有快照: ${manifest.snapshotId}")
+                    }
+                }
+                try {
+                    // cacheDir 与 filesDir 同在 app 数据目录下(同一挂载点),rename 就是改个目录项,
+                    // 零字节拷贝。copyRecursively 等于把刚解压出来的这一份再写一遍 —— 几百 MB 的
+                    // 原图快照会白白多花一倍时间、峰值还要多占一个快照大小的可用空间,正是
+                    // 「导入不再先落一份完整 ZIP」那次要避免的同一件事。
+                    // rename 失败(理论上的分区差异)再回落到老路子。
+                    if (!staging.renameTo(target)) {
+                        target.mkdirs()
+                        if (!staging.copyRecursively(target, overwrite = true)) {
+                            throw SnapshotException("无法完整复制快照: ${manifest.snapshotId}")
+                        }
+                    }
+                    // 复制中的 JSON 和全部路径也可能已经存在，必须等整份写完再标记提交完成。
+                    backup = SnapshotImportRecovery.markCommitted(backup)
+                } catch (e: Exception) {
+                    target.deleteRecursively()
+                    if (backup.exists()) backup.renameTo(target)
+                    throw e
+                }
                 SnapshotRuntimeCache.remove(manifest.snapshotId)
                 SnapshotIndex.onSnapshotWritten(manifest.illustId, manifest.snapshotId, isAuto = false, manifest.createdAt)
+                backup.deleteRecursively()
                 manifest
-            } catch (e: Exception) {
-                target.deleteRecursively()
-                if (backup.exists()) backup.renameTo(target)
-                throw e
+            } finally {
+                staging.deleteRecursively()
             }
-        } finally {
-            staging.deleteRecursively()
         }
     }
 
-    /**
-     * 清掉上一次导入没走完（进程被杀 / 掉电）留在库里的备份目录。
-     * 只在导入入口扫一次即可：它是唯一会产生备份目录的地方。
-     */
+    /** 恢复中断的替换事务，并同步已经完成冷启动扫描的索引。 */
     private fun sweepStaleBackups(context: Context) {
-        root(context).listFiles()
-            ?.filter { it.isDirectory && it.name.startsWith(BACKUP_PREFIX) }
-            ?.forEach { it.deleteRecursively() }
+        SnapshotImportRecovery.recover(
+            root(context),
+            valid = { directory, id ->
+                val manifest = SnapshotValidator.readJson<SnapshotManifest>(File(directory, SNAPSHOT_MANIFEST))
+                manifest != null && manifest.snapshotId == id && manifest.schemaVersion == SNAPSHOT_SCHEMA_VERSION &&
+                    runCatching { SnapshotValidator.validate(directory, manifest) }.isSuccess
+            },
+            onRecovered = { directory, id ->
+                val manifest = SnapshotValidator.readJson<SnapshotManifest>(File(directory, SNAPSHOT_MANIFEST))
+                    ?: throw SnapshotException("恢复后的快照 manifest 损坏: $id")
+                SnapshotRuntimeCache.remove(id)
+                SnapshotIndex.onSnapshotWritten(manifest.illustId, id, isAuto = false, manifest.createdAt)
+            },
+        )
     }
 
     /**
