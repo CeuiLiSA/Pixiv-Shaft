@@ -25,7 +25,7 @@ import ceui.pixiv.ui.common.UserFeedFragment
  * 跨列表同步、点进画师页），并把 [MirrorContentType.USER] 交给数据源和共用的 [BookmarkLibraryUi]。
  */
 class FollowingLibraryFragment :
-    UserFeedFragment(R.layout.fragment_bookmark_library),
+    UserFeedFragment(R.layout.fragment_bookmark_library, fadePreviewImagesOnLoad = true),
     BookmarkFilterSheet.Host {
 
     private val initialShelf: BookmarkShelf by lazy(LazyThreadSafetyMode.NONE) {

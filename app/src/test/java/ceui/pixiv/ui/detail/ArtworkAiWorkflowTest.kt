@@ -65,6 +65,61 @@ class ArtworkAiWorkflowTest {
         Glide.tearDown()
     }
 
+    @Test fun `cleanup does not restore a deleted upscale from the completed task pool`() {
+        assertCleanupDoesNotRestoreCompletedTask(clearUpscale = true)
+    }
+
+    @Test fun `cleanup does not restore deleted background removal from the completed task pool`() {
+        assertCleanupDoesNotRestoreCompletedTask(clearUpscale = false)
+    }
+
+    private fun assertCleanupDoesNotRestoreCompletedTask(clearUpscale: Boolean) {
+        val upscaleFile = File(host.filesDir, "upscale-cache/cleanup_${work.id}.png").apply {
+            parentFile!!.mkdirs()
+            writeText("upscale")
+        }
+        val rembgFile = File(host.filesDir, "rembg-cache/cleanup_${work.id}.png").apply {
+            parentFile!!.mkdirs()
+            writeText("rembg")
+        }
+        try {
+            val upscale = UpscaleTask(UpscaleTask.illustKey(work.id), host, File("unused"), "unused")
+            (upscale.resultFile as MutableLiveData).value = upscaleFile
+            (upscale.status as MutableLiveData).value = UpscaleStatus.Done
+            ReflectionHelpers.getField<MutableMap<String, UpscaleTask>>(UpscaleTaskPool, "_tasks")[upscale.taskKey] = upscale
+            val rembg = RembgTask(RembgTask.illustKey(work.id), host, File("unused"), "unused")
+            (rembg.resultFile as MutableLiveData).value = rembgFile
+            (rembg.status as MutableLiveData).value = UpscaleStatus.Done
+            ReflectionHelpers.getField<MutableMap<String, RembgTask>>(RembgTaskPool, "_tasks")[rembg.taskKey] = rembg
+            val helper = IllustAiHelper(owner, owner.requireView(), onAiStateChanged = {})
+            helper.restoreAiTasksIfRunning(work.id)
+            shadowOf(android.os.Looper.getMainLooper()).idle()
+            val state = IllustAiStore.getOrCreate(work.id, 0)
+            state.acknowledgeResult()
+
+            assertTrue(AiResultStorage.clear(host, clearUpscale, !clearUpscale, false))
+            IllustAiStore.pruneMissingResults()
+            // Real detail pages restore completed task state on this LiveData notification.
+            shadowOf(android.os.Looper.getMainLooper()).idle()
+
+            if (clearUpscale) {
+                assertNull(state.upscaleResultPath)
+                assertEquals(UpscaleStatus.Idle, state.upscaleStatus)
+                assertNull(UpscaleTaskPool.getTask(upscale.taskKey))
+                assertSame(rembg, RembgTaskPool.getTask(rembg.taskKey))
+            } else {
+                assertNull(state.rembgResultPath)
+                assertEquals(UpscaleStatus.Idle, state.rembgStatus)
+                assertNull(RembgTaskPool.getTask(rembg.taskKey))
+                assertSame(upscale, UpscaleTaskPool.getTask(upscale.taskKey))
+            }
+            assertFalse(state.hasUnacknowledgedResult)
+        } finally {
+            upscaleFile.delete()
+            rembgFile.delete()
+        }
+    }
+
     @Test fun `resuming while original is downloading keeps duplicate guard`() {
         val old = UpscaleTask(UpscaleTask.illustKey(work.id), host, File("unused"), "unused")
         (old.status as MutableLiveData).value = UpscaleStatus.Done

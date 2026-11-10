@@ -1,5 +1,6 @@
 package ceui.lisa.adapters;
 
+import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -50,6 +51,7 @@ import ceui.lisa.activities.Shaft;
 import ceui.lisa.databinding.RecyIllustDetailBinding;
 import ceui.lisa.download.IllustDownload;
 import ceui.pixiv.api.model.Illust;
+import ceui.pixiv.download.ImageIntegrityValidator;
 import ceui.lisa.transformer.LargeBitmapScaleTransformer;
 import ceui.lisa.transformer.UniformScaleTransformation;
 import ceui.lisa.utils.Common;
@@ -108,6 +110,9 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
      */
     private final Map<Integer, Uri> localPageUris = new ConcurrentHashMap<>();
     private volatile boolean localScanRunning = false;
+    // 首次绑定先等构造时启动的本地扫描，避免已下载页抢先发起原图网络任务。
+    private boolean initialLocalScanPending = true;
+    private boolean deferredInitialBind = false;
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
     /**
@@ -266,6 +271,12 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
         return boundBindings.get(position);
     }
 
+    @Nullable
+    @Override
+    protected Uri entryLocalUri(int position) {
+        return localPageUris.get(position);
+    }
+
     /** 快照模式用：直接把某一页指向快照库里的本地文件，绑定时优先读本地、不走网络。 */
     public void putLocalPageUri(int page, @NonNull android.net.Uri uri) {
         localPageUris.put(page, uri);
@@ -382,7 +393,10 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
                         changed = true;
                     }
                 }
-                if (changed) {
+                boolean refreshDeferred = deferredInitialBind;
+                deferredInitialBind = false;
+                initialLocalScanPending = false;
+                if (changed || refreshDeferred) {
                     notifyDataSetChanged();
                     Runnable listener = localPagesChangedListener;
                     if (listener != null) listener.run();
@@ -716,12 +730,8 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
      *   <li>其余 {@code obtain} ＝ 规则 4</li>
      * </ul>
      *
-     * <p>⚠️ <b>已知窗口</b>：{@code scanLocalDownloads()} 是异步的（构造时提交到 LOCAL_SCAN_EXECUTOR）。
-     * 若首个 bind 早于扫描返回，已下载的页会先走一次 {@code loadFromNetwork}；扫描回来后的
-     * {@code notifyDataSetChanged} 重绑再用本地文件把它盖掉。也就是说「本地已有」的页在最开始的
-     * 一两个 bind 上<b>可能</b>白发一次网络请求。这是「批量扫描 + 同步渲染」这个形状自带的，
-     * <b>不是漏抄规则</b> —— 换成逐页 await 的来源判定（同样是异步）也修不掉；要修得让首屏 bind
-     * 先等扫描结果。
+     * <p>首次绑定若早于异步下载库扫描结果，先等扫描回主线程再重绑。这样已下载页不会
+     * 抢先进入网络分支；未下载页扫描结束后照常加载。
      *
      * @param holder
      * @param position
@@ -742,7 +752,30 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
             return;
         }
         boundLocalPageUris.remove(holder.baseBind);
+        if (snapshotId == null && !allIllust.isGif() && initialLocalScanPending
+                && !showsPageImage(holder, position)) {
+            deferredInitialBind = true;
+            // 全量重绑进入等待时也要丢掉旧请求和标记；回收的 holder 不能继续显示上一页。
+            fragmentRequestManager.clear(holder.baseBind.illust);
+            holder.baseBind.illust.setImageDrawable(null);
+            holder.baseBind.illust.setTag(R.id.tag_image_url, null);
+            holder.baseBind.reload.setVisibility(View.GONE);
+            holder.baseBind.progressLayout.donutProgress.setVisibility(View.VISIBLE);
+            holder.baseBind.progressLayout.donutProgress.setProgress(0);
+            return;
+        }
         loadFromNetwork(holder, position, changeSize);
+    }
+
+    /**
+     * holder 的底图仍是本页（V3「加载原图」换 adapter 后原地重绑）时不进首扫等待：等待会清空底图，
+     * 而原图模式下 p1 起不发 large 占位，页面要空到原图下完。照旧取图，已下载页由扫描回来后的重绑换成本地。
+     */
+    private boolean showsPageImage(ViewHolder<RecyIllustDetailBinding> holder, int position) {
+        Object shownUrl = holder.baseBind.illust.getTag(R.id.tag_image_url);
+        return shownUrl != null && holder.baseBind.illust.getDrawable() != null
+                && (shownUrl.equals(IllustDownload.getUrl(allIllust, position, Params.IMAGE_RESOLUTION_LARGE))
+                || shownUrl.equals(IllustDownload.getUrl(allIllust, position, Params.IMAGE_RESOLUTION_ORIGINAL)));
     }
 
     private void loadFromNetwork(ViewHolder<RecyIllustDetailBinding> holder, int position, boolean changeSize) {
@@ -1108,6 +1141,10 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
      * 上层 detachTaskObservers 统一清理，本路径不挂 LiveData observer，不会累积(#912)。
      */
     private void loadFromLocalFile(ViewHolder<RecyIllustDetailBinding> holder, int position, boolean changeSize, Uri localUri) {
+        loadFromLocalFile(holder, position, changeSize, localUri, false);
+    }
+
+    private void loadFromLocalFile(ViewHolder<RecyIllustDetailBinding> holder, int position, boolean changeSize, Uri localUri, boolean isRetry) {
         boolean isLoadOriginalImage = wantsOriginal(position);
         final String imageUrl = IllustDownload.getUrl(allIllust, position,
                 isLoadOriginalImage ? Params.IMAGE_RESOLUTION_ORIGINAL : Params.IMAGE_RESOLUTION_LARGE);
@@ -1133,7 +1170,27 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
                     @Override
                     public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Bitmap> target, boolean isFirstResource) {
                         if (!imageUrl.equals(holder.baseBind.illust.getTag(R.id.tag_image_url))) return false;
-                        Timber.w(e, "[IllustAdapter] local file load FAIL pos=%d, fall back to network", position);
+                        if (!isRetry && snapshotId == null) {
+                            Timber.w(e, "[IllustAdapter] local file load FAIL pos=%d, try ECC repair: %s", position, localUri);
+                            LOCAL_SCAN_EXECUTOR.execute(() -> {
+                                Context ctx = mContext != null ? mContext : Shaft.getContext();
+                                boolean healed = ImageIntegrityValidator.repairUriIfPossible(ctx, localUri);
+                                holder.baseBind.illust.post(() -> {
+                                    if (released || mFragment == null || mFragment.getView() == null) return;
+                                    if (!imageUrl.equals(holder.baseBind.illust.getTag(R.id.tag_image_url))) return;
+                                    if (healed) {
+                                        Timber.i("[IllustAdapter] local file ECC healed, retry loading pos=%d", position);
+                                        loadFromLocalFile(holder, position, changeSize, localUri, true);
+                                    } else {
+                                        Timber.w("[IllustAdapter] local file ECC unrepairable pos=%d, fall back to network", position);
+                                        localPageUris.remove(position);
+                                        loadIllust(holder, position, changeSize);
+                                    }
+                                });
+                            });
+                            return true;
+                        }
+                        Timber.w(e, "[IllustAdapter] local file load FAIL after ECC retry pos=%d, fall back to network", position);
                         localPageUris.remove(position);
                         // Glide forbids starting/clearing a load from inside a Target/RequestListener
                         // callback. loadFromNetwork() observes the per-URL task's *sticky* result
@@ -1159,6 +1216,9 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
                         holder.baseBind.reload.setVisibility(View.GONE);
                         holder.baseBind.progressLayout.donutProgress.setVisibility(View.GONE);
                         rememberDecodedRatio(holder, position, changeSize, resource);
+                        if (position == 0 && snapshotId == null) {
+                            SketchPreloader.warmUri(mContext, localUri);
+                        }
                         return false;
                     }
                 })

@@ -5,6 +5,7 @@ import android.text.method.HideReturnsTransformationMethod
 import android.text.method.PasswordTransformationMethod
 import android.view.View
 import androidx.activity.OnBackPressedCallback
+import androidx.annotation.StringRes
 import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -16,6 +17,7 @@ import ceui.lisa.utils.Settings
 import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.ui.translate.AiTranslator
 import ceui.pixiv.ui.translate.statusText
+import ceui.pixiv.ui.translate.translateFailureDialog
 import com.hjq.toast.Toaster
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
@@ -322,7 +324,7 @@ class AiTranslateSettingsFragment : Fragment(R.layout.fragment_ai_translate_sett
                 binding.aiTranslateTestBtn.hideProgress()
                 binding.aiTranslateTestBtn.isEnabled = true
                 status.text = getString(R.string.ai_translate_test_failed, e.message ?: e.toString())
-                Toaster.show(getString(R.string.ai_translate_test_failed, e.message ?: e.toString()))
+                showFailureDialog(R.string.ai_translate_failed_title, e)
             } finally {
                 testing = false
             }
@@ -357,9 +359,16 @@ class AiTranslateSettingsFragment : Fragment(R.layout.fragment_ai_translate_sett
             } catch (e: Exception) {
                 ensureActive() // 理由同 testConfig:取消后可能带着真实 IO 异常回来
                 binding.aiTranslateFetchModelsBtn.isEnabled = true
-                Toaster.show(getString(R.string.ai_translate_fetch_models_failed, e.message ?: e.toString()))
+                showFailureDialog(R.string.ai_translate_fetch_models_failed, e)
             }
         }
+    }
+
+    /** 测试/获取模型失败：弹窗给出错误码和错误消息（可复制），不只闪一下 toast。 */
+    private fun showFailureDialog(@StringRes title: Int, e: Exception) {
+        translateFailureDialog(requireActivity(), title, e)
+            .addAction(0, android.R.string.ok, WitDialogAction.ACTION_PROP_POSITIVE) { d, _ -> d.dismiss() }
+            .show()
     }
 
     private fun showModelPicker(models: List<String>) {

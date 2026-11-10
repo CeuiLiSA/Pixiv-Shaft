@@ -1628,5 +1628,6 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
     companion object {
         /** 进场缩略图矩形(屏幕坐标 [left, top, right, bottom]),发起端可选携带;没带则居中淡入。 */
         const val EXTRA_ENTER_BOUNDS = "enter_bounds"
+        const val EXTRA_ENTRY_LOCAL_URI = "entry_local_uri"
     }
 }

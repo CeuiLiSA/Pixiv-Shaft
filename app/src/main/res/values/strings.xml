@@ -986,6 +986,13 @@
     <string name="ai_block_strength_blur">模糊粒子化</string>
     <string name="ai_block_exempt_authors">豁免的作者列表</string>
     <string name="ai_block_exempt_hint">逐个添加作者 ID；点按胶囊可临时停用豁免，点垃圾桶删除\n列表变动后建议重启下 App</string>
+    <string name="ai_block_exempt_followed">同时豁免已关注的作者（含私人关注）</string>
+    <string name="ai_block_follow_mirror_public_unready">公开关注镜像未就绪</string>
+    <string name="ai_block_follow_mirror_private_unready">私人关注镜像未就绪</string>
+    <string name="ai_block_follow_mirror_both_unready">公开与私人关注镜像均未就绪</string>
+    <string name="ai_block_follow_mirror_disabled">收藏镜像功能未开启</string>
+    <string name="ai_block_follow_mirror_checking">正在检查关注镜像…</string>
+    <string name="ai_block_follow_mirror_unavailable_format">[开关不可用] %1$s</string>
     <string name="ai_block_exempt_add">添加</string>
     <string name="ai_block_exempt_input_hint">输入作者 ID</string>
     <string name="ai_block_exempt_empty">还没有豁免作者</string>
@@ -2981,9 +2988,10 @@
     <string name="ai_translate_error_message_label">错误消息</string>
     <string name="ai_translate_error_code_unknown">未知</string>
     <string name="ai_translate_failed_no_detail">未获取到详细错误信息</string>
+    <string name="ai_translate_error_unknown_host">无法解析服务器域名。请检查网络或代理是否可用；如使用自定义接口，请确认接口地址拼写正确。</string>
     <string name="ai_translate_fetch_models">获取模型列表</string>
     <string name="ai_translate_fetch_models_empty">未获取到模型</string>
-    <string name="ai_translate_fetch_models_failed">获取失败：%1$s</string>
+    <string name="ai_translate_fetch_models_failed">获取模型列表失败</string>
     <string name="ai_translate_toggle_key_visibility">显示或隐藏 API Key</string>
     <string name="ai_translate_thinking_label">关闭思考（或降低思考强度）</string>
     <string name="ai_translate_thinking_desc">默认由推理方控制是否思索。\n\nthinking适用于deepseek官方API。\nenable_thinking适用于SiliconFlow或阿里千问。</string>
@@ -3458,6 +3466,13 @@
     <string name="bookmark_mirror_ready_title">收藏库已就绪</string>
     <string name="bookmark_mirror_ready_message">已在本地攒好 %1$s 件收藏，现在可以倒序、按标签/作者/年份筛，还能全文搜。</string>
     <string name="bookmark_mirror_ready_action">去看看</string>
+    <string name="debug_clear_follow_mirror_title" translatable="false">清空关注镜像</string>
+    <string name="debug_clear_follow_mirror_desc" translatable="false">调试：选择公开或私人，清空数据、同步状态与引导标记</string>
+    <string name="debug_clear_follow_mirror_confirm" translatable="false">确定清空%1$s镜像及其标志位？再次打开对应关注库后会重新同步。</string>
+    <string name="debug_clear_follow_mirror_action" translatable="false">清空</string>
+    <string name="debug_clear_follow_mirror_done" translatable="false">已清空%1$s镜像及标志位</string>
+    <string name="debug_clear_follow_mirror_failed" translatable="false">清空%1$s镜像失败</string>
+    <string name="debug_clear_follow_mirror_no_account" translatable="false">请先登录账号</string>
     <string name="debug_mirror_banner_title">触发「收藏库已就绪」banner</string>
     <string name="debug_mirror_banner_desc">清掉一次性标记并重放引导，公开或私人收藏可选</string>
     <string name="bookmark_library_title">我的插画收藏</string>
@@ -3542,6 +3557,20 @@
     <string name="following_library_sync_queued">关注镜像已排队，等待下一个同步窗口</string>
     <string name="following_library_total_count">共 %1$s 位</string>
     <string name="following_library_filter_apply">查看 %1$s 位</string>
+    <string name="following_export_menu">导出该列表…</string>
+    <string name="following_export_title">导出关注列表</string>
+    <string name="following_export_hint">复制当前搜索和筛选结果，每人一行。点按选择字段，长按胶囊拖动顺序。</string>
+    <string name="following_export_partial">镜像尚未补齐，当前只能导出已镜像的关注。</string>
+    <string name="following_export_id">作者ID</string>
+    <string name="following_export_name">作者名</string>
+    <string name="following_export_account">\@名（Account）</string>
+    <string name="following_export_selected">已选</string>
+    <string name="following_export_unselected">未选</string>
+    <string name="following_export_one_required">至少选择一项</string>
+    <string name="following_export_copy">复制到剪贴板</string>
+    <string name="following_export_preparing">正在准备…</string>
+    <string name="following_export_empty">当前结果为空</string>
+    <string name="following_export_copied">已复制 %1$d 位作者</string>
     <string name="bookmark_library_total_count">共 %1$s 件</string>
     <string name="following_sort_followed_newest">关注时间 · 新→旧</string>
     <string name="following_sort_followed_oldest">关注时间 · 旧→新</string>
@@ -3909,4 +3938,16 @@
     <string name="debug_update_sheet_desc" translatable="false">调试用：弹出更新弹窗（支持测试无安装包时的外部打开）</string>
     <string name="debug_fake_invalid_title" translatable="false">失效作品模拟</string>
     <string name="debug_fake_invalid_desc" translatable="false">把收藏页里「有离线快照的作品」画成失效作品卡（非公开／限定／无法显示，占位图封面、无角标），只改显示不动数据</string>
+    <string name="ai_results_manage">管理 AI 结果图</string>
+    <string name="ai_results_upscale">画质提升结果</string>
+    <string name="ai_results_rembg">抠图结果</string>
+    <string name="ai_results_manga">漫画译图</string>
+    <string name="ai_results_item_stats">%1$d 张 · %2$s</string>
+    <string name="ai_results_dialog_hint">仅清理勾选的应用内结果图；已保存到相册的图片和 AI 模型不会删除。</string>
+    <string name="ai_results_clear">清理所选</string>
+    <string name="ai_results_none_selected">请先勾选要清理的类别</string>
+    <string name="ai_results_busy">相关 AI 任务正在运行，请稍后再试</string>
+    <string name="ai_results_clear_success">所选结果图已清理</string>
+    <string name="ai_results_clear_failed">部分结果图未能清理，请重试</string>
+    <string name="ai_results_stats_failed">统计失败</string>
 </resources>

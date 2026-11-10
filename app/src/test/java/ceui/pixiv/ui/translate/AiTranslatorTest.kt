@@ -208,6 +208,46 @@ class AiTranslatorTest {
         assertEquals("/v1/models", server.takeRequest().path)
     }
 
+    // ---------- TimeoutDns 失败只能抛 IOException ----------
+    // 线上闪退:域名秒失败时 future.get 抛 ExecutionException,OkHttp 异步调用把它
+    // 重抛到 Dispatcher 线程直接杀进程。delegate 注入,不依赖本机 DNS / 系统代理。
+
+    private val dnsExecutor = java.util.concurrent.Executors.newCachedThreadPool()
+
+    @After
+    fun shutdownDnsExecutor() {
+        dnsExecutor.shutdownNow()
+    }
+
+    private fun lookupWith(resolve: () -> List<java.net.InetAddress>): java.net.UnknownHostException {
+        val delegate = object : okhttp3.Dns {
+            override fun lookup(hostname: String) = resolve()
+        }
+        val dns = AiTranslator.TimeoutDns(delegate, 1, dnsExecutor)
+        return org.junit.Assert.assertThrows(java.net.UnknownHostException::class.java) {
+            dns.lookup("api.example.test")
+        }
+    }
+
+    @Test
+    fun `域名秒失败抛出原始 UnknownHostException 而不是 ExecutionException`() {
+        val original = java.net.UnknownHostException("Unable to resolve host \"192l.168.1.17\"")
+        assertTrue(lookupWith { throw original } === original)
+    }
+
+    @Test
+    fun `解析抛非 IO 异常时包成 UnknownHostException`() {
+        val boom = IllegalStateException("boom")
+        assertTrue(lookupWith { throw boom }.cause === boom)
+    }
+
+    @Test
+    fun `解析超时抛 UnknownHostException`() {
+        val release = java.util.concurrent.CountDownLatch(1)
+        lookupWith { release.await(); emptyList() }
+        release.countDown()
+    }
+
     // ---------- 流式(SSE)协议层(forceStreaming=true,不碰 Settings) ----------
 
     @Test

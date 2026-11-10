@@ -59,7 +59,7 @@ class DiscoveryPool @Inject constructor(
                 val db = AppDatabase.getAppDatabase(app)
                 val dao = db.discoveryDao()
 
-                dao.getUnshown(MAX_POOL_SIZE, 0).forEach { pooledIds.add(it.illustId) }
+                pooledIds.addAll(dao.getUnshownIds(MAX_POOL_SIZE, 0))
                 val total = dao.count()
                 val unshown = dao.countUnshown()
                 Timber.d("$TAG initialize pooledIds=${pooledIds.size}, db(total=$total, unshown=$unshown)")

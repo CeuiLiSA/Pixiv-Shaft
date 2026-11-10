@@ -40,6 +40,8 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
+import java.util.zip.CRC32
+import java.util.zip.ZipFile
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -127,6 +129,43 @@ class ApkDownloadManager @Inject constructor(private val app: Application) {
         private const val STATUS_PAUSED = "PAUSED"
         private const val STATUS_FAILED = "FAILED"
         private const val STATUS_COMPLETED = "COMPLETED"
+
+        /**
+         * 校验 APK 压缩包完整性：清单非空、目录可读，且每个条目的数据长度和 CRC 都匹配。
+         * 会流式读取整个包，调用方必须在 IO 线程执行。
+         */
+        fun validateZip(file: File?): Boolean {
+            if (file == null || !file.exists() || !file.isFile || file.length() < 22L) {
+                return false
+            }
+            return try {
+                ZipFile(file).use { zip ->
+                    val manifest = zip.getEntry("AndroidManifest.xml") ?: return false
+                    if (manifest.isDirectory || manifest.size <= 0L) return false
+                    val buffer = ByteArray(BUFFER_SIZE)
+                    val entries = zip.entries()
+                    while (entries.hasMoreElements()) {
+                        val entry = entries.nextElement()
+                        val crc = CRC32()
+                        var size = 0L
+                        zip.getInputStream(entry).use { input ->
+                            while (true) {
+                                val read = input.read(buffer)
+                                if (read == -1) break
+                                size += read
+                                if (size > entry.size) return false
+                                crc.update(buffer, 0, read)
+                            }
+                        }
+                        if (size != entry.size || crc.value != entry.crc) return false
+                    }
+                    true
+                }
+            } catch (e: Exception) {
+                Timber.tag(TAG).w(e, "APK ZIP 完整性校验失败: %s", file.absolutePath)
+                false
+            }
+        }
     }
 
     enum class Phase {
@@ -359,7 +398,7 @@ class ApkDownloadManager @Inject constructor(private val app: Application) {
 
     /**
      * 冷启动恢复。三种落点：
-     *  - 已完成 → 直接是 [Phase.COMPLETED]，有挂起的 banner 就排队；
+     *  - 已完成 → 后台校验后进入 [Phase.COMPLETED]，有挂起的 banner 就排队；
      *  - 有分片 → [Phase.PAUSED]，**不自动续传**（用户点了才跑）；
      *  - 什么都没 → 清记录。
      */
@@ -380,16 +419,25 @@ class ApkDownloadManager @Inject constructor(private val app: Application) {
         }
 
         if (rec.status == STATUS_COMPLETED) {
-            val apk = apkFile()
-            if (apk != null && apk.exists() && apk.length() > 0 &&
-                (rec.totalBytes <= 0L || apk.length() == rec.totalBytes)
-            ) {
-                publish(rec, Phase.COMPLETED, downloaded = apk.length())
-                if (rec.bannerPending) banner.markPending()
-            } else {
-                deleteAllFiles()
-                clearRecord()
-                publish(null, Phase.IDLE)
+            val token = ++runToken
+            publish(rec, Phase.MERGING, downloaded = rec.totalBytes)
+            job = scope.launch {
+                val apk = apkFile()
+                val length = apk?.length() ?: 0L
+                val valid = length > 0L &&
+                    (rec.totalBytes <= 0L || length == rec.totalBytes) && validateZip(apk)
+                withContext(Dispatchers.Main) {
+                    // 校验期间用户可能已开始下载另一个版本，旧结果不能清文件或覆盖新状态。
+                    if (token != runToken) return@withContext
+                    if (valid) {
+                        publish(rec, Phase.COMPLETED, downloaded = length)
+                        if (!sheetAttached && loadRecord()?.bannerPending == true) banner.markPending()
+                    } else {
+                        deleteAllFiles()
+                        clearRecord()
+                        publish(null, Phase.IDLE)
+                    }
+                }
             }
             return
         }
@@ -483,7 +531,7 @@ class ApkDownloadManager @Inject constructor(private val app: Application) {
 
     fun apkFile(): File? = dir()?.let { File(it, APK_FILE_NAME) }
 
-    fun hasApk(): Boolean = apkFile()?.let { it.exists() && it.length() > 0 } == true
+    fun validateZip(file: File?): Boolean = Companion.validateZip(file)
 
     // ---------------------------------------------------------------- 内部实现
 
@@ -1036,6 +1084,10 @@ class ApkDownloadManager @Inject constructor(private val app: Application) {
         if (rec.totalBytes > 0L && length != rec.totalBytes) {
             out.delete()
             throw IOException("拼装后长度不符：$length != ${rec.totalBytes}")
+        }
+        if (!validateZip(out)) {
+            out.delete()
+            throw IOException("拼装后 APK 校验失败：ZIP 结构损坏或缺失清单文件")
         }
         deleteParts(rec)
         return out
