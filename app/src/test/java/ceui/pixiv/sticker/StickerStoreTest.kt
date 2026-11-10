@@ -61,8 +61,8 @@ class StickerStoreTest {
             assertTrue(File(dir, "files/${it.path}/x.png").isFile)
         }
         assertEquals(650863185465585230L, store.savedCatalog()!!.packs.getValue("customized").stickers().single().stickerId)
-        assertTrue(ready.file(650863185465585230L, 64)!!.path.contains("/emoji/64/"))
-        assertTrue(ready.file(650863185465585230L, 128)!!.path.contains("/emoji/128/"))
+        assertTrue(ready.file(650863185465585230L, 64)!!.invariantSeparatorsPath.contains("/emoji/64/"))
+        assertTrue(ready.file(650863185465585230L, 128)!!.invariantSeparatorsPath.contains("/emoji/128/"))
         assertTrue(ready.file(650863185465585230L, 256)!!.path.contains("128"))
         File(root, "packages/${catalog.packages().last().sha256}/downloaded.json").delete()
         assertFalse(store.isUnchanged(ready))
@@ -143,7 +143,7 @@ class StickerStoreTest {
         assertEquals(installed.images.keys, warm.images.keys)
         assertEquals(installed.inventory.size, warm.inventory.size)
         assertTrue(store.isUnchanged(warm))
-        assertTrue(warm.file(650863185465585230L, 64)!!.path.contains("/emoji/64/"))
+        assertTrue(warm.file(650863185465585230L, 64)!!.invariantSeparatorsPath.contains("/emoji/64/"))
     }
 
     @Test fun `warm reopen refuses a closed gate or an incomplete install`() {

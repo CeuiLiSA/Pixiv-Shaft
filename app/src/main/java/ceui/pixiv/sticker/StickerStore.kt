@@ -8,6 +8,8 @@ import java.net.URI
 import java.security.MessageDigest
 import java.util.zip.CRC32
 import java.util.zip.ZipFile
+import okio.FileSystem
+import okio.Path.Companion.toOkioPath
 
 /** Disk transaction used only on Dispatchers.IO, serialized by StickerRepository. */
 class StickerStore(private val root: File, private val event: (String) -> Unit = {}) {
@@ -260,7 +262,8 @@ class StickerStore(private val root: File, private val event: (String) -> Unit =
         private fun atomicWrite(file: File, text: String) {
             val temporary = File(file.parentFile, file.name + ".tmp")
             FileOutputStream(temporary).use { it.write(text.toByteArray()); it.fd.sync() }
-            check(temporary.renameTo(file)) { "Cannot commit ${file.name}" }
+            // File.renameTo 在 Windows 上不能覆盖已有文件，统一交给 Okio 做原子替换。
+            FileSystem.SYSTEM.atomicMove(temporary.toOkioPath(), file.toOkioPath())
         }
 
         internal fun hash(bytes: ByteArray): String = MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it) }
