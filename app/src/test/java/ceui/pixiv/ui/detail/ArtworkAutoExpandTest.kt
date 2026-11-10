@@ -20,6 +20,8 @@ import ceui.pixiv.snapshot.SnapshotRuntimeCache
 import ceui.pixiv.snapshot.SnapshotViewerData
 import ceui.pixiv.utils.NetworkStateManager
 import com.blankj.utilcode.util.Utils
+import com.bumptech.glide.Glide
+import com.bumptech.glide.GlideBuilder
 import com.google.gson.Gson
 import org.junit.After
 import org.junit.Assert.*
@@ -46,6 +48,7 @@ class ArtworkAutoExpandTest {
     private lateinit var fragment: ArtworkV3Fragment
     private var database: AppDatabase? = null
     private var network: NetworkStateManager? = null
+    private var glideReady = false
     private val snapshotId = "auto-expand-test"
 
     @Before
@@ -64,6 +67,10 @@ class ArtworkAutoExpandTest {
         network?.unregisterNetworkCallback()
         AppDatabase.destroyInstance()
         database?.close()
+        if (glideReady) {
+            shadowOf(Looper.getMainLooper()).idle()
+            Glide.tearDown()
+        }
     }
 
     @Test
@@ -151,6 +158,58 @@ class ArtworkAutoExpandTest {
         assertTrue((fragment.ensurePageAdapter() as CollapsibleIllustAdapter).isCollapsed)
     }
 
+    @Test
+    @Config(qualifiers = "w800dp-h1280dp")
+    fun `portrait tablet auto expand lists every page and hides the stage`() {
+        Shaft.sSettings.isTabletLayout = true
+        openOnline(autoExpand = true)
+        awaitPages(3)
+        assertTrue((fragment.ensurePageAdapter() as CollapsibleIllustAdapter).isExpanded)
+        val stage = fragment.requireView().findViewById<View>(R.id.tablet_stage)
+        assertNotNull(stage)
+        assertEquals(View.GONE, stage.visibility)
+        assertEquals(View.VISIBLE, fragment.requireView().findViewById<View>(R.id.toolbar).visibility)
+    }
+
+    @Test
+    @Config(qualifiers = "w800dp-h1280dp")
+    fun `portrait tablet without auto expand keeps the stage`() {
+        Glide.init(host.get().application, GlideBuilder())
+        glideReady = true
+        Shaft.sSettings.isTabletLayout = true
+        openOnline(autoExpand = false)
+        awaitHero()
+        assertEquals(0, (list.adapter as FeedAdapter).currentList.count { it is ArtworkPageItem })
+        val stage = fragment.requireView().findViewById<View>(R.id.tablet_stage)
+        assertNotNull(stage)
+        assertEquals(View.VISIBLE, stage.visibility)
+    }
+
+    @Test
+    @Config(qualifiers = "w1280dp-h800dp")
+    fun `landscape tablet with auto expand stays on the stage`() {
+        Glide.init(host.get().application, GlideBuilder())
+        glideReady = true
+        Shaft.sSettings.isTabletLayout = true
+        openOnline(autoExpand = true)
+        awaitHero()
+        assertEquals(0, (list.adapter as FeedAdapter).currentList.count { it is ArtworkPageItem })
+        val stage = fragment.requireView().findViewById<View>(R.id.tablet_stage)
+        assertNotNull(stage)
+        assertEquals(View.VISIBLE, stage.visibility)
+    }
+
+    @Test
+    @Config(qualifiers = "w800dp-h1280dp")
+    fun `tablet sized portrait without tablet layout lists every page`() {
+        Shaft.sSettings.isTabletLayout = false
+        openOnline(autoExpand = true)
+        awaitPages(3)
+        val stage = fragment.requireView().findViewById<View>(R.id.tablet_stage)
+        assertNotNull(stage)
+        assertEquals(View.GONE, stage.visibility)
+    }
+
     private fun recreateView() {
         val manager = host.get().supportFragmentManager
         manager.beginTransaction().detach(fragment).commitNow()
@@ -223,6 +282,16 @@ class ArtworkAutoExpandTest {
             shadowOf(Looper.getMainLooper()).idle()
             if ((list.adapter as FeedAdapter).currentList.count { it is ArtworkPageItem } == count) return
             check(System.nanoTime() < deadline) { "page list did not commit" }
+            Thread.sleep(10)
+        }
+    }
+
+    private fun awaitHero() {
+        val deadline = System.nanoTime() + 5_000_000_000L
+        while (true) {
+            shadowOf(Looper.getMainLooper()).idle()
+            if ((list.adapter as FeedAdapter).currentList.any { it is ArtworkHeroItem }) return
+            check(System.nanoTime() < deadline) { "hero did not commit" }
             Thread.sleep(10)
         }
     }
