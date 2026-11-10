@@ -80,12 +80,9 @@ public class SAFactory implements DownloadFileFactory {
     @Override
     public void finishWrite() {
         if (mSettled) return;
+        // 后端负责非关键扫描的容错；发布异常必须留给 Manager 判失败并清理。
+        mOnFinish.invoke();
         mSettled = true;
-        try {
-            mOnFinish.invoke();
-        } catch (Exception e) {
-            android.util.Log.w("SAFactory", "finishWrite failed: " + e.getMessage());
-        }
     }
 
     @Override

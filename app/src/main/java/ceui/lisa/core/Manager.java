@@ -1275,19 +1275,24 @@ public class Manager {
         s -> {
             Common.showLog("downloadOne " + s);
 
-            // ===== CRITICAL: 把 content.remove 提到最前 =====
-            // QueueDownloadManager.awaitIllustSettled 是靠"item 从 Manager.content
-            // 消失"判断 illust 完成的。下面的 Gson 序列化 / Room insert /
-            // factory.finishWrite() / complete() 任何一行 throw 都会让原本在
-            // 末尾 schedule 的 content.remove **永远不会被 queue 上 main 线程**。
-            // 单页文件已经写盘成功（一行字节流早就 flush 了），但 await 看到这个
-            // page 还在 content 里 → 永远不 return → consumer 走不到
-            // dao.updateStatus(SUCCESS) → 批量队列 list 不消失，最终 stall
-            // timeout 把它标 FAILED（FAILED 行 SQL 也不过滤，list 仍然不消失）。
-            // 用户看到的就是"图都下成功了 但队列不少"。
-            //
-            // 把 remove 排到最前面，独立 Runnable，跟后续 IO 工作解耦：哪怕后面
-            // 任何步骤 throw，main thread 都已经把这条 item 从 content 取出了。
+            // 字节写完还不等于发布成功。取消后 DownloadTask 可能跳过 onError，
+            // 发布失败必须在这里清理目标；完整 stage 留给重试，异常继续向外传播。
+            try {
+                factory.finishWrite();
+            } catch (Throwable failure) {
+                try {
+                    factory.abandonWrite();
+                } catch (Throwable cleanupFailure) {
+                    Common.showLog("[DL] publication cleanup failed: " + cleanupFailure);
+                }
+                throw failure;
+            }
+            if (staged) {
+                StageStore.clear(stageDir, stageKey);
+            }
+
+            // 发布成功后立即安排移除。后续 DB / 元数据等附加动作独立容错，
+            // 避免成品已发布却因附加动作失败而卡住批量队列。
             postMain(() -> {
                 int sizeBefore;
                 boolean removed;
@@ -1308,7 +1313,7 @@ public class Manager {
                     PixivOperate.unzipAndPlay(context, downloadItem.getIllust(), downloadItem.isAutoSave()));
             }
 
-            // 下面三块每块独立 try/catch：单条失败别牵连其它。最关键的 content.remove
+            // 下面各块独立 try/catch：单条失败别牵连其它。最关键的 content.remove
             // 已经在上面发出去了，这里都是"附加完成动作"，断了任意一条都不至于让
             // 整个 illust 的下载流程卡死。
             DownloadEntity downloadEntity = null;
@@ -1362,17 +1367,6 @@ public class Manager {
                 }
             }
 
-            try {
-                factory.finishWrite();
-                // staged 的 stage（.part + manifest）在 finishWrite 成功后才清：清早了，
-                // dispose 恰好丢弃这条 onNext 时（observeOn 跳变窗口）目标行悬挂 pending、
-                // stage 又没了，冷启动 cleaner 会把写满的文件当孤儿删掉 → 整段重下。
-                // finishWrite 抛错时同理保留 stage —— pending 行终会被 cleaner 回收，
-                // 下次尝试凭完整 stage 走 skipNetwork 直接重新 commit。clear 幂等。
-                if (staged) {
-                    StageStore.clear(stageDir, stageKey);
-                }
-            } catch (Throwable t) { Common.showLog("[DL] finishWrite failed: " + t); }
             // 可选:把作品标签写进 JPEG 的 XMP 关键词(issue #938)。开关默认关,只处理 JPEG,
             // 内部包 try/catch —— 写元数据失败绝不影响这条已成功的下载。gif 会被扩展名过滤掉。
             // 开关前置判断:默认关时这条下载热路径零额外开销(不建 tag 列表、不读文件)。
