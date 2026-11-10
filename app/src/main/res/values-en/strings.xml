@@ -2710,9 +2710,10 @@
     <string name="ai_translate_error_message_label">Error message</string>
     <string name="ai_translate_error_code_unknown">Unknown</string>
     <string name="ai_translate_failed_no_detail">No detailed error information available</string>
+    <string name="ai_translate_error_unknown_host">Couldn\'t resolve the server\'s domain name. Check that your network or proxy is working; if you use a custom endpoint, make sure the Base URL is spelled correctly.</string>
     <string name="ai_translate_fetch_models">Fetch model list</string>
     <string name="ai_translate_fetch_models_empty">No models found</string>
-    <string name="ai_translate_fetch_models_failed">Fetch failed: %1$s</string>
+    <string name="ai_translate_fetch_models_failed">Couldn\'t fetch model list</string>
     <string name="ai_translate_toggle_key_visibility">Show or hide API key</string>
     <string name="ai_translate_thinking_label">Disable thinking (or lower thinking effort)</string>
     <string name="ai_translate_thinking_desc">By default, the provider decides whether to think.\n\nthinking applies to DeepSeek\'s official API.\nenable_thinking applies to SiliconFlow or Alibaba Qwen.</string>

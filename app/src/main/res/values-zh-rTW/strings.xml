@@ -2702,9 +2702,10 @@
     <string name="ai_translate_error_message_label">錯誤訊息</string>
     <string name="ai_translate_error_code_unknown">未知</string>
     <string name="ai_translate_failed_no_detail">未取得詳細錯誤資訊</string>
+    <string name="ai_translate_error_unknown_host">無法解析伺服器網域。請檢查網路或代理是否可用；如使用自訂介面，請確認介面位址拼寫正確。</string>
     <string name="ai_translate_fetch_models">取得模型清單</string>
     <string name="ai_translate_fetch_models_empty">未取得模型</string>
-    <string name="ai_translate_fetch_models_failed">取得失敗：%1$s</string>
+    <string name="ai_translate_fetch_models_failed">取得模型清單失敗</string>
     <string name="ai_translate_toggle_key_visibility">顯示或隱藏 API Key</string>
     <string name="ai_translate_thinking_label">關閉思考（或降低思考強度）</string>
     <string name="ai_translate_thinking_desc">預設由推理方控制是否思索。\n\nthinking 適用於 DeepSeek 官方 API。\nenable_thinking 適用於 SiliconFlow 或阿里千問。</string>

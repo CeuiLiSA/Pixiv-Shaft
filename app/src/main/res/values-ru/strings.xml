@@ -2705,9 +2705,10 @@
     <string name="ai_translate_error_message_label">Сообщение об ошибке</string>
     <string name="ai_translate_error_code_unknown">неизвестно</string>
     <string name="ai_translate_failed_no_detail">Нет подробной информации об ошибке</string>
+    <string name="ai_translate_error_unknown_host">Не удалось разрешить доменное имя сервера. Проверьте сеть или прокси; если используется собственный эндпоинт, убедитесь, что Base URL написан правильно.</string>
     <string name="ai_translate_fetch_models">Получить список моделей</string>
     <string name="ai_translate_fetch_models_empty">Модели не найдены</string>
-    <string name="ai_translate_fetch_models_failed">Не удалось получить: %1$s</string>
+    <string name="ai_translate_fetch_models_failed">Не удалось получить список моделей</string>
     <string name="ai_translate_toggle_key_visibility">Показать или скрыть API key</string>
     <string name="ai_translate_thinking_label">Отключить размышления (или снизить их уровень)</string>
     <string name="ai_translate_thinking_desc">По умолчанию провайдер сам решает, размышлять ли модели.\n\nthinking — для официального API DeepSeek.\nenable_thinking — для SiliconFlow или Alibaba Qwen.</string>

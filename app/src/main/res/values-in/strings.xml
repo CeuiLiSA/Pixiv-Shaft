@@ -2735,9 +2735,10 @@
     <string name="ai_translate_error_message_label">Pesan kesalahan</string>
     <string name="ai_translate_error_code_unknown">Tidak diketahui</string>
     <string name="ai_translate_failed_no_detail">Detail kesalahan tidak didapat</string>
+    <string name="ai_translate_error_unknown_host">Nama domain server tidak dapat ditemukan. Periksa jaringan atau proxy Anda; jika memakai endpoint kustom, pastikan alamat API ditulis dengan benar.</string>
     <string name="ai_translate_fetch_models">Ambil daftar model</string>
     <string name="ai_translate_fetch_models_empty">Tidak ada model yang didapat</string>
-    <string name="ai_translate_fetch_models_failed">Gagal mengambil: %1$s</string>
+    <string name="ai_translate_fetch_models_failed">Gagal mengambil daftar model</string>
     <string name="ai_translate_toggle_key_visibility">Tampilkan atau sembunyikan API Key</string>
     <string name="ai_translate_thinking_label">Matikan penalaran (atau kurangi intensitasnya)</string>
     <string name="ai_translate_thinking_desc">Secara default, penyedia inferensi yang menentukan apakah model bernalar.\n\nthinking untuk API resmi deepseek.\nenable_thinking untuk SiliconFlow atau Alibaba Qwen.</string>

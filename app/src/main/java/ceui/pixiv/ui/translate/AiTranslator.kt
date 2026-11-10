@@ -24,10 +24,12 @@ import org.json.JSONArray
 import org.json.JSONObject
 import timber.log.Timber
 import java.io.IOException
+import java.io.InterruptedIOException
 import java.net.InetAddress
 import java.net.UnknownHostException
 import java.util.concurrent.Callable
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ExecutionException
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeoutException
@@ -116,20 +118,39 @@ object AiTranslator : Translator {
                 .build()
         }
 
-    /**
-     * 带 1 秒超时的 DNS:模型列表、测试翻译共用。系统解析失败(如 DNS 被污染/无响应)时
-     * netd 可能要几十秒才报 UnknownHostException,必须在这里独立掐断。
-     */
     private val dnsExecutor: ExecutorService = Executors.newCachedThreadPool()
 
-    private val quickDns = object : Dns {
+    /** 模型列表、测试翻译共用的 1 秒超时 DNS。 */
+    private val quickDns = TimeoutDns(Dns.SYSTEM, DNS_RESOLVE_TIMEOUT_SECONDS, dnsExecutor)
+
+    /**
+     * 带超时的 DNS:系统解析失败(如 DNS 被污染/无响应)时 netd 可能要几十秒才报
+     * UnknownHostException,必须在这里独立掐断。
+     *
+     * 失败只许抛 IOException(Dns 契约是 UnknownHostException):域名秒失败时 future.get
+     * 抛的是包着它的 ExecutionException —— OkHttp 异步调用(SSE 测试翻译)回调 onFailure
+     * 后会把非 IOException 重抛到 Dispatcher 线程,进程直接闪退。
+     */
+    internal class TimeoutDns(
+        private val delegate: Dns,
+        private val timeoutSeconds: Long,
+        private val executor: ExecutorService,
+    ) : Dns {
         override fun lookup(hostname: String): List<InetAddress> {
-            val future = dnsExecutor.submit(Callable { Dns.SYSTEM.lookup(hostname) })
+            val future = executor.submit(Callable { delegate.lookup(hostname) })
             return try {
-                future.get(DNS_RESOLVE_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                future.get(timeoutSeconds, TimeUnit.SECONDS)
             } catch (e: TimeoutException) {
                 future.cancel(true)
                 throw UnknownHostException("DNS timeout resolving $hostname")
+            } catch (e: ExecutionException) {
+                val cause = e.cause
+                throw cause as? UnknownHostException
+                    ?: UnknownHostException("Unable to resolve host \"$hostname\"").apply { initCause(cause ?: e) }
+            } catch (e: InterruptedException) {
+                future.cancel(true)
+                Thread.currentThread().interrupt()
+                throw InterruptedIOException("DNS lookup interrupted: $hostname")
             }
         }
     }

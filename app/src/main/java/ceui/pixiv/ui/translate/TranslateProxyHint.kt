@@ -2,6 +2,7 @@ package ceui.pixiv.ui.translate
 
 import android.app.Activity
 import android.content.Intent
+import androidx.annotation.StringRes
 import ceui.lisa.R
 import ceui.lisa.activities.TemplateActivity
 import ceui.pixiv.ui.navigation.TemplateRoute
@@ -12,6 +13,7 @@ import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
 import kotlinx.coroutines.CancellationException
 import timber.log.Timber
+import java.net.UnknownHostException
 
 /**
  * GoogleWebTranslator 走 translate.googleapis.com,国内必须有代理。
@@ -55,15 +57,32 @@ internal fun promptTranslateFailedIfPossible(e: Exception?) {
         return
     }
     showTranslateDialogIfPossible { activity ->
-        val body = buildFailureBody(activity, e)
-        WitDialog.MessageDialogBuilder(activity)
-            .setTitle(if (cloud) R.string.cloud_translate_failed_title else R.string.ai_translate_failed_title)
-            .setMessage(body)
-            .addAction(activity.getString(R.string.string_120)) { dialog, _ ->
-                ClipBoardUtils.putTextIntoClipboard(activity, body)
-                dialog.dismiss()
-            }
+        translateFailureDialog(
+            activity,
+            if (cloud) R.string.cloud_translate_failed_title else R.string.ai_translate_failed_title,
+            e,
+        )
     }
+}
+
+/**
+ * 翻译失败弹窗本体：错误码 + 错误消息 + 复制按钮（确定按钮由调用方加）。
+ * AI 翻译设置页的「测试翻译 / 获取模型列表」也用它 —— 那里测的是还没保存的配置，
+ * 不能走 [promptTranslateFailedIfPossible] 按已保存配置做的引擎判定。
+ */
+internal fun translateFailureDialog(
+    activity: Activity,
+    @StringRes title: Int,
+    e: Exception?,
+): WitDialog.MessageDialogBuilder {
+    val body = buildFailureBody(activity, e)
+    return WitDialog.MessageDialogBuilder(activity)
+        .setTitle(title)
+        .setMessage(body)
+        .addAction(activity.getString(R.string.string_120)) { dialog, _ ->
+            ClipBoardUtils.putTextIntoClipboard(activity, body)
+            dialog.dismiss()
+        }
 }
 
 private fun promptCloudQuotaExhausted(e: CloudTranslateQuotaException) {
@@ -110,6 +129,12 @@ private fun failureCode(e: Exception?): Int? = when (e) {
  * 拿不到消息时给占位文案，而不是再贴一遍标题。
  */
 private fun failureMessage(e: Exception?, code: Int?, activity: Activity): String {
+    // 域名解析失败：系统原文是一句英文，先给人话指向「网络/代理/地址拼写」，
+    // 原文留在下一行 —— 里面带着域名，拼错的地址（如 192l.168.1.17）一眼能看出来。
+    if (e is UnknownHostException) {
+        return activity.getString(R.string.ai_translate_error_unknown_host) +
+            e.message?.let { "\n$it" }.orEmpty()
+    }
     val raw = when (e) {
         is AiTranslator.RetryableApiException -> e.message
         is AiTranslator.ApiConfigException -> e.message

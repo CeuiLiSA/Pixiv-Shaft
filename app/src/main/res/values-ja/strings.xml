@@ -2687,9 +2687,10 @@
     <string name="ai_translate_error_message_label">エラーメッセージ</string>
     <string name="ai_translate_error_code_unknown">不明</string>
     <string name="ai_translate_failed_no_detail">詳細なエラー情報はありません</string>
+    <string name="ai_translate_error_unknown_host">サーバーのドメイン名を解決できませんでした。ネットワークやプロキシが使えるか確認してください。カスタムエンドポイントを使っている場合は、Base URL の綴りが正しいか確認してください。</string>
     <string name="ai_translate_fetch_models">モデル一覧を取得</string>
     <string name="ai_translate_fetch_models_empty">モデルが見つかりません</string>
-    <string name="ai_translate_fetch_models_failed">取得失敗：%1$s</string>
+    <string name="ai_translate_fetch_models_failed">モデル一覧の取得に失敗しました</string>
     <string name="ai_translate_toggle_key_visibility">API key の表示切替</string>
     <string name="ai_translate_thinking_label">思考を無効化（または思考レベルを下げる）</string>
     <string name="ai_translate_thinking_desc">デフォルトでは推論側が思索するかどうかを決定します。\n\nthinking は DeepSeek 公式 API 向けです。\nenable_thinking は SiliconFlow または Alibaba Qwen 向けです。</string>

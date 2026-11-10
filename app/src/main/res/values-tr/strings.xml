@@ -2693,9 +2693,10 @@
     <string name="ai_translate_error_message_label">Hata mesajı</string>
     <string name="ai_translate_error_code_unknown">Bilinmiyor</string>
     <string name="ai_translate_failed_no_detail">Ayrıntılı hata bilgisi alınamadı</string>
+    <string name="ai_translate_error_unknown_host">Sunucunun alan adı çözümlenemedi. Ağınızın veya proxy\'nizin çalıştığını kontrol edin; özel bir uç nokta kullanıyorsanız Base URL\'nin doğru yazıldığından emin olun.</string>
     <string name="ai_translate_fetch_models">Model listesini al</string>
     <string name="ai_translate_fetch_models_empty">Model bulunamadı</string>
-    <string name="ai_translate_fetch_models_failed">Alınamadı: %1$s</string>
+    <string name="ai_translate_fetch_models_failed">Model listesi alınamadı</string>
     <string name="ai_translate_toggle_key_visibility">API key göster veya gizle</string>
     <string name="ai_translate_thinking_label">Düşünmeyi kapat (veya düşünme çabasını azalt)</string>
     <string name="ai_translate_thinking_desc">Varsayılan olarak düşünüp düşünmeyeceğine sağlayıcı karar verir.\n\nthinking, DeepSeek resmi API\'si içindir.\nenable_thinking, SiliconFlow veya Alibaba Qwen içindir.</string>

@@ -2687,9 +2687,10 @@
     <string name="ai_translate_error_message_label">오류 메시지</string>
     <string name="ai_translate_error_code_unknown">알 수 없음</string>
     <string name="ai_translate_failed_no_detail">상세 오류 정보를 가져오지 못했습니다</string>
+    <string name="ai_translate_error_unknown_host">서버 도메인 이름을 확인할 수 없습니다. 네트워크나 프록시가 정상인지 확인하세요. 사용자 지정 엔드포인트를 쓰는 경우 Base URL 철자가 맞는지 확인하세요.</string>
     <string name="ai_translate_fetch_models">모델 목록 가져오기</string>
     <string name="ai_translate_fetch_models_empty">모델을 찾을 수 없습니다</string>
-    <string name="ai_translate_fetch_models_failed">가져오기 실패: %1$s</string>
+    <string name="ai_translate_fetch_models_failed">모델 목록을 가져오지 못했습니다</string>
     <string name="ai_translate_toggle_key_visibility">API key 표시 전환</string>
     <string name="ai_translate_thinking_label">생각 비활성화(또는 사고 강도 낮추기)</string>
     <string name="ai_translate_thinking_desc">기본적으로 추론 공급자가 생각 여부를 결정합니다.\n\nthinking은 DeepSeek 공식 API용입니다.\nenable_thinking은 SiliconFlow 또는 Alibaba Qwen용입니다.</string>
