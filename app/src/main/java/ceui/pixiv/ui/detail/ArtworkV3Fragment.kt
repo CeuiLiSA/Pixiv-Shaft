@@ -597,7 +597,8 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         val top = topVisibleItem(listView)
         val stage = tabletStage
         if (stage != null) {
-            val info = top?.takeIf { listView.canScrollVertically(-1) }
+            // 标题区块还压在顶上就仍算在看图：信息栏被顺手带动几像素不该丢掉舞台上的页码
+            val info = top?.takeIf { listView.canScrollVertically(-1) && it.first !is ArtworkHeroItem }
             return ArtworkReadingAnchor(
                 staged = true,
                 page = stage.currentPage,

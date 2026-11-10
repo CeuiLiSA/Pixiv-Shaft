@@ -231,6 +231,11 @@ class ArtworkAutoExpandTest {
         assertTrue("info column starts from the title", topItem() is ArtworkHeroItem)
 
         ReflectionHelpers.getField<ViewPager2>(stage(), "pager").setCurrentItem(6, false)
+        // 信息栏被顺手带动几像素、标题仍在顶上：仍算在看图，页码照样带过去
+        list.scrollBy(0, 10)
+        settle(1280, 800)
+        assertTrue(list.canScrollVertically(-1))
+        assertTrue(topItem() is ArtworkHeroItem)
         rotateTo("w800dp-h1280dp")
         awaitPages(8)
         settle(800, 1280)
