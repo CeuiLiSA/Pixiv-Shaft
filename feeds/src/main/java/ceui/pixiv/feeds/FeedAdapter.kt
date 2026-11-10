@@ -155,6 +155,10 @@ class FeedAdapter(
         if (position !in 0 until itemCount) return 1
         return renderers[getItemViewType(position)].spanSize(spanCount)
     }
+
+    /** LayoutManager 换代时，旧 holder 的 LayoutParams 可能在 bind 之后才被转换。 */
+    fun isFullSpanAt(position: Int): Boolean =
+        position in 0 until itemCount && renderers[getItemViewType(position)].fullSpan
 }
 
 /** 兜底 payload：告诉 RecyclerView「复用原 holder 全量重绑」，而不是播放 change 动画。 */

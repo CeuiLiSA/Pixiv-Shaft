@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 
 import java.lang.reflect.Field;
 
+import ceui.pixiv.feeds.FeedAdapter;
 import ceui.pixiv.ui.common.AdaptiveStaggerColumns;
 import ceui.pixiv.ui.common.TabletLayout;
 
@@ -109,6 +110,22 @@ public class StaggeredManager extends StaggeredGridLayoutManager {
     public void onDetachedFromWindow(RecyclerView view, RecyclerView.Recycler recycler) {
         super.onDetachedFromWindow(view, recycler);
         attachedView = null;
+    }
+
+    @Override
+    public RecyclerView.LayoutParams generateLayoutParams(ViewGroup.LayoutParams lp) {
+        RecyclerView.LayoutParams params = super.generateLayoutParams(lp);
+        // 切换布局时复用的 holder 仍带着旧 GridLayoutManager.LayoutParams。RecyclerView 先 bind，
+        // 再调用这里转换 LayoutParams；FeedAdapter 在 bind 时设置的 fullSpan 因而落在旧参数上。
+        // 在转换后的参数上补回整行标记，避免排行榜头只占左列、右列卡片挤到它旁边。
+        if (lp instanceof RecyclerView.LayoutParams && attachedView != null
+                && attachedView.getAdapter() instanceof FeedAdapter) {
+            int position = ((RecyclerView.LayoutParams) lp).getViewLayoutPosition();
+            if (((FeedAdapter) attachedView.getAdapter()).isFullSpanAt(position)) {
+                ((StaggeredGridLayoutManager.LayoutParams) params).setFullSpan(true);
+            }
+        }
+        return params;
     }
 
     @Override
