@@ -1,8 +1,6 @@
 package ceui.pixiv.db.mirror
 
 import android.app.Application
-import android.content.Context
-import android.content.ContextWrapper
 import androidx.lifecycle.MutableLiveData
 import androidx.room.Room
 import ceui.lisa.activities.Shaft
@@ -11,11 +9,9 @@ import ceui.lisa.utils.Settings
 import ceui.loxia.User
 import ceui.pixiv.api.model.AccountResponse
 import ceui.pixiv.api.model.Illust
-import ceui.pixiv.services.ServicesProvider
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.utils.NetworkStateManager
 import com.google.gson.Gson
-import java.lang.reflect.Proxy
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import org.junit.After
@@ -158,15 +154,6 @@ class BookmarkMirrorReconciliationTest {
     fun `full maintain loop reconciles web unbookmarked items`() {
         val network = NetworkStateManager(app)
         (network.networkState as MutableLiveData).value = NetworkStateManager.NetworkType.WIFI
-        val services = Proxy.newProxyInstance(
-            ServicesProvider::class.java.classLoader, arrayOf(ServicesProvider::class.java),
-        ) { _, method, _ ->
-            check(method.name == "getNetworkStateManager")
-            network
-        } as ServicesProvider
-        val context = object : ContextWrapper(app), ServicesProvider by services {
-            override fun getApplicationContext(): Context = this
-        }
         val now = System.currentTimeMillis()
         db.bookmarkMirrorDao().upsertState(syncedState(illustShelf, now, ceiling = 1_000_000L))
 
@@ -189,7 +176,7 @@ class BookmarkMirrorReconciliationTest {
             }
         }
 
-        val mirror = BookmarkMirrorService(context) { fetcher }
+        val mirror = BookmarkMirrorService(app, network) { fetcher }
         try {
             mirror.start()
             mirror.syncNow(illustShelf, "test_maintain_reconciliation")
@@ -214,15 +201,6 @@ class BookmarkMirrorReconciliationTest {
     fun `re-added work carrying its old seq must not widen the window and wipe live rows`() {
         val network = NetworkStateManager(app)
         (network.networkState as MutableLiveData).value = NetworkStateManager.NetworkType.WIFI
-        val services = Proxy.newProxyInstance(
-            ServicesProvider::class.java.classLoader, arrayOf(ServicesProvider::class.java),
-        ) { _, method, _ ->
-            check(method.name == "getNetworkStateManager")
-            network
-        } as ServicesProvider
-        val context = object : ContextWrapper(app), ServicesProvider by services {
-            override fun getApplicationContext(): Context = this
-        }
         val now = System.currentTimeMillis()
         db.bookmarkMirrorDao().upsertState(syncedState(illustShelf, now, ceiling = 1_000_000L))
 
@@ -258,7 +236,7 @@ class BookmarkMirrorReconciliationTest {
             }
         }
 
-        val mirror = BookmarkMirrorService(context) { fetcher }
+        val mirror = BookmarkMirrorService(app, network) { fetcher }
         try {
             mirror.start()
             mirror.syncNow(illustShelf, "test_re_added_stale_seq")
@@ -277,15 +255,6 @@ class BookmarkMirrorReconciliationTest {
     fun `empty remote head needs two consecutive confirmations before clearing the shelf`() {
         val network = NetworkStateManager(app)
         (network.networkState as MutableLiveData).value = NetworkStateManager.NetworkType.WIFI
-        val services = Proxy.newProxyInstance(
-            ServicesProvider::class.java.classLoader, arrayOf(ServicesProvider::class.java),
-        ) { _, method, _ ->
-            check(method.name == "getNetworkStateManager")
-            network
-        } as ServicesProvider
-        val context = object : ContextWrapper(app), ServicesProvider by services {
-            override fun getApplicationContext(): Context = this
-        }
         val now = System.currentTimeMillis()
         db.bookmarkMirrorDao().upsertState(syncedState(illustShelf, now, ceiling = 1_000_000L))
         insertRow(illustShelf, 1L, 0L)
@@ -297,7 +266,7 @@ class BookmarkMirrorReconciliationTest {
             override suspend fun load(nextUrl: String?): FetchedPage = FetchedPage(emptyList(), null)
         }
 
-        val mirror = BookmarkMirrorService(context) { fetcher }
+        val mirror = BookmarkMirrorService(app, network) { fetcher }
         try {
             mirror.start()
             val dao = db.bookmarkMirrorDao()
@@ -320,15 +289,6 @@ class BookmarkMirrorReconciliationTest {
     fun `inverted seq order in a run skips reconciliation instead of deleting live rows`() {
         val network = NetworkStateManager(app)
         (network.networkState as MutableLiveData).value = NetworkStateManager.NetworkType.WIFI
-        val services = Proxy.newProxyInstance(
-            ServicesProvider::class.java.classLoader, arrayOf(ServicesProvider::class.java),
-        ) { _, method, _ ->
-            check(method.name == "getNetworkStateManager")
-            network
-        } as ServicesProvider
-        val context = object : ContextWrapper(app), ServicesProvider by services {
-            override fun getApplicationContext(): Context = this
-        }
         val now = System.currentTimeMillis()
         // 号段已经开过三段：本轮的号段顶是 4_000_000。
         db.bookmarkMirrorDao().upsertState(syncedState(illustShelf, now, ceiling = 3_000_000L))
@@ -351,7 +311,7 @@ class BookmarkMirrorReconciliationTest {
             )
         }
 
-        val mirror = BookmarkMirrorService(context) { fetcher }
+        val mirror = BookmarkMirrorService(app, network) { fetcher }
         try {
             mirror.start()
             mirror.syncNow(illustShelf, "test_inverted_seq_order")

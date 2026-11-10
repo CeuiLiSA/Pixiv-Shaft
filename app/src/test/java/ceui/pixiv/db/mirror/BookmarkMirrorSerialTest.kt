@@ -1,8 +1,6 @@
 package ceui.pixiv.db.mirror
 
 import android.app.Application
-import android.content.Context
-import android.content.ContextWrapper
 import androidx.lifecycle.MutableLiveData
 import androidx.room.Room
 import ceui.lisa.activities.Shaft
@@ -12,11 +10,9 @@ import ceui.loxia.User
 import ceui.pixiv.api.model.AccountResponse
 import ceui.pixiv.api.model.Illust
 import ceui.pixiv.api.model.UserPreview
-import ceui.pixiv.services.ServicesProvider
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.utils.NetworkStateManager
 import com.google.gson.Gson
-import java.lang.reflect.Proxy
 import java.util.Collections
 import java.util.concurrent.atomic.AtomicInteger
 import kotlinx.coroutines.CoroutineScope
@@ -121,20 +117,11 @@ class BookmarkMirrorSerialTest {
     fun `bookmark and following shelves never fetch in parallel and share the rate limit`() {
         val network = NetworkStateManager(app)
         (network.networkState as MutableLiveData).value = NetworkStateManager.NetworkType.WIFI
-        val services = Proxy.newProxyInstance(
-            ServicesProvider::class.java.classLoader, arrayOf(ServicesProvider::class.java),
-        ) { _, method, _ ->
-            check(method.name == "getNetworkStateManager")
-            network
-        } as ServicesProvider
-        val context = object : ContextWrapper(app), ServicesProvider by services {
-            override fun getApplicationContext(): Context = this
-        }
         val now = System.currentTimeMillis()
         db.bookmarkMirrorDao().upsertState(syncedState(illustShelf, now))
         db.bookmarkMirrorDao().upsertState(syncedState(userShelf, now))
 
-        val mirror = BookmarkMirrorService(context) { FakeFetcher(it) }
+        val mirror = BookmarkMirrorService(app, network) { FakeFetcher(it) }
         try {
             mirror.start()
             mirror.syncNow(illustShelf, "test")

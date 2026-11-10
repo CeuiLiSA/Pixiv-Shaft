@@ -7,8 +7,8 @@ import ceui.loxia.Novel
 import ceui.loxia.User
 import ceui.pixiv.api.model.Illust
 import ceui.pixiv.api.model.UserPreview
-import ceui.pixiv.services.appServices
 import ceui.pixiv.session.SessionManager
+import ceui.pixiv.utils.NetworkStateManager
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -89,11 +89,16 @@ import javax.inject.Singleton
 @Singleton
 class BookmarkMirrorService(
     app: Context,
+    /** 只读在线态：离线时不翻页、也不放行「首次打开收藏库」。 */
+    private val networkStateManager: NetworkStateManager,
     /** 书架 → 翻页实现。只为单测留的缝：生产恒为 [fetcherFor]。 */
     private val fetchers: (BookmarkShelf) -> BookmarkShelfFetcher,
 ) {
 
-    @Inject constructor(@ApplicationContext app: Context) : this(app, ::fetcherFor)
+    @Inject constructor(
+        @ApplicationContext app: Context,
+        networkStateManager: NetworkStateManager,
+    ) : this(app, networkStateManager, ::fetcherFor)
 
     private val appContext: Context = app.applicationContext
 
@@ -1103,7 +1108,7 @@ class BookmarkMirrorService(
     private fun isFeatureEnabled(): Boolean = Shaft.sSettings?.isBookmarkMirrorEnabled ?: false
 
     private fun isOnline(): Boolean =
-        appContext.appServices().networkStateManager.networkState.value?.isOnline == true
+        networkStateManager.networkState.value?.isOnline == true
 
     private fun abbreviate(url: String?): String = when {
         url == null -> "首页"

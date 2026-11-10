@@ -1,8 +1,6 @@
 package ceui.pixiv.ui.library
 
 import android.app.Application
-import android.content.Context
-import android.content.ContextWrapper
 import android.os.Looper
 import android.view.ContextThemeWrapper
 import android.view.LayoutInflater
@@ -36,10 +34,8 @@ import ceui.pixiv.feeds.FeedPagingPolicy
 import ceui.pixiv.feeds.FeedSource
 import ceui.pixiv.feeds.LoadState
 import ceui.pixiv.ui.common.UserFeedItem
-import ceui.pixiv.services.ServicesProvider
 import ceui.pixiv.utils.NetworkStateManager
 import com.google.gson.Gson
-import java.lang.reflect.Proxy
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.async
@@ -557,16 +553,7 @@ class BookmarkLibraryStreamingTest {
     fun `entry allows partial offline shelves and first online visit but respects disabled and database failure`() {
         val network = NetworkStateManager(app)
         val connection = network.networkState as MutableLiveData
-        val services = Proxy.newProxyInstance(
-            ServicesProvider::class.java.classLoader, arrayOf(ServicesProvider::class.java),
-        ) { _, method, _ ->
-            check(method.name == "getNetworkStateManager")
-            network
-        } as ServicesProvider
-        val context = object : ContextWrapper(app), ServicesProvider by services {
-            override fun getApplicationContext(): Context = this
-        }
-        val mirror = BookmarkMirrorService(context)
+        val mirror = BookmarkMirrorService(app, network)
         val shelf = shelf()
         try {
             connection.value = NetworkStateManager.NetworkType.NONE

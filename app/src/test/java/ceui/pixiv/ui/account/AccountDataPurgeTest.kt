@@ -21,6 +21,7 @@ import ceui.pixiv.db.mirror.MirrorRestrict
 import ceui.pixiv.feeds.cache.FeedCacheRecord
 import ceui.pixiv.feeds.cache.FileFeedCacheBackend
 import ceui.pixiv.services.ServicesProvider
+import ceui.pixiv.utils.NetworkStateManager
 import com.tencent.mmkv.MMKV
 import java.io.File
 import java.lang.reflect.Proxy
@@ -84,6 +85,7 @@ class AccountDataPurgeTest {
     private lateinit var db: AppDatabase
     private lateinit var context: Context
     private lateinit var mirror: BookmarkMirrorService
+    private lateinit var network: NetworkStateManager
     private lateinit var remoteConfig: RemoteAppConfig
 
     /** 首屏快照现在住文件（FileFeedCacheBackend），每条用例一个临时目录，互不污染。 */
@@ -105,7 +107,8 @@ class AccountDataPurgeTest {
 
         // 先有 context（它自己就是那个假 ServicesProvider），服务再挂在它上面。
         context = wrapper(services(remoteConfigProvider = { remoteConfig }))
-        mirror = BookmarkMirrorService(context)
+        network = NetworkStateManager(app)
+        mirror = BookmarkMirrorService(app, network)
         remoteConfig = RemoteAppConfig()
 
         feedCacheDir = File(app.cacheDir, "feed_cache_test")
@@ -117,6 +120,7 @@ class AccountDataPurgeTest {
     fun tearDown() {
         // 引擎协程是自己起的，不掐掉会漏到同一个 JVM 的下一条用例里。
         ReflectionHelpers.getField<CoroutineScope>(mirror, "scope").cancel()
+        network.unregisterNetworkCallback()
         AppDatabase.destroyInstance()
         db.close()
         feedCacheDir.deleteRecursively()
