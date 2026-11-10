@@ -30,6 +30,7 @@ import ceui.pixiv.feeds.FeedRenderer
 import ceui.pixiv.feeds.FeedSkeletonView
 import ceui.pixiv.feeds.FeedViewModel
 import ceui.pixiv.snapshot.SnapshotIndex
+import ceui.pixiv.feeds.FeedIndexedLayoutManager
 import ceui.pixiv.utils.pinHostGlide
 import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestManager
@@ -93,11 +94,12 @@ abstract class IllustFeedFragment(
         }
 
     /**
-     * 瀑布流当前列数：随列表宽度自适应（[StaggeredManager.adaptive]），不等于「每行几列」设置。
+     * 瀑布流当前列数：随列表宽度自适应，不等于「每行几列」设置。
      * 齐行布局（GridLayoutManager 的跨度是像素数）取设置值，列宽即目标行高。
      */
     internal val illustSpanCount: Int
-        get() = (feedBinding.feedListView.layoutManager as? StaggeredGridLayoutManager)?.spanCount
+        get() = (feedBinding.feedListView.layoutManager as? FeedIndexedLayoutManager)?.feedColumnCount
+            ?: (feedBinding.feedListView.layoutManager as? StaggeredGridLayoutManager)?.spanCount
             ?: Shaft.sSettings.lineCount
 
     /**
@@ -234,6 +236,7 @@ abstract class IllustFeedFragment(
         if (position < 0) return
         when (val manager = list.layoutManager) {
             // 齐行：offset 口径的换算见 scrollToPositionWithOffset 扩展
+            is FeedIndexedLayoutManager -> manager.scrollToFeedPositionWithOffset(position, offset)
             is LinearLayoutManager -> list.scrollToPositionWithOffset(position, offset)
             is StaggeredGridLayoutManager -> {
                 // SGLM 跳到某个位置时，上方的条目是倒着往回排的、列分配和从顶排下来的不一样，
@@ -422,6 +425,7 @@ abstract class IllustFeedFragment(
             if (revision == lastSnapshotRevision) return@observe
             lastSnapshotRevision = revision
             refreshVisibleSnapshotButtons(feedBinding.feedListView)
+            (feedBinding.feedListView.layoutManager as? FeedIndexedLayoutManager)?.invalidateFeedIndex()
         }
     }
 

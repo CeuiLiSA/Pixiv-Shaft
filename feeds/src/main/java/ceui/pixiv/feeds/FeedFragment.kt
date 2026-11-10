@@ -640,6 +640,7 @@ abstract class FeedFragment(
             return
         }
         val lastVisible = when (val manager = listView.layoutManager) {
+            is FeedIndexedLayoutManager -> manager.findLastVisibleFeedPosition()
             is StaggeredGridLayoutManager -> manager.findLastVisibleItemPositions(null).max()
             is LinearLayoutManager -> manager.findLastVisibleItemPosition()
             else -> return
