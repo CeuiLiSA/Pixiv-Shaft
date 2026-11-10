@@ -103,13 +103,29 @@ internal fun snapshotCoverHeightRatio(
     return if (w > 0 && h > 0) (h.toFloat() / w).coerceIn(0.6f, 2f) else 1f
 }
 
+/**
+ * 给管理页卡片补上封面高宽比，只在列表 UI 的路径上调。不放进 list() / listAuto()：那两个也是
+ * 自动快照引擎、配额淘汰、回填共用的全库扫描口，老清单没记宽高，在那里每张都要多读一份 illust.json。
+ * [snapshotRoot] 下的目录名即 snapshotId（list() 的不变式）。调用方在 IO 线程。
+ */
+internal fun SnapshotCard.withCoverHeightRatio(snapshotRoot: File): SnapshotCard {
+    val dir = File(snapshotRoot, snapshotId)
+    return when (this) {
+        is FormalSnapshotCard -> copy(coverHeightRatio = snapshotCoverHeightRatio(
+            dir, summary.manifest.coverWidth, summary.manifest.coverHeight, coverFile,
+        ))
+        is AutoSnapshotCard -> copy(coverHeightRatio = snapshotCoverHeightRatio(
+            dir, summary.manifest.coverWidth, summary.manifest.coverHeight, coverFile,
+        ))
+    }
+}
+
 /** 管理页展示自动快照时使用的轻量摘要。 */
 data class AutoSnapshotSummary(
     val manifest: AutoSnapshotManifest,
     val fileCount: Int,
     val totalSize: Long,
     val coverFile: File?,
-    val coverHeightRatio: Float = 1f,
 )
 
 /** 管理页列表统一模型：正式快照或自动快照。 */
@@ -133,7 +149,10 @@ sealed interface SnapshotCard {
     val totalSize: Long
 }
 
-data class FormalSnapshotCard(val summary: SnapshotSummary) : SnapshotCard {
+data class FormalSnapshotCard(
+    val summary: SnapshotSummary,
+    override val coverHeightRatio: Float = 1f,
+) : SnapshotCard {
     override val snapshotId get() = summary.manifest.snapshotId
     override val isAuto get() = false
     override val createdAt get() = summary.manifest.createdAt
@@ -150,12 +169,14 @@ data class FormalSnapshotCard(val summary: SnapshotSummary) : SnapshotCard {
         summary.manifest.originalPageCount, summary.manifest.pageCount, summary.manifest.includeOriginal
     )
     override val coverFile get() = summary.coverFile
-    override val coverHeightRatio get() = summary.coverHeightRatio
     override val fileCount get() = summary.fileCount
     override val totalSize get() = summary.totalSize
 }
 
-data class AutoSnapshotCard(val summary: AutoSnapshotSummary) : SnapshotCard {
+data class AutoSnapshotCard(
+    val summary: AutoSnapshotSummary,
+    override val coverHeightRatio: Float = 1f,
+) : SnapshotCard {
     override val snapshotId get() = summary.manifest.snapshotId
     override val isAuto get() = true
     override val createdAt get() = summary.manifest.createdAt
@@ -172,7 +193,6 @@ data class AutoSnapshotCard(val summary: AutoSnapshotSummary) : SnapshotCard {
         summary.manifest.originalPageCount, summary.manifest.pageCount, summary.manifest.includeOriginal
     )
     override val coverFile get() = summary.coverFile
-    override val coverHeightRatio get() = summary.coverHeightRatio
     override val fileCount get() = summary.fileCount
     override val totalSize get() = summary.totalSize
 }

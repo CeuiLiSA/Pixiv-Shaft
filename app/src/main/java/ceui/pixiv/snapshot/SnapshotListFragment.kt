@@ -35,6 +35,7 @@ import ceui.pixiv.ui.common.JustifiedItemDecoration
 import ceui.pixiv.ui.common.JustifiedItemSource
 import ceui.pixiv.ui.common.JustifiedLayoutManager
 import ceui.pixiv.ui.common.scrollToPositionWithOffset
+import ceui.pixiv.utils.clearGlideOnRecycle
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
 import com.bumptech.glide.Glide
@@ -259,11 +260,14 @@ class SnapshotListFragment : Fragment() {
         lifecycleScope.launch {
             val all = try {
                 withContext(Dispatchers.IO) {
+                    val root = SnapshotRepository.root(appContext)
                     val formal = SnapshotRepository.list(appContext).map { FormalSnapshotCard(it) }
                     val auto = AutoSnapshotRepository.listAuto(appContext).map { AutoSnapshotCard(it) }
                     (formal + auto)
                         .filter { filter == null || it.type == filter }
                         .sortedByDescending { it.createdAt }
+                        // 过滤后再算：老清单要读 illust.json，只为本 Tab 真正展示的卡付这笔
+                        .map { it.withCoverHeightRatio(root) }
                 }
             } catch (ce: CancellationException) {
                 throw ce
@@ -596,6 +600,16 @@ private class SnapshotAdapter(
         )
     }
 
+    /**
+     * 进复用池的卡放掉封面：池子被空闲预建抬到 6~24 张，封面又按列宽 × 比例解码（单列时整屏宽、
+     * 最高 2 倍），不放的话每张离屏卡都攥着一张位图，且不受 Glide 内存缓存预算约束。
+     * 只在进池时触发，mCachedViews 里的卡保留图，回滑不闪。
+     */
+    override fun onViewRecycled(holder: SnapshotViewHolder) {
+        super.onViewRecycled(holder)
+        holder.clearCover()
+    }
+
     companion object {
         private val DIFF = object : DiffUtil.ItemCallback<SnapshotCard>() {
             override fun areItemsTheSame(oldItem: SnapshotCard, newItem: SnapshotCard): Boolean =
@@ -616,6 +630,11 @@ private class SnapshotViewHolder(
 
     private companion object {
         val TIME_FORMAT = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
+    }
+
+    /** 回收时清图；destroy 期 endAnimations 也会走到这里，所以不能用 Glide.with(view)。 */
+    fun clearCover() {
+        binding.cover.clearGlideOnRecycle()
     }
 
     fun bind(

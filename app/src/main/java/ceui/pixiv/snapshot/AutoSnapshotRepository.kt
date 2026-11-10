@@ -40,10 +40,7 @@ object AutoSnapshotRepository {
                 val coverFile = manifest.coverPath?.let { rel ->
                     runCatching { safeResolve(snapshotDir, rel) }.getOrNull()?.takeIf { f -> f.isFile }
                 }
-                AutoSnapshotSummary(
-                    manifest, fileCount, totalSize, coverFile,
-                    snapshotCoverHeightRatio(snapshotDir, manifest.coverWidth, manifest.coverHeight, coverFile),
-                )
+                AutoSnapshotSummary(manifest, fileCount, totalSize, coverFile)
             }
             ?.sortedByDescending { it.manifest.createdAt }
             ?: emptyList()
