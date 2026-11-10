@@ -89,6 +89,9 @@ public class Shaft extends Application implements ServicesProvider {
     @Inject ceui.pixiv.ui.fanbox.FanboxWebBridge fanboxWebBridge;
     @Inject ceui.pixiv.ui.bulk.QueueDownloadManager queueDownloadManager;
     @Inject ceui.pixiv.actions.PixivActionQueue pixivActionQueue;
+    // 退到后台时释放不可见页面上的位图（Play Vitals 缓存态位图内存），见类注释。
+    private final ceui.pixiv.cache.BackgroundBitmapReleaser bitmapReleaser =
+            new ceui.pixiv.cache.BackgroundBitmapReleaser();
     private final ceui.pixiv.communication.CommunicationScope communicationScope =
             new ceui.pixiv.communication.CommunicationScope();
     // 必须排在 communicationScope 之后：字段按声明顺序初始化。
@@ -591,6 +594,9 @@ public class Shaft extends Application implements ServicesProvider {
         // 晚一步优先级就反了,草稿保护/退出确认会被全局回调抢先吃掉。
         registerActivityLifecycleCallbacks(new ceui.lisa.helper.PredictiveBackSuppressor());
 
+        // 要跟踪全部 Activity、并赶在第一次用 Sketch 之前挂上工厂，所以和上面一样放在首个 Activity 之前。
+        bitmapReleaser.install(this);
+
         registerActivityLifecycleCallbacks(new ActivityLifecycleCallbacks() {
             @Override
             public void onActivityCreated(@NonNull Activity activity, Bundle savedInstanceState) {
@@ -903,6 +909,8 @@ public class Shaft extends Application implements ServicesProvider {
 
     @Override
     public void onTrimMemory(int level) {
+        // 必须先于 super：super 会分发给 Glide / Sketch 的 trim，先把页面上的位图还回去，它们才清得掉。
+        bitmapReleaser.onTrimMemory(level);
         super.onTrimMemory(level);
         // [DEBUG-568] 内存压力回调时间线
         Timber.tag("DEBUG-568").w("onTrimMemory %s | %s", trimLevelName(level), memorySnapshot());

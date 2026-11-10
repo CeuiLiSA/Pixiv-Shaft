@@ -348,8 +348,8 @@ class SlideshowFragment : Fragment(R.layout.fragment_slideshow) {
     }
 
     /**
-     * Loads `file` into `target` via Glide. Calls onReady() once Glide has committed the
-     * drawable; calls onFail() on a genuine load failure. Both are gated by `expectedEpoch`:
+     * Loads `file` into `target` via Glide. Calls onReady() (at most once per load) once Glide has
+     * committed the drawable; calls onFail() on a genuine load failure. Both are gated by `expectedEpoch`:
      * if the user has navigated since this load was kicked off, the captured epoch no longer
      * matches `loadEpoch` and both callbacks become no-ops — preventing a stale or cancelled
      * load from triggering a crossfade to wrong / empty content (the user's hard requirement
@@ -367,6 +367,10 @@ class SlideshowFragment : Fragment(R.layout.fragment_slideshow) {
             .load(model)
             .dontAnimate()
             .listener(object : RequestListener<android.graphics.drawable.Drawable> {
+                // 同一个请求会被重新 begin（BackgroundBitmapReleaser 后台释放后补回），每次完成都回调这里。
+                // onReady 起的是淡入 + frontIsA 翻转，重放一次就黑一帧、前后两张对调，所以只放行第一次。
+                private var delivered = false
+
                 override fun onLoadFailed(
                     e: GlideException?,
                     model: Any?,
@@ -389,7 +393,8 @@ class SlideshowFragment : Fragment(R.layout.fragment_slideshow) {
                     isFirstResource: Boolean
                 ): Boolean {
                     target.post {
-                        if (expectedEpoch != loadEpoch || !isAdded) return@post
+                        if (delivered || expectedEpoch != loadEpoch || !isAdded) return@post
+                        delivered = true
                         onReady()
                     }
                     return false
