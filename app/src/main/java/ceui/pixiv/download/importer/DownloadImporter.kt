@@ -3,8 +3,10 @@ package ceui.pixiv.download.importer
 import android.content.Context
 import android.net.Uri
 import ceui.lisa.activities.Shaft
+import ceui.lisa.core.ManagerReactive
 import ceui.lisa.database.AppDatabase
 import ceui.lisa.database.DownloadEntity
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
@@ -216,25 +218,36 @@ object DownloadImporter {
         }
         val dao = AppDatabase.getAppDatabase(context.applicationContext).downloadDao()
         var inserted = 0
-        for (chunk in plan.rows.chunked(INSERT_CHUNK)) {
-            coroutineContext.ensureActive()
-            val entities = chunk.map { row ->
-                DownloadEntity().apply {
-                    fileName = row.fileName
-                    filePath = row.docUri
-                    illustId = row.illustId
-                    page = row.zeroBasedPage
-                    downloadTime = row.lastModified.takeIf { it > 0L } ?: System.currentTimeMillis()
-                    illustGson = minimalIllustGson(row.illustId)
+        try {
+            for (chunk in plan.rows.chunked(INSERT_CHUNK)) {
+                coroutineContext.ensureActive()
+                val entities = chunk.map { row ->
+                    DownloadEntity().apply {
+                        fileName = row.fileName
+                        filePath = row.docUri
+                        illustId = row.illustId
+                        page = row.zeroBasedPage
+                        downloadTime = row.lastModified.takeIf { it > 0L } ?: System.currentTimeMillis()
+                        illustGson = minimalIllustGson(row.illustId)
+                    }
                 }
+                runCatching { dao.insertIgnoreAll(entities) }
+                    .onSuccess { inserted += chunk.size }
+                    .onFailure { error ->
+                        // Cancellation is control flow, not a failed chunk: callers rely on it
+                        // to dismiss the writing dialog and must be able to cancel the import.
+                        if (error is CancellationException) throw error
+                        Timber.tag(TAG).w(error, "导入写库失败，跳过这批 %d 行", chunk.size)
+                    }
             }
-            runCatching { dao.insertIgnoreAll(entities) }
-                .onSuccess { inserted += chunk.size }
-                .onFailure { Timber.tag(TAG).w(it, "导入写库失败，跳过这批 %d 行", chunk.size) }
+        } finally {
+            // Import writes bypass Manager.java, so Room's invalidation is not the reliable
+            // signal used by the completed-list UI. Also notify after a partial/cancelled import
+            // when an earlier chunk did land in the database.
+            if (inserted > 0) ManagerReactive.pokeDoneTable()
         }
         val workIds = plan.rows.mapTo(HashSet()) { it.illustId }
         ImportEnrichQueue.enqueue(workIds)
-        // 已完成列表是 Room reactive Flow，写完自己就刷新了，这里不用再 poke。
         Timber.tag(TAG).i("导入完成：%d 行 / %d 个作品", inserted, workIds.size)
         ImportResult(inserted = inserted, works = workIds.size)
     }

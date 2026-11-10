@@ -53,8 +53,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -73,14 +72,10 @@ import javax.inject.Inject
  * 关键 UX 修复（之前一个 illust 多页会显示 N 个相同卡片）：
  *   Manager 完成每个 page 都插入一条 DownloadEntity（PK=fileName）。
  *   3p 漫画 → 3 条记录 → 原本 3 张卡。
- *   现在按 illustId 分组聚合，1 张卡 + "Np" 角标显示总页数。
- *   保留最新 entity（按 downloadTime 取最大）作为代表，点击进图详情时
- *   传入该 illust 全部 page 的 filePath 数组，左右滑可看完整本。
+ *   现在先在数据库按作品聚合，再分页加载；角标表示该作品的完整下载记录数。
+ *   保留最新 entity（按 downloadTime 取最大）作为代表，点击时查询完整页路径。
  *
- * 数据源：[DownloadDao.flowAll] 是 Room reactive Flow ——
- * Manager 写 DownloadEntity 到 illust_download_table 时 InvalidationTracker
- * 自动 emit 新快照，UI 端 collect 即可。完全替代旧的 1.5s polling +
- * DOWNLOAD_FINISH 广播兜底架构（0 timer、0 broadcast receiver）。
+ * 数据源：监听 [ManagerReactive.doneTableInvalidations]，按作品查询数据库。
  */
 @AndroidEntryPoint
 class DoneListV3Fragment : Fragment() {
@@ -100,6 +95,12 @@ class DoneListV3Fragment : Fragment() {
         AppDatabase.getAppDatabase(Shaft.getContext()).downloadQueueDao()
     }
     private val sharedVm: DownloadManagerSharedViewModel by activityViewModels()
+    private val loadedGroups = ArrayList<DownloadGroup>()
+    private var nextPageOffset = 0
+    private var hasMorePages = false
+    private var loadingNextPage = false
+    private var pageGeneration = 0
+    private var doneScrollListener: RecyclerView.OnScrollListener? = null
     private val adapter = DoneAdapterV3(
         initialMode = DoneLayoutMode.fromInt(Shaft.sSettings.doneListLayoutMode),
     ) { group, action ->
@@ -128,6 +129,14 @@ class DoneListV3Fragment : Fragment() {
         // 与 ActiveList / QueueList 及 V3 规范一致：关闭 DefaultItemAnimator，避免卡片与文字在刷新/上屏时整体淡入；仅保留缩略图自身的平滑过渡
         list.itemAnimator = null
         applyLayoutMode(list, DoneLayoutMode.fromInt(Shaft.sSettings.doneListLayoutMode))
+        doneScrollListener = object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                if (dy > 0 && !recyclerView.canScrollVertically(1)) {
+                    loadNextPage(recyclerView)
+                }
+            }
+        }
+        list.addOnScrollListener(doneScrollListener!!)
 
         val empty = view.findViewById<View>(R.id.emptyState)
         view.findViewById<TextView>(R.id.emptyTitle).text =
@@ -170,16 +179,8 @@ class DoneListV3Fragment : Fragment() {
             }
         }
 
-        // 数据源 = 默认走 ManagerReactive.doneTableInvalidations 脏标记。Manager
-        // 写 illust_download_table / 用户清空 / 单条删除都 poke 一次。这边 collect
-        // 后用 suspend dao.getAll(...) 拿最新行。
-        //
-        // ⚠️ 不用 dao.flowAll：Room InvalidationTracker 在连续 INSERT 序列下
-        // 首次 emit 后静默不再 re-emit（同 download_queue 那个 bug）。
-        //
-        // 搜索模式：host toolbar 的 SearchView 输入会写到
-        // sharedVm.doneSearchQuery（null=未进入搜索；""=已展开未输；非空=查询词）。
-        // 切到搜索分支时数据源换成 dao.searchDownloads(query)。
+        // 监听 ManagerReactive.doneTableInvalidations：下载写入、导入、清空和删除
+        // 后重新查询已加载的作品区间。搜索时对同一分组查询增加关键词过滤。
         //
         // 绑定在 STARTED 生命周期，并通过 sharedVm.selectedTab 精确闸门控制：
         // 1. 用户点击 Tab 2 时（t=0），onPageSelected 立刻置 selectedTab=2，利用 ViewPager2
@@ -204,51 +205,120 @@ class DoneListV3Fragment : Fragment() {
             }
         }
     }
+    override fun onDestroyView() {
+        doneScrollListener = null
+        loadedGroups.clear()
+        loadingNextPage = false
+        pageGeneration++
+        super.onDestroyView()
+    }
 
-    /**
-     * 把"默认数据源"和"搜索数据源"合并成单一上游 — query 切换时 flatMapLatest
-     * 自动 cancel 上一条数据源 collect，新订阅当前条件对应的 flow。两条分支都
-     * 接 [ManagerReactive.doneTableInvalidations]（replay=1 SharedFlow，新订阅
-     * 立即拿一帧），保证删一条 / 新增完成都能即时刷新列表。
-     *
-     * - query==null : 全量列表 → dao.getAll(PAGE_SIZE)
-     * - query==""   : 搜索框展开但未输入 — 给空列表，让 empty state 提示
-     * - query!=""   : 过滤列表 → dao.searchDownloads(query)
-     */
+    private data class DonePage(
+        val groups: List<DownloadGroup>,
+        val rowsRead: Int,
+        val total: Int,
+    )
+
+    /** 数据库先按作品聚合，再分页；单作品即使超过 600 页也只占一个完整卡片。 */
+    private fun readDonePage(query: String?, limit: Int, offset: Int): DonePage {
+        val cards = dao.getDoneCards(Params.NOVEL_KEY, query, limit, offset)
+        val entities = cards.map { it.fileName }.chunked(900)
+            .flatMap { dao.getDownloadsByFileNames(it) }
+            .associateBy { it.fileName }
+        val groups = cards.mapNotNull { card ->
+            val latest = entities[card.fileName] ?: return@mapNotNull null
+            DownloadGroup(
+                key = card.cardKey,
+                latest = latest,
+                pageCount = card.pageCount,
+                isNovel = card.cardKey.startsWith("novel:"),
+            )
+        }
+        return DonePage(groups, cards.size, dao.countDoneCards(Params.NOVEL_KEY, query))
+    }
+
     @OptIn(ExperimentalCoroutinesApi::class)
     private suspend fun runDoneListFlow(empty: View, list: RecyclerView) {
-        sharedVm.selectedTab
-            .flatMapLatest { tab ->
-                if (tab != 2) {
-                    emptyFlow()
-                } else {
-                    sharedVm.doneSearchQuery.flatMapLatest { query ->
-                        when {
-                            query == null -> ManagerReactive.doneTableInvalidations.map {
-                                val rows = runCatching { dao.getAll(PAGE_SIZE, 0) }
-                                    .getOrDefault(emptyList())
-                                groupByIllust(rows)
-                            }
-
-                            query.isEmpty() -> flow { emit(emptyList<DownloadGroup>()) }
-                            else -> ManagerReactive.doneTableInvalidations.map {
-                                val rows = runCatching { dao.searchDownloads(query) }
-                                    .getOrDefault(emptyList())
-                                groupByIllust(rows)
+        sharedVm.selectedTab.flatMapLatest { tab ->
+            if (tab != 2) {
+                pageGeneration++
+                hasMorePages = false
+                emptyFlow()
+            } else {
+                sharedVm.doneSearchQuery.flatMapLatest { query ->
+                    pageGeneration++
+                    nextPageOffset = 0
+                    hasMorePages = false
+                    if (query == "") {
+                        flowOf(DonePage(emptyList(), 0, 0))
+                    } else {
+                        ManagerReactive.doneTableInvalidations.map {
+                            pageGeneration++
+                            val limit = maxOf(PAGE_SIZE, nextPageOffset)
+                            withContext(Dispatchers.IO) {
+                                runCatching { readDonePage(query, limit, 0) }
+                                    .getOrDefault(DonePage(emptyList(), 0, 0))
                             }
                         }
                     }
                 }
             }
-            .flowOn(Dispatchers.IO)
-            .collect { groups ->
-                adapter.submitList(groups)
-                empty.visibility = if (groups.isEmpty()) View.VISIBLE else View.GONE
-                // tab 标题数字回填:数字必须 = 实际可见卡片数,否则会出现 "已完成
-                // 1944 / 列表却为空" 这种数据源错位(参考 DownloadManagerSharedViewModel.doneCardCount)。
-                // 搜索中也回填，让 tab 显示当前过滤命中数。
-                sharedVm.publishDoneCardCount(groups.size)
+        }.collect { page ->
+            loadedGroups.clear()
+            loadedGroups.addAll(page.groups)
+            nextPageOffset = page.rowsRead
+            hasMorePages = page.rowsRead >= PAGE_SIZE && page.rowsRead < page.total
+            empty.visibility = if (page.total == 0) View.VISIBLE else View.GONE
+            sharedVm.publishDoneCardCount(page.total)
+            submitDoneGroups(list)
+        }
+    }
+
+    private fun submitDoneGroups(list: RecyclerView) {
+        adapter.submitList(loadedGroups.toList()) {
+            list.post {
+                if (view != null && sharedVm.selectedTab.value == 2 && !list.canScrollVertically(1)) {
+                    loadNextPage(list)
+                }
             }
+        }
+    }
+
+    private fun loadNextPage(list: RecyclerView) {
+        val query = sharedVm.doneSearchQuery.value
+        if (query == "" || !hasMorePages || loadingNextPage) return
+        loadingNextPage = true
+        val generation = pageGeneration
+        val offset = nextPageOffset
+        viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                val page = withContext(Dispatchers.IO) {
+                    runCatching { readDonePage(query, PAGE_SIZE, offset) }.getOrNull()
+                }
+                if (page != null && generation == pageGeneration && query == sharedVm.doneSearchQuery.value) {
+                    loadedGroups.addAll(page.groups)
+                    nextPageOffset = offset + page.rowsRead
+                    hasMorePages = nextPageOffset < page.total && page.rowsRead > 0
+                    sharedVm.publishDoneCardCount(page.total)
+                    submitDoneGroups(list)
+                }
+            } finally {
+                loadingNextPage = false
+                // 刷新时旧请求可能占住 loadingNextPage，让新列表的自动续载错过机会。
+                // 仅在代数变化时补一次；同代查询失败不能自动重试，否则会形成循环。
+                if (generation != pageGeneration && view?.findViewById<RecyclerView>(R.id.list) === list &&
+                    sharedVm.selectedTab.value == 2 && hasMorePages && !list.canScrollVertically(1)
+                ) {
+                    list.post {
+                        if (generation != pageGeneration && view?.findViewById<RecyclerView>(R.id.list) === list &&
+                            sharedVm.selectedTab.value == 2 && hasMorePages && !list.canScrollVertically(1)
+                        ) {
+                            loadNextPage(list)
+                        }
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -277,26 +347,31 @@ class DoneListV3Fragment : Fragment() {
             openNovel(group)
             return
         }
-        // 动图和小说一样得单独分流：ImageDetailActivity 是静态大图查看器，喂它一个 GIF
-        // （更早是喂中间 zip）只会得到一片黑（issue #920）。回作品详情页，由页面内联的
-        // UgoiraPlayerView 正常逐帧播放。
-        //
-        // 只认 illustGson 里 type=ugoira 的**完整** bean。DownloadImporter 扫进来的行
-        // illustGson 是 `{"id":N,"shaft_imported":true}`，isGif 判不出来也 visible=false，
-        // 送进 VActivity 会走它的「不可见作品」兜底分支去读空的 image_urls；那些行本来就
-        // 指着真正的 .gif 文件，留在原来的查看器里反而是能看的。
         val ugoira = group.parsedIllust?.takeIf { it.isGif() }
         if (ugoira != null) {
             openArtwork(ugoira)
             return
         }
-        // 取该 illust 全部 page 的 filePath（按页码顺序，见 DownloadPageOrder）
-        val paths: ArrayList<String> = ArrayList(group.allFilePaths)
-        val intent = Intent(requireContext(), ImageDetailActivity::class.java)
-        intent.putExtra("illust", paths as Serializable)
-        intent.putExtra("dataType", "下载详情")
-        intent.putExtra("index", 0)
-        startActivity(intent)
+        val ctx = context ?: return
+        viewLifecycleOwner.lifecycleScope.launch {
+            val illustId = group.key.removePrefix("illust:").toLongOrNull()
+            val paths = if (illustId != null && group.key.startsWith("illust:")) {
+                withContext(Dispatchers.IO) {
+                    runCatching {
+                        dao.getDoneIllustPages(illustId, Params.NOVEL_KEY)
+                            .sortedWith(DownloadedPageOrder)
+                            .map { it.filePath.orEmpty() }
+                    }.getOrNull()
+                } ?: return@launch
+            } else {
+                listOf(group.latest.filePath.orEmpty())
+            }
+            val intent = Intent(ctx, ImageDetailActivity::class.java)
+            intent.putExtra("illust", ArrayList(paths) as Serializable)
+            intent.putExtra("dataType", "下载详情")
+            intent.putExtra("index", 0)
+            startActivity(intent)
+        }
     }
 
     /**
@@ -371,14 +446,19 @@ class DoneListV3Fragment : Fragment() {
     private fun deleteOne(group: DownloadGroup) {
         viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
             runCatching {
-                group.allEntities.forEach { dao.delete(it) }
+                val illustId = group.key.removePrefix("illust:").toLongOrNull()
+                if (illustId != null && group.key.startsWith("illust:")) {
+                    dao.deleteDoneIllust(illustId, Params.NOVEL_KEY)
+                } else {
+                    dao.delete(group.latest)
+                }
             }
             ManagerReactive.pokeDoneTable()
         }
     }
 
     companion object {
-        private const val PAGE_SIZE = DONE_LIST_WINDOW   // 一次取多点；分组后实际卡片数会少
+        private const val PAGE_SIZE = 100 // 作品数，而不是图片记录行数
 
         /** 导出时一次拉的硬上限 —— 5w 行 ≈ 2MB 文本，正常用户都装不了这么多 */
         private const val EXPORT_HARD_CAP = 50000
@@ -486,8 +566,6 @@ internal data class DownloadGroup(
     val key: String,            // illustId 或 fileName（小说时）
     val latest: DownloadEntity, // 代表 entity（含 illustGson + 时间）
     val pageCount: Int,
-    val allFilePaths: List<String>,
-    val allEntities: List<DownloadEntity>,
     val isNovel: Boolean = false,
 ) {
     /** 惰性解析的 Illust —— 避免全量 fromJson 占用 CPU 并在首屏触发连续 GC */
@@ -518,18 +596,14 @@ private fun groupByIllust(rows: List<DownloadEntity>): List<DownloadGroup> {
         }
         buckets.getOrPut(key) { mutableListOf() }.add(row)
     }
-    // 每组按页码排序（page 列优先、fileName 自然序兜底，见 DownloadPageOrder），
-    // 代表 entity 取 downloadTime 最大的；改为惰性解析，不再在 IO 线程同步解 600 次
+    // 导出只需每个作品最近的代表行；大图查看另按 id 查询完整页。
     val groups = buckets.entries.map { (k, list) ->
-        val sortedByName = list.sortedWith(DownloadPageOrder)
         val latest = list.maxByOrNull { it.downloadTime } ?: list.first()
         val isNovel = latest.fileName?.contains(Params.NOVEL_KEY) == true
         DownloadGroup(
             key = k,
             latest = latest,
             pageCount = list.size,
-            allFilePaths = sortedByName.map { it.filePath.orEmpty() },
-            allEntities = sortedByName,
             isNovel = isNovel,
         )
     }
@@ -628,7 +702,6 @@ private class DoneAdapterV3(
             val badge: String? = when {
                 illust?.isGif() == true -> "GIF"
                 group.pageCount > 1 -> "${group.pageCount}P"
-                (illust?.page_count ?: 1) > 1 -> "${illust?.page_count ?: 1}P"
                 else -> null
             }
             if (badge != null) {
