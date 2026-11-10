@@ -2,6 +2,9 @@ package ceui.pixiv.snapshot
 
 import android.content.Context
 import ceui.lisa.activities.Shaft
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.io.File
 
 /**
@@ -12,6 +15,8 @@ import java.io.File
  */
 object AutoSnapshotRepository {
 
+    // 转正与自动删除共用临界区，身份检查和目录修改之间不能再被另一方插入。
+    internal val mutationLock = Mutex()
 
     fun listAuto(context: Context): List<AutoSnapshotSummary> {
         return SnapshotRepository.root(context).listFiles()
@@ -59,16 +64,54 @@ object AutoSnapshotRepository {
         return SnapshotRepository.loadViewerData(context, snapshotId, manifest.toSnapshotManifest())
     }
 
-    fun deleteAuto(context: Context, snapshotId: String): Boolean =
-        SnapshotRepository.delete(context, snapshotId)
+    suspend fun deleteAuto(context: Context, snapshotId: String): Boolean {
+        val snapshotDir = SnapshotRepository.dir(context, snapshotId)
+        return mutationLock.withLock {
+            // 清理候选、管理页卡片都可能过期；正式快照不能从自动快照入口删除。
+            if (File(snapshotDir, SNAPSHOT_MANIFEST).isFile) return@withLock false
+            SnapshotRepository.delete(context, snapshotId)
+        }
+    }
+
+    /** 只接收生成器新建、尚未发布的目录；最终复核与失败回滚都在转正可见之前完成。 */
+    internal suspend fun publishAuto(
+        context: Context,
+        manifest: AutoSnapshotManifest,
+        reusedCachedOriginal: Boolean,
+        maxBytes: () -> Long = { AutoSnapshotQuota.maxBytesForLimit(Shaft.sSettings.autoSnapshotMaxMb) },
+    ): AutoSnapshotManifest {
+        val dir = SnapshotRepository.dir(context, manifest.snapshotId)
+        try {
+            mutationLock.lock()
+        } catch (ce: CancellationException) {
+            // 等锁时尚未写入自动清单，目录还未发布，取消只需回收本次生成的资源。
+            dir.deleteRecursively()
+            throw ce
+        }
+        try {
+            val file = File(dir, AUTO_SNAPSHOT_MANIFEST)
+            file.writeText(Shaft.sGson.toJson(manifest))
+            if (manifest.totalSize + file.length() > maxBytes()) {
+                throw AutoSnapshotQuotaExceededException(reusedCachedOriginal)
+            }
+            SnapshotIndex.onSnapshotWritten(manifest.illustId, manifest.snapshotId, isAuto = true, manifest.createdAt)
+            return manifest
+        } catch (e: Exception) {
+            // 必须在释放锁前回滚，不能让转正读到即将被回收的自动清单。
+            dir.deleteRecursively()
+            throw e
+        } finally {
+            mutationLock.unlock()
+        }
+    }
 
     /** 统计所有自动快照大小，超过当前用户设置的上限后按 createdAt 从旧到新淘汰，直到总大小低于阈值。 */
-    fun enforceAutoQuota(context: Context) {
+    suspend fun enforceAutoQuota(context: Context) {
         enforceAutoQuota(context, AutoSnapshotQuota.maxBytesForLimit(Shaft.sSettings.autoSnapshotMaxMb))
     }
 
     /** 允许调用方直接传入字节上限；最右端哨兵已由 [AutoSnapshotQuota] 换算为不限制。 */
-    fun enforceAutoQuota(context: Context, maxBytes: Long) {
+    suspend fun enforceAutoQuota(context: Context, maxBytes: Long) {
         var autos = listAuto(context)
         while (autos.isNotEmpty()) {
             val total = autos.sumOf { it.totalSize }
@@ -77,10 +120,11 @@ object AutoSnapshotRepository {
             val victim = autos.firstOrNull { it.totalSize > maxBytes }
                 ?: autos.minByOrNull { it.manifest.createdAt }
                 ?: break
-            // 删除失败（deleteRecursively 半途出错等）必须退出：这一份下轮还会被选中，
-            // 继续循环就是永不推进的全库扫描死循环。宁可本轮超额，等下次生成再收。
-            if (!deleteAuto(context, victim.manifest.snapshotId)) break
+            val deleted = deleteAuto(context, victim.manifest.snapshotId)
             autos = listAuto(context)
+            // 已转正或被其他入口删除就重新计算配额；仍在自动库中的删除失败项必须退出，
+            // 否则下一轮仍会选中它，陷入永不推进的全库扫描。
+            if (!deleted && autos.any { it.manifest.snapshotId == victim.manifest.snapshotId }) break
         }
     }
 }

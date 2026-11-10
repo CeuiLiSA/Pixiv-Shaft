@@ -3,6 +3,7 @@ package ceui.pixiv.snapshot
 import android.content.ContextWrapper
 import ceui.lisa.activities.Shaft
 import com.google.gson.Gson
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -30,7 +31,7 @@ class AutoSnapshotQuotaEvictionTest {
     }
 
     @Test
-    fun oversizedNewSnapshotIsRemovedBeforeOlderSnapshots() {
+    fun oversizedNewSnapshotIsRemovedBeforeOlderSnapshots() = runBlocking {
         val context = object : ContextWrapper(RuntimeEnvironment.getApplication()) {
             override fun getFilesDir(): File = temp.root
         }
