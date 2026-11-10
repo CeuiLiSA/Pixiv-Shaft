@@ -137,6 +137,8 @@ abstract class ModelDownloadFragment : BaseLazyFragment<FragmentRembgModelDownlo
 
         baseBind.btnSecondary.visibility = android.view.View.VISIBLE
         baseBind.btnSecondary.text = getString(R.string.string_rembg_model_delete)
+        // 取消下载 / 删除模型时会禁用它，之后经「导入」直达本状态不会路过 showDownloadingState
+        baseBind.btnSecondary.isEnabled = true
         baseBind.btnSecondary.setTextColor(
             ContextCompat.getColor(requireContext(), R.color.buttonTextRed)
         )

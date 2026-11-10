@@ -103,6 +103,7 @@ class RembgModelPickerDialog : PixivDialog(R.layout.dialog_rembg_model_picker) {
                 val deletion = RembgModelManager.requestDeleteModel(ctx, model)
                 host.lifecycleScope.launch {
                     deletion.join()
+                    if (view != null) updateModelStatus()
                     Common.showToast(message)
                 }
             }
