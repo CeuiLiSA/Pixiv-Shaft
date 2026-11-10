@@ -15,8 +15,10 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
+import okhttp3.mockwebserver.SocketPolicy
 import okio.Buffer
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -64,6 +66,32 @@ class ModelDownloadManagerTest {
             assertFalse(File(context.cacheDir, "model_dl_${model.assetDir}.zip").exists())
         } finally {
             first.cancelAndJoin()
+            manager.deleteModel(context, model)
+            server.shutdown()
+        }
+    }
+
+    @Test fun `cancel stops a stalled connection without waiting for the read timeout`() = runBlocking {
+        val server = MockWebServer()
+        server.start()
+        // 服务端收下请求后一个字节都不回：客户端卡在阻塞的 socket 读上，线程中断叫不醒它
+        server.enqueue(MockResponse().setSocketPolicy(SocketPolicy.NO_RESPONSE))
+        val context = RuntimeEnvironment.getApplication()
+        val model = TestModel(server.url("/model.zip").toString())
+        val manager = object : ModelDownloadManager() {
+            override val storageSubDir = "model-download-test"
+            override val logTag = "ModelDownloadTest"
+            override val readTimeoutSeconds = 30L
+        }
+        val download = launch(Dispatchers.Default) {
+            manager.downloadModel(context, model) { _, _ -> }
+        }
+        try {
+            assertNotNull(server.takeRequest(10, TimeUnit.SECONDS))
+            delay(300)
+            withTimeout(5_000) { download.cancelAndJoin() }
+        } finally {
+            download.cancelAndJoin()
             manager.deleteModel(context, model)
             server.shutdown()
         }

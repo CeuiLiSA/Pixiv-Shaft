@@ -6,16 +6,21 @@ import android.provider.OpenableColumns
 import ceui.lisa.http.GithubProxy
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runInterruptible
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
+import okhttp3.Call
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.Response
 import timber.log.Timber
 import java.io.File
 import java.io.FileOutputStream
@@ -67,30 +72,28 @@ abstract class ModelDownloadManager {
         withModelLock(dir) {
             val tempZip = ModelArchiveInstaller.prepareTempArchive(context.cacheDir, dir, model.assetDir)
             try {
-                val downloaded = runInterruptible {
-                    val request = Request.Builder().url(GithubProxy.wrap(url)).build()
-                    client.newCall(request).execute().use { response ->
-                        if (!response.isSuccessful) {
-                            Timber.e("$logTag download failed: HTTP ${response.code}")
-                            return@use false
-                        }
-                        val body = response.body ?: return@use false
-                        val totalBytes = body.contentLength()
-                        body.byteStream().use { input ->
-                            FileOutputStream(tempZip).use { output ->
-                                val buffer = ByteArray(8192)
-                                var bytesRead = 0L
-                                var n: Int
-                                while (input.read(buffer).also { n = it } != -1) {
-                                    job.ensureActive()
-                                    output.write(buffer, 0, n)
-                                    bytesRead += n
-                                    onProgress(bytesRead, totalBytes)
-                                }
+                val request = Request.Builder().url(GithubProxy.wrap(url)).build()
+                val downloaded = executeCancellable(client.newCall(request)) { response ->
+                    if (!response.isSuccessful) {
+                        Timber.e("$logTag download failed: HTTP ${response.code}")
+                        return@executeCancellable false
+                    }
+                    val body = response.body ?: return@executeCancellable false
+                    val totalBytes = body.contentLength()
+                    body.byteStream().use { input ->
+                        FileOutputStream(tempZip).use { output ->
+                            val buffer = ByteArray(8192)
+                            var bytesRead = 0L
+                            var n: Int
+                            while (input.read(buffer).also { n = it } != -1) {
+                                job.ensureActive()
+                                output.write(buffer, 0, n)
+                                bytesRead += n
+                                onProgress(bytesRead, totalBytes)
                             }
                         }
-                        true
                     }
+                    true
                 }
                 if (!downloaded) return@withModelLock false
                 job.ensureActive()
@@ -205,6 +208,27 @@ abstract class ModelDownloadManager {
         return cleanupScope.launch {
             activeJob.join()
             deleteModel(context.applicationContext, model)
+        }
+    }
+
+    /**
+     * 阻塞执行 [call]，协程一取消就 [Call.cancel] 掐断连接。
+     * 卡住的 socket 读不响应线程中断，只靠 runInterruptible 要等到读超时（最长 120s）才退出，
+     * 而取消下载、删除、重新导入都要等这次下载真正退出、放开模型锁和固定的临时 zip。
+     * 不能用 awaitOkHttpCall：它取消即恢复，写 zip 的线程还没停，下一次下载就会和它抢同一个文件。
+     */
+    private suspend fun <T> executeCancellable(call: Call, block: (Response) -> T): T = coroutineScope {
+        val canceller = launch(start = CoroutineStart.UNDISPATCHED) {
+            try {
+                awaitCancellation()
+            } finally {
+                call.cancel()
+            }
+        }
+        try {
+            runInterruptible { call.execute().use(block) }
+        } finally {
+            canceller.cancel()
         }
     }
 
