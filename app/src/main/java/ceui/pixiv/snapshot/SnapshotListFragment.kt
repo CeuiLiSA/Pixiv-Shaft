@@ -2,15 +2,19 @@ package ceui.pixiv.snapshot
 
 import android.content.Intent
 import android.os.Bundle
+import android.os.Looper
+import android.os.MessageQueue
 import android.text.format.Formatter
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.view.doOnPreDraw
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
@@ -22,6 +26,17 @@ import ceui.lisa.databinding.ItemSnapshotBinding
 import ceui.lisa.fragments.HistorySelectBadge
 import ceui.lisa.helper.StaggeredManager
 import ceui.lisa.utils.Common
+import ceui.lisa.utils.DensityUtil
+import ceui.lisa.view.SpacesItemDecoration
+import ceui.pixiv.feeds.FeedStaggeredSkeletonView
+import ceui.pixiv.ui.common.IllustLayoutSkeletonView
+import ceui.pixiv.ui.common.IllustListLayout
+import ceui.pixiv.ui.common.JustifiedItemDecoration
+import ceui.pixiv.ui.common.JustifiedItemSource
+import ceui.pixiv.ui.common.JustifiedLayoutManager
+import ceui.pixiv.ui.common.JUSTIFIED_ROW_HEIGHT_FACTOR
+import ceui.pixiv.ui.common.scrollToPositionWithOffset
+import ceui.pixiv.utils.clearGlideOnRecycle
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
 import com.bumptech.glide.Glide
@@ -36,7 +51,7 @@ import java.util.Locale
 import ceui.pixiv.ui.navigation.TemplateRoute
 
 /**
- * 离线快照管理页的单个 Tab：双列瀑布流卡片，按 manifest.type 过滤。
+ * 离线快照管理页的单个 Tab：跟随全局插画列表布局，按 manifest.type 过滤。
  * filter == null 表示“全部”。
  *
  * 列表由正式快照（SnapshotSummary）和自动快照（AutoSnapshotSummary）合并而成：
@@ -47,6 +62,15 @@ class SnapshotListFragment : Fragment() {
 
     private var _binding: FragmentSnapshotListBinding? = null
     private val binding get() = checkNotNull(_binding)
+    private var listLayout = IllustListLayout.MASONRY
+    private var prewarmCapacity = 0
+    private var cancelPendingCardPrewarm: (() -> Unit)? = null
+    private val cardPrewarmScrollListener = object : RecyclerView.OnScrollListener() {
+        override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+            if (newState == RecyclerView.SCROLL_STATE_IDLE) scheduleCardPrewarm()
+            else stopCardPrewarm()
+        }
+    }
 
     private val filter: String? by lazy(LazyThreadSafetyMode.NONE) {
         arguments?.getString(ARG_FILTER)
@@ -57,6 +81,7 @@ class SnapshotListFragment : Fragment() {
         onExport = { exportSnapshot(it) },
         onDelete = { confirmDelete(it) },
         onLongPress = { onLongPress(it) },
+        coverColumnWidthPx = { coverColumnWidthPx() },
     ).also { adapter ->
         adapter.onSelectionToggle = { onSelectionCountChanged?.invoke(adapter.selectedIds.size) }
     }
@@ -93,22 +118,141 @@ class SnapshotListFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        // 骨架在布局里默认可见，首次 reload 出结果（成功或失败）后收起；之后的例行刷新不再出现。
-        binding.snapshotSkeleton.spanCount = 2
-        binding.snapshotList.layoutManager = StaggeredManager(2, StaggeredGridLayoutManager.VERTICAL)
-        // 不动 itemAnimator：三条路径都走增量提交，动画由 DiffUtil 的增删/移动直接驱动。
-        binding.snapshotList.adapter = adapter
+        // 骨架默认可见，首次 reload 完成后收起；布局与卡片一起跟随设置。
+        listLayout = IllustListLayout.current()
+        installListLayout()
+        val list = binding.snapshotList
+        list.addOnScrollListener(cardPrewarmScrollListener)
+        val skeletonHost = binding.snapshotSkeleton
+        list.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
+            val manager = list.layoutManager as? StaggeredGridLayoutManager
+            val skeleton = skeletonHost.getChildAt(0) as? FeedStaggeredSkeletonView
+            if (manager != null && skeleton != null) skeleton.spanCount = manager.spanCount
+        }
         reload(resetScroll = true)
     }
 
     override fun onResume() {
         super.onResume()
+        val latest = IllustListLayout.current()
+        if (latest != listLayout) {
+            listLayout = latest
+            installListLayout()
+        }
         // 例行刷新:不清空、不回顶。看完一个快照返回时列表内容通常一模一样,
         // Diff 出来是零变更,滚动位置原样保留。
         reload()
+        binding.snapshotList.doOnPreDraw { scheduleCardPrewarm() }
+    }
+
+    override fun onPause() {
+        stopCardPrewarm()
+        super.onPause()
+    }
+
+    /** 只在列表静止且消息队列空闲时补充复用池，避免慢滑时在 RV Prefetch 中现场 inflate。 */
+    private fun scheduleCardPrewarm() {
+        val list = _binding?.snapshotList ?: return
+        if (!isResumed || !list.isAttachedToWindow ||
+            list.scrollState != RecyclerView.SCROLL_STATE_IDLE) return
+
+        val reserve = list.childCount.coerceIn(6, 24)
+        if (reserve > prewarmCapacity) {
+            prewarmCapacity = reserve
+            list.recycledViewPool.setMaxRecycledViews(0, prewarmCapacity)
+        }
+        val pool = list.recycledViewPool
+        if (pool.getRecycledViewCount(0) >= prewarmCapacity || cancelPendingCardPrewarm != null) return
+
+        val queue = Looper.myQueue()
+        val handler = MessageQueue.IdleHandler {
+            if (_binding?.snapshotList !== list || !isResumed || !list.isAttachedToWindow ||
+                list.scrollState != RecyclerView.SCROLL_STATE_IDLE) {
+                cancelPendingCardPrewarm = null
+                false
+            } else if (pool.getRecycledViewCount(0) >= prewarmCapacity) {
+                cancelPendingCardPrewarm = null
+                false
+            } else {
+                // 经 Adapter.createViewHolder 设置正确的 viewType，pool 才能在预取时命中。
+                pool.putRecycledView(adapter.createViewHolder(list, 0))
+                val more = pool.getRecycledViewCount(0) < prewarmCapacity
+                if (!more) cancelPendingCardPrewarm = null
+                more
+            }
+        }
+        queue.addIdleHandler(handler)
+        cancelPendingCardPrewarm = { queue.removeIdleHandler(handler) }
+    }
+
+    /**
+     * 当前列宽（px），同 IllustFeedFragment.illustColumnWidthPx：取 LayoutManager 实时宽度与列数
+     * （measure 先于绑定，旋转 / 分屏后已是新值），首帧兜底屏宽；齐行的跨度是像素数，取「每行几列」设置。
+     */
+    private fun coverColumnWidthPx(): Int {
+        val list = _binding?.snapshotList ?: return 1
+        val manager = list.layoutManager
+        val listWidth = manager?.width?.takeIf { it > 0 } ?: list.resources.displayMetrics.widthPixels
+        val spanCount = (manager as? StaggeredGridLayoutManager)?.spanCount ?: Shaft.sSettings.lineCount
+        return (listWidth / spanCount.coerceAtLeast(1)).coerceAtLeast(1)
+    }
+
+    private fun stopCardPrewarm() {
+        cancelPendingCardPrewarm?.invoke()
+        cancelPendingCardPrewarm = null
+    }
+
+    private fun installListLayout() {
+        val list = binding.snapshotList
+        val previous = list.layoutManager
+        val anchor = when (previous) {
+            is StaggeredGridLayoutManager ->
+                previous.findFirstVisibleItemPositions(null).filter { it >= 0 }.minOrNull()
+            is LinearLayoutManager -> previous.findFirstVisibleItemPosition().takeIf { it >= 0 }
+            else -> null
+        }
+        val offset = anchor?.let { previous?.findViewByPosition(it)?.top?.minus(list.paddingTop) } ?: 0
+        val space = DensityUtil.dp2px(8f)
+        val manager = when (listLayout) {
+            IllustListLayout.JUSTIFIED ->
+                JustifiedLayoutManager(requireContext(), Shaft.sSettings.lineCount, space)
+            IllustListLayout.SINGLE_COLUMN ->
+                StaggeredManager(1, StaggeredGridLayoutManager.VERTICAL)
+            IllustListLayout.MASONRY, IllustListLayout.GRID ->
+                StaggeredManager.adaptive(requireContext(), Shaft.sSettings.lineCount)
+        }
+
+        // 与首页推荐流同源：列表和卡片不叠加边距，8dp 外缘与中缝都由 decoration 管。
+        list.adapter = null
+        while (list.itemDecorationCount > 0) list.removeItemDecorationAt(0)
+        list.setPadding(0, 0, 0, 0)
+        list.layoutManager = manager
+        list.addItemDecoration(
+            if (manager is JustifiedLayoutManager) JustifiedItemDecoration(manager)
+            else SpacesItemDecoration(space)
+        )
+        adapter.layoutMode = listLayout
+        list.adapter = adapter
+        if (anchor != null) list.scrollToPositionWithOffset(anchor, offset)
+
+        val skeleton = when (listLayout) {
+            IllustListLayout.GRID ->
+                IllustLayoutSkeletonView(requireContext(), listLayout, (manager as StaggeredGridLayoutManager).spanCount, space)
+            IllustListLayout.JUSTIFIED ->
+                IllustLayoutSkeletonView(requireContext(), listLayout, Shaft.sSettings.lineCount, space)
+            IllustListLayout.MASONRY, IllustListLayout.SINGLE_COLUMN ->
+                FeedStaggeredSkeletonView(requireContext()).apply {
+                    spanCount = (manager as StaggeredGridLayoutManager).spanCount
+                }
+        }
+        binding.snapshotSkeleton.removeAllViews()
+        binding.snapshotSkeleton.addView(skeleton, ViewGroup.LayoutParams(-1, -1))
     }
 
     override fun onDestroyView() {
+        stopCardPrewarm()
+        binding.snapshotList.removeOnScrollListener(cardPrewarmScrollListener)
+        prewarmCapacity = 0
         super.onDestroyView()
         _binding = null
     }
@@ -130,11 +274,14 @@ class SnapshotListFragment : Fragment() {
         lifecycleScope.launch {
             val all = try {
                 withContext(Dispatchers.IO) {
+                    val root = SnapshotRepository.root(appContext)
                     val formal = SnapshotRepository.list(appContext).map { FormalSnapshotCard(it) }
                     val auto = AutoSnapshotRepository.listAuto(appContext).map { AutoSnapshotCard(it) }
                     (formal + auto)
                         .filter { filter == null || it.type == filter }
                         .sortedByDescending { it.createdAt }
+                        // 过滤后再算：老清单要读 illust.json，只为本 Tab 真正展示的卡付这笔
+                        .map { it.withCoverHeightRatio(root) }
                 }
             } catch (ce: CancellationException) {
                 throw ce
@@ -160,6 +307,9 @@ class SnapshotListFragment : Fragment() {
                     if (resetScroll && all.size > hadItems) {
                         resetStaggeredColumns(snapshotList)
                         snapshotList.scrollToPosition(0)
+                    }
+                    if (all.isNotEmpty()) {
+                        snapshotList.doOnPreDraw { scheduleCardPrewarm() }
                     }
                 }
             })
@@ -370,12 +520,38 @@ class SnapshotListFragment : Fragment() {
     }
 }
 
+/**
+ * 封面的 Glide 请求尺寸（宽, 高），宽高比恒等于卡片上封面的展示比例 [displayRatio]（高 / 宽）。
+ *
+ * 必须显式 override，理由同 IllustStaggerRenderer.loadIllustImage：into(ImageView) 对 centerCrop 按
+ * 「请求尺寸」的比例裁位图，而默认请求尺寸取复用卡上一次布局残留的旧宽高；封面高度随比例变化后，
+ * 复用卡会按上一张的比例裁一遍、再被 ImageView 按新比例裁一遍，只剩中间一小块且发糊。
+ * 齐行的卡宽随比例变、行高 ≈ 目标行高，按行高反推宽。
+ */
+internal fun snapshotCoverRequestSize(
+    layoutMode: IllustListLayout,
+    columnWidthPx: Int,
+    displayRatio: Float,
+): Pair<Int, Int> = if (layoutMode == IllustListLayout.JUSTIFIED) {
+    val rowHeight = (columnWidthPx * JUSTIFIED_ROW_HEIGHT_FACTOR).toInt().coerceAtLeast(1)
+    (rowHeight / displayRatio).toInt().coerceAtLeast(1) to rowHeight
+} else {
+    columnWidthPx.coerceAtLeast(1) to (columnWidthPx * displayRatio).toInt().coerceAtLeast(1)
+}
+
 private class SnapshotAdapter(
     private val onOpen: (SnapshotCard) -> Unit,
     private val onExport: (SnapshotCard) -> Unit,
     private val onDelete: (SnapshotCard) -> Unit,
     private val onLongPress: (SnapshotCard) -> Unit,
-) : ListAdapter<SnapshotCard, SnapshotViewHolder>(DIFF) {
+    /** 当前列宽（px），给封面请求定尺寸，见 [snapshotCoverRequestSize]。 */
+    private val coverColumnWidthPx: () -> Int,
+) : ListAdapter<SnapshotCard, SnapshotViewHolder>(DIFF), JustifiedItemSource {
+
+    var layoutMode: IllustListLayout = IllustListLayout.MASONRY
+
+    override fun aspectRatioAt(position: Int): Float =
+        1f / currentList[position].coverHeightRatio
 
     var selectionMode: Boolean = false
         private set
@@ -447,6 +623,8 @@ private class SnapshotAdapter(
         val card = getItem(position)
         holder.bind(
             card = card,
+            layoutMode = layoutMode,
+            columnWidthPx = coverColumnWidthPx(),
             onOpen = onOpen,
             onExport = onExport,
             onDelete = onDelete,
@@ -456,6 +634,16 @@ private class SnapshotAdapter(
             selected = card.snapshotId in selectedIds,
             onToggleSelection = { toggleSelection(card) },
         )
+    }
+
+    /**
+     * 进复用池的卡放掉封面：池子被空闲预建抬到 6~24 张，封面又按列宽 × 比例解码（单列时整屏宽、
+     * 最高 2 倍），不放的话每张离屏卡都攥着一张位图，且不受 Glide 内存缓存预算约束。
+     * 只在进池时触发，mCachedViews 里的卡保留图，回滑不闪。
+     */
+    override fun onViewRecycled(holder: SnapshotViewHolder) {
+        super.onViewRecycled(holder)
+        holder.clearCover()
     }
 
     companion object {
@@ -480,8 +668,15 @@ private class SnapshotViewHolder(
         val TIME_FORMAT = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
     }
 
+    /** 回收时清图；destroy 期 endAnimations 也会走到这里，所以不能用 Glide.with(view)。 */
+    fun clearCover() {
+        binding.cover.clearGlideOnRecycle()
+    }
+
     fun bind(
         card: SnapshotCard,
+        layoutMode: IllustListLayout,
+        columnWidthPx: Int,
         onOpen: (SnapshotCard) -> Unit,
         onExport: (SnapshotCard) -> Unit,
         onDelete: (SnapshotCard) -> Unit,
@@ -492,8 +687,14 @@ private class SnapshotViewHolder(
         onToggleSelection: () -> Unit,
     ) {
         val context = binding.root.context
+        val displayRatio = if (layoutMode == IllustListLayout.GRID) 1f else card.coverHeightRatio
+        binding.cover.setHeightRatio(displayRatio)
         if (card.coverFile != null) {
-            Glide.with(binding.cover).load(card.coverFile).into(binding.cover)
+            val (requestWidth, requestHeight) = snapshotCoverRequestSize(layoutMode, columnWidthPx, displayRatio)
+            Glide.with(binding.cover)
+                .load(card.coverFile)
+                .override(requestWidth, requestHeight)
+                .into(binding.cover)
         } else {
             Glide.with(binding.cover).clear(binding.cover)
         }

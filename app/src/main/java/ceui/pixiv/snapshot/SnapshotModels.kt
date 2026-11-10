@@ -1,6 +1,8 @@
 package ceui.pixiv.snapshot
 
+import android.graphics.BitmapFactory
 import ceui.pixiv.api.model.Comment
+import ceui.pixiv.api.model.Illust
 import java.io.File
 
 const val SNAPSHOT_SCHEMA_VERSION = 1
@@ -36,6 +38,8 @@ data class SnapshotManifest(
     val authorName: String? = null,
     val authorId: Long? = null,
     val coverPath: String? = null,
+    val coverWidth: Int? = null,
+    val coverHeight: Int? = null,
     val fileCount: Int = 0,
     val totalSize: Long = 0L,
 )
@@ -59,6 +63,8 @@ data class AutoSnapshotManifest(
     val authorName: String? = null,
     val authorId: Long? = null,
     val coverPath: String? = null,
+    val coverWidth: Int? = null,
+    val coverHeight: Int? = null,
     val fileCount: Int = 0,
     val totalSize: Long = 0L,
 )
@@ -74,6 +80,43 @@ internal fun originalCoverage(originalPageCount: Int?, pageCount: Int?, includeO
         originalPageCount >= pageCount -> SnapshotOriginalCoverage.ALL
         originalPageCount > 0 -> SnapshotOriginalCoverage.SOME
         else -> SnapshotOriginalCoverage.NONE
+    }
+}
+
+/** 新清单直接用宽高；旧清单从 illust.json 补，缺失时只读取封面的图片头。调用方在 IO 线程。 */
+internal fun snapshotCoverHeightRatio(
+    snapshotDir: File, width: Int?, height: Int?, coverFile: File?,
+): Float {
+    var w = width ?: 0
+    var h = height ?: 0
+    if (w <= 0 || h <= 0) {
+        val illust = SnapshotValidator.readJson<Illust>(File(snapshotDir, SNAPSHOT_ILLUST_JSON))
+        w = illust?.width ?: 0
+        h = illust?.height ?: 0
+    }
+    if ((w <= 0 || h <= 0) && coverFile != null) {
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        BitmapFactory.decodeFile(coverFile.absolutePath, bounds)
+        w = bounds.outWidth
+        h = bounds.outHeight
+    }
+    return if (w > 0 && h > 0) (h.toFloat() / w).coerceIn(0.6f, 2f) else 1f
+}
+
+/**
+ * 给管理页卡片补上封面高宽比，只在列表 UI 的路径上调。不放进 list() / listAuto()：那两个也是
+ * 自动快照引擎、配额淘汰、回填共用的全库扫描口，老清单没记宽高，在那里每张都要多读一份 illust.json。
+ * [snapshotRoot] 下的目录名即 snapshotId（list() 的不变式）。调用方在 IO 线程。
+ */
+internal fun SnapshotCard.withCoverHeightRatio(snapshotRoot: File): SnapshotCard {
+    val dir = File(snapshotRoot, snapshotId)
+    return when (this) {
+        is FormalSnapshotCard -> copy(coverHeightRatio = snapshotCoverHeightRatio(
+            dir, summary.manifest.coverWidth, summary.manifest.coverHeight, coverFile,
+        ))
+        is AutoSnapshotCard -> copy(coverHeightRatio = snapshotCoverHeightRatio(
+            dir, summary.manifest.coverWidth, summary.manifest.coverHeight, coverFile,
+        ))
     }
 }
 
@@ -101,11 +144,15 @@ sealed interface SnapshotCard {
     val includeOriginal: Boolean
     val originalCoverage: SnapshotOriginalCoverage
     val coverFile: File?
+    val coverHeightRatio: Float
     val fileCount: Int
     val totalSize: Long
 }
 
-data class FormalSnapshotCard(val summary: SnapshotSummary) : SnapshotCard {
+data class FormalSnapshotCard(
+    val summary: SnapshotSummary,
+    override val coverHeightRatio: Float = 1f,
+) : SnapshotCard {
     override val snapshotId get() = summary.manifest.snapshotId
     override val isAuto get() = false
     override val createdAt get() = summary.manifest.createdAt
@@ -126,7 +173,10 @@ data class FormalSnapshotCard(val summary: SnapshotSummary) : SnapshotCard {
     override val totalSize get() = summary.totalSize
 }
 
-data class AutoSnapshotCard(val summary: AutoSnapshotSummary) : SnapshotCard {
+data class AutoSnapshotCard(
+    val summary: AutoSnapshotSummary,
+    override val coverHeightRatio: Float = 1f,
+) : SnapshotCard {
     override val snapshotId get() = summary.manifest.snapshotId
     override val isAuto get() = true
     override val createdAt get() = summary.manifest.createdAt
@@ -165,6 +215,8 @@ fun AutoSnapshotManifest.toSnapshotManifest(): SnapshotManifest = SnapshotManife
     authorName = authorName,
     authorId = authorId,
     coverPath = coverPath,
+    coverWidth = coverWidth,
+    coverHeight = coverHeight,
     fileCount = fileCount,
     totalSize = totalSize,
 )
