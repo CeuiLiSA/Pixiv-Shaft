@@ -1,6 +1,7 @@
 package ceui.pixiv.ui.detail
 
 import android.content.Intent
+import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.Rect
 import android.net.Uri
@@ -133,11 +134,14 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         if (snapshot != null) {
             SnapshotArtworkFeedSource(snapshot, snapshotAuto)
         } else {
-            // 平板排版（layout-sw600dp + 设置开着）的作品图在舞台里，列表只出信息区块；折叠屏
-            // 开合跨过 600dp 时这个 VM 活下来，差异由 reconcilePageItems 在视图重建时对齐
+            // 平板排版（layout-sw600dp + 设置开着）横屏时作品图在舞台里，列表只出信息区块；
+            // 竖屏且开了「多图自动展开」才跟手机一样出每一页。折叠屏开合、旋屏跨过宽高时
+            // 这个 VM 活下来，差异由 reconcilePageItems 在视图重建时对齐
+            val configuration = resources.configuration
+            val autoExpand = Shaft.sSettings.isArtworkV3AutoExpandMultiPage
             ArtworkV3FeedSource(
                 Params.getLongCompat(requireArguments(), "illust_id"),
-                includePages = !TabletLayout.isEnabled(resources.configuration),
+                includePages = includeArtworkPages(configuration, autoExpand),
             )
         }
     }
@@ -282,9 +286,10 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         get() = if (usesTabletStage()) Color.TRANSPARENT else super.feedRootBackgroundColor
 
     // TabletLayout 的最小宽度判定与 layout-sw600dp 限定符是同一条线：命中时舞台 view 必然存在；
-    // 平板上关掉「平板适配排版」时仍拿到 sw600dp 布局，舞台收起、信息栏铺满，等同手机排版
+    // 平板上关掉「平板适配排版」、或竖屏且开了「多图自动展开」时仍拿到 sw600dp 布局，
+    // 舞台收起、信息栏铺满，等同手机排版
     private fun usesTabletStage(): Boolean =
-        !isSnapshotMode && TabletLayout.isEnabled(resources.configuration)
+        !isSnapshotMode && !includeArtworkPages(resources.configuration, autoExpandEnabled())
 
     // ── 列表装配 ────────────────────────────────────────────────────────────
 
@@ -1659,8 +1664,8 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
 
     /**
      * 平板排版（layout-sw600dp + 「平板适配排版」开着，#1087）：作品进舞台，列表 / 胶囊在信息栏里。
-     * 返回与更多菜单挪到舞台左右上角，信息栏不再有顶栏。快照模式的页面数据来自快照本身、
-     * 关掉开关的平板，都按手机排版把图放在列表里（舞台收起、信息栏铺满）。
+     * 返回与更多菜单挪到舞台左右上角，信息栏不再有顶栏。快照模式、关掉开关的平板、
+     * 以及竖屏且开了「多图自动展开」的平板，都按手机排版把图放在列表里（舞台收起、信息栏铺满）。
      */
     private fun setUpTabletStage() {
         // 手机布局没有这几个 view：tabletStage 保持 null，但仍要对齐图片条目（见 reconcilePageItems）
@@ -1694,8 +1699,8 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
     }
 
     /**
-     * 列表里「有没有作品图条目」要和当前排版一致。数据源按建 VM 时的排版决定出不出图，而 VM
-     * 会跨配置变化存活：折叠屏开合、平板分屏缩窄会跨过 sw600dp，这时补上或拿掉图片条目。
+     * 列表里「有没有作品图条目」要和当前排版一致。数据源按建 VM 时的窗口决定出不出图，而 VM
+     * 会跨配置变化存活：折叠屏开合、旋屏（竖屏展开的列表 ↔ 横屏舞台）时补上或拿掉图片条目。
      * 手机永远不跨，一致时是 no-op。
      */
     private fun reconcilePageItems() {
@@ -1958,4 +1963,12 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
             }
         }
     }
+}
+
+// 作品图进不进列表。平板排版关掉时跟手机一样进列表；开着时横屏（宽大于高，与
+// ArtworkTabletStage.arrange 的 sideBySide 同一条线）留在舞台里翻页，竖屏且开了
+// 「多图自动展开」才把每一页铺进列表。
+private fun includeArtworkPages(configuration: Configuration, autoExpand: Boolean): Boolean {
+    if (!TabletLayout.isEnabled(configuration)) return true
+    return configuration.screenWidthDp <= configuration.screenHeightDp && autoExpand
 }
