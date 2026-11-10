@@ -20,7 +20,9 @@ import ceui.lisa.database.AppDatabase
 import ceui.lisa.databinding.FragmentArtworkV3Binding
 import ceui.lisa.databinding.RecyIllustDetailBinding
 import ceui.lisa.utils.Settings
+import ceui.loxia.ImageUrls
 import ceui.pixiv.api.model.Illust
+import ceui.pixiv.api.model.MetaPage
 import ceui.pixiv.feeds.FeedAdapter
 import com.blankj.utilcode.util.Utils
 import com.bumptech.glide.Glide
@@ -317,8 +319,34 @@ class ArtworkPageReuseTest {
         assertNull(holder.baseBind.illustHd.drawable)
     }
 
-    private fun delegate(pinned: Boolean = true): IllustAdapter =
-        object : IllustAdapter(host, owner, work, 600, false) {
+    @Test
+    fun `replacement adapter keeps loading a page it already shows while the first scan is pending`() {
+        val p1Large = "https://img.test/p1-large.jpg"
+        val paged = work.copy(
+            page_count = 2,
+            meta_pages = listOf(
+                MetaPage(ImageUrls(large = "https://img.test/p0-large.jpg")),
+                MetaPage(ImageUrls(large = p1Large)),
+            ),
+        )
+        // Force-original releases the old adapter with this page still painted, then rebinds in place.
+        val shown = ViewHolder(RecyIllustDetailBinding.inflate(LayoutInflater.from(host)))
+        shown.baseBind.illust.setImageDrawable(ColorDrawable(Color.RED))
+        shown.baseBind.illust.setTag(R.id.tag_image_url, p1Large)
+        val adapter = delegate(illust = paged)
+        adapter.onBindViewHolder(shown, 1)
+        // The fixture scan never returns. Parking here would wipe the page; in original mode p1
+        // paints no large placeholder, so it would stay blank until the original finishes.
+        assertEquals(p1Large, shown.baseBind.illust.getTag(R.id.tag_image_url))
+
+        val fresh = ViewHolder(RecyIllustDetailBinding.inflate(LayoutInflater.from(host)))
+        adapter.onBindViewHolder(fresh, 1)
+        assertNull("a holder without this page's image still waits for the scan",
+            fresh.baseBind.illust.getTag(R.id.tag_image_url))
+    }
+
+    private fun delegate(pinned: Boolean = true, illust: Illust = work): IllustAdapter =
+        object : IllustAdapter(host, owner, illust, 600, false) {
             // No DB/network fixture: the work deliberately has no URLs. Exercise real bind/recycle.
             override fun scanLocalDownloads() = Unit
         }.also { it.setKeepPinnedPages(pinned); delegates += it }

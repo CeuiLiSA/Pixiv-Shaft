@@ -752,7 +752,8 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
             return;
         }
         boundLocalPageUris.remove(holder.baseBind);
-        if (snapshotId == null && !allIllust.isGif() && initialLocalScanPending) {
+        if (snapshotId == null && !allIllust.isGif() && initialLocalScanPending
+                && !showsPageImage(holder, position)) {
             deferredInitialBind = true;
             // 全量重绑进入等待时也要丢掉旧请求和标记；回收的 holder 不能继续显示上一页。
             fragmentRequestManager.clear(holder.baseBind.illust);
@@ -764,6 +765,17 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
             return;
         }
         loadFromNetwork(holder, position, changeSize);
+    }
+
+    /**
+     * holder 的底图仍是本页（V3「加载原图」换 adapter 后原地重绑）时不进首扫等待：等待会清空底图，
+     * 而原图模式下 p1 起不发 large 占位，页面要空到原图下完。照旧取图，已下载页由扫描回来后的重绑换成本地。
+     */
+    private boolean showsPageImage(ViewHolder<RecyIllustDetailBinding> holder, int position) {
+        Object shownUrl = holder.baseBind.illust.getTag(R.id.tag_image_url);
+        return shownUrl != null && holder.baseBind.illust.getDrawable() != null
+                && (shownUrl.equals(IllustDownload.getUrl(allIllust, position, Params.IMAGE_RESOLUTION_LARGE))
+                || shownUrl.equals(IllustDownload.getUrl(allIllust, position, Params.IMAGE_RESOLUTION_ORIGINAL)));
     }
 
     private void loadFromNetwork(ViewHolder<RecyIllustDetailBinding> holder, int position, boolean changeSize) {
