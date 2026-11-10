@@ -10,15 +10,17 @@ import ceui.pixiv.api.model.AccountResponse
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.shaftapi.BindConfirmReq
 import ceui.pixiv.shaftapi.EmailReq
+import ceui.pixiv.shaftapi.PixshaftApi
 import ceui.pixiv.shaftapi.RestoreConfirmReq
 import ceui.pixiv.shaftapi.UidReq
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import retrofit2.HttpException
@@ -36,7 +38,10 @@ import timber.log.Timber
  *    account JSON, which we persist exactly like a fresh OAuth login, then ask
  *    the UI to relaunch.
  */
-class EmailBackupV3ViewModel(initialMode: Mode) : ViewModel() {
+class EmailBackupV3ViewModel(
+    initialMode: Mode,
+    private val api: () -> PixshaftApi = { Client.pixshaft },
+) : ViewModel() {
 
     enum class Mode { BACKUP, RESTORE }
 
@@ -78,10 +83,13 @@ class EmailBackupV3ViewModel(initialMode: Mode) : ViewModel() {
     private val _state = MutableLiveData(UiState(mode = initialMode))
     val state: LiveData<UiState> = _state
 
-    private val _effects = MutableSharedFlow<Effect>(extraBufferCapacity = 8)
-    val effects: SharedFlow<Effect> = _effects.asSharedFlow()
+    // 页面 STOP 时仍需保留恢复完成事件；单消费者队列只交付一次，不重放已处理导航。
+    private val _effects = Channel<Effect>(Channel.BUFFERED)
+    val effects: Flow<Effect> = _effects.receiveAsFlow()
 
     private var countdownJob: Job? = null
+    private var requestCodeJob: Job? = null
+    private var flowVersion = 0L
 
     init {
         if (initialMode == Mode.BACKUP) checkBoundStatus()
@@ -104,6 +112,9 @@ class EmailBackupV3ViewModel(initialMode: Mode) : ViewModel() {
 
     fun setMode(mode: Mode) {
         if (cur().mode == mode) return
+        flowVersion++
+        requestCodeJob?.cancel()
+        requestCodeJob = null
         countdownJob?.cancel()
         _state.value = UiState(mode = mode) // mode switch resets the whole flow
         if (mode == Mode.BACKUP) checkBoundStatus()
@@ -113,11 +124,12 @@ class EmailBackupV3ViewModel(initialMode: Mode) : ViewModel() {
     private fun checkBoundStatus() {
         val uid = SessionManager.loggedInUid
         if (uid <= 0L) return // not logged in → leave the empty form as-is
+        val version = flowVersion
         update { it.copy(checkingStatus = true) }
         viewModelScope.launch {
             try {
-                val st = Client.pixshaft.bindStatus(UidReq(uid))
-                if (cur().mode != Mode.BACKUP) return@launch // mode switched mid-probe
+                val st = api().bindStatus(UidReq(uid))
+                if (version != flowVersion || cur().mode != Mode.BACKUP) return@launch
                 update {
                     it.copy(
                         checkingStatus = false,
@@ -126,10 +138,12 @@ class EmailBackupV3ViewModel(initialMode: Mode) : ViewModel() {
                         boundAt = st.updatedAt,
                     )
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 // Background probe; on failure fall back to the form silently.
                 Timber.w(e, "bind status check failed")
-                if (cur().mode != Mode.BACKUP) return@launch
+                if (version != flowVersion || cur().mode != Mode.BACKUP) return@launch
                 update { it.copy(checkingStatus = false, bound = false) }
             }
         }
@@ -142,7 +156,7 @@ class EmailBackupV3ViewModel(initialMode: Mode) : ViewModel() {
         update { it.copy(loading = true, status = null, statusIsError = false) }
         viewModelScope.launch {
             try {
-                Client.pixshaft.bindDelete(UidReq(uid))
+                api().bindDelete(UidReq(uid))
                 update { it.copy(loading = false, bound = false, boundEmail = null, boundAt = 0L) }
                 emit(Effect.Toast("已解绑，云端备份已删除"))
             } catch (e: Exception) {
@@ -174,21 +188,22 @@ class EmailBackupV3ViewModel(initialMode: Mode) : ViewModel() {
             return
         }
         update { it.copy(loading = true, status = null, statusIsError = false) }
-        viewModelScope.launch {
+        val version = flowVersion
+        requestCodeJob = viewModelScope.launch {
             try {
-                if (st.mode == Mode.BACKUP) {
-                    Client.pixshaft.bindRequest(EmailReq(st.email))
-                    onCodeSent(st.email)
+                val found = if (st.mode == Mode.BACKUP) {
+                    api().bindRequest(EmailReq(st.email))
+                    true
                 } else {
-                    val ack = Client.pixshaft.restoreRequest(EmailReq(st.email))
-                    if (ack.found) {
-                        onCodeSent(st.email)
-                    } else {
-                        showError("该邮箱还没有账号备份")
-                    }
+                    api().restoreRequest(EmailReq(st.email)).found
                 }
+                // 代次区分「备份 → 恢复 → 备份」，旧请求不能回写同名的新流程。
+                if (version != flowVersion) return@launch
+                if (found) onCodeSent(st.email) else showError("该邮箱还没有账号备份")
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
-                showError(errorText(e))
+                if (version == flowVersion) showError(errorText(e))
             }
         }
     }
@@ -213,7 +228,7 @@ class EmailBackupV3ViewModel(initialMode: Mode) : ViewModel() {
             showError("登录状态已失效，请重新登录")
             return
         }
-        Client.pixshaft.bindConfirm(BindConfirmReq(st.email, st.code, account))
+        api().bindConfirm(BindConfirmReq(st.email, st.code, account))
         // Clear loading before the one-shot effects so the UI never stays stuck
         // on the spinner if the page was backgrounded and missed Finish.
         update { it.copy(loading = false, status = null, statusIsError = false) }
@@ -222,7 +237,7 @@ class EmailBackupV3ViewModel(initialMode: Mode) : ViewModel() {
     }
 
     private suspend fun doRestore(st: UiState) {
-        val resp = Client.pixshaft.restoreConfirm(RestoreConfirmReq(st.email, st.code))
+        val resp = api().restoreConfirm(RestoreConfirmReq(st.email, st.code))
         val account = resp.account
         // user 也要有：AccountResponse.user 是可空的，缺了就落不成一个能用的登录态，
         // 得在这里报错，而不是让 persistLogin 静默跳过、最后重启到一个未登录的主界面。
@@ -269,7 +284,7 @@ class EmailBackupV3ViewModel(initialMode: Mode) : ViewModel() {
     }
 
     private fun emit(effect: Effect) {
-        _effects.tryEmit(effect)
+        _effects.trySend(effect)
     }
 
     private fun errorText(e: Throwable): String {
