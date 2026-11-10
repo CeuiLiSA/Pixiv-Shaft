@@ -19,6 +19,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
+import org.robolectric.util.ReflectionHelpers
 import java.io.File
 
 @RunWith(RobolectricTestRunner::class)
@@ -67,10 +68,10 @@ class SnapshotRepositoryRecoveryTest {
         fixture(".backup_${id}_1", "complete old image")
         val persisted = mapOf(id to SnapshotIndexRecord(illustId, SnapshotIndex.Entry(id, false, 123L)))
         assertTrue(scanSnapshotIndex(SnapshotRepository.root(context), persisted).isEmpty())
-        val revision = SnapshotIndex.revision
         SnapshotIndex.ensureLoaded(context)
+        // 全量测试的历史页可能已加载索引；幂等调用不会再次增加 revision，应等待就绪状态。
         withTimeout(5_000) {
-            while (SnapshotIndex.revision == revision) delay(10)
+            while (!ReflectionHelpers.getStaticField<Boolean>(SnapshotIndex::class.java, "loaded")) delay(10)
         }
         assertNull(SnapshotIndex.entryFor(illustId))
         SnapshotRuntimeCache.put(id, SnapshotViewerData(
