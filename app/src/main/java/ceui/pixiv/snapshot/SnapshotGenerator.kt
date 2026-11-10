@@ -132,23 +132,11 @@ object SnapshotGenerator {
             freshDetail = false,
             onProgress = onProgress,
         )
-        try {
-            val manifest = content.toAutoSnapshotManifest()
-            writeJson(content.snapshotDir, AUTO_SNAPSHOT_MANIFEST, manifest)
-            // 发布到索引和 LRU 淘汰前按当前设置复核，包含 manifest 本身，也覆盖生成期间调低配额。
-            val actualSize = content.totalSize + File(content.snapshotDir, AUTO_SNAPSHOT_MANIFEST).length()
-            if (actualSize > AutoSnapshotQuota.maxBytesForLimit(Shaft.sSettings.autoSnapshotMaxMb)) {
-                throw AutoSnapshotQuotaExceededException(
-                    reusedCachedOriginal = preferCachedOriginal && !includeOriginal && content.originalPageCount > 0,
-                )
-            }
-            // 自动快照同样要算「有快照」：卡片标记不分正式/自动，只是点开时按 isAuto 回读。
-            SnapshotIndex.onSnapshotWritten(manifest.illustId, manifest.snapshotId, isAuto = true, manifest.createdAt)
-            return manifest
-        } catch (e: Exception) {
-            content.snapshotDir.deleteRecursively()
-            throw e
-        }
+        return AutoSnapshotRepository.publishAuto(
+            context.applicationContext,
+            content.toAutoSnapshotManifest(),
+            reusedCachedOriginal = preferCachedOriginal && !includeOriginal && content.originalPageCount > 0,
+        )
     }
 
     private data class SnapshotContent(
