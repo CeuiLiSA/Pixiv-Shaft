@@ -70,6 +70,13 @@ class BookmarkLibraryStreamingTest {
     private val app get() = RuntimeEnvironment.getApplication()
     private var serial = 0
 
+    /**
+     * [BookmarkLibraryUi] 的两个进程级依赖。这里的用例都不 install()，引擎从不 start，
+     * 只为满足构造器。
+     */
+    private lateinit var idleNetwork: NetworkStateManager
+    private lateinit var idleMirror: BookmarkMirrorService
+
     @Before
     fun setUp() {
         Dispatchers.setMain(dispatcher)
@@ -79,10 +86,13 @@ class BookmarkLibraryStreamingTest {
         ReflectionHelpers.setStaticField(Shaft::class.java, "sContext", app)
         Shaft.sSettings = Settings().apply { isR18FilterDefaultEnable = true }
         Shaft.sGson = Gson()
+        idleNetwork = NetworkStateManager(app)
+        idleMirror = BookmarkMirrorService(app, idleNetwork)
     }
 
     @After
     fun tearDown() {
+        idleNetwork.unregisterNetworkCallback()
         models.clear()
         AppDatabase.destroyInstance()
         db.close()
@@ -145,7 +155,7 @@ class BookmarkLibraryStreamingTest {
             override fun canScrollVertically(direction: Int) = direction > 0 || !atTop
         }
         return BookmarkLibraryUi(Fragment(), binding, list, library, feed, library.shelf.contentType,
-            itemCount = { feed.uiState.value.items.size })
+            idleMirror, idleNetwork, itemCount = { feed.uiState.value.items.size })
     }
 
     @Test
@@ -503,6 +513,7 @@ class BookmarkLibraryStreamingTest {
         val binding = FragmentBookmarkLibraryBinding.inflate(LayoutInflater.from(context))
         val ui = BookmarkLibraryUi(
             Fragment(), binding, RecyclerView(binding.root.context), library, feed, shelf.contentType,
+            idleMirror, idleNetwork,
             itemCount = { feed.uiState.value.items.size },
         )
         insert(shelf, 31..45)
@@ -540,6 +551,7 @@ class BookmarkLibraryStreamingTest {
         )
         val ui = BookmarkLibraryUi(
             Fragment(), binding, RecyclerView(binding.root.context), library, feed, shelf.contentType,
+            idleMirror, idleNetwork,
             itemCount = { feed.uiState.value.items.size },
         )
         ui.onListCommitted(paused)
@@ -609,7 +621,7 @@ class BookmarkLibraryStreamingTest {
             val context = ContextThemeWrapper(app, R.style.AppTheme)
             val ui = BookmarkLibraryUi(
                 Fragment(), FragmentBookmarkLibraryBinding.inflate(LayoutInflater.from(context)),
-                list, library, feed, type,
+                list, library, feed, type, idleMirror, idleNetwork,
                 itemCount = { feed.uiState.value.items.size },
             )
             // 与 FeedFragment 一样：diff 落地后才回调 onListCommitted
@@ -658,6 +670,7 @@ class BookmarkLibraryStreamingTest {
         }
         val ui = BookmarkLibraryUi(
             Fragment(), binding, list, library, feed, shelf.contentType,
+            idleMirror, idleNetwork,
             itemCount = { feed.uiState.value.items.size },
         )
         ReflectionHelpers.callInstanceMethod<Unit>(ui, "refreshIfStale")
@@ -781,6 +794,7 @@ class BookmarkLibraryStreamingTest {
         }
         val ui = BookmarkLibraryUi(
             Fragment(), binding, list, library, feed, shelf.contentType,
+            idleMirror, idleNetwork,
             itemCount = { feed.uiState.value.items.size },
         )
         ReflectionHelpers.callInstanceMethod<Unit>(ui, "refreshIfStale")
@@ -845,6 +859,7 @@ class BookmarkLibraryStreamingTest {
         )
         val ui = BookmarkLibraryUi(
             Fragment(), binding, RecyclerView(binding.root.context), library, feed, shelf.contentType,
+            idleMirror, idleNetwork,
             itemCount = { feed.uiState.value.items.size },
         )
         ReflectionHelpers.callInstanceMethod<Unit>(ui, "refreshIfStale")

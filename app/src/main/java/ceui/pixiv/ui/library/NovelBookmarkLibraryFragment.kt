@@ -6,12 +6,16 @@ import androidx.fragment.app.viewModels
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentBookmarkLibraryBinding
 import ceui.lisa.utils.Params
+import ceui.pixiv.db.mirror.BookmarkMirrorService
 import ceui.pixiv.db.mirror.BookmarkShelf
 import ceui.pixiv.db.mirror.MirrorContentType
 import ceui.pixiv.feeds.FeedUiState
 import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.common.NovelFeedFragment
+import ceui.pixiv.utils.NetworkStateManager
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 /**
  * 收藏库（小说）—— [BookmarkLibraryFragment] 的小说版。
@@ -26,6 +30,7 @@ import ceui.pixiv.ui.common.NovelFeedFragment
  * - 没有 `hideLikeButton` —— 「收藏页隐藏收藏按钮」那个设置只作用于插画卡
  *   （对齐 legacy：小说收藏页用的是裸 NAdapter，从来没有那套爱心门控）。
  */
+@AndroidEntryPoint
 class NovelBookmarkLibraryFragment :
     NovelFeedFragment(R.layout.fragment_bookmark_library),
     BookmarkFilterSheet.Host {
@@ -41,6 +46,9 @@ class NovelBookmarkLibraryFragment :
         val vm = libraryViewModel.also { it.bind(initialShelf) }
         BookmarkLibraryFeedSource(vm, MirrorContentType.NOVEL)
     }
+
+    @Inject lateinit var bookmarkMirror: BookmarkMirrorService
+    @Inject lateinit var networkStateManager: NetworkStateManager
 
     private var ui: BookmarkLibraryUi? = null
 
@@ -66,6 +74,8 @@ class NovelBookmarkLibraryFragment :
             viewModel = libraryViewModel,
             feedViewModel = feedViewModel,
             contentType = MirrorContentType.NOVEL,
+            mirror = bookmarkMirror,
+            networkStateManager = networkStateManager,
             itemCount = { feedViewModel.uiState.value.items.size },
         ).also { it.install() }
     }

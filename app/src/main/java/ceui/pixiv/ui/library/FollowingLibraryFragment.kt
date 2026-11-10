@@ -6,12 +6,16 @@ import androidx.fragment.app.viewModels
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentBookmarkLibraryBinding
 import ceui.lisa.utils.Params
+import ceui.pixiv.db.mirror.BookmarkMirrorService
 import ceui.pixiv.db.mirror.BookmarkShelf
 import ceui.pixiv.db.mirror.MirrorContentType
 import ceui.pixiv.feeds.FeedUiState
 import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.common.UserFeedFragment
+import ceui.pixiv.utils.NetworkStateManager
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 /**
  * 关注库 —— 「我的关注」的本地镜像版，[BookmarkLibraryFragment] / [NovelBookmarkLibraryFragment]
@@ -24,6 +28,7 @@ import ceui.pixiv.ui.common.UserFeedFragment
  * 与两个兄弟一样，本类只负责「我是关注版」：继承用户卡列表基类（白拿关注切换、LIKED_USER
  * 跨列表同步、点进画师页），并把 [MirrorContentType.USER] 交给数据源和共用的 [BookmarkLibraryUi]。
  */
+@AndroidEntryPoint
 class FollowingLibraryFragment :
     UserFeedFragment(R.layout.fragment_bookmark_library, fadePreviewImagesOnLoad = true),
     BookmarkFilterSheet.Host {
@@ -39,6 +44,9 @@ class FollowingLibraryFragment :
         val vm = libraryViewModel.also { it.bind(initialShelf) }
         BookmarkLibraryFeedSource(vm, MirrorContentType.USER)
     }
+
+    @Inject lateinit var bookmarkMirror: BookmarkMirrorService
+    @Inject lateinit var networkStateManager: NetworkStateManager
 
     private var ui: BookmarkLibraryUi? = null
 
@@ -64,6 +72,8 @@ class FollowingLibraryFragment :
             viewModel = libraryViewModel,
             feedViewModel = feedViewModel,
             contentType = MirrorContentType.USER,
+            mirror = bookmarkMirror,
+            networkStateManager = networkStateManager,
             itemCount = { feedViewModel.uiState.value.items.size },
         ).also { it.install() }
     }

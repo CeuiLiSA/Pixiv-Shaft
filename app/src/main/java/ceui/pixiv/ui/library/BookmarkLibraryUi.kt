@@ -21,6 +21,7 @@ import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.databinding.FragmentBookmarkLibraryBinding
 import ceui.lisa.utils.DensityUtil
 import ceui.lisa.utils.Params
+import ceui.pixiv.db.mirror.BookmarkMirrorService
 import ceui.pixiv.db.mirror.BookmarkMirrorStateEntity
 import ceui.pixiv.db.mirror.BookmarkShelf
 import ceui.pixiv.db.mirror.BookmarkShelfStats
@@ -31,7 +32,7 @@ import ceui.pixiv.db.mirror.MirrorRestrict
 import ceui.pixiv.feeds.FeedUiState
 import ceui.pixiv.feeds.FeedViewModel
 import ceui.pixiv.feeds.LoadState
-import ceui.pixiv.services.appServices
+import ceui.pixiv.utils.NetworkStateManager
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -44,11 +45,12 @@ import java.util.Locale
  * 小说列表继承 [ceui.pixiv.ui.common.NovelFeedFragment]、关注列表继承
  * [ceui.pixiv.ui.common.UserFeedFragment]（三套完全不同的卡片、点击语义、骨架图和
  * LayoutManager），Kotlin 又没有多继承。要么把这三百多行复制三份、从此各自漂移，
- * 要么抽成一个只依赖「binding + 列表 VM + feed VM」的普通类 —— 后者显然更划算：
+ * 要么抽成一个只依赖「binding + 列表 VM + feed VM + 镜像引擎」的普通类 —— 后者显然更划算：
  * 页面之间的逻辑差异只有「一行 payload 解析成哪种卡」这一处，其余只是文案与可选项，
  * 集中在 [LibraryProfile]。
  *
  * 生命周期跟着 **view** 走：宿主在 onViewCreated 建、onDestroyView 调 [destroy]。
+ * 进程级依赖（[mirror]、[networkStateManager]）由宿主注入后经构造器交进来，本类不自己回查。
  * 所有可变的视图态（chip 引用、状态快照、待重置代号）都收在这里，宿主自己不留。
  */
 internal class BookmarkLibraryUi(
@@ -58,6 +60,10 @@ internal class BookmarkLibraryUi(
     private val viewModel: BookmarkLibraryViewModel,
     private val feedViewModel: FeedViewModel<String>,
     private val contentType: MirrorContentType,
+    /** 镜像引擎：进页 / 回页 / 下拉要催它补一轮，进度条与 chip 也看它的状态表。 */
+    private val mirror: BookmarkMirrorService,
+    /** 只读在线态：进度条上「正在补齐」与「当前无网络」两句文案取决于它。 */
+    private val networkStateManager: NetworkStateManager,
     /** 当前列表上有多少条目。判断「屏幕上这份是不是已经过期」要用，见 [refreshIfStale]。 */
     private val itemCount: () -> Int,
 ) {
@@ -123,7 +129,7 @@ internal class BookmarkLibraryUi(
 
         // 打开收藏库本身就是一次「用户在看这个书架」的信号：让引擎马上补一次增量，
         // 而不是等下一个例行窗口。补的过程静默，页面照常用本地数据。
-        context.appServices().bookmarkMirror.ensureShelf(viewModel.shelf, reason = "打开收藏库")
+        mirror.ensureShelf(viewModel.shelf, reason = "打开收藏库")
     }
 
     /**
@@ -134,7 +140,7 @@ internal class BookmarkLibraryUi(
      */
     fun onResumed() {
         if (destroyed) return
-        context.appServices().bookmarkMirror.ensureShelf(viewModel.shelf, reason = "回到收藏库")
+        mirror.ensureShelf(viewModel.shelf, reason = "回到收藏库")
         if (hasPendingStaleWhileScrolled && !listView.canScrollVertically(-1)) {
             hasPendingStaleWhileScrolled = false
             refreshIfStale()
@@ -159,7 +165,7 @@ internal class BookmarkLibraryUi(
             binding.appBar.top < 0 || listView.canScrollVertically(-1)
         }
         refreshLayout.setOnRefreshListener {
-            context.appServices().bookmarkMirror.syncNow(viewModel.shelf, reason = "下拉刷新")
+            mirror.syncNow(viewModel.shelf, reason = "下拉刷新")
             feedViewModel.refresh()
         }
     }
@@ -306,7 +312,7 @@ internal class BookmarkLibraryUi(
     private fun rebuildMirror() {
         val shelf = viewModel.shelf
         Timber.tag(TAG).i("用户手动重建镜像 %s", shelf.label)
-        context.appServices().bookmarkMirror.rebuildShelf(shelf)
+        mirror.rebuildShelf(shelf)
         // **刻意不在这里刷新**：清空发生在 rebuildShelf 自己的协程里，这里立刻刷只会
         // 读到清空前的数据（真机复现过：清空 2 行之后 2ms，那次查询读到的还是 2 行）。
         // 交给 [refreshIfStale] —— 清空落库后统计中的行数会掉到 0，它自然会把屏幕对齐，
@@ -330,7 +336,6 @@ internal class BookmarkLibraryUi(
         if (current.restrict == restrict) return
         val next = current.copy(restrict = restrict)
         if (!viewModel.switchShelf(next)) return
-        val mirror = context.appServices().bookmarkMirror
         // 版本表只在有书架剔除时才发射：不从源头对齐，切回来时 VM 停在 0 而表里是旧值，
         // 下一次任意书架剔除或页面重回前台的重放都会被误判成本架剔除。
         viewModel.updateReconcilePruneVersion(mirror.getReconcilePruneVersion(next.key))
@@ -474,7 +479,6 @@ internal class BookmarkLibraryUi(
 
     private fun observeState() {
         val uid = viewModel.shelf.ownerUid
-        val mirror = context.appServices().bookmarkMirror
         fragment.viewLifecycleOwner.lifecycleScope.launch {
             fragment.viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch { viewModel.filter.collectLatest { renderChips() } }
@@ -523,7 +527,7 @@ internal class BookmarkLibraryUi(
         // 掉网 / 恢复联网都要重画进度条：文案里「正在补齐 / 当前无网络」这两句的真假只取决于
         // 网络，而网络变化不会引起镜像表或状态表的任何写入 —— 不单独看着它，用户掉线后
         // 那句「正在后台补齐」会一直挂在那儿骗人，直到别的事件碰巧触发一次重绘。
-        context.appServices().networkStateManager.networkState
+        networkStateManager.networkState
             .observe(fragment.viewLifecycleOwner) { renderSyncBanner() }
     }
 
@@ -689,7 +693,7 @@ internal class BookmarkLibraryUi(
         if (!syncing || state == null) return
         // 离线时引擎每个 tick 都直接返回 Idle（连库都不查），一页都不会补。
         // 这时候还挂着「正在后台补齐」就是在骗人：用户会以为等一会儿就好，实际要等到有网。
-        val offline = context.appServices().networkStateManager.networkState.value?.isOnline != true
+        val offline = networkStateManager.networkState.value?.isOnline != true
         binding.syncText.text = when {
             offline -> context.getString(R.string.bookmark_library_sync_offline)
             state.cooldownUntil > System.currentTimeMillis() ->

@@ -8,6 +8,7 @@ import ceui.lisa.activities.Shaft
 import ceui.lisa.databinding.FragmentBookmarkLibraryBinding
 import ceui.lisa.utils.Params
 import ceui.pixiv.api.model.Illust
+import ceui.pixiv.db.mirror.BookmarkMirrorService
 import ceui.pixiv.db.mirror.BookmarkShelf
 import ceui.pixiv.db.mirror.MirrorContentType
 import ceui.pixiv.feeds.FeedItem
@@ -15,6 +16,9 @@ import ceui.pixiv.feeds.FeedUiState
 import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.common.IllustFeedFragment
+import ceui.pixiv.utils.NetworkStateManager
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 /**
  * 收藏库（插画/漫画）—— 直接看本地镜像表（[ceui.pixiv.db.mirror.BookmarkMirrorEntity]）的收藏列表页。
@@ -41,6 +45,7 @@ import ceui.pixiv.ui.common.IllustFeedFragment
  * - 不给详情页续拉游标（[detailContinuationCursor] 恒 null）—— 本地 offset 流到那条路上会被当 URL 请求。
  * 两条的完整论证同「稍后再看」页（`WatchLaterFeedFragment`）。
  */
+@AndroidEntryPoint
 class BookmarkLibraryFragment :
     IllustFeedFragment(R.layout.fragment_bookmark_library),
     BookmarkFilterSheet.Host {
@@ -58,6 +63,9 @@ class BookmarkLibraryFragment :
         val vm = libraryViewModel.also { it.bind(initialShelf) }
         BookmarkLibraryFeedSource(vm, MirrorContentType.ILLUST)
     }
+
+    @Inject lateinit var bookmarkMirror: BookmarkMirrorService
+    @Inject lateinit var networkStateManager: NetworkStateManager
 
     private var ui: BookmarkLibraryUi? = null
 
@@ -102,6 +110,8 @@ class BookmarkLibraryFragment :
             viewModel = libraryViewModel,
             feedViewModel = feedViewModel,
             contentType = MirrorContentType.ILLUST,
+            mirror = bookmarkMirror,
+            networkStateManager = networkStateManager,
             itemCount = { feedViewModel.uiState.value.items.size },
         ).also { it.install() }
     }
