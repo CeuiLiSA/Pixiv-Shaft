@@ -18,6 +18,7 @@ import kotlinx.coroutines.launch
 abstract class ModelDownloadFragment : BaseLazyFragment<FragmentRembgModelDownloadBinding>() {
 
     private var downloadJob: Job? = null
+    private var cancellingDownload = false
     private var downloadStartTime = 0L
     private var lastSpeedUpdateTime = 0L
     private var lastSpeedBytes = 0L
@@ -69,11 +70,13 @@ abstract class ModelDownloadFragment : BaseLazyFragment<FragmentRembgModelDownlo
         baseBind.progressSizeText.visibility = android.view.View.GONE
         baseBind.statusText.visibility = android.view.View.GONE
         baseBind.btnPrimary.visibility = android.view.View.VISIBLE
+        baseBind.btnPrimary.isEnabled = true
         baseBind.btnPrimary.text = getString(R.string.string_rembg_model_start_download)
         baseBind.btnSecondary.visibility = android.view.View.GONE
 
         baseBind.btnPrimary.setOnClick { startDownload() }
         baseBind.btnImport.visibility = android.view.View.VISIBLE
+        baseBind.btnImport.isEnabled = true
         baseBind.btnImport.setOnClick { showCopyOrImportDialog() }
     }
 
@@ -97,6 +100,7 @@ abstract class ModelDownloadFragment : BaseLazyFragment<FragmentRembgModelDownlo
         baseBind.btnPrimary.visibility = android.view.View.GONE
         baseBind.btnSecondary.visibility = android.view.View.VISIBLE
         baseBind.btnSecondary.text = getString(R.string.string_rembg_model_cancel)
+        baseBind.btnSecondary.isEnabled = true
         applyDefaultSecondaryColor()
         baseBind.btnSecondary.setOnClick { cancelDownload() }
         baseBind.btnImport.visibility = android.view.View.GONE
@@ -133,6 +137,8 @@ abstract class ModelDownloadFragment : BaseLazyFragment<FragmentRembgModelDownlo
 
         baseBind.btnSecondary.visibility = android.view.View.VISIBLE
         baseBind.btnSecondary.text = getString(R.string.string_rembg_model_delete)
+        // 取消下载 / 删除模型时会禁用它，之后经「导入」直达本状态不会路过 showDownloadingState
+        baseBind.btnSecondary.isEnabled = true
         baseBind.btnSecondary.setTextColor(
             ContextCompat.getColor(requireContext(), R.color.buttonTextRed)
         )
@@ -163,12 +169,14 @@ abstract class ModelDownloadFragment : BaseLazyFragment<FragmentRembgModelDownlo
     }
 
     private fun deleteModelAndReset() {
-        downloadJob?.cancel()
-        downloadJob = null
         val ctx = context ?: return
-        getManager().deleteModel(ctx, model)
-        if (!isAdded || view == null) return
-        showInitState()
+        baseBind.btnPrimary.isEnabled = false
+        baseBind.btnSecondary.isEnabled = false
+        val deletion = getManager().requestDeleteModel(ctx, model)
+        viewLifecycleOwner.lifecycleScope.launch {
+            deletion.join()
+            if (isAdded && view != null) showInitState()
+        }
     }
 
     private fun showErrorState() {
@@ -189,6 +197,7 @@ abstract class ModelDownloadFragment : BaseLazyFragment<FragmentRembgModelDownlo
     }
 
     private fun startDownload() {
+        if (downloadJob != null || cancellingDownload) return
         showDownloadingState()
         downloadJob = viewLifecycleOwner.lifecycleScope.launch {
             val success = getManager().downloadModel(requireContext(), model) { bytesRead, totalBytes ->
@@ -241,6 +250,7 @@ abstract class ModelDownloadFragment : BaseLazyFragment<FragmentRembgModelDownlo
                 }
             }
             if (!isAdded || view == null) return@launch
+            downloadJob = null
             if (success) {
                 showDoneState()
             } else {
@@ -268,10 +278,17 @@ abstract class ModelDownloadFragment : BaseLazyFragment<FragmentRembgModelDownlo
     }
 
     private fun cancelDownload() {
-        downloadJob?.cancel()
-        downloadJob = null
-        getManager().deleteModel(requireContext(), model)
-        showInitState()
+        val activeJob = downloadJob ?: return
+        if (cancellingDownload) return
+        cancellingDownload = true
+        baseBind.btnSecondary.isEnabled = false
+        val cleanup = getManager().cancelAndDeleteModel(requireContext(), model, activeJob)
+        viewLifecycleOwner.lifecycleScope.launch {
+            cleanup.join()
+            downloadJob = null
+            cancellingDownload = false
+            if (isAdded && view != null) showInitState()
+        }
     }
 
     private fun showCopyOrImportDialog() {
@@ -280,7 +297,7 @@ abstract class ModelDownloadFragment : BaseLazyFragment<FragmentRembgModelDownlo
             importPicker,
             getManager(),
             model,
-            canStart = { downloadJob?.isActive != true },
+            canStart = { !cancellingDownload && downloadJob?.isActive != true },
             onImportStarted = {
                 if (isAdded && view != null) showImportingState()
             },

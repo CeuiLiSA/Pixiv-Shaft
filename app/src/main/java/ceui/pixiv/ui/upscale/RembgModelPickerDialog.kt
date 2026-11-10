@@ -5,6 +5,7 @@ import android.view.View
 import android.view.WindowManager
 import android.view.animation.OvershootInterpolator
 import androidx.fragment.app.FragmentManager
+import androidx.lifecycle.lifecycleScope
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.activities.TemplateActivity
@@ -17,6 +18,7 @@ import ceui.pixiv.widgets.PixivDialog
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
 import ceui.pixiv.ui.navigation.TemplateRoute
+import kotlinx.coroutines.launch
 
 class RembgModelPickerDialog : PixivDialog(R.layout.dialog_rembg_model_picker) {
 
@@ -95,10 +97,15 @@ class RembgModelPickerDialog : PixivDialog(R.layout.dialog_rembg_model_picker) {
                 d.dismiss()
             }
             .addAction(0, getString(R.string.string_rembg_model_delete), WitDialogAction.ACTION_PROP_NEGATIVE) { d, _ ->
+                val message = getString(R.string.string_rembg_model_delete_done, model.displayName)
+                val host = requireActivity()
                 d.dismiss()
-                RembgModelManager.deleteModel(ctx, model)
-                updateModelStatus()
-                Common.showToast(getString(R.string.string_rembg_model_delete_done, model.displayName))
+                val deletion = RembgModelManager.requestDeleteModel(ctx, model)
+                host.lifecycleScope.launch {
+                    deletion.join()
+                    if (view != null) updateModelStatus()
+                    Common.showToast(message)
+                }
             }
             .show()
     }
