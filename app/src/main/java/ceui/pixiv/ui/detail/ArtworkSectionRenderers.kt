@@ -754,9 +754,9 @@ internal fun ArtworkV3Fragment.commentsRenderer() =
             val intent = Intent(ctx, TemplateActivity::class.java)
             if (isSnapshotMode) {
                 // 没勾「包含评论」的快照点进来只会是一页空列表；经典详情页已经就地提示了，
-                // V3 这边跟上，别让用户白跳一次。
-                val snapshot = snapshotId?.let { ceui.pixiv.snapshot.SnapshotRuntimeCache.get(it) }
-                if (snapshot?.comments == null) {
+                // V3 这边跟上，别让用户白跳一次。判据读条目，不回查 LRU 缓存（见
+                // [ArtworkCommentsItem.commentsExcludedFromSnapshot]）；评论页缓存缺失时会自己从磁盘重读。
+                if (item.commentsExcludedFromSnapshot) {
                     Common.showToast(ctx.getString(R.string.snapshot_no_comments_toast))
                     return
                 }
