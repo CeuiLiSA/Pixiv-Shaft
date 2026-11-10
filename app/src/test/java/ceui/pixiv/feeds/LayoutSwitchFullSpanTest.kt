@@ -58,6 +58,41 @@ class LayoutSwitchFullSpanTest {
         }
     }
 
+    @Test
+    fun `首屏预建剩下的卡从齐行切到瀑布流不崩`() {
+        val controller = Robolectric.buildActivity(FragmentActivity::class.java).setup()
+        try {
+            val list = RecyclerView(controller.get())
+            controller.get().setContentView(list)
+            val adapter = FeedAdapter(listOf(
+                feedRenderer<Header, CellBinding>(inflate = ::cell, fullSpan = true) { },
+                feedRenderer<Work, CellBinding>(inflate = ::cell) { },
+            ))
+            list.layoutManager = GridLayoutManager(controller.get(), 1).apply {
+                spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
+                    override fun getSpanSize(position: Int) = adapter.spanSizeAt(position, 1)
+                }
+            }
+            list.adapter = adapter
+            adapter.submitList(listOf(Header) + (1..12).map(::Work))
+            // 同 FeedFragment.prewarmFirstScreen：加载态预建 8 张主力卡塞进 pool。它们从没被
+            // RecyclerView 取用过，LayoutParams 上没挂 ViewHolder。
+            val workType = requireNotNull(adapter.viewTypeOf(Work::class.java))
+            list.recycledViewPool.setMaxRecycledViews(workType, 8)
+            adapter.prewarm(list, list.recycledViewPool, workType, 8)
+            // 单列首屏只用掉其中 4 张，剩 4 张躺在 pool 底
+            layout(list)
+
+            // 换成两列瀑布流：首屏要 8 张卡，回收回来的 4 张不够，会取到预建剩下的那几张
+            list.layoutManager = StaggeredManager(2, RecyclerView.VERTICAL)
+            layout(list)
+
+            assertTrue(list.findViewHolderForAdapterPosition(8) != null)
+        } finally {
+            controller.pause().stop().destroy()
+        }
+    }
+
     private fun layout(list: RecyclerView) {
         list.measure(
             View.MeasureSpec.makeMeasureSpec(600, View.MeasureSpec.EXACTLY),

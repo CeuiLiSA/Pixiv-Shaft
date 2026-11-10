@@ -2,6 +2,7 @@ package ceui.pixiv.feeds
 
 import android.annotation.SuppressLint
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
@@ -117,8 +118,7 @@ class FeedAdapter(
         val renderer = renderers[cell.itemViewType]
         cell.attach(getItem(position))
         if (renderer.fullSpan) {
-            (cell.itemView.layoutParams as? StaggeredGridLayoutManager.LayoutParams)
-                ?.isFullSpan = true
+            markFullSpan(cell.itemView)
         }
         if (payloads.isEmpty()) {
             renderer.onBind(cell)
@@ -156,9 +156,43 @@ class FeedAdapter(
         return renderers[getItemViewType(position)].spanSize(spanCount)
     }
 
-    /** LayoutManager 换代时，旧 holder 的 LayoutParams 可能在 bind 之后才被转换。 */
-    fun isFullSpanAt(position: Int): Boolean =
-        position in 0 until itemCount && renderers[getItemViewType(position)].fullSpan
+    /** 当前挂着本 adapter 的列表；[markFullSpan] 要按它此刻的 LayoutManager 转 LayoutParams。 */
+    private var recyclerView: RecyclerView? = null
+
+    override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
+        super.onAttachedToRecyclerView(recyclerView)
+        this.recyclerView = recyclerView
+    }
+
+    override fun onDetachedFromRecyclerView(recyclerView: RecyclerView) {
+        if (this.recyclerView === recyclerView) this.recyclerView = null
+        super.onDetachedFromRecyclerView(recyclerView)
+    }
+
+    /**
+     * 瀑布流里给整行条目打标记。
+     *
+     * 只换 LayoutManager、不换 adapter 时（[FeedFragment.relayoutList]），从 pool 取回的 holder
+     * 还带着上一种 LayoutManager 的 LayoutParams；RecyclerView 要到 bind **之后**才把它转成当前
+     * 类型，转出来的是一份新对象，标在旧对象上的整行就丢了（榜单头只占左列）。所以这里先按当前
+     * LayoutManager 转好再标：类型对上，RecyclerView 就直接沿用这一份。
+     *
+     * 不放在 LayoutManager 的 generateLayoutParams 里补：那里只能从旧参数反查条目位置，而首屏
+     * 预建（[prewarm]）出来、还没被 RecyclerView 取用过的 holder，参数上根本没挂 ViewHolder。
+     */
+    private fun markFullSpan(itemView: View) {
+        val params = itemView.layoutParams
+        val staggered = when {
+            params is StaggeredGridLayoutManager.LayoutParams -> params
+            params == null -> return
+            else -> {
+                val manager = recyclerView?.layoutManager as? StaggeredGridLayoutManager ?: return
+                (manager.generateLayoutParams(params) as StaggeredGridLayoutManager.LayoutParams)
+                    .also { itemView.layoutParams = it }
+            }
+        }
+        staggered.isFullSpan = true
+    }
 }
 
 /** 兜底 payload：告诉 RecyclerView「复用原 holder 全量重绑」，而不是播放 change 动画。 */
