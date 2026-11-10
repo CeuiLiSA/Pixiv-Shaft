@@ -195,6 +195,15 @@ class ProfileManager @Inject constructor(@ApplicationContext app: Context) {
 
         for (entity in downloads) {
             try {
+                // 同一作品的多页下载复用首次解析结果；旧记录若没有 illustId 仍走 JSON。
+                val indexedId = entity.illustId
+                if (indexedId > 0L && !entity.illustGson.isNullOrEmpty()) {
+                    val existing = likedIllusts[indexedId]
+                    if (existing != null) {
+                        likedIllusts[indexedId] = existing.copy(weight = existing.weight + 5f)
+                        continue
+                    }
+                }
                 val illust = gson.fromJson(entity.illustGson, Illust::class.java) ?: continue
                 if (illust.id <= 0) continue
                 val existing = likedIllusts[illust.id]

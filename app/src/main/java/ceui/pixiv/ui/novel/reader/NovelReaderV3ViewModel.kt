@@ -421,7 +421,7 @@ class NovelReaderV3ViewModel(
     fun jumpToCharIndex(charIndex: Int) {
         desiredCharIndex = charIndex
         val pages = _pagination.value?.pages ?: return
-        val target = pages.indexOfFirst { it.charEnd >= charIndex }.coerceAtLeast(0)
+        val target = pages.indexOfPageForAnchor(charIndex)
         _currentPageIndex.postValue(target)
     }
 

@@ -17,8 +17,8 @@ import org.robolectric.annotation.Config
  *
  * 盯两件事：
  *  1. 零迁移：老设置 / 老备份没有 `aiBlockExemptDisabledIds`，读出来必须是「名单里全部启用」；
- *  2. [Settings.isAiBlockClientSide] 只数**启用**的豁免作者 —— 它决定搜索走服务端剔 AI 还是
- *     拉全量本地滤，名单全停用时必须交回服务端。
+ *  2. 自动豁免关注作者默认开启时搜索走客户端；关闭后 [Settings.isAiBlockClientSide]
+ *     只数**启用**的手动豁免作者，名单全停用时交回服务端。
  *
  * 走 Robolectric 的原因同 ViewerDismissSettingsTest：`Settings` 的 static 字段要 PathUtils。
  */
@@ -39,6 +39,8 @@ class AiBlockExemptSettingsTest {
         )
 
         assertTrue(restored.aiBlockExemptDisabledIds.isEmpty())
+        assertTrue(restored.isAiBlockExemptFollowedAuthors)
+        assertTrue(restored.isAiBlockClientSide)
         assertEquals(2, restored.enabledAiBlockExemptAuthorCount)
         assertTrue(restored.isAiBlockExemptAuthor(100L))
         assertTrue(restored.isAiBlockClientSide)
@@ -72,6 +74,7 @@ class AiBlockExemptSettingsTest {
         val settings = Settings()
         settings.aiBlockExemptAuthorIds = linkedSetOf(100L, 200L)
         settings.aiBlockExemptDisabledIds = linkedSetOf(100L, 200L)
+        settings.isAiBlockExemptFollowedAuthors = false
 
         assertEquals(0, settings.enabledAiBlockExemptAuthorCount)
         assertFalse(settings.isAiBlockClientSide)

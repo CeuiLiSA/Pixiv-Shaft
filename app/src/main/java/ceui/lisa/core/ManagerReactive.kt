@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.map
  * Manager 是 Java 类，直接在它里面塞 `MutableSharedFlow` 字段 + 在每个
  * mutation 点写 kotlinx.coroutines API 既丑又容易写错。把 reactive 复杂度
  * 整体收到这个 Kotlin object 里：
- *   - Java 端只多一行 `ManagerReactive.invalidate()`，看起来就是普通方法调用
+ *   - Java 端按任务变化或进度变化调用对应的 invalidate 方法
  *   - Flow / Channel / dispatcher 等概念全在 Kotlin 侧
  *   - 单一数据源仍是 [Manager.content]；这边只是"哪儿脏了"信号 + 取快照
  *
@@ -26,6 +26,7 @@ import kotlinx.coroutines.flow.map
  *   - DROP_OLDEST + 0 buffer：高频 invalidate（progress 1% 一次，5 并发
  *     就 ~500/s）会被合并成"最多 1 个待处理 tick"，天然 conflate；不会
  *     爆 buffer 也不会阻塞 producer
+ * - [queueWorkFlow] 只接收任务增删和状态变化，供批量消费者及时补位
  * - [contentFlow] = invalidations.map { Manager.contentSnapshot() }
  *   - 每个 tick 从 Manager 拉当前快照（synchronized + 浅拷贝）
  *   - DownloadItem 仍是同一份对象引用（aliasing），所以 collector 端要拍
@@ -37,8 +38,8 @@ import kotlinx.coroutines.flow.map
  * # 用法
  *
  * Manager.java 端：
- *   - 任何修改 content 列表 / DownloadItem state / nonius / paused 的地方
- *     末尾加 `ManagerReactive.invalidate();`
+ *   - 修改 content 列表、state 或 paused 后调用 `invalidate()`；只改进度数值时
+ *     调用 `invalidateProgress()`，不唤醒批量队列
  *   - 暴露 `public List<DownloadItem> contentSnapshot()` 给 [contentFlow] 用
  *
  * UI 端：
@@ -59,13 +60,29 @@ object ManagerReactive {
         tryEmit(Unit)
     }
 
+    private val queueWorkChanges = MutableSharedFlow<Unit>(
+        replay = 1,
+        extraBufferCapacity = 0,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST,
+    ).apply { tryEmit(Unit) }
+
+    /** 批量队列只监听任务增删与状态变化，不处理每次进度数值更新。 */
+    val queueWorkFlow: Flow<Unit> = queueWorkChanges
+
     /**
-     * Manager 任意 mutation（add / remove / state change / progress）后调一次。
+     * Manager 任务增删或状态变化后调一次，同时通知 UI 与批量队列。
      * tryEmit 线程安全 + 非阻塞，可以从主线程 / IO 线程 / 下载线程池
      * 任意位置调。
      */
     @JvmStatic
     fun invalidate() {
+        invalidations.tryEmit(Unit)
+        queueWorkChanges.tryEmit(Unit)
+    }
+
+    /** 只有进度数值变化时调；UI 更新进度，批量队列继续等状态事件或兜底巡检。 */
+    @JvmStatic
+    fun invalidateProgress() {
         invalidations.tryEmit(Unit)
     }
 

@@ -59,6 +59,7 @@ import java.util.UUID
 import ceui.pixiv.ui.detail.V3MenuBuilder
 import ceui.pixiv.ui.detail.showV3Menu
 import ceui.pixiv.ui.novel.reader.model.PageGeometry
+import ceui.pixiv.ui.novel.reader.model.indexOfPageForAnchor
 import ceui.pixiv.ui.novel.reader.export.ExportFormat
 import ceui.pixiv.ui.novel.reader.export.ExportResult
 import ceui.pixiv.ui.novel.reader.export.NovelExportManager
@@ -1411,7 +1412,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
             else scrollReaderView?.jumpToCharIndex(charIndex)
         } else {
             val pageIdx = viewModel.pagination.value?.pages
-                ?.indexOfFirst { it.charEnd >= charIndex }?.coerceAtLeast(0) ?: 0
+                ?.indexOfPageForAnchor(charIndex) ?: 0
             readerView?.goToPage(pageIdx, animate = animate)
         }
     }

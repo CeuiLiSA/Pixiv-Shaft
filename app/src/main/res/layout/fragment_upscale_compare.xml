@@ -31,7 +31,7 @@
                 android:paddingHorizontal="10dp"
                 android:paddingVertical="4dp"
                 android:text="@string/string_compare_original"
-                android:textColor="@android:color/black"
+                android:textColor="@color/text00"
                 android:textSize="11sp" />
         </FrameLayout>
 

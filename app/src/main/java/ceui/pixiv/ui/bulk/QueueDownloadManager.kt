@@ -76,14 +76,14 @@ import javax.inject.Singleton
  * # 主循环结构
  *
  *   ```
- *   ManagerReactive.contentFlow  ─┐
+ *   ManagerReactive.queueWorkFlow ─┐
  *   tickle channel                ─┤── ticker (CONFLATED) ──→ withTimeoutOrNull(POLL_INTERVAL)
  *                                  │
  *                                  ▼
  *   while (!paused && (userForced || autoStartAllowed)) {
  *     settleCompleted()    // inflight 全部 P 都没了 → 标 SUCCESS / FAILED
  *     fillSlots()           // 按 maxConc 补 P：先补现有 inflight 剩余 P，再 pull 新行
- *     Manager.startAll()   // 触发 pumpAvailableSlots
+ *     Manager.triggerPump() // 真新增 page 时触发下载泵
  *     ticker.receive(timeout = POLL_INTERVAL)  // 等下一次事件或兜底超时
  *   }
  *   ```
@@ -110,7 +110,7 @@ class QueueDownloadManager @Inject constructor(@ApplicationContext app: Context)
     @Volatile private var loopJob: Job? = null
 
     /**
-     * contentFlow → [tickle] 的桥。与 [loopJob] 互为兄弟（都挂在 [scope] 下），见 [startBridge]。
+     * queueWorkFlow → [tickle] 的桥。与 [loopJob] 互为兄弟（都挂在 [scope] 下），见 [startBridge]。
      */
     @Volatile private var bridgeJob: Job? = null
 
@@ -204,6 +204,12 @@ class QueueDownloadManager @Inject constructor(@ApplicationContext app: Context)
      * 该 map 只在 [loopJob] 单一协程内读写，不需要同步。
      */
     private val inFlight: LinkedHashMap<Long, InFlightIllust> = LinkedHashMap()
+
+    /** 在飞任务结束后恢复遗留状态一次；只由主循环和它调用的派发函数访问。 */
+    private var idleRecoveryPending = false
+
+    /** 有在飞页或待消费行时才转发 Manager 事件；由主循环写，桥接协程只读。 */
+    @Volatile private var queueNeedsManagerEvents: Boolean = false
 
     /**
      * 断点续传进度看门狗的跨尝试状态，键 = download_queue.id。inFlight 每次 pull 都会
@@ -373,8 +379,9 @@ class QueueDownloadManager @Inject constructor(@ApplicationContext app: Context)
      */
     private suspend fun runColdStart() {
         // 冷启动：上次崩溃残留的 DOWNLOADING 全部归位为 PENDING
-        runCatching { dao.resurrectInProgress() }
+        idleRecoveryPending = runCatching { dao.resurrectInProgress() }
             .onFailure { Timber.tag(TAG).e(it, "resurrectInProgress failed") }
+            .isFailure
 
         // issue #857：清理上一次会话遗留的 IS_PENDING=1 行（4.6.0~4.6.4 版本
         // 在网络抖动时下载失败留下的 0 字节 `.pending-NNNN` 文件）。这一时刻
@@ -409,21 +416,19 @@ class QueueDownloadManager @Inject constructor(@ApplicationContext app: Context)
     }
 
     /**
-     * 把 ManagerReactive.contentFlow 的 emit 桥到 [tickle]，让主循环既能响应队列变更，
-     * 也能响应 Manager 内部状态变更（addTask / state 翻转 / P 完成 remove / clearAll /
-     * pumpAvailableSlots / progress）。
+     * 队列有在飞页或待消费行时，把 ManagerReactive.queueWorkFlow 桥到 [tickle]。
+     * 进度数值只更新 UI；任务增删、状态切换仍立即唤醒消费者。批量入列由
+     * [resume] / [notifyNewItems] 显式唤醒。
      *
-     * **必须挂在 [scope] 下，不能放进 [loopJob] 里 launch**：结构化并发下，loopJob 内
-     * launch 出来的子协程抛异常会取消 loopJob 本身。这条桥每收到一次 invalidate 都要跑
-     * `Manager.contentSnapshot()`（下载进度 1% 一次，5 并发约 500 次/秒，每次都新建一个
-     * ArrayList），内存紧张时 OOM 是真会发生的 —— 一旦把主循环连坐掉，队列就永久停摆
-     * （见 [onLoopFinished]）。挂到 [scope] 下它才是 SupervisorJob 的直接子协程，与主
-     * 循环互为兄弟，互不连坐。
+     * 桥必须挂在 [scope] 下，与 [loopJob] 互为兄弟；意外异常不能连坐主循环。
      */
+
     private fun startBridge() {
         if (bridgeJob?.isActive == true) return
         val job = scope.launch {
-            ManagerReactive.contentFlow.collect { tickle.trySend(Unit) }
+            ManagerReactive.queueWorkFlow.collect {
+                if (queueNeedsManagerEvents) tickle.trySend(Unit)
+            }
         }
         bridgeJob = job
         job.invokeOnCompletion {
@@ -509,9 +514,9 @@ class QueueDownloadManager @Inject constructor(@ApplicationContext app: Context)
             try {
                 settleCompleted()
                 val didAdd = fillSlots()
-                // 只在真加了 P 时才 trigger pump —— ManagerReactive.contentFlow 桥到
-                // tickle 后，每个 progress 1% 都会唤醒主循环；空跑也调一遍就是每秒做
-                // 几百次"全 content 扫描 + pump"，纯 CPU 浪费。
+                // 只在真加了 P 时才 trigger pump —— 状态事件与兜底轮询唤醒后
+                // 没有新增 page 时直接跳过，避免重复扫描整个 content 并触发 pump。
+                // 进度数值更新只走 UI，不会逐个进度点唤醒队列。
                 //
                 // triggerPump() 而不是 startAll()：startAll 会对 content 每条跑
                 // resurrectIfStranded，对刚 setState(DOWNLOADING) 但 handles.put 还在
@@ -529,17 +534,27 @@ class QueueDownloadManager @Inject constructor(@ApplicationContext app: Context)
                 Timber.tag(TAG).e(t, "[QUEUE-CONSUMER] tick threw")
             }
 
+            queueNeedsManagerEvents = inFlight.isNotEmpty()
+
             // inflight 空且没有 PENDING 了：纯空闲态，停下来等下一次 tickle（不再忙等）
             if (inFlight.isEmpty()) {
-                // 进真正的"空闲睡眠"前再修一次 DB —— dao.updateStatus 用 runCatching
-                // 包着，某次抛了被吞会让 DB 里残留"幽灵 DOWNLOADING"行（inflight 已经
-                // remove，下次 nextByStatusExcluding 也不会拿它）。此刻 inflight 为空，
-                // 任何 DB 里的 DOWNLOADING 都是脏数据，统一拉回 PENDING 安全。
-                runCatching { dao.resurrectInProgress() }
-                    .onFailure { Timber.tag(TAG).w(it, "[QUEUE-CONSUMER] idle resurrect failed") }
+                // illust/ugoira 在飞任务全部结束后，才恢复残留的 DOWNLOADING。
+                // dao.updateStatus 的失败可能留下幽灵行，所以收口后检查一次。
+                // 动图由独立 worker 管理，不在 inFlight 里；运行中不能重置为 PENDING。
+                // worker finally 会 tickle，届时再执行恢复。
+                if (idleRecoveryPending && ugoiraInFlightRowIds.isEmpty()) {
+                    val recovered = runCatching { dao.resurrectInProgress() }
+                        .onFailure { Timber.tag(TAG).w(it, "[QUEUE-CONSUMER] idle resurrect failed") }
+                    if (recovered.isSuccess) idleRecoveryPending = false
+                }
                 val hasPending = runCatching { dao.countByStatus(QueueStatus.PENDING) > 0 }
-                    .getOrDefault(false)
-                if (!hasPending) {
+                    .onFailure { Timber.tag(TAG).w(it, "[QUEUE-CONSUMER] pending count failed") }
+                    .getOrDefault(true) // 查询失败代表状态未知，保留事件唤醒与兜底轮询。
+                queueNeedsManagerEvents = hasPending
+                // 恢复失败时仍有收尾工作，不能释放本批手动放行或进入无限等待。
+                // 运行中的动图由 worker finally 唤醒；等待它时不做周期性空转。
+                val recoveryNeedsRetry = idleRecoveryPending && ugoiraInFlightRowIds.isEmpty()
+                if (!hasPending && !recoveryNeedsRetry) {
                     // ugoira 行在 DB 里是 DOWNLOADING、也不在 inFlight，得单独确认没在飞
                     if (ugoiraInFlightRowIds.isEmpty()) {
                         maybeToastBatchSummary()
@@ -935,6 +950,7 @@ class QueueDownloadManager @Inject constructor(@ApplicationContext app: Context)
         val doneByThisRow = RecordedPageProbe.usablePagesSince(appContext, target, row.createdAt)
         val pendingPages = pagesToDispatch(pageCount, presentIdx, doneByThisRow)
 
+        idleRecoveryPending = true
         inFlight[row.id] = InFlightIllust(
             queueRowId = row.id,
             illustId = row.illustId,
@@ -1060,6 +1076,7 @@ class QueueDownloadManager @Inject constructor(@ApplicationContext app: Context)
             Timber.tag(TAG).w("[QUEUE-CONSUMER] ugoira already dispatched row=${row.id}")
             return
         }
+        idleRecoveryPending = true
         // 一进派发就 push 到 ugoiraInFlightFlow，UI 能立刻看到 QUEUED 行
         setUgoiraPhase(row.id, bean, UgoiraPhase.QUEUED)
         queueListInvalidations.tryEmit(Unit)

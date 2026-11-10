@@ -12,7 +12,7 @@ import java.security.MessageDigest
 
 object BackgroundRemover {
 
-    private val PROGRESS_REGEX = Regex("""(\d+\.?\d*)%\s*\[\s*[\d.]+s\s*/\s*([\d.]+)\s*ETA""")
+    private val PROGRESS_REGEX = Regex("""(\d+\.?\d*)%(?:\s*\[\s*[\d.]+s\s*/\s*([\d.]+)\s*ETA)?""")
 
     private fun cacheDir(context: Context): File {
         return File(context.filesDir, "rembg-cache").also { it.mkdirs() }

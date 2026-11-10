@@ -320,16 +320,15 @@ class BookmarkMirrorService(
         }
     }
 
-    /** 关掉某个书架的镜像并清空它（用户在设置里关闭，或换号清理）。 */
-    fun dropShelf(shelf: BookmarkShelf) {
-        scope.launch {
-            Timber.tag(TAG).i("移除书架 %s", shelf.label)
-            dao.clearShelf(shelf.key)
-            dao.deleteState(shelf.key)
-            maintenanceRequested -= shelf.key
-            emptyShelfStreak -= shelf.key
-            if (activeRun?.shelf == shelf) activeRun = null
-        }
+    /** 清空所选书架的行、标签和同步状态；返回 [Job] 供调试入口等待结果。 */
+    fun dropShelf(shelf: BookmarkShelf): Job = scope.launch {
+        Timber.tag(TAG).i("移除书架 %s", shelf.label)
+        dao.clearShelf(shelf.key)
+        dao.deleteState(shelf.key)
+        maintenanceRequested -= shelf.key
+        emptyShelfStreak -= shelf.key
+        if (activeRun?.shelf == shelf) activeRun = null
+        if (_activeShelfKey.value == shelf.key) _activeShelfKey.value = null
     }
 
     /**

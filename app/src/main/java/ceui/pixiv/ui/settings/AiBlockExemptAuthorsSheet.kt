@@ -21,6 +21,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.doOnNextLayout
 import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearSmoothScroller
 import androidx.recyclerview.widget.RecyclerView
 import ceui.lisa.R
@@ -28,6 +29,12 @@ import ceui.lisa.activities.Shaft
 import ceui.lisa.databinding.SheetAiBlockExemptAuthorsBinding
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.Local
+import ceui.pixiv.db.mirror.BookmarkMirrorStateEntity
+import ceui.pixiv.db.mirror.BookmarkShelf
+import ceui.pixiv.db.mirror.MirrorContentType
+import ceui.pixiv.db.mirror.MirrorRestrict
+import ceui.pixiv.services.appServices
+import ceui.pixiv.session.SessionManager
 import ceui.pixiv.utils.makeSheetTransparentAndFillNavBar
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.screenHeight
@@ -40,6 +47,7 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import java.util.LinkedHashSet
+import kotlinx.coroutines.launch
 import kotlin.math.min
 import kotlin.math.roundToInt
 
@@ -73,6 +81,7 @@ class AiBlockExemptAuthorsSheet : BottomSheetDialogFragment() {
 
     /** 工作副本（保持添加顺序）。只在 [onCreate] 灌一次，见那里的注释。 */
     private val entries = mutableListOf<ExemptEntry>()
+    private var followedExemptEnabled = true
 
     private var adapter: ExemptAdapter? = null
 
@@ -94,6 +103,7 @@ class AiBlockExemptAuthorsSheet : BottomSheetDialogFragment() {
         // 只在建实例时从设置灌一次：DialogFragment 跨旋转/配置变更存活，若放在 onViewCreated 里
         // 重灌，转屏一次就把用户刚删掉、还没保存的 ID 又加回来。clear() 让同一实例上的重入幂等。
         entries.clear()
+        followedExemptEnabled = Shaft.sSettings.isAiBlockExemptFollowedAuthors
         val disabled = Shaft.sSettings.aiBlockExemptDisabledIds
         Shaft.sSettings.aiBlockExemptAuthorIds.forEach { id ->
             entries.add(ExemptEntry(id, enabled = !disabled.contains(id)))
@@ -120,6 +130,26 @@ class AiBlockExemptAuthorsSheet : BottomSheetDialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         applyAccent()
+        binding.followedMirrorStatus.text = getString(R.string.ai_block_follow_mirror_unavailable_format, getString(R.string.ai_block_follow_mirror_checking))
+        binding.followedExemptSwitch.isChecked = followedExemptEnabled
+        binding.followedExemptSwitch.setOnCheckedChangeListener { _, checked ->
+            followedExemptEnabled = checked
+        }
+        binding.followedExemptRow.setOnClickListener {
+            if (binding.followedExemptSwitch.isVisible) {
+                binding.followedExemptSwitch.isChecked = !binding.followedExemptSwitch.isChecked
+            }
+        }
+        val uid = SessionManager.loggedInUid
+        if (uid > 0L) {
+            viewLifecycleOwner.lifecycleScope.launch {
+                requireContext().appServices().bookmarkMirror.observeState(uid).collect { states ->
+                    renderFollowedMirrorState(uid, states)
+                }
+            }
+        } else {
+            renderFollowedMirrorState(uid, emptyList())
+        }
         binding.btnCancel.setOnClickListener { dismissAllowingStateLoss() }
         binding.btnSave.setOnClickListener { save() }
         binding.btnAdd.setOnClickListener { addCurrentInput() }
@@ -239,6 +269,28 @@ class AiBlockExemptAuthorsSheet : BottomSheetDialogFragment() {
         renderEmpty()
     }
 
+    private fun renderFollowedMirrorState(uid: Long, states: List<BookmarkMirrorStateEntity>) {
+        fun ready(restrict: MirrorRestrict): Boolean {
+            val key = BookmarkShelf(uid, MirrorContentType.USER, restrict).key
+            return states.firstOrNull { it.shelfKey == key }?.isFirstSyncDone == true
+        }
+        val publicReady = uid > 0L && ready(MirrorRestrict.PUBLIC)
+        val privateReady = uid > 0L && ready(MirrorRestrict.PRIVATE)
+        val available = Shaft.sSettings.isBookmarkMirrorEnabled && publicReady && privateReady
+        binding.followedExemptSwitch.isVisible = available
+        binding.followedExemptRow.isEnabled = available
+        binding.followedMirrorStatus.isVisible = !available
+        if (!available) {
+            val statusRes = when {
+                !publicReady && !privateReady -> R.string.ai_block_follow_mirror_both_unready
+                !publicReady -> R.string.ai_block_follow_mirror_public_unready
+                !privateReady -> R.string.ai_block_follow_mirror_private_unready
+                else -> R.string.ai_block_follow_mirror_disabled
+            }
+            binding.followedMirrorStatus.text = getString(R.string.ai_block_follow_mirror_unavailable_format, getString(statusRes))
+        }
+    }
+
     private fun renderEmpty() {
         binding.emptyHint.isVisible = entries.isEmpty()
     }
@@ -269,6 +321,13 @@ class AiBlockExemptAuthorsSheet : BottomSheetDialogFragment() {
         binding.btnSave.backgroundTintList = ColorStateList.valueOf(palette.primary)
         binding.btnSave.setTextColor(Color.WHITE)
         binding.btnCancel.setTextColor(palette.textAccent)
+        val states = arrayOf(intArrayOf(android.R.attr.state_checked), intArrayOf())
+        binding.followedExemptSwitch.thumbTintList = ColorStateList(
+            states, intArrayOf(Color.WHITE, palette.textSecondary),
+        )
+        binding.followedExemptSwitch.trackTintList = ColorStateList(
+            states, intArrayOf(palette.primary, palette.alpha15),
+        )
     }
 
     private fun save() {
@@ -282,6 +341,7 @@ class AiBlockExemptAuthorsSheet : BottomSheetDialogFragment() {
         }
         Shaft.sSettings.aiBlockExemptAuthorIds = ids
         Shaft.sSettings.aiBlockExemptDisabledIds = disabled
+        Shaft.sSettings.isAiBlockExemptFollowedAuthors = followedExemptEnabled
         Local.setSettings(Shaft.sSettings)
         Common.showToast(getString(R.string.please_restart_app), 2)
         parentFragmentManager.setFragmentResult(REQUEST_KEY, bundleOf(RESULT_CHANGED to true))

@@ -1,7 +1,6 @@
 package ceui.lisa.transformer
 
 import android.view.View
-import com.ToxicBakery.viewpager.transforms.ABaseTransformer
 
 class CubeInTransformer : ABaseTransformer() {
 
