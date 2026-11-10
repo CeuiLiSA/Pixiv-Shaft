@@ -131,14 +131,14 @@ class ManagerDirectTransferTest {
         assertEquals("ABCDEFGH", file.readText())
     }
 
-    @Test fun `wrong range leaves the existing prefix untouched`() {
+    @Test fun `wrong range discards the partial so the next attempt starts fresh`() {
         val file = temp.newFile().also { it.writeText("ABC") }
         val emitter = RecordingEmitter()
         assertThrows(IOException::class.java) {
             transfer(file, 3L, client { response(it, 206, "EFGH".toResponseBody(), "bytes 4-7/8") }, emitter)
         }
-        assertEquals("ABC", file.readText())
         assertFalse(emitter.completed)
+        assertFalse(file.exists())
     }
 
     @Test fun `short response is not completed`() {

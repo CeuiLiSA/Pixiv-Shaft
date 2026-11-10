@@ -1688,7 +1688,9 @@ public class Manager {
                 StageStore.WriteDecision decision = StageStore.decideWrite(
                         code, response.header("Content-Range"), body != null ? body.contentLength() : -1L, passSize);
                 if (decision.mode == StageStore.WriteMode.ABORT) {
-                    if (code == 416 && "file".equals(targetUri.getScheme())) {
+                    // 同 staged 路径：ABORT 一律弃掉 partial。GIF 每次派发都按现有 zip 长度续传，
+                    // 留着前缀重试只会发同一个 Range、撞同一个 ABORT，永远下不完。
+                    if ("file".equals(targetUri.getScheme())) {
                         runCatchingDelete(new File(targetUri.getPath()));
                     }
                     throw new IOException("invalid direct-download range, restart fresh");
