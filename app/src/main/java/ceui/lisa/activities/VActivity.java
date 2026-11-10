@@ -36,8 +36,18 @@ import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 import ceui.pixiv.cache.ObjectPool;
+import ceui.pixiv.analytics.Analytics;
+import dagger.hilt.android.AndroidEntryPoint;
+import javax.inject.Inject;
 
+/**
+ * {@link AndroidEntryPoint}：页里挂的 {@link FragmentImageDetail} 会以本 Activity 为 owner 取
+ * {@code @HiltViewModel} 的 {@link ImageTranslationViewModel}，宿主不是 Hilt 入口就建不出来。
+ */
+@AndroidEntryPoint
 public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
+
+    @Inject Analytics analytics;
 
     private String pageUUID = "";
     private String originPageUUID = "";
@@ -175,8 +185,7 @@ public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
                         PixivOperate.insertIllustViewHistory(viewed);
                     }
                     if (viewed.getId() > 0) {
-                        ceui.pixiv.services.ServiceProviderKt.appServices(VActivity.this)
-                                .getAnalytics().illustView(viewed.getType(), viewedFirstIllust);
+                        analytics.illustView(viewed.getType(), viewedFirstIllust);
                         viewedFirstIllust = true;
                     }
 

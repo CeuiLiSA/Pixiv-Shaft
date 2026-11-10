@@ -28,8 +28,8 @@ import org.robolectric.util.ReflectionHelpers
 @LooperMode(LooperMode.Mode.PAUSED)
 class HistoryListAnimationTest {
     // 必须是 Shaft：AndroidViewModelFactory 是静态单例，会缓存首个 Application 并跨测试类留在同一 SDK 沙箱里。
-    // 这里若用 android.app.Application，排在后面的 ImageDetail*Test 建 ImageTranslationViewModel 时
-    // appServices() 强转 ServicesProvider 就会 ClassCastException。
+    // 这里若用 android.app.Application，排在后面的测试里凡是经 appServices() 强转
+    // ServicesProvider 的 AndroidViewModel（如 DiscoverViewModel）都会 ClassCastException。
     class TestApplication : Shaft() {
         override fun onCreate() = Unit // 列表动画测试不需要原生服务与网络初始化。
     }

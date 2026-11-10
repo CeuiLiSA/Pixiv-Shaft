@@ -1,22 +1,21 @@
 package ceui.lisa.activities
 
-import android.app.Application
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import ceui.lisa.R
 import ceui.lisa.utils.Common
-import ceui.pixiv.services.appServices
 import ceui.pixiv.utils.asLiveData
 import ceui.pixiv.ui.translate.ComicTextDetectorModel
 import ceui.pixiv.ui.translate.MangaOcrModel
 import ceui.pixiv.ui.translate.MangaBatchTranslateCenter
 import ceui.pixiv.ui.translate.MangaPageTranslatePipeline
+import ceui.pixiv.ui.translate.MangaTranslateModels
 import ceui.pixiv.ui.translate.MangaPageTranslatePipeline.Stage
 import ceui.pixiv.ui.translate.TextEraser
 import ceui.pixiv.ui.translate.TextRenderer
@@ -26,6 +25,9 @@ import ceui.pixiv.ui.translate.currentTranslator
 import ceui.pixiv.ui.translate.promptTranslateFailedIfPossible
 import ceui.pixiv.ui.translate.verbatimWarningText
 import ceui.pixiv.ui.upscale.OcrTextRegion
+import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -44,13 +46,17 @@ import java.io.File
  * - [translatedPaths] pageIndex → 译图路径,Fragment 观察后切图
  * - 译图尽量按原分辨率出图(见 [MangaPageTranslatePipeline.decodeRenderBase]),内存不够才降采样
  * - 同一页二次翻译会把旧产物文件 delete 掉,避免 cacheDir 累积
+ *
+ * Activity 作用域:[FragmentImageDetail][ceui.lisa.fragments.FragmentImageDetail] 在 onAttach 就以宿主
+ * Activity 为 owner 取它,所以凡是挂 FragmentImageDetail 的 Activity 都必须是 `@AndroidEntryPoint`,
+ * 否则默认工厂建不出这个 VM,一进页面就崩。
  */
-class ImageTranslationViewModel(application: Application) : AndroidViewModel(application) {
-
-    private val app: Context = application
-    private val services = application.appServices()
-    private val batchCenter: MangaBatchTranslateCenter get() = services.mangaBatchTranslateCenter
-    private val models get() = services.mangaTranslateModels
+@HiltViewModel
+class ImageTranslationViewModel @Inject constructor(
+    @ApplicationContext private val app: Context,
+    private val batchCenter: MangaBatchTranslateCenter,
+    private val models: MangaTranslateModels,
+) : ViewModel() {
 
     private val _running = MutableLiveData(false)
     val running: LiveData<Boolean> get() = _running.asLiveData()

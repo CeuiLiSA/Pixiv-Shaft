@@ -4,7 +4,6 @@ import android.net.Uri
 import android.os.Looper
 import android.view.View
 import android.widget.FrameLayout
-import androidx.fragment.app.FragmentActivity
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.utils.Settings
@@ -51,7 +50,7 @@ class ImageDetailRecoveryTest {
         override fun onCreate() = Unit
     }
 
-    private lateinit var host: ActivityController<FragmentActivity>
+    private lateinit var host: ActivityController<ImageDetailTestHostActivity>
     private lateinit var fragment: FragmentImageDetail
     private lateinit var image: SketchZoomImageView
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
@@ -62,7 +61,7 @@ class ImageDetailRecoveryTest {
 
     @Before
     fun setUp() {
-        host = Robolectric.buildActivity(FragmentActivity::class.java)
+        host = Robolectric.buildActivity(ImageDetailTestHostActivity::class.java)
         host.get().setTheme(R.style.AppTheme)
         Utils.init(host.get().application)
         Shaft.sSettings = Settings()
