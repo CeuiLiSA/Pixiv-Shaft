@@ -12,6 +12,7 @@ import android.view.ViewTreeObserver
 import android.widget.FrameLayout
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.os.BundleCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
@@ -206,6 +207,12 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
     /** 宽窗口排版的作品舞台（#1087）；手机排版与快照模式为 null，作品图照旧是列表条目。 */
     private var tabletStage: ArtworkTabletStage? = null
 
+    /**
+     * 上一个视图记下、还没在本视图落地的阅读位置（见 [ArtworkReadingAnchor]）。首批信息区块
+     * 提交时由 [applyReadingAnchor] 消费；落地前又要存状态（连着两次旋屏）就原样带下去。
+     */
+    private var pendingReadingAnchor: ArtworkReadingAnchor? = null
+
     private var sectionLoader: SectionLoader<ArtworkSection>? = null
     private var artistObservedUserId: Long = 0L
 
@@ -381,12 +388,17 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         ) {
             ensurePageAdapter()
         }
+        if (_chromeBind != null) applyReadingAnchor(state)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         _chromeBind = FragmentArtworkV3Binding.bind(view)
         _fabBarController = V3FabBarController(chromeBind.fabBar)
+        // 快照模式没有舞台、也不增删页条目，列表形状不随排版变，交给 RecyclerView 自己恢复
+        pendingReadingAnchor = savedInstanceState?.takeUnless { isSnapshotMode }?.let {
+            BundleCompat.getParcelable(it, KEY_READING_ANCHOR, ArtworkReadingAnchor::class.java)
+        }
         setUpTabletStage()
         if (tabletStage == null) {
             // 页码浮标 / 长按预览都是「列表里的图片页」的配件；舞台自带页码条，不挂
@@ -573,6 +585,79 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         autoSnapshot.save(outState)
+        // 还没落地的锚点原样带下去：列表还没按它排过版，RecyclerView 存下的也仍是上一份状态
+        (pendingReadingAnchor ?: captureReadingAnchor())
+            ?.let { outState.putParcelable(KEY_READING_ANCHOR, it) }
+    }
+
+    /** 当前视图上「用户正在看哪」，规则见 [ArtworkReadingAnchor]；没有视图或快照模式为 null。 */
+    private fun captureReadingAnchor(): ArtworkReadingAnchor? {
+        if (isSnapshotMode || _chromeBind == null) return null
+        val listView = feedBinding.feedListView
+        val top = topVisibleItem(listView)
+        val stage = tabletStage
+        if (stage != null) {
+            val info = top?.takeIf { listView.canScrollVertically(-1) }
+            return ArtworkReadingAnchor(
+                staged = true,
+                page = stage.currentPage,
+                infoKey = info?.first?.readingKey,
+                infoOffset = info?.second ?: 0,
+            )
+        }
+        val item = top?.first
+        return if (top == null || item is ArtworkPageItem || item is ArtworkUgoiraItem) {
+            ArtworkReadingAnchor(staged = false, page = resolveCurrentViewportPage(), infoKey = null, infoOffset = 0)
+        } else {
+            ArtworkReadingAnchor(staged = false, page = -1, infoKey = top.first.readingKey, infoOffset = top.second)
+        }
+    }
+
+    /** 还露在可视区里、顶边最靠上的那一条，连同顶边相对列表 paddingTop 的偏移；没排版时为 null。 */
+    private fun topVisibleItem(listView: RecyclerView): Pair<FeedItem, Int>? {
+        val items = feedAdapter?.currentList ?: return null
+        var top: Pair<FeedItem, Int>? = null
+        for (i in 0 until listView.childCount) {
+            val child = listView.getChildAt(i)
+            if (child.bottom <= listView.paddingTop) continue
+            val item = items.getOrNull(listView.getChildAdapterPosition(child)) ?: continue
+            val offset = child.top - listView.paddingTop
+            if (top == null || offset < top.second) top = item to offset
+        }
+        return top
+    }
+
+    /**
+     * 新视图首批信息区块提交后，按 [pendingReadingAnchor] 把列表接回用户在看的位置。
+     *
+     * 在提交回调里就设 pending scroll，不等排版：RecyclerView 按下标恢复的状态要到这次提交后的
+     * 第一次排版才交给 LayoutManager，而 SGLM / LLM 收到时若已有 pending scroll 会作废它的锚点
+     * —— 新位置一帧到位，不会先排出错开的那一格。
+     */
+    private fun applyReadingAnchor(state: FeedUiState) {
+        val anchor = pendingReadingAnchor ?: return
+        // 数据还没到（加载跨了重建）：等真正出信息区块的那次提交
+        if (state.items.none { it is ArtworkHeroItem }) return
+        // reconcilePageItems 刚因为这一版和当前排版对不上又改了一版（数据源按旧窗口出的图）：
+        // 下标会再变，等下一次提交
+        if (feedViewModel.uiState.value.items !== state.items) return
+        pendingReadingAnchor = null
+        val items = feedAdapter?.currentList ?: return
+        val listView = feedBinding.feedListView
+        val landing = anchor.landingIn(stagedNow = tabletStage != null) { key ->
+            items.indexOfFirst { it.readingKey == key }
+        }
+        when (landing) {
+            ArtworkListLanding.Keep -> Unit
+            is ArtworkListLanding.Item -> listView.scrollToPositionWithOffset(landing.index, landing.offset)
+            is ArtworkListLanding.Page -> {
+                // 那一页还被折着时要等展开的条目下一次提交才到：这一帧先按住顶部，
+                // 别让 RecyclerView 把错开的下标排出来
+                listView.scrollToPositionWithOffset(0, 0)
+                ensurePageAdapter()
+                jumpToPage(landing.page)
+            }
+        }
     }
 
     override fun onResume() {
@@ -1690,6 +1775,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
                 onBack = { requireActivity().finish() },
                 onMore = { chromeBind.navMore.performClick() },
                 onOpenReader = { openComicReader() },
+                initialPage = pendingReadingAnchor?.page?.coerceAtLeast(0) ?: 0,
             )
             // 返回 / 更多都在舞台上；信息栏不要顶栏，标题直接从栏顶开始
             chromeBind.toolbar.isVisible = false
@@ -1943,6 +2029,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
 
     companion object {
         private const val FAB_ANIMATION_DURATION_MS = 200L
+        private const val KEY_READING_ANCHOR = "artwork_reading_anchor"
 
         @JvmStatic
         fun newInstance(illustId: Long): ArtworkV3Fragment {

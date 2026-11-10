@@ -7,6 +7,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import androidx.room.Room
+import androidx.viewpager2.widget.ViewPager2
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.database.AppDatabase
@@ -30,6 +31,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.RuntimeEnvironment
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.android.controller.ActivityController
 import org.robolectric.annotation.Config
@@ -210,6 +212,85 @@ class ArtworkAutoExpandTest {
         assertEquals(View.GONE, stage.visibility)
     }
 
+    @Test
+    @Config(qualifiers = "w800dp-h1280dp")
+    fun `rotation carries the reading page between the list and the stage`() {
+        Glide.init(host.get().application, GlideBuilder())
+        glideReady = true
+        Shaft.sSettings.isTabletLayout = true
+        openOnline(autoExpand = true, pageCount = 8)
+        awaitPages(8)
+        settle(800, 1280)
+        scrollTo { it is ArtworkPageItem && it.pageIndex == 5 }
+        assertPageOnTop(5)
+
+        rotateTo("w1280dp-h800dp")
+        awaitHero()
+        settle(1280, 800)
+        assertEquals(5, stage().currentPage)
+        assertTrue("info column starts from the title", topItem() is ArtworkHeroItem)
+
+        ReflectionHelpers.getField<ViewPager2>(stage(), "pager").setCurrentItem(6, false)
+        rotateTo("w800dp-h1280dp")
+        awaitPages(8)
+        settle(800, 1280)
+        assertPageOnTop(6)
+    }
+
+    @Test
+    @Config(qualifiers = "w800dp-h1280dp")
+    fun `rotation keeps the info block being read`() {
+        Glide.init(host.get().application, GlideBuilder())
+        glideReady = true
+        Shaft.sSettings.isTabletLayout = true
+        openOnline(autoExpand = true)
+        awaitPages(3)
+        settle(800, 1280)
+        scrollTo { it is ArtworkTagsItem }
+
+        rotateTo("w1280dp-h800dp")
+        awaitHero()
+        settle(1280, 800)
+        assertTrue("landed on ${topItem()}", topItem() is ArtworkTagsItem)
+
+        rotateTo("w800dp-h1280dp")
+        awaitPages(3)
+        settle(800, 1280)
+        assertTrue("landed on ${topItem()}", topItem() is ArtworkTagsItem)
+    }
+
+    /** 真旋屏：换窗口尺寸后重建 Activity，Fragment 与视图按 savedInstanceState 重建、VM 存活。 */
+    private fun rotateTo(qualifiers: String) {
+        RuntimeEnvironment.setQualifiers(qualifiers)
+        host.recreate()
+        shadowOf(Looper.getMainLooper()).idle()
+        fragment = host.get().supportFragmentManager.findFragmentById(android.R.id.content) as ArtworkV3Fragment
+    }
+
+    private fun stage(): ArtworkTabletStage =
+        checkNotNull(ReflectionHelpers.getField(fragment, "tabletStage")) { "stage not shown" }
+
+    private fun scrollTo(predicate: (ceui.pixiv.feeds.FeedItem) -> Boolean) {
+        val position = (list.adapter as FeedAdapter).currentList.indexOfFirst(predicate)
+        check(position >= 0)
+        (list.layoutManager as StaggeredGridLayoutManager).scrollToPositionWithOffset(position, 0)
+        settle(fragment.requireView().width, fragment.requireView().height)
+    }
+
+    /** 还露在可视区里、顶边最靠上的那一条。 */
+    private fun topItem(): ceui.pixiv.feeds.FeedItem? {
+        val items = (list.adapter as FeedAdapter).currentList
+        return (0 until list.childCount).map { list.getChildAt(it) }
+            .filter { it.bottom > list.paddingTop }
+            .minByOrNull { it.top }
+            ?.let { items.getOrNull(list.getChildAdapterPosition(it)) }
+    }
+
+    private fun assertPageOnTop(page: Int) {
+        val top = topItem()
+        assertTrue("landed on $top", top is ArtworkPageItem && top.pageIndex == page)
+    }
+
     private fun recreateView() {
         val manager = host.get().supportFragmentManager
         manager.beginTransaction().detach(fragment).commitNow()
@@ -218,7 +299,7 @@ class ArtworkAutoExpandTest {
         manager.beginTransaction().attach(fragment).commitNow()
     }
 
-    private fun openOnline(autoExpand: Boolean) {
+    private fun openOnline(autoExpand: Boolean, pageCount: Int = 3) {
         val app = host.get().application
         Shaft.sGson = Gson()
         Shaft.sPreferences = app.getSharedPreferences("artwork-test", 0)
@@ -230,9 +311,9 @@ class ArtworkAutoExpandTest {
         ReflectionHelpers.setField(app, "networkStateManager", network)
         Shaft.sSettings.isArtworkV3AutoExpandMultiPage = autoExpand
         ObjectPool.update(Illust(
-            id = 1L, type = "illust", page_count = 3, width = 1200, height = 1800,
+            id = 1L, type = "illust", page_count = pageCount, width = 1200, height = 1800,
             title = "Artwork", create_date = "2026-09-22T12:00:00+09:00",
-            meta_pages = List(3) { MetaPage() },
+            meta_pages = List(pageCount) { MetaPage() },
         ), isFullVersion = true)
         fragment = ArtworkV3Fragment.newInstance(1L)
         // STARTED exercises the real online detail UI and source without onResume's network probes.
@@ -250,6 +331,18 @@ class ArtworkAutoExpandTest {
             measure(View.MeasureSpec.makeMeasureSpec(640, View.MeasureSpec.EXACTLY),
                 View.MeasureSpec.makeMeasureSpec(480, View.MeasureSpec.EXACTLY))
             layout(0, 0, 640, 480)
+        }
+    }
+
+    /** 按窗口尺寸排版，排两趟：pending scroll 与 post 出去的补跳要再排一趟才落地。 */
+    private fun settle(width: Int, height: Int) {
+        repeat(2) {
+            shadowOf(Looper.getMainLooper()).idle()
+            fragment.requireView().apply {
+                measure(View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY),
+                    View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.EXACTLY))
+                layout(0, 0, width, height)
+            }
         }
     }
 

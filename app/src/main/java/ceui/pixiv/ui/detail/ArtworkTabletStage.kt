@@ -73,6 +73,8 @@ internal class ArtworkTabletStage(
     private val onBack: () -> Unit,
     private val onMore: () -> Unit,
     private val onOpenReader: () -> Unit,
+    /** 首次绑定落在第几页：视图重建前正在看的那页（[ArtworkReadingAnchor]），越界时夹到末页。 */
+    private val initialPage: Int = 0,
 ) {
     private val ctx = stage.context
     private val palette = V3Palette.from(ctx)
@@ -244,21 +246,24 @@ internal class ArtworkTabletStage(
         // 只在「决定画面的字段」变了时重建：列表页带来的精简 bean 可能还没有图片地址 / 宽高，
         // 完整详情落池后要重新出图；收藏、关注这类变化不该让舞台重新取图
         if (previous != null && visualKey(previous) == visualKey(next)) return
+        // 同一作品换了画面字段（精简 bean → 完整详情）是重新出图，不是换作品：留在当前页
+        val startPage = if (previous?.id == next.id) currentPage else initialPage
         Glide.with(fragment)
             .load(GlideUtil.getSquare(next))
             .transform(CpuBlurTransformation(BACKDROP_BLUR_RADIUS, BACKDROP_BLUR_SAMPLING))
             .into(backdrop)
         content.removeAllViews()
-        if (next.isGif()) bindUgoira(next) else bindPages(next)
+        if (next.isGif()) bindUgoira(next) else bindPages(next, startPage)
     }
 
-    private fun bindPages(illust: Illust) {
+    private fun bindPages(illust: Illust, startPage: Int) {
         releaseUgoira()
         val count = illust.page_count.coerceAtLeast(1)
         val multi = count > 1
+        val start = startPage.coerceIn(0, count - 1)
         content.addView(pager, FrameLayout.LayoutParams(MATCH, MATCH))
         pager.adapter = PageAdapter(illust, count)
-        pager.setCurrentItem(0, false)
+        pager.setCurrentItem(start, false)
 
         if (multi) {
             content.addView(strip, FrameLayout.LayoutParams(ctx.dp(STRIP_WIDTH_DP), WRAP, Gravity.END or Gravity.CENTER_VERTICAL).apply {
@@ -277,7 +282,9 @@ internal class ArtworkTabletStage(
             content.addView(readerPill, FrameLayout.LayoutParams(WRAP, WRAP, Gravity.BOTTOM or Gravity.START))
         }
         applyInsets()
-        onPageShown(0)
+        onPageShown(start)
+        // 页码条首帧直接落位：onPageShown 里的平滑滚动是给翻页用的，开场不演一段滚动
+        if (start > 0) strip.scrollToPosition(start)
     }
 
     private fun bindUgoira(illust: Illust) {
