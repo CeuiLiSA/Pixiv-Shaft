@@ -204,6 +204,13 @@ data class ArtworkCommentsItem(
      * (转圈=还在等结果,而这里已经有结果了:拉不到)。
      */
     val loadFailedMessage: String? = null,
+    /**
+     * 离线快照生成时没勾「包含评论」(快照数据 `comments == null`)。空态要说「快照未包含评论」，
+     * 而不是「还没有评论」—— 后者是快照收录了评论、但那一刻确实一条都没有。
+     * 由 [ceui.pixiv.snapshot.SnapshotArtworkFeedSource] 建条目时定下；渲染侧别再回查
+     * SnapshotRuntimeCache：那是 4 格 LRU，详情页还活着时就可能被别的快照挤掉，回查会误判成「未包含」。
+     */
+    val commentsExcludedFromSnapshot: Boolean = false,
 ) : FeedItem {
     override val feedKey: Any get() = "artwork_comments"
 
@@ -804,7 +811,7 @@ private fun ArtworkV3Fragment.renderCommentsPreview(
     b.commentsEmpty.isVisible = comments.isEmpty()
     // 同一个 TextView 兼任空态和失败态：快照未收录评论与已收录但为空要区分，失败优先显示报错(#592)。
     b.commentsEmpty.text = item.loadFailedMessage ?: ctx.getString(
-        if (isSnapshotMode && snapshotId?.let { ceui.pixiv.snapshot.SnapshotRuntimeCache.get(it) }?.comments == null) {
+        if (item.commentsExcludedFromSnapshot) {
             R.string.snapshot_no_comments_toast
         } else {
             R.string.v3_no_comments_yet

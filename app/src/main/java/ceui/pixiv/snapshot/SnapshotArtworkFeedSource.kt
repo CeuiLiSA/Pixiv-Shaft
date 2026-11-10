@@ -87,6 +87,7 @@ class SnapshotArtworkFeedSource(
                 illustAuthorId = illust.user?.id ?: 0L,
                 comments = previewComments,
                 fetched = true,
+                commentsExcludedFromSnapshot = data.comments == null,
             )
         )
         return list
