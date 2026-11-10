@@ -107,6 +107,9 @@ abstract class IllustFeedFragment(
     internal var illustListLayout: IllustListLayout = IllustListLayout.MASONRY
         private set
 
+    /** 首页推荐的榜单头需要保留原 adapter；其他插画页沿用原来的整表重装。 */
+    protected open val keepAdapterOnLayoutChange: Boolean = false
+
     /**
      * 详情 pager 回传的 bean 建条目的钩子。R18 专属榜单等「本页语义就是看 R18」的
      * 子类覆盖此方法透传 skipR18Filter，否则续拉的页会被全局 R18 过滤整页清空。
@@ -197,7 +200,7 @@ abstract class IllustFeedFragment(
         val latest = IllustListLayout.current()
         if (latest != illustListLayout) {
             illustListLayout = latest
-            rebuildList()
+            applyIllustListLayout()
         }
         val bound = boundHideLikeButton
         if (bound != null && bound != hideLikeButton) {
@@ -213,9 +216,7 @@ abstract class IllustFeedFragment(
     /**
      * 卡片长按菜单里改布局：存设置，本页当场重装（其它列表回到前台时由 [onResume] 跟上）。
      *
-     * 重装会换 LayoutManager，滚动位置随之归零；把长按的那张卡按原来的屏幕高度接回来，
-     * 人还停在刚才看的地方。rebuildList 对空 adapter 的首次提交是同步的，所以紧跟着设的
-     * 滚动目标会在下一次 layout 生效。
+     * 换 LayoutManager 后把长按的那张卡按原来的屏幕高度接回来，人还停在刚才看的地方。
      */
     internal fun changeIllustListLayout(layout: IllustListLayout, anchorIllustId: Long) {
         IllustListLayout.save(layout)
@@ -229,7 +230,7 @@ abstract class IllustFeedFragment(
         // 旧列表是否还看得到第 0 项（顶部的榜单条 / 第一张卡）
         val wasAtTop = list.findViewHolderForAdapterPosition(0) != null
         illustListLayout = latest
-        rebuildList()
+        applyIllustListLayout()
         if (position < 0) return
         when (val manager = list.layoutManager) {
             // 齐行：offset 口径的换算见 scrollToPositionWithOffset 扩展
@@ -254,6 +255,14 @@ abstract class IllustFeedFragment(
                 if (!wasAtTop) manager.scrollToPosition(position)
                 restoreAnchorAfterLayout(jumpIfMissing = wasAtTop)
             }
+        }
+    }
+
+    private fun applyIllustListLayout() {
+        if (keepAdapterOnLayoutChange) {
+            relayoutList { rebindAllIllustCards() }
+        } else {
+            rebuildList()
         }
     }
 

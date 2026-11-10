@@ -261,6 +261,43 @@ abstract class FeedFragment(
         render(feedViewModel.uiState.value)
     }
 
+    /**
+     * 仅更换排布，保留 renderer / adapter 和已缓存的 ViewHolder。插画列表的四种布局只改变
+     * LayoutManager、间距和卡片尺寸；重建 adapter 会连横向排行榜头也一起销毁，封面重新加载时闪烁。
+     * [rebindItems] 只通知画法随排布变化的条目，混排的头部和详情内容保持原状。
+     */
+    protected fun relayoutList(rebindItems: () -> Unit) {
+        val binding = _binding ?: return
+        val adapter = feedAdapter ?: return
+        val listView = binding.feedListView
+        listView.itemAnimator = null
+        while (listView.itemDecorationCount > 0) {
+            listView.removeItemDecorationAt(0)
+        }
+        binding.feedSkeleton.removeAllViews()
+        val layoutManager = onCreateLayoutManager()
+        val skeleton = onCreateSkeletonView(layoutManager)
+        skeletonEnabled = skeleton != null
+        if (skeleton != null) {
+            binding.feedSkeleton.addView(
+                skeleton,
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.MATCH_PARENT,
+            )
+        }
+        listView.layoutManager = layoutManager
+        onListReady(listView)
+        rebindItems()
+        render(feedViewModel.uiState.value)
+        listView.doOnNextLayout {
+            listView.post {
+                if (_binding === binding && feedAdapter === adapter) {
+                    listView.itemAnimator = listItemAnimator
+                }
+            }
+        }
+    }
+
     override fun onResume() {
         super.onResume()
         // 懒加载 VM（feedViewModels(autoLoad = false)）的首屏在这里补：

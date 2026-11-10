@@ -92,6 +92,8 @@ open class RecmdIllustFeedFragment(
     @LayoutRes contentLayoutId: Int = ceui.pixiv.feeds.R.layout.fragment_feed,
 ) : IllustFeedFragment(contentLayoutId) {
 
+    override val keepAdapterOnLayoutChange: Boolean = true
+
     /**
      * 铺到屏幕底,底部安全区靠 inset 补:无底栏的宿主是手势条/导航栏,首页那份是浮在内容之上的
      * 底栏高度(MainActivity 重写了分发给内容区的 inset)。以前首页是 view_pager 让位给底栏,
