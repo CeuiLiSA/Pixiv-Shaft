@@ -34,6 +34,7 @@ import ceui.pixiv.ui.common.IllustListLayout
 import ceui.pixiv.ui.common.JustifiedItemDecoration
 import ceui.pixiv.ui.common.JustifiedItemSource
 import ceui.pixiv.ui.common.JustifiedLayoutManager
+import ceui.pixiv.ui.common.JUSTIFIED_ROW_HEIGHT_FACTOR
 import ceui.pixiv.ui.common.scrollToPositionWithOffset
 import ceui.pixiv.utils.clearGlideOnRecycle
 import ceui.pixiv.witstudio.dialog.WitDialog
@@ -80,6 +81,7 @@ class SnapshotListFragment : Fragment() {
         onExport = { exportSnapshot(it) },
         onDelete = { confirmDelete(it) },
         onLongPress = { onLongPress(it) },
+        coverColumnWidthPx = { coverColumnWidthPx() },
     ).also { adapter ->
         adapter.onSelectionToggle = { onSelectionCountChanged?.invoke(adapter.selectedIds.size) }
     }
@@ -181,6 +183,18 @@ class SnapshotListFragment : Fragment() {
         }
         queue.addIdleHandler(handler)
         cancelPendingCardPrewarm = { queue.removeIdleHandler(handler) }
+    }
+
+    /**
+     * 当前列宽（px），同 IllustFeedFragment.illustColumnWidthPx：取 LayoutManager 实时宽度与列数
+     * （measure 先于绑定，旋转 / 分屏后已是新值），首帧兜底屏宽；齐行的跨度是像素数，取「每行几列」设置。
+     */
+    private fun coverColumnWidthPx(): Int {
+        val list = _binding?.snapshotList ?: return 1
+        val manager = list.layoutManager
+        val listWidth = manager?.width?.takeIf { it > 0 } ?: list.resources.displayMetrics.widthPixels
+        val spanCount = (manager as? StaggeredGridLayoutManager)?.spanCount ?: Shaft.sSettings.lineCount
+        return (listWidth / spanCount.coerceAtLeast(1)).coerceAtLeast(1)
     }
 
     private fun stopCardPrewarm() {
@@ -506,11 +520,32 @@ class SnapshotListFragment : Fragment() {
     }
 }
 
+/**
+ * 封面的 Glide 请求尺寸（宽, 高），宽高比恒等于卡片上封面的展示比例 [displayRatio]（高 / 宽）。
+ *
+ * 必须显式 override，理由同 IllustStaggerRenderer.loadIllustImage：into(ImageView) 对 centerCrop 按
+ * 「请求尺寸」的比例裁位图，而默认请求尺寸取复用卡上一次布局残留的旧宽高；封面高度随比例变化后，
+ * 复用卡会按上一张的比例裁一遍、再被 ImageView 按新比例裁一遍，只剩中间一小块且发糊。
+ * 齐行的卡宽随比例变、行高 ≈ 目标行高，按行高反推宽。
+ */
+internal fun snapshotCoverRequestSize(
+    layoutMode: IllustListLayout,
+    columnWidthPx: Int,
+    displayRatio: Float,
+): Pair<Int, Int> = if (layoutMode == IllustListLayout.JUSTIFIED) {
+    val rowHeight = (columnWidthPx * JUSTIFIED_ROW_HEIGHT_FACTOR).toInt().coerceAtLeast(1)
+    (rowHeight / displayRatio).toInt().coerceAtLeast(1) to rowHeight
+} else {
+    columnWidthPx.coerceAtLeast(1) to (columnWidthPx * displayRatio).toInt().coerceAtLeast(1)
+}
+
 private class SnapshotAdapter(
     private val onOpen: (SnapshotCard) -> Unit,
     private val onExport: (SnapshotCard) -> Unit,
     private val onDelete: (SnapshotCard) -> Unit,
     private val onLongPress: (SnapshotCard) -> Unit,
+    /** 当前列宽（px），给封面请求定尺寸，见 [snapshotCoverRequestSize]。 */
+    private val coverColumnWidthPx: () -> Int,
 ) : ListAdapter<SnapshotCard, SnapshotViewHolder>(DIFF), JustifiedItemSource {
 
     var layoutMode: IllustListLayout = IllustListLayout.MASONRY
@@ -589,6 +624,7 @@ private class SnapshotAdapter(
         holder.bind(
             card = card,
             layoutMode = layoutMode,
+            columnWidthPx = coverColumnWidthPx(),
             onOpen = onOpen,
             onExport = onExport,
             onDelete = onDelete,
@@ -640,6 +676,7 @@ private class SnapshotViewHolder(
     fun bind(
         card: SnapshotCard,
         layoutMode: IllustListLayout,
+        columnWidthPx: Int,
         onOpen: (SnapshotCard) -> Unit,
         onExport: (SnapshotCard) -> Unit,
         onDelete: (SnapshotCard) -> Unit,
@@ -650,11 +687,14 @@ private class SnapshotViewHolder(
         onToggleSelection: () -> Unit,
     ) {
         val context = binding.root.context
-        binding.cover.setHeightRatio(
-            if (layoutMode == IllustListLayout.GRID) 1f else card.coverHeightRatio
-        )
+        val displayRatio = if (layoutMode == IllustListLayout.GRID) 1f else card.coverHeightRatio
+        binding.cover.setHeightRatio(displayRatio)
         if (card.coverFile != null) {
-            Glide.with(binding.cover).load(card.coverFile).into(binding.cover)
+            val (requestWidth, requestHeight) = snapshotCoverRequestSize(layoutMode, columnWidthPx, displayRatio)
+            Glide.with(binding.cover)
+                .load(card.coverFile)
+                .override(requestWidth, requestHeight)
+                .into(binding.cover)
         } else {
             Glide.with(binding.cover).clear(binding.cover)
         }
