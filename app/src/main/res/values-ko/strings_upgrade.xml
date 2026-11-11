@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="upgrade_required_title">앱 업데이트 필요</string>
+    <string name="upgrade_required_message">이 기능을 사용하려면 앱을 업데이트해 주세요.</string>
+    <string name="upgrade_required_version_message">이 기능은 %1$s 이상의 버전이 필요합니다. 앱을 업데이트해 주세요.</string>
+    <string name="upgrade_required_action">업데이트</string>
+    <string name="upgrade_required_no_update">아직 사용 가능한 업데이트가 없습니다. 나중에 다시 시도해 주세요.</string>
+    <string name="upgrade_required_store_unavailable">스토어를 열 수 없습니다. Google Play에서 업데이트해 주세요.</string>
+</resources>

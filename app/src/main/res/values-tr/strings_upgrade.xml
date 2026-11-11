@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="upgrade_required_title">Uygulama güncellemesi gerekli</string>
+    <string name="upgrade_required_message">Bu özelliği kullanmak için uygulamayı güncelleyin.</string>
+    <string name="upgrade_required_version_message">Bu özellik %1$s veya daha yeni bir sürüm gerektirir. Lütfen uygulamayı güncelleyin.</string>
+    <string name="upgrade_required_action">Güncelle</string>
+    <string name="upgrade_required_no_update">Henüz bir güncelleme yok. Lütfen daha sonra tekrar deneyin.</string>
+    <string name="upgrade_required_store_unavailable">Mağaza açılamadı. Lütfen uygulamayı Google Play üzerinden güncelleyin.</string>
+</resources>

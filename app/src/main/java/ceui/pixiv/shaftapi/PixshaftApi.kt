@@ -22,6 +22,10 @@ import retrofit2.http.Query
  */
 interface PixshaftApi {
 
+    /** Always HTTP 426; exercises the real upgrade prompt without gating a live feature. */
+    @GET("v1/probe/upgrade-required")
+    suspend fun probeUpgradeRequired(): Response<Unit>
+
     @POST("v1/history/{uid}")
     suspend fun reportHistory(
         @Path("uid") uid: Long,

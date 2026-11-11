@@ -11,6 +11,7 @@ import androidx.fragment.app.FragmentActivity
 import ceui.lisa.R
 import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.update.UpdateBottomSheet
+import ceui.lisa.update.UpgradeRequiredPrompt
 import ceui.lisa.utils.GlideUrlChild
 import ceui.pixiv.banner.BannerEvent
 import ceui.pixiv.banner.BannerHostInstaller
@@ -119,6 +120,7 @@ object InAppBanners {
         }
 
         Timber.tag(TAG).i("InAppBanners bootstrap complete")
+        UpgradeRequiredPrompt.onForeground()
     }
 
     private suspend fun handleTap(app: Application, deepLink: String?) {
@@ -129,6 +131,9 @@ object InAppBanners {
             HOST_CHAT -> openChat(app, uri)
             HOST_BOOKMARK_LIBRARY -> openBookmarkLibrary(app, uri)
             HOST_UPDATE -> openUpdateSheet(app)
+            "upgrade-required" -> withContext(Dispatchers.Main) {
+                (foreground.current() as? FragmentActivity)?.let(UpgradeRequiredPrompt::open)
+            }
             else -> Unit
         }
     }
@@ -257,6 +262,7 @@ object InAppBanners {
 
         override fun onActivityResumed(activity: Activity) {
             ref = WeakReference(activity)
+            UpgradeRequiredPrompt.onForeground()
         }
 
         override fun onActivityPaused(activity: Activity) {

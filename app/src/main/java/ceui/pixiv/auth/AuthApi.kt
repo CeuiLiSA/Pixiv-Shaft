@@ -91,7 +91,7 @@ internal object AuthNetwork {
         val client =
             (if (baseUrl == ClientManager.MEDIA_API_HOST)
                     ceui.pixiv.shaftapi.MediaHttpTransport.apiClient.newBuilder()
-                else OkHttpClient.Builder())
+                else OkHttpClient.Builder().addInterceptor(ceui.pixiv.shaftapi.ClientVersionInterceptor()))
                 .connectTimeout(6, TimeUnit.SECONDS)
                 .writeTimeout(10, TimeUnit.SECONDS)
                 .readTimeout(15, TimeUnit.SECONDS)

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="upgrade_required_title">Pembaruan aplikasi diperlukan</string>
+    <string name="upgrade_required_message">Perbarui aplikasi untuk menggunakan fitur ini.</string>
+    <string name="upgrade_required_version_message">Fitur ini memerlukan versi %1$s atau yang lebih baru. Silakan perbarui aplikasi.</string>
+    <string name="upgrade_required_action">Perbarui</string>
+    <string name="upgrade_required_no_update">Belum ada pembaruan yang tersedia. Silakan coba lagi nanti.</string>
+    <string name="upgrade_required_store_unavailable">Tidak dapat membuka toko aplikasi. Silakan perbarui melalui Google Play.</string>
+</resources>

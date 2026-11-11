@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="upgrade_required_title">App update required</string>
+    <string name="upgrade_required_message">Update the app to use this feature.</string>
+    <string name="upgrade_required_version_message">This feature requires version %1$s or later. Please update the app.</string>
+    <string name="upgrade_required_action">Update</string>
+    <string name="upgrade_required_no_update">No update is available yet. Please try again later.</string>
+    <string name="upgrade_required_store_unavailable">Unable to open the store. Please update through Google Play.</string>
+</resources>

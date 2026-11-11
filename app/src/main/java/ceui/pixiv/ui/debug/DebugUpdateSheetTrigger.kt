@@ -7,6 +7,7 @@ import ceui.lisa.update.GitHubAsset
 import ceui.lisa.update.GitHubRelease
 import ceui.lisa.update.UpdateBottomSheet
 import ceui.lisa.utils.Common
+import ceui.pixiv.api.Client
 import ceui.pixiv.witstudio.dialog.WitDialog
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
@@ -25,6 +26,7 @@ object DebugUpdateSheetTrigger {
             "测试无 APK 资产形态（验证 Chrome/浏览器按钮）",
             "测试有 APK 资产形态（验证正常下载流程）",
             "拉取线上真实最新 Release",
+            "请求升级探针（HTTP 426，30 秒内提示一次）",
         )
 
         WitDialog.MenuDialogBuilder(context)
@@ -35,6 +37,7 @@ object DebugUpdateSheetTrigger {
                     0 -> showNoApkRelease(fragment)
                     1 -> showWithApkRelease(fragment)
                     2 -> fetchOnlineRelease(fragment)
+                    3 -> probeUpgradeRequired(fragment)
                 }
             }
             .show()
@@ -50,6 +53,22 @@ object DebugUpdateSheetTrigger {
             assets = emptyList(),
         )
         showSheet(fragment, mockRelease)
+    }
+
+    private fun probeUpgradeRequired(fragment: Fragment) {
+        fragment.viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                val response = Client.pixshaft.probeUpgradeRequired()
+                response.errorBody()?.close()
+                if (response.code() != 426) {
+                    Common.showToast("升级探针返回 HTTP ${response.code()}，预期为 426")
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Common.showToast("升级探针请求失败: ${e.message}")
+            }
+        }
     }
 
     private fun showWithApkRelease(fragment: Fragment) {

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="upgrade_required_title">Требуется обновление приложения</string>
+    <string name="upgrade_required_message">Обновите приложение, чтобы использовать эту функцию.</string>
+    <string name="upgrade_required_version_message">Для этой функции нужна версия %1$s или новее. Обновите приложение.</string>
+    <string name="upgrade_required_action">Обновить</string>
+    <string name="upgrade_required_no_update">Обновление пока недоступно. Повторите попытку позже.</string>
+    <string name="upgrade_required_store_unavailable">Не удалось открыть магазин. Обновите приложение через Google Play.</string>
+</resources>

@@ -21,6 +21,7 @@ import ceui.pixiv.safe.auth.TokenAuthenticator
 import ceui.pixiv.services.appServices
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.shaftapi.MediaApi
+import ceui.pixiv.shaftapi.ClientVersionInterceptor
 import ceui.pixiv.shaftapi.MediaHttpTransport
 import ceui.pixiv.shaftapi.PixshaftApi
 import ceui.pixiv.shaftapi.ShaftHmac
@@ -272,7 +273,7 @@ class ClientManager {
     ): T {
         val httpBuilder =
             (if (baseUrl == MEDIA_API_HOST) MediaHttpTransport.apiClient.newBuilder()
-                else OkHttpClient.Builder())
+                else OkHttpClient.Builder().addInterceptor(ClientVersionInterceptor()))
                 // Fail fast when the history backend is down/overloaded so the UI can
                 // fall back to the local DB quickly instead of hanging ~10s.
                 .connectTimeout(6, TimeUnit.SECONDS)

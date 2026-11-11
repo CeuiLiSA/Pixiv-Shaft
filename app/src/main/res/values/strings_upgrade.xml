@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="upgrade_required_title">需要更新应用</string>
+    <string name="upgrade_required_message">当前版本暂不支持此功能，请升级后使用。</string>
+    <string name="upgrade_required_version_message">此功能需要 %1$s 或更新版本，请升级后使用。</string>
+    <string name="upgrade_required_action">去更新</string>
+    <string name="upgrade_required_no_update">暂未找到可用更新，请稍后再试。</string>
+    <string name="upgrade_required_store_unavailable">无法打开应用商店，请前往 Google Play 更新。</string>
+</resources>

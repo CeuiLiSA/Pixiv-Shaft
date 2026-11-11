@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="upgrade_required_title">アプリの更新が必要です</string>
+    <string name="upgrade_required_message">この機能を使うには、アプリを更新してください。</string>
+    <string name="upgrade_required_version_message">この機能にはバージョン %1$s 以降が必要です。アプリを更新してください。</string>
+    <string name="upgrade_required_action">更新する</string>
+    <string name="upgrade_required_no_update">利用可能な更新が見つかりません。しばらくしてからもう一度お試しください。</string>
+    <string name="upgrade_required_store_unavailable">ストアを開けません。Google Play から更新してください。</string>
+</resources>

@@ -9,10 +9,12 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
 
-/** Process-wide pools. Auth and media metadata share TLS connections, never interceptors. */
+/** Process-wide pools. Auth and media metadata share version handling, but no auth interceptors. */
 internal object MediaHttpTransport {
     val apiClient: OkHttpClient =
-        OkHttpClient.Builder().eventListenerFactory(MediaNetworkTiming.factory).build()
+        OkHttpClient.Builder()
+            .addInterceptor(ClientVersionInterceptor())
+            .eventListenerFactory(MediaNetworkTiming.factory).build()
     val storageClient: OkHttpClient =
         OkHttpClient.Builder().eventListenerFactory(MediaNetworkTiming.factory).build()
     private val warmingApi = AtomicBoolean()
