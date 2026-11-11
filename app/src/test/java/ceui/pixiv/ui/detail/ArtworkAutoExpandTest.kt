@@ -2,6 +2,7 @@ package ceui.pixiv.ui.detail
 
 import android.os.Looper
 import android.view.View
+import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Lifecycle
 import androidx.recyclerview.widget.RecyclerView
@@ -27,6 +28,7 @@ import com.google.gson.Gson
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.Robolectric
@@ -42,6 +44,10 @@ import org.robolectric.util.ReflectionHelpers
 @Config(sdk = [24, 35], application = ArtworkAutoExpandTest.TestApplication::class)
 @LooperMode(LooperMode.Mode.PAUSED)
 class ArtworkAutoExpandTest {
+    // Room LiveData 查询同步完成，避免关闭数据库后仍有查询污染后续测试。
+    @get:Rule
+    val instantTaskExecutorRule = InstantTaskExecutorRule()
+
     class TestApplication : Shaft() {
         override fun onCreate() = Unit
     }
