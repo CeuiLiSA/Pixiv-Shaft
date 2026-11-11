@@ -33,6 +33,7 @@ public interface DownloadFileFactory {
      * 用于让目标 Uri 对系统相册可见：
      *   - MediaStore (Q+)：清除 IS_PENDING 标志，触发观察者刷新
      *   - 旧版本 / SAF：调用 MediaScannerConnection.scanFile
+     * 发布失败必须抛出异常，调用方随后调用 abandonWrite；扫描等非关键后处理由实现自行容错。
      * 默认空实现，方便实现类按需覆盖。
      */
     default void finishWrite() {}

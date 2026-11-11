@@ -68,7 +68,9 @@ interface StorageBackend {
      * (network failure, user cancellation, OOM, …) — backends MUST clean up
      * any artefacts they materialised during [open] / [replace], otherwise
      * a 0-byte / partial pending file will leak into the user's gallery.
-     * Exactly one of [onFinish] / [onAbort] is invoked per handle. After
+     * Publication failure in [onFinish] must propagate; the caller then invokes
+     * [onAbort]. Non-critical post-processing should be handled by the backend.
+     * After a successful [onFinish], [onAbort] must not be invoked. After
      * [onAbort] the handle is dead — do not call [onFinish] on it.
      */
     data class WriteHandle(

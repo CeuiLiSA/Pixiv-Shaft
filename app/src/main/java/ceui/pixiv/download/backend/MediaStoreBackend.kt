@@ -218,7 +218,9 @@ class MediaStoreBackend(
             val update = ContentValues().apply {
                 put(MediaStore.MediaColumns.IS_PENDING, 0)
             }
-            context.contentResolver.update(existing, update, null, null)
+            check(context.contentResolver.update(existing, update, null, null) > 0) {
+                "MediaStore publication failed for $existing"
+            }
             if (silent) {
                 SilentDownload.backdateRow(context.contentResolver, existing, legacyFile(relPath))
             }
@@ -348,7 +350,9 @@ class MediaStoreBackend(
             val update = ContentValues().apply {
                 put(MediaStore.MediaColumns.IS_PENDING, 0)
             }
-            context.contentResolver.update(target, update, null, null)
+            check(context.contentResolver.update(target, update, null, null) > 0) {
+                "MediaStore publication failed for $target"
+            }
             if (silent) {
                 SilentDownload.backdateRow(context.contentResolver, target, legacyFile(relPath))
             }
@@ -408,22 +412,28 @@ class MediaStoreBackend(
             throw e
         }
         val onFinish: () -> Unit = {
-            // Pre-Q public-storage write — file is real, just tell MediaScanner.
-            if (SilentDownload.applies(mime)) {
-                // 低调下载:先回拨 mtime 再扫,scanner 照 mtime 记 date_modified;
-                // 但 DATE_ADDED 由 scanner 记为「现在」,pre-Q 没有行所有权限制,
-                // 扫完在回调里直接把时间列改掉,把另一半也回拨上。
-                val stampMs = SilentDownload.backdateMillis()
-                SilentDownload.backdateFile(file, stampMs)
-                MediaScannerConnection.scanFile(
-                    context, arrayOf(file.absolutePath), arrayOf(mime),
-                ) { _, scannedUri ->
-                    if (scannedUri != null) {
-                        SilentDownload.backdateRow(context.contentResolver, scannedUri, null, stampMs)
+            try {
+                // Pre-Q public-storage write — file is real, just tell MediaScanner.
+                if (SilentDownload.applies(mime)) {
+                    // 低调下载:先回拨 mtime 再扫,scanner 照 mtime 记 date_modified;
+                    // 但 DATE_ADDED 由 scanner 记为「现在」,pre-Q 没有行所有权限制,
+                    // 扫完在回调里直接把时间列改掉,把另一半也回拨上。
+                    val stampMs = SilentDownload.backdateMillis()
+                    SilentDownload.backdateFile(file, stampMs)
+                    MediaScannerConnection.scanFile(
+                        context, arrayOf(file.absolutePath), arrayOf(mime),
+                    ) { _, scannedUri ->
+                        if (scannedUri != null) {
+                            SilentDownload.backdateRow(context.contentResolver, scannedUri, null, stampMs)
+                        }
                     }
+                } else {
+                    MediaScannerConnection.scanFile(context, arrayOf(file.absolutePath), arrayOf(mime), null)
                 }
-            } else {
-                MediaScannerConnection.scanFile(context, arrayOf(file.absolutePath), arrayOf(mime), null)
+            } catch (e: Exception) {
+                // pre-Q 成品已经落盘，扫描失败不应撤销下载。
+                if (e is java.util.concurrent.CancellationException) throw e
+                Timber.w(e, "MediaStoreBackend: legacy scan failed for %s", file)
             }
         }
         // On abort, only delete if we created the file ourselves — never
