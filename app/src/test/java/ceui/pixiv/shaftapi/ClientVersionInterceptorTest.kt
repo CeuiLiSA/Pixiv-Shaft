@@ -13,13 +13,33 @@ import org.junit.Assert.assertNull
 import org.junit.Test
 
 class ClientVersionInterceptorTest {
-    private fun client(notify: (String?) -> Unit) = OkHttpClient.Builder()
+    private fun client(notify: (String?) -> Unit) = client(ClientVersionInterceptor(notify))
+
+    private fun client(interceptor: ClientVersionInterceptor) = OkHttpClient.Builder()
         .proxy(Proxy.NO_PROXY)
         .dns(object : Dns {
             override fun lookup(hostname: String) = listOf(InetAddress.getByName("127.0.0.1"))
         })
-        .addInterceptor(ClientVersionInterceptor(notify))
+        .addInterceptor(interceptor)
         .build()
+
+    @Test
+    fun `default interceptor handles ordinary responses without an Android main dispatcher`() {
+        MockWebServer().use { server ->
+            val http = client(ClientVersionInterceptor())
+            for (code in listOf(200, 401, 429, 500)) {
+                val body = "response-$code"
+                server.enqueue(MockResponse().setResponseCode(code).setBody(body))
+                val url = server.url("/v1/config").newBuilder().host("pixshaft.com").build()
+                http.newCall(Request.Builder().url(url).build()).execute().use {
+                    assertEquals(code, it.code)
+                    assertEquals(body, it.body!!.string())
+                }
+                assertEquals(BuildConfig.VERSION_CODE.toString(),
+                    server.takeRequest().getHeader(ClientVersionInterceptor.VERSION_HEADER))
+            }
+        }
+    }
 
     @Test
     fun `both first party hosts advertise version and preserve the 426 body`() {

@@ -9,7 +9,8 @@ import timber.log.Timber
 
 /** Installed only on first-party API clients; never on Pixiv or COS transfers. */
 internal class ClientVersionInterceptor(
-    private val onUpgradeRequired: (String?) -> Unit = UpgradeRequiredPrompt::notifyRequired,
+    // Resolve the UI singleton only when a 426 actually needs a prompt.
+    private val onUpgradeRequired: (String?) -> Unit = { UpgradeRequiredPrompt.notifyRequired(it) },
 ) : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
         val request = chain.request()
