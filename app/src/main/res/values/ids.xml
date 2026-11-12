@@ -3,6 +3,7 @@
     <item type="id" name="nav_gallery"/>
     <item type="id" name="nav_slideshow"/>
     <item type="id" name="nav_snapshot"/>
+    <item type="id" name="nav_artlists"/>
     <item type="id" name="nav_manage"/>
     <item type="id" name="nav_share"/>
     <item type="id" name="main_page"/>

@@ -2,6 +2,7 @@ package ceui.pixiv.ui.navigation
 
 import android.content.Intent
 import android.net.Uri
+import android.os.Bundle
 import androidx.core.content.IntentCompat
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
@@ -546,6 +547,9 @@ object TemplateRouteFactory {
             TemplateRoute.NOVEL_LENGTH_RANK -> NovelLengthRankFragment.newInstance()
             TemplateRoute.TRENDING_ARTISTS -> TrendingArtistsFragment.newInstance()
             TemplateRoute.DAILY_RECOMMENDATIONS -> DailyRecommendationsFragment()
+            TemplateRoute.ARTLISTS -> ceui.pixiv.ui.artlist.ArtlistsFragment().apply { arguments = intent.extras ?: Bundle() }
+            TemplateRoute.ARTLIST_DETAIL -> ceui.pixiv.ui.artlist.ArtlistDetailFragment().apply { arguments = intent.extras ?: Bundle() }
+            TemplateRoute.ARTLIST_EDIT -> ceui.pixiv.ui.artlist.ArtlistEditorFragment().apply { arguments = intent.extras ?: Bundle() }
             TemplateRoute.UGOIRA_RANK -> UgoiraRankFragment.newInstance()
             TemplateRoute.UGOIRA_FRAMES ->
                 UgoiraFramesFragment.newInstance(

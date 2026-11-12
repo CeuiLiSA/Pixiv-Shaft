@@ -96,7 +96,11 @@ object LegacyApiCalls {
         nextUrl: String,
         onSuccess: JavaAsync.Consumer<ListIllust>,
         onFinally: Runnable?,
-    ) = call(owner, onSuccess, null, onFinally) { Client.appApi.getNextIllust(nextUrl) }
+    ) = call(owner, onSuccess, null, onFinally) {
+        if (ceui.pixiv.ui.artlist.ArtlistRepository.pageListId(nextUrl) != null) {
+            ceui.pixiv.ui.artlist.ArtlistRepository.nextWorks(nextUrl)
+        } else Client.appApi.getNextIllust(nextUrl)
+    }
 
     // ── accounts.pixiv.net ─────────────────────────────────────────────
 

@@ -924,6 +924,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                     new DrawerEntry(R.id.illust_star, R.string.string_319),
                     new DrawerEntry(R.id.novel_star, R.string.string_320),
                     new DrawerEntry(R.id.watch_later, R.string.watch_later),
+                    new DrawerEntry(R.id.nav_artlists, R.string.artlist_mine_title),
                     new DrawerEntry(R.id.nav_pinned_tags, R.string.pinned_content),
                     // 精华列:各处「收藏到精华」写进 feature_table 的本地列表快照。c3f08172 侧栏
                     // 「发现」分组瘦身时被连带删掉,但它不属于搬进「发现」tab 的那批(最新/热度标签/
@@ -1069,6 +1070,10 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
         } else if (id == R.id.nav_notifications) {
             intent = new Intent(mContext, TemplateActivity.class);
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.NOTIFICATION_CENTER.key);
+        } else if (id == R.id.nav_artlists) {
+            intent = new Intent(mContext, TemplateActivity.class);
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.ARTLISTS.key);
+            intent.putExtra(ceui.pixiv.ui.artlist.ArtlistNavigation.SCOPE, "mine");
         } else if (id == R.id.nav_manage) {
             intent = new Intent(mContext, TemplateActivity.class);
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.SETTINGS.key);

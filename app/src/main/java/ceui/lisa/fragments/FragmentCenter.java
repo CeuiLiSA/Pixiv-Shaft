@@ -153,6 +153,7 @@ public class FragmentCenter extends BaseLazyFragment<FragmentNewCenterBinding> {
         baseBind.catNovelLengthRank.setOnClickListener(v -> openFragment(TemplateRoute.NOVEL_LENGTH_RANK));
         baseBind.catTrendingArtists.setOnClickListener(v -> openFragment(TemplateRoute.TRENDING_ARTISTS));
         baseBind.catDailyRecommendations.setOnClickListener(v -> openFragment(TemplateRoute.DAILY_RECOMMENDATIONS));
+        baseBind.catArtlists.setOnClickListener(v -> openFragment(TemplateRoute.ARTLISTS));
         baseBind.catPixivComic.setOnClickListener(v -> openFragment(TemplateRoute.PIXIV_COMIC));
         baseBind.catWalk.setOnClickListener(v -> openFragment(TemplateRoute.WALKTHROUGH));
         baseBind.catFollowNovel.setOnClickListener(v -> openFragment(TemplateRoute.FOLLOWING_NOVELS));

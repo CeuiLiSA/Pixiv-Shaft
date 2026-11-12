@@ -67,6 +67,14 @@ internal fun IllustFeedFragment.showCardMenu(
     val inWatchLater = entityWrapper.isInWatchLater(item.illust.id)
     val spoilered = IllustMuteStore.isMuted(item.illust.id)
     showV3Menu("IllustFeedCardMenu") {
+        item(getString(R.string.artlist_add), R.drawable.ic_collections_black_24dp) {
+            ceui.pixiv.ui.artlist.ArtlistNavigation.add(requireContext(), bean)
+        }
+        val artlist = this@showCardMenu as? ceui.pixiv.ui.artlist.ArtlistDetailFragment
+        if (artlist?.canEdit() == true) {
+            item(getString(R.string.artlist_set_cover), R.drawable.ic_collections_black_24dp) { artlist.setCover(bean) }
+            item(getString(R.string.artlist_remove), R.drawable.ic_delete_black_24dp) { artlist.remove(bean) }
+        }
         // 屏蔽这一件作品：不动服务端，往本地屏蔽记录（tag_mute_table）写一行，卡片留在原位
         // 糊掉 + 盖粒子；「屏蔽记录」页能看到并删除。下面那条「屏蔽设定」是按标签/画师的全局设定。
         // 排在最前面——它是长按这张卡最直接的诉求。

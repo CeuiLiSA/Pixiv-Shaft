@@ -18,6 +18,9 @@ class BearerInterceptorTest {
                 "/v1/media/upload/init",
                 "/v1/media/upload/complete",
                 "/v1/media/media-id/download-url",
+                "/v1/artlists",
+                "/v1/artlists/12/works",
+                "/v1/artlists/12/save",
             )
         val server = MockWebServer()
         paths.forEach { _ -> server.enqueue(MockResponse().setResponseCode(200)) }

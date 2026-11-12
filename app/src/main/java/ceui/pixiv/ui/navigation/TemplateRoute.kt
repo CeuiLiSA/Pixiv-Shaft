@@ -140,6 +140,9 @@ enum class TemplateRoute(@JvmField val key: String) {
     NOVEL_LENGTH_RANK("长篇小说榜"),
     TRENDING_ARTISTS("人气画师"),
     DAILY_RECOMMENDATIONS("每日推荐"),
+    ARTLISTS("画单"),
+    ARTLIST_DETAIL("画单详情"),
+    ARTLIST_EDIT("编辑画单"),
     UGOIRA_RANK("动图榜"),
     /** 动图逐帧：时间轴选帧、标记与保存原帧。 */
     UGOIRA_FRAMES("动图逐帧"),

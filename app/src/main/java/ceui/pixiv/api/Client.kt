@@ -117,6 +117,10 @@ object Client {
         clientManager.createPixshaftService(PixshaftApi::class.java)
     }
 
+    val artlists: ceui.pixiv.ui.artlist.ArtlistApi by lazy {
+        clientManager.createPixshaftService(ceui.pixiv.ui.artlist.ArtlistApi::class.java)
+    }
+
     /**
      * Media metadata and short-lived COS upload/download authorisation. Object bytes do not pass
      * through the Tokyo API.

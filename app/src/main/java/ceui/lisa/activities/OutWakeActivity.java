@@ -221,6 +221,13 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
             return true;
         }
 
+        if ("artlist".equals(host)) {
+            long id = tryParseId(uri.getQueryParameter("id"));
+            if (id > 0) ceui.pixiv.ui.artlist.ArtlistNavigation.open(mContext, id);
+            finish();
+            return true;
+        }
+
         // shaftintent://search?... 对外暴露的搜索入口 (#694)。
         return HOST_SEARCH.equals(host) && handleExternalSearch(uri);
     }

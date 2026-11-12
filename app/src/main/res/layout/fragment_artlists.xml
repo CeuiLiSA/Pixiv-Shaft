@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:background="@color/v3_bg">
+    <include layout="@layout/toolbar_layout" />
+    <FrameLayout android:id="@+id/artlist_filters" android:layout_width="match_parent"
+        android:layout_height="wrap_content" android:paddingHorizontal="16dp" android:paddingVertical="12dp" />
+    <include android:id="@+id/feed_root" layout="@layout/fragment_feed"
+        android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" />
+    <FrameLayout android:id="@+id/artlist_actions" android:layout_width="match_parent"
+        android:layout_height="wrap_content" android:paddingHorizontal="16dp" android:paddingVertical="12dp" />
+</LinearLayout>

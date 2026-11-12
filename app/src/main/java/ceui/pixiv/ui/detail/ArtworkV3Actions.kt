@@ -345,6 +345,9 @@ internal class ArtworkV3Actions(
                     fragment.startActivity(intent)
                 }
             }
+            item(context.getString(R.string.artlist_add), R.drawable.ic_collections_black_24dp) {
+                ceui.pixiv.ui.artlist.ArtlistNavigation.add(context, illust)
+            }
         }
     }
 }

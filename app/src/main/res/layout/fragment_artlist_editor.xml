@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:background="@color/v3_bg">
+    <include layout="@layout/toolbar_layout" />
+    <androidx.core.widget.NestedScrollView android:id="@+id/artlist_editor_scroll"
+        android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"
+        android:fillViewport="true" android:clipToPadding="false">
+        <FrameLayout android:layout_width="match_parent" android:layout_height="wrap_content">
+            <LinearLayout android:id="@+id/artlist_editor_fields" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:layout_gravity="center_horizontal"
+                android:padding="20dp" android:orientation="vertical" />
+        </FrameLayout>
+    </androidx.core.widget.NestedScrollView>
+</LinearLayout>

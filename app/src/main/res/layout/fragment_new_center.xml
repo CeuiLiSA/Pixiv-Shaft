@@ -666,6 +666,24 @@
                         android:textColor="@color/v3_text_1"
                         android:textSize="13sp" />
 
+                    <TextView
+                        android:id="@+id/catArtlists"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:minHeight="48dp"
+                        android:gravity="center"
+                        android:layout_marginEnd="9dp"
+                        android:layout_marginBottom="9dp"
+                        android:background="@drawable/bg_v3_chip"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:paddingHorizontal="15dp"
+                        android:paddingVertical="9dp"
+                        android:stateListAnimator="@animator/button_press_scale"
+                        android:text="@string/artlist_title"
+                        android:textColor="@color/v3_text_1"
+                        android:textSize="13sp" />
+
                 </com.google.android.flexbox.FlexboxLayout>
 
                 <!-- ============ Shaft 榜单(自建后端,Lite 整段 GONE) ============ -->
