@@ -3,6 +3,7 @@ package ceui.pixiv.download.maintenance
 import android.content.ContentValues
 import android.content.Context
 import android.net.Uri
+import android.os.Build
 import android.provider.DocumentsContract
 import android.provider.MediaStore
 import ceui.lisa.activities.Shaft
@@ -131,30 +132,44 @@ object RenameSweeper {
                         continue
                     }
                 }
-                // 动图成品走 Ugoira bucket 的模板；其余走 Illust bucket。后缀按**这一行的
-                // 实际格式**算,不看当前设置 —— 切成 mp4 之后早先存的 GIF 仍然是 GIF。
+                if (RecordedPageProbe.usableUri(appContext, row.filePath) == null) {
+                    fileMissing++
+                    continue
+                }
+                val actualName = actualDisplayName(appContext, row.filePath)
+                // 重命名不会转码。普通插画按实际文件名的后缀渲染，不能回看原图 URL：
+                // 用户可能下载的是 JPEG 大图而原图为 PNG。动图仍按现有 GIF/MP4 分支处理。
                 val newName = runCatching {
                     if (bean.isGif()) {
                         DownloadItems.ugoiraRelativePath(bean, ugoiraIsMp4).filename
                     } else {
-                        DownloadItems.illustRelativePath(bean, pageIndex).filename
+                        // extractExt 把 '#' 当作 URL 片段分隔符；只传文件后缀，避免标题里的
+                        // '#' 或 '?' 被误判成 URL 附件，导致扩展名丢失。
+                        val extension = (actualName ?: row.fileName).substringAfterLast('.', "")
+                        DownloadItems.illustRelativePath(bean, pageIndex, ".$extension").filename
                     }
                 }.getOrNull()
                 if (newName.isNullOrEmpty()) {
                     broken++
                     continue
                 }
-                if (newName == row.fileName) {
+                // fileName 是数据库主键，不一定等于 provider 当前暴露的真实名字。
+                // 同名记录只有真实名字也相同才是已匹配；主键一致但实际名字不同时
+                // 仍需尝试改磁盘，主键落后但实际已匹配时仅同步 DB。
+                if (row.fileName == newName && (actualName == null || actualName == newName)) {
                     alreadyMatching++
                     continue
                 }
-                if (RecordedPageProbe.usableUri(appContext, row.filePath) == null) {
-                    fileMissing++
+                // DB 之外也可能存在同目录目标。MediaStore 按文件名和相对路径查询，
+                // file:// 直接检查磁盘；其他 provider 与不可查询项维持原先的处理方式。
+                if (actualName != newName && targetNameExists(appContext, row.filePath, newName) == true) {
+                    nameConflicts++
                     continue
                 }
                 // fileName 是主键：新名字撞上库里另一条记录或本次计划里的另一行,
                 // 改下去必然 constraint 冲突 / 覆盖别人的文件,整行跳过。
-                if (!plannedNames.add(newName) || dao.getDownloadByFileName(newName) != null) {
+                if (!plannedNames.add(newName) ||
+                    (newName != row.fileName && dao.getDownloadByFileName(newName) != null)) {
                     nameConflicts++
                     continue
                 }
@@ -194,9 +209,18 @@ object RenameSweeper {
         var failed = 0
         for ((index, entry) in plan.entries.withIndex()) {
             currentCoroutineContext().ensureActive()
-            val newPath = runCatching { renameOnDisk(appContext, entry.filePath, entry.newFileName) }
-                .onFailure { Timber.tag(TAG).w(it, "改名失败 %s", entry.oldFileName) }
-                .getOrNull()
+            val diskNameBefore = actualDisplayName(appContext, entry.filePath)
+            val diskAlreadyMatching = diskNameBefore == entry.newFileName
+            // 预览到确认之间文件可能变化，执行时再检测一次可见目标冲突。
+            val conflict = !diskAlreadyMatching &&
+                targetNameExists(appContext, entry.filePath, entry.newFileName) == true
+            val newPath = when {
+                diskAlreadyMatching -> entry.filePath
+                conflict -> null
+                else -> runCatching { renameOnDisk(appContext, entry.filePath, entry.newFileName) }
+                    .onFailure { Timber.tag(TAG).w(it, "改名失败 %s", entry.oldFileName) }
+                    .getOrNull()
+            }
             if (newPath == null) {
                 failed++
                 emit(FetchEvent.Warning("skip ${entry.oldFileName} (rename failed)"))
@@ -206,9 +230,11 @@ object RenameSweeper {
                 dao.renameDownload(entry.oldFileName, entry.newFileName, newPath)
             }.onFailure { Timber.tag(TAG).w(it, "写库失败 %s", entry.newFileName) }.isSuccess
             if (!dbOk) {
-                // 磁盘已改、DB 没跟上 —— 尽力改回去；改不回去也只是这一行退化成
-                // 「文件名对不上记录」的旧状态，(illustId, page) 索引查询仍然命中。
-                runCatching { renameOnDisk(appContext, newPath, entry.oldFileName) }
+                // 文件原本已匹配时这里只是在同步 DB，不能把它改成旧主键；磁盘确实
+                // 改过时尽力恢复原来的实际名称，而不是假设它与旧主键一致。
+                if (!diskAlreadyMatching) {
+                    runCatching { renameOnDisk(appContext, newPath, diskNameBefore ?: entry.oldFileName) }
+                }
                 failed++
                 emit(FetchEvent.Warning("skip ${entry.oldFileName} (db update failed)"))
                 continue
@@ -221,11 +247,71 @@ object RenameSweeper {
         emit(FetchEvent.Done(done, System.currentTimeMillis() - startedAt, done + failed))
     }.flowOn(Dispatchers.IO)
 
-    /**
-     * 按 filePath 的 uri 形态分发改名，返回改名后的 filePath（失败返回 null）。
-     * MediaStore 行的 content://media uri 按 _ID 定位，改名后不变；SAF 的 document uri
-     * 编码了路径，renameDocument 会换新 uri；file:// 直接换 basename。
-     */
+    /** 读取 provider 当前的真实 DISPLAY_NAME，而不是盲信数据库主键 fileName。 */
+    private fun actualDisplayName(context: Context, filePath: String): String? {
+        val uri = runCatching { Uri.parse(filePath) }.getOrNull() ?: return null
+        if (uri.scheme == "file") return uri.path?.let(::File)?.takeIf { it.exists() }?.name
+        if (uri.scheme != "content") return null
+        val column = if (uri.authority == MediaStore.AUTHORITY) {
+            MediaStore.MediaColumns.DISPLAY_NAME
+        } else {
+            DocumentsContract.Document.COLUMN_DISPLAY_NAME
+        }
+        return queryString(context, uri, column)
+    }
+
+    private fun queryString(context: Context, uri: Uri, column: String): String? = runCatching {
+        context.contentResolver.query(uri, arrayOf(column), null, null, null).use { cursor ->
+            if (cursor == null || !cursor.moveToFirst()) return@use null
+            val index = cursor.getColumnIndex(column)
+            if (index < 0 || cursor.isNull(index)) null else cursor.getString(index)
+        }
+    }.getOrNull()
+
+    /** True means a distinct visible target exists; null means this provider cannot be queried safely. */
+    private fun targetNameExists(context: Context, filePath: String, newName: String): Boolean? {
+        val uri = runCatching { Uri.parse(filePath) }.getOrNull() ?: return null
+        if (uri.scheme == "file") {
+            val source = File(uri.path ?: return null)
+            return File(source.parentFile ?: return null, newName).exists()
+        }
+        if (uri.scheme != "content" || uri.authority != MediaStore.AUTHORITY) return null
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return null
+        val relativePath = queryString(context, uri, MediaStore.MediaColumns.RELATIVE_PATH) ?: return null
+        val collection = mediaStoreCollectionUri(uri) ?: return null
+        val sourceId = uri.lastPathSegment?.toLongOrNull() ?: return null
+        return try {
+            context.contentResolver.query(
+                collection,
+                arrayOf(MediaStore.MediaColumns._ID),
+                "${MediaStore.MediaColumns.DISPLAY_NAME}=? AND " +
+                    "${MediaStore.MediaColumns.RELATIVE_PATH}=?",
+                arrayOf(newName, relativePath),
+                null,
+            )?.use { cursor ->
+                val idIndex = cursor.getColumnIndex(MediaStore.MediaColumns._ID)
+                if (idIndex < 0) return@use null
+                var conflict = false
+                while (cursor.moveToNext()) {
+                    if (cursor.getLong(idIndex) != sourceId) {
+                        conflict = true
+                        break
+                    }
+                }
+                conflict
+            }
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    private fun mediaStoreCollectionUri(uri: Uri): Uri? {
+        val encodedPath = uri.encodedPath ?: return null
+        val slash = encodedPath.lastIndexOf('/')
+        if (slash <= 0) return null
+        return uri.buildUpon().encodedPath(encodedPath.substring(0, slash)).build()
+    }
+
     private fun renameOnDisk(context: Context, filePath: String, newName: String): String? {
         val uri = Uri.parse(filePath)
         return when {

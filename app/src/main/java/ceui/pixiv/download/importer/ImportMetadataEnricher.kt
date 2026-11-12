@@ -2,6 +2,7 @@ package ceui.pixiv.download.importer
 
 import android.content.Context
 import ceui.lisa.activities.Shaft
+import ceui.lisa.core.ManagerReactive
 import ceui.lisa.database.AppDatabase
 import ceui.pixiv.ui.bulk.FetchEvent
 import ceui.pixiv.utils.fetchFullIllustDetail
@@ -79,6 +80,7 @@ object ImportMetadataEnricher {
                 } else {
                     val json = ceui.pixiv.download.model.DownloadRecordSlim.createIllustJson(illust)
                     runCatching { dao.updateIllustGsonByIllustId(illustId, json) }
+                        .onSuccess { ManagerReactive.pokeDoneTable() }
                         .onFailure { Timber.tag(TAG).w(it, "写回 illustGson 失败 id=%d", illustId) }
                     done++
                     emit(FetchEvent.PageReceived(index, 1, latency, done))
