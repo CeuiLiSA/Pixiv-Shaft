@@ -52,9 +52,7 @@
                 style="@style/M3SetRow"
                 android:background="@drawable/wit_row_top">
 
-                <LinearLayout
-                    style="@style/M3SetTexts"
-                    android:layout_marginEnd="130dp">
+                <LinearLayout style="@style/M3SetTexts">
 
                     <TextView
                         style="@style/M3SetTitle"
@@ -63,7 +61,7 @@
 
                 <TextView
                     android:id="@+id/storage_choice"
-                    style="@style/M3SetValue" />
+                    style="@style/M3SetArrow" />
 
             </RelativeLayout>
 

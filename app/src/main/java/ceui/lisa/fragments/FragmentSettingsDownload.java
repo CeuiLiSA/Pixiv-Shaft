@@ -234,35 +234,13 @@ public class FragmentSettingsDownload extends SettingsPageFragment<FragmentSetti
                     .show();
         });
 
-        // 存储位置（StorageChoice）—— 0 = Pictures, 1 = Downloads, 2 = SAF
+        // 管理存储位置（跳转新页面）
         refreshStorageLabel();
-        baseBind.storageChoiceRela.setOnClickListener(v ->
-                new WitDialog.CheckableDialogBuilder(mActivity)
-                        .setCheckedIndex(currentStorageIndex())
-                        .addItems(storageNames(), (dialog, which) -> {
-                            dialog.dismiss();
-                            if (which == 0) {
-                                DownloadsRegistry.applyGlobalStorage(
-                                        new StorageChoice.MediaStore(StorageChoice.MediaStore.Collection.Images));
-                                refreshStorageLabel();
-                                refreshOverwritePolicyRow();
-                            } else if (which == 1) {
-                                DownloadsRegistry.applyGlobalStorage(
-                                        new StorageChoice.MediaStore(StorageChoice.MediaStore.Collection.Downloads));
-                                refreshStorageLabel();
-                                refreshOverwritePolicyRow();
-                            } else {
-                                // SAF：走 BaseActivity.launchSafTreePicker。
-                                // 1) 必须 legacy Activity.startActivityForResult —— 之前用 AndroidX 的
-                                //    registerForActivityResult,vivo/iQOO 上 picker 选完投递不回回调。
-                                // 2) 必须 explicit setComponent —— vivo OriginOS 非 debuggable apk 会拦掉
-                                //    implicit ACTION_OPEN_DOCUMENT_TREE 重定向到 LAUNCHER。详见 helper 注释。
-                                // BaseActivity#onActivityResult 的 ASK_URI 分支负责落 URI、拿 persistable
-                                // 权限、applyGlobalStorage、toast;这边的 label 在 onResume 里再刷一次。
-                                BaseActivity.launchSafTreePicker(mActivity);
-                            }
-                        })
-                        .show());
+        baseBind.storageChoiceRela.setOnClickListener(v -> {
+            Intent intent = new Intent(mContext, TemplateActivity.class);
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.MANAGE_STORAGE_SETTINGS.key);
+            startActivity(intent);
+        });
 
         // 多图页码起始（pageIndexFrom1）
         final String[] PAGE_INDEX_NAMES = new String[]{
@@ -481,7 +459,7 @@ public class FragmentSettingsDownload extends SettingsPageFragment<FragmentSetti
 
     private void refreshStorageLabel() {
         if (baseBind == null) return;
-        baseBind.storageChoice.setText(storageNames()[currentStorageIndex()]);
+        baseBind.storageChoice.setText("");
     }
 
     private void refreshOverwritePolicyRow() {

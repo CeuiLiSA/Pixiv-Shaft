@@ -12,7 +12,12 @@ import ceui.pixiv.download.template.DefaultTemplates
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [35])
 class DownloadConfigTest {
 
     private val defaults = BucketDefaults(
@@ -227,6 +232,25 @@ class DownloadConfigTest {
         // Storage switched
         assertEquals(newStorage, switched.resolve(Bucket.Illust).storage)
         assertEquals(newStorage, switched.resolve(Bucket.Novel).storage)
+    }
+
+    @Test fun `per-bucket storage configuration operates independently`() {
+        val images = StorageChoice.MediaStore(StorageChoice.MediaStore.Collection.Images)
+        val downloads = StorageChoice.MediaStore(StorageChoice.MediaStore.Collection.Downloads)
+        val saf = StorageChoice.Saf(android.net.Uri.parse("content://saf/tree"))
+
+        val cfg = DownloadConfig(
+            defaults = BucketDefaults(template = "d/{id}.{ext}", storage = images),
+            perBucket = mapOf(
+                Bucket.Illust to BucketConfig(storage = images),
+                Bucket.Novel to BucketConfig(storage = saf),
+                Bucket.Backup to BucketConfig(storage = downloads),
+            ),
+        )
+
+        assertEquals(images, cfg.resolve(Bucket.Illust).storage)
+        assertEquals(saf, cfg.resolve(Bucket.Novel).storage)
+        assertEquals(downloads, cfg.resolve(Bucket.Backup).storage)
     }
 
     @Test fun `all presets produce valid configs for every user bucket`() {

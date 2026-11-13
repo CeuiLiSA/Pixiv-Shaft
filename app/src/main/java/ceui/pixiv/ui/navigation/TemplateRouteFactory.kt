@@ -109,6 +109,7 @@ import ceui.pixiv.ui.settings.AiTranslateSettingsFragment
 import ceui.pixiv.ui.settings.Aria2SettingsFragment
 import ceui.pixiv.ui.settings.WebDavSettingsFragment
 import ceui.pixiv.ui.settings.DownloadPathSettingsFragment
+import ceui.pixiv.ui.settings.ManageStorageSettingsFragment
 import ceui.pixiv.ui.settings.NovelHeaderSettingsFragment
 import ceui.pixiv.ui.settings.ThemeColorFeedFragment
 import ceui.pixiv.ui.settings.ViewerDismissTuningFragment
@@ -385,6 +386,7 @@ object TemplateRouteFactory {
             TemplateRoute.MUTED_TAGS -> FragmentViewPager.newInstance(Params.VIEW_PAGER_MUTED)
             TemplateRoute.FILE_NAME_FORMAT -> FragmentFileName.newInstance()
             TemplateRoute.DOWNLOAD_PATH_SETTINGS -> DownloadPathSettingsFragment()
+            TemplateRoute.MANAGE_STORAGE_SETTINGS -> ManageStorageSettingsFragment()
             TemplateRoute.ARIA2_SETTINGS -> Aria2SettingsFragment()
             TemplateRoute.AI_TRANSLATE_SETTINGS -> AiTranslateSettingsFragment()
             TemplateRoute.WEBDAV_SETTINGS -> WebDavSettingsFragment()

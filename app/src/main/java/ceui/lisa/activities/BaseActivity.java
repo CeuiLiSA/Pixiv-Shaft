@@ -192,10 +192,20 @@ public abstract class BaseActivity<Layout extends ViewBinding> extends AppCompat
             }
             // 把全局存储拨到 SAF；之前 FragmentSettings 在 setFeedBack 里干这件事，
             // 但 Activity 被回收时回调丢失，落库不完整。抬到 Activity 层后保证一定执行。
-            try {
-                DownloadsRegistry.applyGlobalStorage(new StorageChoice.Saf(treeUri));
-            } catch (Throwable t) {
-                t.printStackTrace();
+            boolean intercepted = false;
+            if (sSafGrantInterceptor != null) {
+                try {
+                    intercepted = sSafGrantInterceptor.onSafGranted(treeUri);
+                } catch (Throwable t) {
+                    t.printStackTrace();
+                }
+            }
+            if (!intercepted) {
+                try {
+                    DownloadsRegistry.applyGlobalStorage(new StorageChoice.Saf(treeUri));
+                } catch (Throwable t) {
+                    t.printStackTrace();
+                }
             }
             Common.showToast(getString(R.string.saf_grant_success));
             doAfterGranted();
@@ -210,6 +220,16 @@ public abstract class BaseActivity<Layout extends ViewBinding> extends AppCompat
 
     public void setFeedBack(FeedBack feedBack) {
         mFeedBack = feedBack;
+    }
+
+    public interface SafGrantInterceptor {
+        boolean onSafGranted(Uri treeUri);
+    }
+
+    private static SafGrantInterceptor sSafGrantInterceptor = null;
+
+    public static void setSafGrantInterceptor(SafGrantInterceptor interceptor) {
+        sSafGrantInterceptor = interceptor;
     }
 
     private void updateTheme() {
