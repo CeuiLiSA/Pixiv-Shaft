@@ -1193,6 +1193,7 @@
     <string name="update_banner_done_title">Güncelleme indirildi</string>
     <string name="update_banner_done_message">%1$s sürümünü yüklemeye devam etmek için dokunun</string>
     <string name="update_banner_action">Yükle</string>
+    <string name="feed_thumbnail_failure_banner_title">Resimler yüklenemedi, ağınızı test etmeniz önerilir</string>
     <string name="update_download_failed">İndirme başarısız oldu</string>
     <string name="update_check_failed">Güncellemeler kontrol edilemedi</string>
     <string name="update_rate_limited">İstek sınırına ulaşıldı, lütfen daha sonra tekrar deneyin</string>

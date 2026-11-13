@@ -43,6 +43,28 @@ public class RAdapter extends BaseAdapter<Illust, RecyRankIllustHorizontalBindin
         // 排行榜 hero 卡用 large(600x1200_90)比 medium(540_70)在 180dp 卡里更清晰。
         Glide.with(mContext).load(GlideUtil.getLargeImage(bean))
                 .transition(DrawableTransitionOptions.withCrossFade())
+                .addListener(new com.bumptech.glide.request.RequestListener<android.graphics.drawable.Drawable>() {
+                    @Override
+                    public boolean onLoadFailed(@androidx.annotation.Nullable com.bumptech.glide.load.engine.GlideException e, Object model, com.bumptech.glide.request.target.Target<android.graphics.drawable.Drawable> target, boolean isFirstResource) {
+                        bindView.itemView.setTag(R.id.tag_feed_thumbnail_load_failed, true);
+                        bindView.baseBind.illustImage.setTag(R.id.tag_feed_thumbnail_load_failed, true);
+                        android.view.ViewParent p = bindView.itemView.getParent();
+                        while (p != null) {
+                            if (p instanceof androidx.recyclerview.widget.RecyclerView) {
+                                ceui.pixiv.ui.common.FeedThumbnailFailureNotifier.INSTANCE.checkAndNotify((androidx.recyclerview.widget.RecyclerView) p);
+                            }
+                            p = p.getParent();
+                        }
+                        return false;
+                    }
+
+                    @Override
+                    public boolean onResourceReady(android.graphics.drawable.Drawable resource, Object model, com.bumptech.glide.request.target.Target<android.graphics.drawable.Drawable> target, com.bumptech.glide.load.DataSource dataSource, boolean isFirstResource) {
+                        bindView.itemView.setTag(R.id.tag_feed_thumbnail_load_failed, false);
+                        bindView.baseBind.illustImage.setTag(R.id.tag_feed_thumbnail_load_failed, false);
+                        return false;
+                    }
+                })
                 .into(bindView.baseBind.illustImage);
         Glide.with(mContext).load(GlideUtil.getHead(bean.getUser()))
                 .placeholder(R.color.light_bg).error(R.drawable.no_profile).into(bindView.baseBind.userHead);

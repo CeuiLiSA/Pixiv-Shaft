@@ -23,10 +23,16 @@ import ceui.pixiv.feeds.FeedRenderer
 import ceui.pixiv.feeds.feedRenderer
 import ceui.pixiv.ui.common.IllustFeedItem
 import ceui.pixiv.ui.common.IllustMuteStore
+import android.graphics.drawable.Drawable
+import ceui.pixiv.ui.common.FeedThumbnailFailureNotifier
 import ceui.pixiv.utils.clearGlideOnRecycle
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.DataSource
+import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
+import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.RequestOptions.bitmapTransform
+import com.bumptech.glide.request.target.Target
 import java.util.Locale
 
 /** 单图区的高宽比钳制（对齐 legacy TimelineAdapter，比瀑布流卡窄一档）。 */
@@ -105,12 +111,14 @@ fun timelineIllustRenderer(
             // 否则复用到恰好同 url 同尺寸的条目时会以为图还在而漏加载
             cell.binding.illustImage.tag = null
             cell.binding.userIcon.tag = null
+            cell.binding.root.setTag(R.id.tag_feed_thumbnail_load_failed, false)
         },
     ) { cell -> bindTimelineCard(cell) }
 }
 
 private fun bindTimelineCard(cell: FeedCell<IllustFeedItem, RecyTimelineIllustBinding>) {
     val b = cell.binding
+    b.root.setTag(R.id.tag_feed_thumbnail_load_failed, false)
     val bean = cell.item.illust
     val ctx = b.root.context
 
@@ -211,6 +219,43 @@ private fun bindSingleImage(
         request
             .placeholder(R.color.v3_surface_2)
             .transition(DrawableTransitionOptions.withCrossFade())
+            .addListener(object : RequestListener<Drawable> {
+                override fun onLoadFailed(
+                    e: GlideException?,
+                    model: Any?,
+                    target: Target<Drawable>,
+                    isFirstResource: Boolean,
+                ): Boolean {
+                    b.root.setTag(R.id.tag_feed_thumbnail_load_failed, true)
+                    b.illustImage.setTag(R.id.tag_feed_thumbnail_load_failed, true)
+                    val check = Runnable {
+                        val rv = (b.root.parent as? RecyclerView)
+                            ?: FeedThumbnailFailureNotifier.findParentRecyclerView(b.root)
+                        if (rv != null) {
+                            FeedThumbnailFailureNotifier.checkAndNotify(rv)
+                        }
+                    }
+                    val rv = (b.root.parent as? RecyclerView)
+                        ?: FeedThumbnailFailureNotifier.findParentRecyclerView(b.root)
+                    if (rv != null) {
+                        check.run()
+                    } else {
+                        b.root.post(check)
+                    }
+                    return false
+                }
+
+                override fun onResourceReady(
+                    resource: Drawable,
+                    model: Any,
+                    target: Target<Drawable>?,
+                    dataSource: DataSource,
+                    isFirstResource: Boolean,
+                ): Boolean {
+                    b.root.setTag(R.id.tag_feed_thumbnail_load_failed, false)
+                    return false
+                }
+            })
             .into(b.illustImage)
     }
 }
@@ -302,6 +347,7 @@ private class TimelineGridAdapter(
             }
             request
                 .placeholder(R.color.v3_surface_2)
+                .addListener(TimelineGridImageListener(holder.itemView))
                 .into(holder.binding.gridImage)
         }
 
@@ -313,6 +359,31 @@ private class TimelineGridAdapter(
     }
 
     class VH(val binding: ItemTimelineGridImageBinding) : RecyclerView.ViewHolder(binding.root)
+}
+
+private class TimelineGridImageListener(
+    private val itemView: View,
+) : RequestListener<Drawable> {
+    override fun onLoadFailed(
+        e: GlideException?,
+        model: Any?,
+        target: Target<Drawable>,
+        isFirstResource: Boolean,
+    ): Boolean {
+        val innerRv = itemView.parent as? RecyclerView
+        val cardRoot = innerRv?.parent as? View
+        cardRoot?.setTag(R.id.tag_feed_thumbnail_load_failed, true)
+        (cardRoot?.parent as? RecyclerView)?.let(FeedThumbnailFailureNotifier::checkAndNotify)
+        return false
+    }
+
+    override fun onResourceReady(
+        resource: Drawable,
+        model: Any,
+        target: Target<Drawable>?,
+        dataSource: DataSource,
+        isFirstResource: Boolean,
+    ): Boolean = false
 }
 
 /**

@@ -88,4 +88,5 @@
          都会重跑头卡绑定，地址没变就不再发 Glide 请求 -->
     <item type="id" name="novel_header_cover_key"/>
     <item type="id" name="novel_header_avatar_key"/>
+    <item type="id" name="tag_feed_thumbnail_load_failed"/>
 </resources>

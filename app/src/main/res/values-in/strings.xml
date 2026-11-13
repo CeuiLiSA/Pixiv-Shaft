@@ -1205,6 +1205,7 @@
     <string name="update_banner_done_title">Pembaruan telah diunduh</string>
     <string name="update_banner_done_message">Ketuk untuk melanjutkan pemasangan %1$s</string>
     <string name="update_banner_action">Pasang</string>
+    <string name="feed_thumbnail_failure_banner_title">Gagal memuat gambar, disarankan untuk menguji jaringan</string>
     <string name="update_download_failed">Unduhan gagal</string>
     <string name="update_check_failed">Gagal memeriksa pembaruan</string>
     <string name="update_rate_limited">Terkena batas permintaan, coba lagi nanti</string>

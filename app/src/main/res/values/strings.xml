@@ -1248,6 +1248,7 @@
     <string name="update_banner_done_title">更新已下载完成</string>
     <string name="update_banner_done_message">点此继续安装 %1$s</string>
     <string name="update_banner_action">去安装</string>
+    <string name="feed_thumbnail_failure_banner_title">图片加载失败，建议测试下网络</string>
     <string name="update_download_failed">下载失败</string>
     <string name="update_check_failed">检查更新失败</string>
     <string name="update_rate_limited">被速率限制，请稍后再试</string>
