@@ -116,6 +116,7 @@ class TemplateRouteTest {
             "MUTED_TAGS" to "标签屏蔽记录",
             "FILE_NAME_FORMAT" to "修改命名方式",
             "DOWNLOAD_PATH_SETTINGS" to "下载路径与文件名",
+            "MANAGE_STORAGE_SETTINGS" to "管理存储位置",
             "ARIA2_SETTINGS" to "aria2远程下载",
             "AI_TRANSLATE_SETTINGS" to "自定义AI翻译",
             "WEBDAV_SETTINGS" to "WebDAV备份",

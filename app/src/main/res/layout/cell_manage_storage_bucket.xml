@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_v3_card"
+    android:orientation="vertical"
+    android:paddingHorizontal="20dp"
+    android:paddingVertical="18dp">
+
+    <TextView
+        android:id="@+id/bucket_name"
+        style="@style/textMontserratBold"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/v3_text_1"
+        android:textSize="17sp" />
+
+    <!-- 每个胶囊独占一行 -->
+    <LinearLayout
+        android:id="@+id/pills_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:orientation="vertical">
+
+        <!-- 胶囊 1：系统相册 (Pictures) -->
+        <TextView
+            android:id="@+id/pill_pictures"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_v3_pill_secondary"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="10dp"
+            android:text="@string/setting_storage_pictures"
+            android:textSize="13.5sp" />
+
+        <TextView
+            android:id="@+id/pictures_unsupported_hint"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:layout_marginStart="8dp"
+            android:text="@string/storage_pictures_not_supported_hint"
+            android:textColor="@color/v3_text_3"
+            android:textSize="11.5sp"
+            android:visibility="gone" />
+
+        <!-- 胶囊 2：下载目录 (Downloads) -->
+        <TextView
+            android:id="@+id/pill_downloads"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/bg_v3_pill_secondary"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="10dp"
+            android:text="@string/setting_storage_downloads"
+            android:textSize="13.5sp" />
+
+        <!-- 胶囊 3：自选目录 (SAF) -->
+        <TextView
+            android:id="@+id/pill_saf"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/bg_v3_pill_secondary"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="10dp"
+            android:text="@string/setting_storage_saf"
+            android:textSize="13.5sp" />
+    </LinearLayout>
+
+</LinearLayout>

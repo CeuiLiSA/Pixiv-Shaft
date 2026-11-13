@@ -86,6 +86,7 @@ enum class TemplateRoute(@JvmField val key: String) {
     MUTED_TAGS("标签屏蔽记录"),
     FILE_NAME_FORMAT("修改命名方式"),
     DOWNLOAD_PATH_SETTINGS("下载路径与文件名"),
+    MANAGE_STORAGE_SETTINGS("管理存储位置"),
     ARIA2_SETTINGS("aria2远程下载"),
     AI_TRANSLATE_SETTINGS("自定义AI翻译"),
     WEBDAV_SETTINGS("WebDAV备份"),

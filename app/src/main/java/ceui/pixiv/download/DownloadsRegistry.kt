@@ -7,6 +7,7 @@ import ceui.pixiv.download.backend.AppCacheBackend
 import ceui.pixiv.download.backend.MediaStoreBackend
 import ceui.pixiv.download.backend.SafBackend
 import ceui.pixiv.download.backend.StorageBackend
+import ceui.pixiv.download.config.BucketConfig
 import ceui.pixiv.download.config.ConfigPresets
 import ceui.pixiv.download.config.DownloadConfig
 import ceui.pixiv.download.config.DownloadConfigStore
@@ -101,6 +102,27 @@ object DownloadsRegistry {
                     else -> downloadsStorage
                 }
                 bc.copy(storage = newStorage)
+            }
+            cfg.copy(defaults = newDefaults, perBucket = newPerBucket)
+        }
+        invalidateBackends()
+    }
+
+    /**
+     * Update storage choices per bucket independently.
+     * Bucket.Illust updates defaults.storage as baseline.
+     */
+    @JvmStatic
+    fun updateBucketStorages(bucketStorages: Map<Bucket, StorageChoice>) {
+        store.update { cfg ->
+            var newDefaults = cfg.defaults
+            val newPerBucket = cfg.perBucket.toMutableMap()
+            bucketStorages[Bucket.Illust]?.let { illustStorage ->
+                newDefaults = newDefaults.copy(storage = illustStorage)
+            }
+            bucketStorages.forEach { (bucket, storage) ->
+                val existing = newPerBucket[bucket] ?: BucketConfig()
+                newPerBucket[bucket] = existing.copy(storage = storage)
             }
             cfg.copy(defaults = newDefaults, perBucket = newPerBucket)
         }
