@@ -31,6 +31,8 @@ import timber.log.Timber
 import java.lang.ref.WeakReference
 import java.util.concurrent.atomic.AtomicBoolean
 import ceui.pixiv.ui.navigation.TemplateRoute
+import ceui.pixiv.ui.common.FeedThumbnailFailureNotifier
+import ceui.pixiv.ui.debug.openNetworkTestPage
 
 /**
  * Process-wide entry point for the in-app banner system.
@@ -56,6 +58,8 @@ object InAppBanners {
     /** 更新包已下载完成，跳回更新 sheet。`shaft://update`。 */
     private const val HOST_UPDATE = "update"
 
+    /** 网络测试页。`shaft://network-test`。 */
+    private const val HOST_NETWORK_TEST = "network-test"
     private val bootstrapped = AtomicBoolean(false)
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val foreground = ForegroundTracker()
@@ -96,7 +100,8 @@ object InAppBanners {
         val installer = BannerHostInstaller(manager)
         app.registerActivityLifecycleCallbacks(installer)
         app.registerActivityLifecycleCallbacks(foreground)
-
+        ChatBannerBridge(app, manager, scope, app.appServices().chatGateway).start()
+        FeedThumbnailFailureNotifier.init(app.appServices().networkStateManager)
         existingActivity?.let {
             foreground.seed(it)
             installer.installNow(it)
@@ -121,6 +126,7 @@ object InAppBanners {
 
         Timber.tag(TAG).i("InAppBanners bootstrap complete")
         UpgradeRequiredPrompt.onForeground()
+        FeedThumbnailFailureNotifier.onBannerReady(app)
     }
 
     private suspend fun handleTap(app: Application, deepLink: String?) {
@@ -131,6 +137,10 @@ object InAppBanners {
             HOST_CHAT -> openChat(app, uri)
             HOST_BOOKMARK_LIBRARY -> openBookmarkLibrary(app, uri)
             HOST_UPDATE -> openUpdateSheet(app)
+            HOST_NETWORK_TEST -> withContext(Dispatchers.Main) {
+                val ctx = foreground.current() ?: app
+                openNetworkTestPage(ctx)
+            }
             "upgrade-required" -> withContext(Dispatchers.Main) {
                 (foreground.current() as? FragmentActivity)?.let(UpgradeRequiredPrompt::open)
             }

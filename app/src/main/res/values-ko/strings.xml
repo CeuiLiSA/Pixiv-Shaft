@@ -1190,6 +1190,7 @@
     <string name="update_banner_done_title">업데이트 다운로드 완료</string>
     <string name="update_banner_done_message">탭하여 %1$s 설치 계속</string>
     <string name="update_banner_action">설치하기</string>
+    <string name="feed_thumbnail_failure_banner_title">이미지 로드에 실패했습니다. 네트워크를 테스트해 보세요</string>
     <string name="update_download_failed">다운로드 실패</string>
     <string name="update_check_failed">업데이트 확인 실패</string>
     <string name="update_rate_limited">요청 한도에 도달했습니다. 잠시 후 다시 시도해 주세요</string>

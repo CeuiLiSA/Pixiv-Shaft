@@ -30,9 +30,14 @@ import ceui.pixiv.widget.IllustBadgeRowView
 import ceui.pixiv.utils.playLikePressHaptic
 import ceui.pixiv.utils.playUnlikeHaptic
 import ceui.pixiv.utils.setOnClick
+import android.graphics.drawable.Drawable
+import com.bumptech.glide.load.DataSource
+import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.load.model.GlideUrl
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
+import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.RequestOptions.bitmapTransform
+import com.bumptech.glide.request.target.Target
 
 /** 瀑布流卡片高度钳制（对齐 legacy IAdapter）：高 = 宽的 0.6~2.0 倍。 */
 private const val MIN_HEIGHT_RATIO = 0.6f
@@ -172,6 +177,7 @@ internal fun IllustFeedFragment.staggerIllustRenderer():
             cell.binding.spoilerParticles.setParticleAnimationRunning(false)
             illustGlide.clear(cell.binding.illustImage)
             cell.binding.illustImage.tag = null
+            cell.binding.root.setTag(R.id.tag_feed_thumbnail_load_failed, false)
             resetLikeAnim(cell.binding)
         },
         attach = { cell ->
@@ -418,6 +424,7 @@ private fun IllustFeedFragment.loadIllustImage(
     val requestKey = IllustImageRequestKey(imgUrl?.cacheKey, requestWidth, columnHeight, spoilered)
     if (binding.illustImage.tag == requestKey) return
     binding.illustImage.tag = requestKey
+    binding.root.setTag(R.id.tag_feed_thumbnail_load_failed, false)
 
     // 这里曾经挂过一个 .error(...) 兜底：它加载的是**同一个 imgUrl**，参数逐字相同 ——
     // 也就是把刚失败的请求原样再发一遍。而 .error() 收的是已经建好的 RequestBuilder，
@@ -438,6 +445,44 @@ private fun IllustFeedFragment.loadIllustImage(
         // 占位底色对齐白天骨架图（feed_skeleton_block），未加载卡不再白页糊一片
         .placeholder(ceui.pixiv.feeds.R.color.feed_skeleton_block)
         .transition(DrawableTransitionOptions.withCrossFade())
+        .addListener(object : RequestListener<Drawable> {
+            override fun onLoadFailed(
+                e: GlideException?,
+                model: Any?,
+                target: Target<Drawable>,
+                isFirstResource: Boolean,
+            ): Boolean {
+                binding.root.setTag(R.id.tag_feed_thumbnail_load_failed, true)
+                binding.illustImage.setTag(R.id.tag_feed_thumbnail_load_failed, true)
+                val check = Runnable {
+                    val rv = (binding.root.parent as? RecyclerView)
+                        ?: FeedThumbnailFailureNotifier.findParentRecyclerView(binding.root)
+                    if (rv != null) {
+                        FeedThumbnailFailureNotifier.checkAndNotify(rv)
+                    }
+                }
+                val rv = (binding.root.parent as? RecyclerView)
+                    ?: FeedThumbnailFailureNotifier.findParentRecyclerView(binding.root)
+                if (rv != null) {
+                    check.run()
+                } else {
+                    binding.root.post(check)
+                }
+                return false
+            }
+
+            override fun onResourceReady(
+                resource: Drawable,
+                model: Any,
+                target: Target<Drawable>?,
+                dataSource: DataSource,
+                isFirstResource: Boolean,
+            ): Boolean {
+                binding.root.setTag(R.id.tag_feed_thumbnail_load_failed, false)
+                binding.illustImage.setTag(R.id.tag_feed_thumbnail_load_failed, false)
+                return false
+            }
+        })
         .into(binding.illustImage)
 }
 
