@@ -367,6 +367,8 @@
     <string name="clear_bulk_download_cache_progress">ダウンロード関連データを削除中…</string>
     <string name="clear_bulk_download_cache_queue_not_empty">ダウンロードキューが空ではありません。削除は実行されませんでした。</string>
     <string name="clear_bulk_download_cache_failed">削除が完了しませんでした。しばらくしてから再度お試しください。</string>
+    <string name="download_cache_calculating">データ容量を計算中…</string>
+    <string name="approximate_size_format">約 %1$s</string>
     <string name="manage_download_cache_dialog_title">ダウンロード関連データを管理</string>
     <string name="download_cache_action_slim">ディープスリム</string>
     <string name="download_cache_action_wipe">すべて消去</string>

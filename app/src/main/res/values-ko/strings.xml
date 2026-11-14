@@ -367,6 +367,8 @@
     <string name="clear_bulk_download_cache_progress">다운로드 관련 데이터를 삭제하는 중…</string>
     <string name="clear_bulk_download_cache_queue_not_empty">다운로드 대기열이 비어 있지 않습니다. 정리를 실행하지 않았습니다.</string>
     <string name="clear_bulk_download_cache_failed">정리가 완료되지 않았습니다. 잠시 후 다시 시도해 주세요.</string>
+    <string name="download_cache_calculating">데이터 용량 계산 중…</string>
+    <string name="approximate_size_format">약 %1$s</string>
     <string name="manage_download_cache_dialog_title">다운로드 관련 데이터 관리</string>
     <string name="download_cache_action_slim">딥 슬림</string>
     <string name="download_cache_action_wipe">모두 지우기</string>
