@@ -2,6 +2,7 @@ package ceui.pixiv.ui.trending
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
 import ceui.lisa.R
@@ -24,8 +25,11 @@ import ceui.pixiv.feeds.FeedRenderer
 import ceui.pixiv.feeds.pixiv.pixivFeedSource
 import ceui.pixiv.feeds.feedRenderer
 import ceui.pixiv.feeds.feedViewModels
-import ceui.pixiv.ui.common.IllustFeedItem
+import ceui.pixiv.ui.common.UserPreviewTransitionFactory
 import ceui.pixiv.utils.clearGlideOnRecycle
+import ceui.pixiv.utils.pinHostGlide
+import com.bumptech.glide.RequestManager
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import ceui.pixiv.utils.setOnClick
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.model.GlideUrl
@@ -55,6 +59,26 @@ class HotTagsFeedFragment : FeedFragment() {
         requireArguments().getString(ARG_CONTENT_TYPE) ?: Params.TYPE_ILLUST
     }
 
+    private val tagGlide: RequestManager by lazy { Glide.with(this) }
+    private val previewImageTransition by lazy(LazyThreadSafetyMode.NONE) {
+        DrawableTransitionOptions().transition(UserPreviewTransitionFactory(requireContext()))
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        pinHostGlide(tagGlide)
+    }
+
+    override fun onDestroyView() {
+        val listView = view?.findViewById<RecyclerView>(ceui.pixiv.feeds.R.id.feed_list_view)
+        if (listView != null) {
+            for (i in 0 until listView.childCount) {
+                listView.getChildAt(i)?.findViewById<View>(R.id.illust_image)?.clearGlideOnRecycle()
+            }
+        }
+        super.onDestroyView()
+    }
+
     override val feedViewModel by feedViewModels(autoLoad = false) {
         // 零捕获约定（见 feedViewModels 文档）：contentType 取成局部值，不把 Fragment 钉进 VM
         val contentType = contentType
@@ -64,7 +88,12 @@ class HotTagsFeedFragment : FeedFragment() {
             // 已屏蔽的标签也不再摆出来（pixez#1182）；先滤再编号，头图始终落在第一个可见标签上。
             val mutedTags = IllustNovelFilter.getMutedTags()
             resp.trend_tags
-                .filter { !it.tag.isNullOrEmpty() && !IllustNovelFilter.isTagNameMuted(it.tag, mutedTags) }
+                .filter {
+                    !it.tag.isNullOrEmpty() && !IllustNovelFilter.isTagNameMuted(
+                        it.tag,
+                        mutedTags
+                    )
+                }
                 .mapIndexed { index, trendingTag ->
                     val bean = trendingTag.illust
                     if (index == 0) {
@@ -81,6 +110,8 @@ class HotTagsFeedFragment : FeedFragment() {
     }
 
     override fun onListReady(listView: RecyclerView) {
+        listView.itemAnimator = null
+        listView.setItemViewCacheSize(ITEM_VIEW_CACHE_SIZE)
         listView.addItemDecoration(
             TagItemDecoration(SPAN_COUNT, DensityUtil.dp2px(1.0f), false)
         )
@@ -105,15 +136,13 @@ class HotTagsFeedFragment : FeedFragment() {
             cell.binding.root.setOnClick { openSearch(cell.item.trendingTag) }
             cell.binding.root.setOnLongClickListener { openIllustDetail(cell.item.bean) }
         },
-        recycle = { cell ->
-            cell.binding.illustImage.clearGlideOnRecycle()
-        },
     ) { cell ->
         val trendingTag = cell.item.trendingTag
         cell.binding.illustImage.setHeightRatio(ratio)
-        Glide.with(cell.binding.illustImage)
+        tagGlide
             .load(cell.item.bean?.let(imageOf))
             .placeholder(R.color.light_bg)
+            .transition(previewImageTransition)
             .into(cell.binding.illustImage)
         val translated = trendingTag.translated_name
         cell.binding.chineseTitle.text =
@@ -145,6 +174,7 @@ class HotTagsFeedFragment : FeedFragment() {
         private const val SPAN_COUNT = 3
         private const val HEADER_RATIO = 0.66f
         private const val CONTENT_RATIO = 1.0f
+        private const val ITEM_VIEW_CACHE_SIZE = 40
 
         /** [contentType] 取 [Params.TYPE_ILLUST] / [Params.TYPE_NOVEL]。 */
         @JvmStatic
