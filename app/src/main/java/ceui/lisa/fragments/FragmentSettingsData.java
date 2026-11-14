@@ -87,6 +87,7 @@ public class FragmentSettingsData extends SettingsPageFragment<FragmentSettingsD
     private boolean bulkWipeRunning;
     private CancellationSignal bulkSizeSignal;
     private CancellationSignal manageDialogSignal;
+    private ceui.pixiv.witstudio.dialog.WitTipDialog manageLoadingDialog;
     private boolean aiResultsBusy;
     private int aiStatsGeneration;
 
@@ -693,9 +694,8 @@ public class FragmentSettingsData extends SettingsPageFragment<FragmentSettingsD
     }
 
     /**
-     * "清除批量下载关联数据"那一行的大小估算 —— 算 illust_download_table /
-     * download_queue 里 illustGson 列的字节 + staging_dl/ 实际占用。SQL 计数走子线程,
-     * 大表 (Mio 用户 50k 行) 仍是毫秒级。
+     * "清除批量下载关联数据"那一行的大小估算 —— 采用双端极速采样估算，
+     * 避免大表触发全盘扫描。数值前加“约”。
      */
     private void loadBulkDownloadCacheSizeAsync(TextView target) {
         if (target == null) return;
@@ -709,7 +709,7 @@ public class FragmentSettingsData extends SettingsPageFragment<FragmentSettingsD
             long bytes;
             try {
                 bytes = ceui.pixiv.db.bulkclean.BulkDownloadCacheCleaner
-                        .computeReclaimableBytes(mContext.getApplicationContext(), signal);
+                        .estimateReclaimableBytes(mContext.getApplicationContext(), signal);
             } catch (OperationCanceledException ignored) {
                 return;
             } catch (Throwable t) {
@@ -717,7 +717,13 @@ public class FragmentSettingsData extends SettingsPageFragment<FragmentSettingsD
                 bytes = 0L;
             }
             if (signal.isCanceled()) return;
-            final String size = android.text.format.Formatter.formatShortFileSize(mContext, bytes);
+            final String size;
+            if (bytes <= 0L) {
+                size = android.text.format.Formatter.formatShortFileSize(mContext, 0L);
+            } else {
+                String formatted = android.text.format.Formatter.formatShortFileSize(mContext, bytes);
+                size = getString(R.string.approximate_size_format, formatted);
+            }
             target.post(() -> {
                 if (isAdded() && !signal.isCanceled()) {
                     target.setText(size);
@@ -727,8 +733,9 @@ public class FragmentSettingsData extends SettingsPageFragment<FragmentSettingsD
     }
 
     /**
-     * 打开「管理下载关联数据」弹窗：先在后台快速统计下载记录条数/体积、队列残留和 stage 大小，
-     * 然后以 WitDialog 展示存储概览，供用户选择「深度瘦身（推荐）」或「清空全部」。
+     * 打开「管理下载关联数据」弹窗：先展示轻量加载指示，并在后台精确统计下载记录条数/体积、队列残留和 stage 大小。
+     * 若弹窗在统计期间被取消或关闭，立即中断并掐掉在飞的 SQLite 查询事务。
+     * 统计完成后以 WitDialog 展示存储概览，供用户选择「深度瘦身（推荐）」或「清空全部」。
      */
     private void showManageBulkDownloadDialog() {
         if (getActivity() == null || getActivity().isFinishing() || getActivity().isDestroyed()) return;
@@ -736,9 +743,36 @@ public class FragmentSettingsData extends SettingsPageFragment<FragmentSettingsD
         if (manageDialogSignal != null) {
             manageDialogSignal.cancel();
         }
+        if (manageLoadingDialog != null) {
+            try {
+                manageLoadingDialog.dismiss();
+            } catch (Throwable ignored) {
+            }
+            manageLoadingDialog = null;
+        }
+
         manageDialogSignal = new CancellationSignal();
         final CancellationSignal signal = manageDialogSignal;
         final Context context = getActivity();
+
+        final ceui.pixiv.witstudio.dialog.WitTipDialog loadingDialog =
+                new ceui.pixiv.witstudio.dialog.WitTipDialog.Builder(getActivity())
+                        .setTipWord(getString(R.string.download_cache_calculating))
+                        .create(true);
+        loadingDialog.setCanceledOnTouchOutside(true);
+        manageLoadingDialog = loadingDialog;
+
+        final java.util.concurrent.atomic.AtomicBoolean completed =
+                new java.util.concurrent.atomic.AtomicBoolean(false);
+
+        loadingDialog.setOnCancelListener(d -> signal.cancel());
+        loadingDialog.setOnDismissListener(d -> {
+            if (!completed.get()) {
+                signal.cancel();
+            }
+        });
+        loadingDialog.show();
+
         new Thread(() -> {
             final ceui.pixiv.db.bulkclean.BulkDownloadCacheCleaner.StorageStats stats;
             final int active;
@@ -753,10 +787,33 @@ public class FragmentSettingsData extends SettingsPageFragment<FragmentSettingsD
                 if (signal.isCanceled()) return;
                 Timber.e(t, "showManageBulkDownloadDialog stats failed");
                 return;
+            } finally {
+                if (signal.isCanceled()) {
+                    completed.set(true);
+                    if (getActivity() != null) {
+                        getActivity().runOnUiThread(() -> {
+                            try {
+                                loadingDialog.dismiss();
+                            } catch (Throwable ignored) {
+                            }
+                            if (manageLoadingDialog == loadingDialog) {
+                                manageLoadingDialog = null;
+                            }
+                        });
+                    }
+                }
             }
             if (signal.isCanceled()) return;
             if (getActivity() == null || getActivity().isFinishing() || getActivity().isDestroyed()) return;
             getActivity().runOnUiThread(() -> {
+                completed.set(true);
+                try {
+                    loadingDialog.dismiss();
+                } catch (Throwable ignored) {
+                }
+                if (manageLoadingDialog == loadingDialog) {
+                    manageLoadingDialog = null;
+                }
                 if (!isAdded() || signal.isCanceled()) return;
                 showManageBulkDownloadDialogWithStats(stats, active);
             });
@@ -1009,6 +1066,13 @@ public class FragmentSettingsData extends SettingsPageFragment<FragmentSettingsD
         if (manageDialogSignal != null) {
             manageDialogSignal.cancel();
             manageDialogSignal = null;
+        }
+        if (manageLoadingDialog != null) {
+            try {
+                manageLoadingDialog.dismiss();
+            } catch (Throwable ignored) {
+            }
+            manageLoadingDialog = null;
         }
     }
 }

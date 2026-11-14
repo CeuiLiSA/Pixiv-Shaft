@@ -84,12 +84,84 @@ object BulkDownloadCacheCleaner {
     }
 
     /**
-     * 统计当前下载相关持久化数据的空间占用详情。
+     * 统计当前下载相关持久化数据的空间占用详情（点进管理弹窗时精确统计用，抑制长耗时误报）。
      */
     @JvmStatic
     @WorkerThread
     @JvmOverloads
     fun computeStorageStats(
+        context: Context,
+        cancellationSignal: CancellationSignal? = null,
+    ): StorageStats {
+        cancellationSignal?.throwIfCanceled()
+        DbCallTracker.beginLongOperation()
+        try {
+            var recordsBytes = 0L
+            var recordsCount = 0
+            var queueBytes = 0L
+            var queueCount = 0
+            var stagingBytes = 0L
+
+            runCatching {
+                val db = AppDatabase.getAppDatabase(context)
+                cancellationSignal?.throwIfCanceled()
+                val raw = db.openHelper.writableDatabase
+                cancellationSignal?.throwIfCanceled()
+                raw.query(
+                    SimpleSQLiteQuery("SELECT IFNULL(SUM(LENGTH(CAST(illustGson AS BLOB))), 0), COUNT(*) FROM illust_download_table"),
+                    cancellationSignal
+                ).use { c ->
+                    if (c.moveToFirst()) {
+                        recordsBytes = c.getLong(0)
+                        recordsCount = c.getInt(1)
+                    }
+                }
+                cancellationSignal?.throwIfCanceled()
+                raw.query(
+                    SimpleSQLiteQuery("SELECT IFNULL(SUM(LENGTH(CAST(illustGson AS BLOB))), 0), COUNT(*) FROM download_queue WHERE status = '${QueueStatus.SUCCESS}' AND (illustGson IS NOT NULL OR errorMsg IS NOT NULL)"),
+                    cancellationSignal
+                ).use { c ->
+                    if (c.moveToFirst()) {
+                        queueBytes = c.getLong(0)
+                        queueCount = c.getInt(1)
+                    }
+                }
+            }.onFailure {
+                if (it is OperationCanceledException) throw it
+                Timber.tag(TAG).w(it, "computeStorageStats db query failed")
+            }
+
+            cancellationSignal?.throwIfCanceled()
+
+            runCatching {
+                stagingBytes = dirSize(File(context.cacheDir, "staging_dl"), cancellationSignal)
+            }.onFailure {
+                if (it is OperationCanceledException) throw it
+                Timber.tag(TAG).w(it, "computeStorageStats staging_dl failed")
+            }
+
+            val total = recordsBytes + queueBytes + stagingBytes
+            return StorageStats(
+                downloadRecordsBytes = recordsBytes,
+                downloadRecordsCount = recordsCount,
+                queuePayloadBytes = queueBytes,
+                queueSuccessCount = queueCount,
+                stagingBytes = stagingBytes,
+                totalBytes = total
+            )
+        } finally {
+            DbCallTracker.endLongOperation()
+        }
+    }
+
+    /**
+     * 双端极速采样估算法：通过覆盖索引快速获取总行数，对大表仅采样头尾少量记录计算均值，
+     * 避免全盘遍历大体积 JSON 导致卡顿（毫秒级返回）。
+     */
+    @JvmStatic
+    @WorkerThread
+    @JvmOverloads
+    fun estimateStorageStats(
         context: Context,
         cancellationSignal: CancellationSignal? = null,
     ): StorageStats {
@@ -105,28 +177,103 @@ object BulkDownloadCacheCleaner {
             cancellationSignal?.throwIfCanceled()
             val raw = db.openHelper.writableDatabase
             cancellationSignal?.throwIfCanceled()
+
+            // 1. 快速读取记录行数（走 index_illust_download_table_illustId 覆盖索引，毫秒级）
             raw.query(
-                SimpleSQLiteQuery("SELECT IFNULL(SUM(LENGTH(CAST(illustGson AS BLOB))), 0), COUNT(*) FROM illust_download_table"),
+                SimpleSQLiteQuery("SELECT COUNT(*) FROM illust_download_table"),
                 cancellationSignal
             ).use { c ->
                 if (c.moveToFirst()) {
-                    recordsBytes = c.getLong(0)
-                    recordsCount = c.getInt(1)
+                    recordsCount = c.getInt(0)
                 }
             }
+
             cancellationSignal?.throwIfCanceled()
+
+            if (recordsCount > 0) {
+                if (recordsCount <= 200) {
+                    // 小表：直接精确计算，耗时极短
+                    raw.query(
+                        SimpleSQLiteQuery("SELECT IFNULL(SUM(LENGTH(CAST(illustGson AS BLOB))), 0) FROM illust_download_table"),
+                        cancellationSignal
+                    ).use { c ->
+                        if (c.moveToFirst()) {
+                            recordsBytes = c.getLong(0)
+                        }
+                    }
+                } else {
+                    // 大表：双端采样（头 50 条 + 尾 50 条），仅读取 B-Tree 两端叶子节点，毫秒级
+                    val sampleSql = """
+                        SELECT IFNULL(AVG(len), 0) FROM (
+                            SELECT len FROM (
+                                SELECT LENGTH(CAST(illustGson AS BLOB)) AS len FROM illust_download_table ORDER BY rowid ASC LIMIT 50
+                            )
+                            UNION ALL
+                            SELECT len FROM (
+                                SELECT LENGTH(CAST(illustGson AS BLOB)) AS len FROM illust_download_table ORDER BY rowid DESC LIMIT 50
+                            )
+                        )
+                    """.trimIndent()
+                    raw.query(
+                        SimpleSQLiteQuery(sampleSql),
+                        cancellationSignal
+                    ).use { c ->
+                        if (c.moveToFirst()) {
+                            val avgLen = c.getDouble(0)
+                            recordsBytes = (avgLen * recordsCount).toLong()
+                        }
+                    }
+                }
+            }
+
+            cancellationSignal?.throwIfCanceled()
+
+            // 2. 队列表（若有残留才查，有索引）
             raw.query(
-                SimpleSQLiteQuery("SELECT IFNULL(SUM(LENGTH(CAST(illustGson AS BLOB))), 0), COUNT(*) FROM download_queue WHERE status = '${QueueStatus.SUCCESS}' AND (illustGson IS NOT NULL OR errorMsg IS NOT NULL)"),
+                SimpleSQLiteQuery("SELECT COUNT(*) FROM download_queue WHERE status = '${QueueStatus.SUCCESS}' AND (illustGson IS NOT NULL OR errorMsg IS NOT NULL)"),
                 cancellationSignal
             ).use { c ->
                 if (c.moveToFirst()) {
-                    queueBytes = c.getLong(0)
-                    queueCount = c.getInt(1)
+                    queueCount = c.getInt(0)
+                }
+            }
+
+            if (queueCount > 0) {
+                if (queueCount <= 100) {
+                    raw.query(
+                        SimpleSQLiteQuery("SELECT IFNULL(SUM(LENGTH(CAST(illustGson AS BLOB))), 0) FROM download_queue WHERE status = '${QueueStatus.SUCCESS}' AND (illustGson IS NOT NULL OR errorMsg IS NOT NULL)"),
+                        cancellationSignal
+                    ).use { c ->
+                        if (c.moveToFirst()) {
+                            queueBytes = c.getLong(0)
+                        }
+                    }
+                } else {
+                    val queueSampleSql = """
+                        SELECT IFNULL(AVG(len), 0) FROM (
+                            SELECT len FROM (
+                                SELECT LENGTH(CAST(illustGson AS BLOB)) AS len FROM download_queue WHERE status = '${QueueStatus.SUCCESS}' AND (illustGson IS NOT NULL OR errorMsg IS NOT NULL) ORDER BY rowid ASC LIMIT 25
+                            )
+                            UNION ALL
+                            SELECT len FROM (
+                                SELECT LENGTH(CAST(illustGson AS BLOB)) AS len FROM download_queue WHERE status = '${QueueStatus.SUCCESS}' AND (illustGson IS NOT NULL OR errorMsg IS NOT NULL) ORDER BY rowid DESC LIMIT 25
+                            )
+                        )
+                    """.trimIndent()
+                    raw.query(
+                        SimpleSQLiteQuery(queueSampleSql),
+                        cancellationSignal
+                    ).use { c ->
+                        if (c.moveToFirst()) {
+                            val avgLen = c.getDouble(0)
+                            queueBytes = (avgLen * queueCount).toLong()
+                        }
+                    }
                 }
             }
         }.onFailure {
             if (it is OperationCanceledException) throw it
-            Timber.tag(TAG).w(it, "computeStorageStats db query failed")
+            Timber.tag(TAG).w(it, "estimateStorageStats db query failed")
         }
 
         cancellationSignal?.throwIfCanceled()
@@ -135,7 +282,18 @@ object BulkDownloadCacheCleaner {
             stagingBytes = dirSize(File(context.cacheDir, "staging_dl"), cancellationSignal)
         }.onFailure {
             if (it is OperationCanceledException) throw it
-            Timber.tag(TAG).w(it, "computeStorageStats staging_dl failed")
+            Timber.tag(TAG).w(it, "estimateStorageStats staging_dl failed")
+        }
+
+        // 用库文件真实大小做上限兜底，避免估算值超出物理文件
+        runCatching {
+            val dbFile = context.getDatabasePath(AppDatabase.DATABASE_NAME)
+            if (dbFile.exists()) {
+                val dbLen = dbFile.length()
+                if (recordsBytes > dbLen) {
+                    recordsBytes = dbLen
+                }
+            }
         }
 
         val total = recordsBytes + queueBytes + stagingBytes
@@ -150,7 +308,7 @@ object BulkDownloadCacheCleaner {
     }
 
     /**
-     * 估算当前关联数据的总大小（用于 Settings 列表右侧的摘要提示）。
+     * 估算当前关联数据的总大小（用于 Settings 列表右侧的摘要提示，采用双端采样估算法）。
      */
     @JvmStatic
     @WorkerThread
@@ -159,7 +317,17 @@ object BulkDownloadCacheCleaner {
         context: Context,
         cancellationSignal: CancellationSignal? = null,
     ): Long {
-        return computeStorageStats(context, cancellationSignal).totalBytes
+        return estimateStorageStats(context, cancellationSignal).totalBytes
+    }
+
+    @JvmStatic
+    @WorkerThread
+    @JvmOverloads
+    fun estimateReclaimableBytes(
+        context: Context,
+        cancellationSignal: CancellationSignal? = null,
+    ): Long {
+        return estimateStorageStats(context, cancellationSignal).totalBytes
     }
 
     /**
