@@ -14,7 +14,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentUserV3InfoBinding
-import ceui.lisa.helper.replaceWithCustomTabSpans
+import ceui.lisa.helper.formatWebLinks
 import ceui.lisa.databinding.ItemV3ProfileChipBinding
 import ceui.lisa.models.UserDetailResponse
 import ceui.lisa.models.WorkspaceBean
@@ -156,11 +156,7 @@ class UserV3InfoFragment : Fragment() {
 
         // Bio
         if (!TextUtils.isEmpty(user.comment)) {
-            bindBio(
-                androidx.core.text.HtmlCompat.fromHtml(
-                    user.comment.orEmpty(), androidx.core.text.HtmlCompat.FROM_HTML_MODE_COMPACT
-                ).replaceWithCustomTabSpans()
-            )
+            bindBio(formatWebLinks(user.comment))
         }
 
         // Social chips from app API (web API may add more later)
@@ -182,11 +178,7 @@ class UserV3InfoFragment : Fragment() {
     private fun bindWebUserDetail(detail: WebUserDetail) {
         // Web 端的 commentHtml 比 app 端的 user.comment 排版更全（有 <a> 等标签）,有就覆盖。
         if (!detail.commentHtml.isNullOrEmpty()) {
-            bindBio(
-                androidx.core.text.HtmlCompat.fromHtml(
-                    detail.commentHtml, androidx.core.text.HtmlCompat.FROM_HTML_MODE_COMPACT
-                ).replaceWithCustomTabSpans()
-            )
+            bindBio(formatWebLinks(detail.commentHtml))
         }
 
         // Supplement social links from Web API

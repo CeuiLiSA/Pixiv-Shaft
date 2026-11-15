@@ -4,7 +4,7 @@ import android.text.method.LinkMovementMethod
 import android.view.View
 import android.widget.TextView
 import androidx.core.text.HtmlCompat
-import ceui.lisa.helper.replaceWithCustomTabSpans
+import ceui.lisa.helper.setWebLinks
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentUserInfoBinding
 import ceui.lisa.interfaces.Display
@@ -49,16 +49,6 @@ class FragmentUserInfo : BaseFragment<FragmentUserInfoBinding>(), Display<UserDe
 
     private fun bindHtmlText(view: TextView, raw: String?) {
         val text = Common.checkEmpty(raw)
-        if (text.isEmpty()) {
-            view.text = ""
-            return
-        }
-        val formatted = if (!text.contains("<") && (text.startsWith("http://") || text.startsWith("https://"))) {
-            "<a href=\"\"></a>"
-        } else {
-            text
-        }
-        view.text = HtmlCompat.fromHtml(formatted, HtmlCompat.FROM_HTML_MODE_COMPACT).replaceWithCustomTabSpans()
-        view.movementMethod = LinkMovementMethod.getInstance()
+        view.setWebLinks(text)
     }
 }

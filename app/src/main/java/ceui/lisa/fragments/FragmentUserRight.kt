@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModelProvider
 import ceui.lisa.R
 import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.databinding.FragmentUserRightBinding
+import ceui.lisa.helper.setWebLinks
 import ceui.lisa.utils.Params
 import ceui.lisa.viewmodel.UserViewModel
 import ceui.pixiv.ui.navigation.TemplateRoute
@@ -109,7 +110,7 @@ class FragmentUserRight : BaseLazyFragment<FragmentUserRightBinding>() {
         }
         if (!TextUtils.isEmpty(data.user.comment)) {
             baseBind.comment.visibility = View.VISIBLE
-            baseBind.comment.text = data.user.comment
+            baseBind.comment.setWebLinks(data.user.comment)
         } else {
             baseBind.comment.visibility = View.GONE
         }
@@ -120,13 +121,15 @@ class FragmentUserRight : BaseLazyFragment<FragmentUserRightBinding>() {
             intent.putExtra(Params.CONTENT, data)
             startActivity(intent)
         }
-        if (!TextUtils.isEmpty(data.profile.webpage)) {
-            baseBind.realHome.text = data.profile.webpage
+        val homeUrl = if (!TextUtils.isEmpty(data.profile.webpage)) {
+            data.profile.webpage
         } else {
-            baseBind.realHome.text = "https://www.pixiv.net/users/%d".format(data.user.id)
+            "https://www.pixiv.net/users/%d".format(data.user.id)
         }
+        baseBind.realHome.setWebLinks(homeUrl)
+
         if (!TextUtils.isEmpty(data.profile.twitter_url)) {
-            baseBind.realTwitter.text = data.profile.twitter_url
+            baseBind.realTwitter.setWebLinks(data.profile.twitter_url)
         } else {
             baseBind.realTwitter.text = getString(R.string.no_info)
         }

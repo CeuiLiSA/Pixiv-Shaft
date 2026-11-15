@@ -15,6 +15,11 @@ import androidx.browser.customtabs.CustomTabColorSchemeParams
 import androidx.browser.customtabs.CustomTabsIntent
 import ceui.lisa.R
 import ceui.pixiv.witstudio.theme.V3Palette
+import android.text.method.LinkMovementMethod
+import android.text.util.Linkify
+import android.widget.TextView
+import androidx.core.text.HtmlCompat
+import androidx.core.text.util.LinkifyCompat
 import ceui.lisa.utils.Common
 import ceui.pixiv.ui.settings.ChromeTabsPrefs
 import timber.log.Timber
@@ -186,6 +191,7 @@ fun Spanned.replaceWithCustomTabSpans(): Spanned {
     val spannable = if (this is Spannable) this else SpannableStringBuilder(this)
     val urlSpans = spannable.getSpans(0, spannable.length, URLSpan::class.java)
     for (span in urlSpans) {
+        if (span is CustomTabUrlSpan) continue
         val start = spannable.getSpanStart(span)
         val end = spannable.getSpanEnd(span)
         val flags = spannable.getSpanFlags(span)
@@ -194,4 +200,26 @@ fun Spanned.replaceWithCustomTabSpans(): Spanned {
         spannable.setSpan(CustomTabUrlSpan(url), start, end, flags)
     }
     return spannable
+}
+
+fun formatWebLinks(content: CharSequence?): Spanned {
+    val raw = content?.toString()?.trim().orEmpty()
+    if (raw.isEmpty()) {
+        return SpannableStringBuilder("")
+    }
+    val normalized = if (!raw.contains("<br", ignoreCase = true) && raw.contains("\n")) {
+        raw.replace("\r\n", "\n").replace("\n", "<br/>")
+    } else {
+        raw
+    }
+    val spanned = HtmlCompat.fromHtml(normalized, HtmlCompat.FROM_HTML_MODE_COMPACT)
+    val spannable = if (spanned is Spannable) spanned else SpannableStringBuilder(spanned)
+    LinkifyCompat.addLinks(spannable, Linkify.WEB_URLS)
+    return spannable.replaceWithCustomTabSpans()
+}
+
+fun TextView.setWebLinks(content: CharSequence?) {
+    val formatted = formatWebLinks(content)
+    text = formatted
+    movementMethod = LinkMovementMethod.getInstance()
 }
