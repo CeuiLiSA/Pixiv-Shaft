@@ -104,7 +104,7 @@ class ViewerDismissTuningFragment : Fragment(R.layout.fragment_viewer_dismiss_tu
     }
 
     /**
-     * 测试用图直接复用内置榜打包进 APK 的方形插画（`assets/prime_square/`，1200×1200 WebP）。
+     * 测试用图复用打包在 `assets/prime_square/` 下的方形样例插画。
      * 方形图适应屏幕后整张都在视口内，上下都没有可滚动余量，一上手就能拖到退出，
      * 正好拿来量「拖多远算退出」。
      */
