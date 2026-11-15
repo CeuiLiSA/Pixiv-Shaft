@@ -1,6 +1,7 @@
 package ceui.pixiv.ui.notification
 
 import androidx.core.text.HtmlCompat
+import ceui.lisa.helper.replaceWithCustomTabSpans
 import androidx.core.view.isVisible
 import ceui.lisa.R
 import ceui.lisa.databinding.CellNotificationBinding
@@ -35,7 +36,7 @@ fun CellNotificationBinding.bindNotification(
     notificationText.text = HtmlCompat.fromHtml(
         content?.text.orEmpty(),
         HtmlCompat.FROM_HTML_MODE_COMPACT,
-    )
+    ).replaceWithCustomTabSpans()
 
     // 时间:复用 DateParse 的"x 分钟前 / N 天前 / yyyy-MM-dd",通知一般是近期事件,
     // getTimeAgo 输出更友好。

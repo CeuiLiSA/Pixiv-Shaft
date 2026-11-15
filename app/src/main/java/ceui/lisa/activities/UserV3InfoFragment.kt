@@ -14,6 +14,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentUserV3InfoBinding
+import ceui.lisa.helper.replaceWithCustomTabSpans
 import ceui.lisa.databinding.ItemV3ProfileChipBinding
 import ceui.lisa.models.UserDetailResponse
 import ceui.lisa.models.WorkspaceBean
@@ -158,7 +159,7 @@ class UserV3InfoFragment : Fragment() {
             bindBio(
                 androidx.core.text.HtmlCompat.fromHtml(
                     user.comment.orEmpty(), androidx.core.text.HtmlCompat.FROM_HTML_MODE_COMPACT
-                )
+                ).replaceWithCustomTabSpans()
             )
         }
 
@@ -184,7 +185,7 @@ class UserV3InfoFragment : Fragment() {
             bindBio(
                 androidx.core.text.HtmlCompat.fromHtml(
                     detail.commentHtml, androidx.core.text.HtmlCompat.FROM_HTML_MODE_COMPACT
-                )
+                ).replaceWithCustomTabSpans()
             )
         }
 

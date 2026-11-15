@@ -3,7 +3,9 @@ package ceui.pixiv.ui.detail
 import android.content.Intent
 import android.content.res.ColorStateList
 import android.graphics.Color
+import android.text.method.LinkMovementMethod
 import androidx.core.text.HtmlCompat
+import ceui.lisa.helper.replaceWithCustomTabSpans
 import androidx.core.view.isVisible
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
@@ -325,6 +327,8 @@ fun seriesCaptionRenderer(): FeedRenderer<SeriesCaptionFeedItem, CellNovelSeries
         if (raw.isNotEmpty()) {
             val normalized = raw.replace("\r\n", "\n").replace("\n", "<br/>")
             b.caption.text = HtmlCompat.fromHtml(normalized, HtmlCompat.FROM_HTML_MODE_COMPACT)
+                .replaceWithCustomTabSpans()
+            b.caption.movementMethod = LinkMovementMethod.getInstance()
             b.caption.setOnClick {
                 val plain = HtmlCompat.fromHtml(normalized, HtmlCompat.FROM_HTML_MODE_COMPACT)
                     .toString().trim()
