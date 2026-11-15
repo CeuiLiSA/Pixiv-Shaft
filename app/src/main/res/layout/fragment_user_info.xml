@@ -65,7 +65,7 @@
                     android:text="@string/string_33"
                     style="@style/AboutUserLeft"/>
 
-                <org.sufficientlysecure.htmltextview.HtmlTextView
+                <TextView
                     android:id="@+id/description"
                     style="@style/AboutUserRight"/>
 
@@ -85,7 +85,7 @@
                     android:text="@string/string_34"
                     style="@style/AboutUserLeft"/>
 
-                <org.sufficientlysecure.htmltextview.HtmlTextView
+                <TextView
                     android:id="@+id/main_page"
                     style="@style/AboutUserRight"/>
 
@@ -105,7 +105,7 @@
                     android:text="@string/string_35"
                     style="@style/AboutUserLeft"/>
 
-                <org.sufficientlysecure.htmltextview.HtmlTextView
+                <TextView
                     android:id="@+id/twitter"
                     style="@style/AboutUserRight"/>
 
@@ -125,7 +125,7 @@
                     android:text="@string/string_36"
                     style="@style/AboutUserLeft"/>
 
-                <org.sufficientlysecure.htmltextview.HtmlTextView
+                <TextView
                     android:id="@+id/pawoo"
                     style="@style/AboutUserRight"/>
 

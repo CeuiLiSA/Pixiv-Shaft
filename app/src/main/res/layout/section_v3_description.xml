@@ -70,7 +70,7 @@
 
     <!-- 横向留白只由根布局的 12dp 提供，与「简介」标题头、标签区左缘对齐。这里曾残留
          独立成段时代的 20dp，叠成 32dp，正文比标题缩进一截。 -->
-    <org.sufficientlysecure.htmltextview.HtmlTextView
+    <TextView
         android:id="@+id/description"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

@@ -27,7 +27,6 @@ gson = "2.11.0"
 # metadata，所以编得过）。曾因 Room 的 kapt 读不了 2.3 元数据卡在 2.59.x；Room 改走 KSP 后不再受限。
 # 2.60 起 Hilt 要求 minSdk ≥ 23，且不允许手动设置由 Hilt 插件控制的 dagger.* 选项。
 hilt = "2.60.1"
-htmlTextView = "3.9"
 interpolator = "1.0.0"
 jsoup = "1.18.1"
 junit4 = "4.13.2"
@@ -49,7 +48,6 @@ relinker = "1.4.5"
 retrofit = "2.11.0"
 robolectric = "4.14.1"
 room = "2.7.2"
-roundedImageView = "2.3.0"
 roundView = "1.8.0"
 runner = "1.6.2"
 splashScreen = "1.0.1"
@@ -111,7 +109,6 @@ googleReview = { module = "com.google.android.play:review", version.ref = "playR
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 hiltAndroid = { module = "com.google.dagger:hilt-android", version.ref = "hilt" }
 hiltCompiler = { module = "com.google.dagger:hilt-compiler", version.ref = "hilt" }
-htmlTextView = { module = "org.sufficientlysecure:html-textview", version.ref = "htmlTextView" }
 jsoup = { module = "org.jsoup:jsoup", version.ref = "jsoup" }
 junit4 = { module = "junit:junit", version.ref = "junit4" }
 lottie = { module = "com.airbnb.android:lottie", version.ref = "lottie" }
@@ -130,7 +127,6 @@ relinker = { module = "com.getkeepsafe.relinker:relinker", version.ref = "relink
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
 retrofitGson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "retrofit" }
 robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
-roundedImageView = { module = "com.makeramen:roundedimageview", version.ref = "roundedImageView" }
 roundView = { module = "io.github.csdn-mobile:RoundView", version.ref = "roundView" }
 timber = { module = "com.jakewharton.timber:timber", version.ref = "timber" }
 toaster = { module = "com.github.getActivity:Toaster", version.ref = "toaster" }

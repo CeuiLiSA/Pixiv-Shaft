@@ -72,14 +72,12 @@
         android:paddingHorizontal="16dp"
         android:paddingTop="14dp">
 
-        <!-- 同 cell_fanbox_post:不能加 android:background,riv_oval 裁不掉它,会露四个角。 -->
-        <com.makeramen.roundedimageview.RoundedImageView
+        <de.hdodenhof.circleimageview.CircleImageView
             android:id="@+id/creator_icon"
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:contentDescription="@null"
-            android:scaleType="centerCrop"
-            app:riv_oval="true" />
+            android:scaleType="centerCrop" />
 
         <LinearLayout
             android:layout_width="0dp"

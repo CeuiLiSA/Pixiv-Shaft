@@ -14,13 +14,12 @@
     android:paddingHorizontal="16dp"
     android:paddingVertical="14dp">
 
-    <com.makeramen.roundedimageview.RoundedImageView
+    <de.hdodenhof.circleimageview.CircleImageView
         android:id="@+id/comment_icon"
         android:layout_width="32dp"
         android:layout_height="32dp"
         android:contentDescription="@null"
-        android:scaleType="centerCrop"
-        app:riv_oval="true" />
+        android:scaleType="centerCrop" />
 
     <LinearLayout
         android:layout_width="0dp"

@@ -349,9 +349,7 @@ internal fun ArtworkV3Fragment.descRenderer() =
         val b = cell.binding
         if (b.description.tag != cell.item.caption) {
             b.description.tag = cell.item.caption
-            // HtmlTextView.setHtml 遇到含 <a> 链接的 caption 会直接吐出空串——经典版
-            // FragmentIllust 在 #552 就换掉了,V3 一直没跟上(#960「带链接的简介看不到」)。
-            // 同款修法:HtmlCompat 渲染 + LinkMovementMethod 让链接可点。
+            // 使用 HtmlCompat 配合 LinkMovementMethod，使带链接的简介可正常渲染并点击。
             descFullCaption = HtmlCompat.fromHtml(
                 cell.item.caption, HtmlCompat.FROM_HTML_MODE_COMPACT
             ).replaceWithCustomTabSpans()

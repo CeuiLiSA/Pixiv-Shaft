@@ -11,7 +11,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <com.makeramen.roundedimageview.RoundedImageView
+        <net.csdn.roundview.RoundImageView
             android:id="@+id/cover"
             android:layout_width="90dp"
             android:layout_height="120dp"
@@ -20,10 +20,7 @@
             android:layout_marginEnd="@dimen/eight_dp"
             android:layout_marginBottom="@dimen/eight_dp"
             android:scaleType="centerCrop"
-            app:riv_border_width="0dp"
-            app:riv_corner_radius="@dimen/eight_dp">
-
-        </com.makeramen.roundedimageview.RoundedImageView>
+            app:rRadius="@dimen/eight_dp" />
 
         <RelativeLayout
             android:layout_width="match_parent"
