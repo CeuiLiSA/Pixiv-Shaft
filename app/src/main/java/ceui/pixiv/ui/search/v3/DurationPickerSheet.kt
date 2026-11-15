@@ -23,7 +23,7 @@ import java.io.Serializable
  *   6 = 指定期间（点开后弹 [DateRangePickerSheet]）
  *
  * picker 自身只回 bucket 或 「请求弹自定义日期」；自定义日期是 [DateRangePickerSheet] 单独
- * 一个 sheet 处理（带起 / 止两个 wdullaer DatePicker + 自动续弹 + 确认按钮）。父 sheet
+ * 一个 sheet 处理（带起 / 止两个 DatePicker + 自动续弹 + 确认按钮）。父 sheet
  * [SearchFilterV3BottomSheet] 同时监听两条 FragmentResult，分别回填到 [SearchFilterV3]。
  */
 class DurationPickerSheet : V3BottomSheetBase() {

@@ -14,21 +14,17 @@ import androidx.core.widget.TextViewCompat
 import ceui.lisa.R
 import ceui.lisa.databinding.CellSearchFilterRowBinding
 import ceui.lisa.databinding.DialogSearchFilterDateRangeBinding
+import ceui.pixiv.utils.ShaftDatePicker
 import ceui.pixiv.utils.setOnClick
-import com.wdullaer.materialdatetimepicker.date.DatePickerDialog
 import java.io.Serializable
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
-import java.util.Calendar
 
 /**
  * 「指定期间」自定义起止日期 picker —— [DurationPickerSheet] 选了「指定期间」之后弹出。
  *
  * 沿用旧版 DurationPickerSheet 的日期流：选完起始日**自动续弹**结束日 picker（issue #718）。
  * 仅在结束日还没设、又是从起始日入口选的情况下才自动续；改起始日（end 已有值）不自动续。
- *
- * MaterialDatePicker.dateRangePicker 在本项目 QMUI/AppCompat 主题链下走不通，故继续走
- * wdullaer DatePickerDialog（其它地方都用这个）。
  *
  * 第二张「整体平移」卡：选好范围后按 日/周/月/年 步长把起止一起前推/后推，
  * 例：2025-06-12→2026-03-26 按「月」往前 = 2025-05-12→2026-02-26。用户反馈的痛点是
@@ -204,41 +200,35 @@ class DateRangePickerSheet : V3BottomSheetBase() {
 
     private fun showDatePicker(isStart: Boolean) {
         val current = if (isStart) draftStart else draftEnd
-        val cal = Calendar.getInstance()
-        if (!current.isNullOrEmpty()) {
-            val parts = current.split("-")
-            if (parts.size == 3) cal.set(parts[0].toInt(), parts[1].toInt() - 1, parts[2].toInt())
-        }
+        val initialDate = current?.let { runCatching { LocalDate.parse(it) }.getOrNull() } ?: LocalDate.now()
         // 记住「end 之前是不是空」—— 决定选完起始日要不要自动续弹结束 picker（issue #718）
         val endWasUnsetBefore = isStart && draftEnd == null
-        val listener = DatePickerDialog.OnDateSetListener { _, year, month, day ->
-            val picked = LocalDate.of(year, month + 1, day).toString()
-            if (isStart) {
-                draftStart = picked
-                val end = draftEnd
-                if (end != null && end < picked) draftEnd = null
-            } else {
-                draftEnd = picked
-                val start = draftStart
-                if (start != null && start > picked) draftStart = null
+        val now = LocalDate.now()
+
+        ShaftDatePicker.show(
+            fragmentManager = parentFragmentManager,
+            tag = "DateRangePickerDate",
+            title = getString(if (isStart) R.string.search_filter_v3_date_start else R.string.search_filter_v3_date_end),
+            selectedDate = initialDate,
+            minDate = MIN_DATE,
+            maxDate = now,
+            onDateSelected = { pickedDate ->
+                val picked = pickedDate.toString()
+                if (isStart) {
+                    draftStart = picked
+                    val end = draftEnd
+                    if (end != null && end < picked) draftEnd = null
+                } else {
+                    draftEnd = picked
+                    val start = draftStart
+                    if (start != null && start > picked) draftStart = null
+                }
+                renderState()
+                if (isStart && endWasUnsetBefore) {
+                    showDatePicker(isStart = false)
+                }
             }
-            renderState()
-            if (isStart && endWasUnsetBefore) {
-                showDatePicker(isStart = false)
-            }
-        }
-        val dpd = DatePickerDialog.newInstance(
-            listener,
-            cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH),
         )
-        val start = Calendar.getInstance().apply {
-            set(MIN_DATE.year, MIN_DATE.monthValue - 1, MIN_DATE.dayOfMonth)
-        }
-        val now = Calendar.getInstance()
-        dpd.setMinDate(start); dpd.setMaxDate(now)
-        dpd.setThemeDark(resources.getBoolean(R.bool.is_night_mode))
-        dpd.setAccentColor(palette.primary)
-        dpd.show(parentFragmentManager, "DateRangePickerDate")
     }
 
     companion object {

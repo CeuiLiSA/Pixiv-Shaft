@@ -10,9 +10,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentPagerAdapter;
 
-import com.wdullaer.materialdatetimepicker.date.DatePickerDialog;
-
-import java.util.Calendar;
+import java.time.LocalDate;
 
 import ceui.lisa.R;
 import ceui.lisa.databinding.ActivityMultiViewPagerBinding;
@@ -20,9 +18,9 @@ import ceui.pixiv.ui.rank.RankNovelFeedFragment;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.MyOnTabSelectedListener;
 import ceui.pixiv.ui.rank.RankIllustFeedFragment;
+import ceui.pixiv.utils.ShaftDatePicker;
 
-public class RankActivity extends BaseActivity<ActivityMultiViewPagerBinding> implements
-        DatePickerDialog.OnDateSetListener {
+public class RankActivity extends BaseActivity<ActivityMultiViewPagerBinding> {
 
     private String dataType = "";
     private String queryDate = "";
@@ -164,47 +162,41 @@ public class RankActivity extends BaseActivity<ActivityMultiViewPagerBinding> im
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.action_select_date) {
-            DatePickerDialog dpd;
-            Calendar now = Calendar.getInstance();
-            now.add(Calendar.DAY_OF_MONTH, -1);
+            LocalDate initialDate = null;
             if (!TextUtils.isEmpty(queryDate) && queryDate.contains("-")) {
-                String[] t = queryDate.split("-");
-                dpd = DatePickerDialog.newInstance(
-                        RankActivity.this,
-                        Integer.parseInt(t[0]), // Initial year selection
-                        Integer.parseInt(t[1]) - 1, // Initial month selection
-                        Integer.parseInt(t[2]) // Initial day selection
-                );
-            } else {
-                dpd = DatePickerDialog.newInstance(
-                        RankActivity.this,
-                        now.get(Calendar.YEAR), // Initial year selection
-                        now.get(Calendar.MONTH), // Initial month selection
-                        now.get(Calendar.DAY_OF_MONTH) // Initial day selection
-                );
+                try {
+                    initialDate = LocalDate.parse(queryDate);
+                } catch (Exception ignored) {
+                }
             }
-            Calendar start = Calendar.getInstance();
-            start.set(2008, 0, 1);
-            dpd.setMinDate(start);
-            dpd.setMaxDate(now);
-            dpd.setAccentColor(Common.resolveThemeAttribute(mContext, androidx.appcompat.R.attr.colorPrimary));
-            dpd.setThemeDark(mContext.getResources().getBoolean(R.bool.is_night_mode));
-            dpd.show(getSupportFragmentManager(), "DatePickerDialog");
+            LocalDate yesterday = LocalDate.now().minusDays(1);
+            if (initialDate == null) {
+                initialDate = yesterday;
+            }
+            LocalDate minDate = LocalDate.of(2008, 1, 1);
+
+            ShaftDatePicker.show(
+                    getSupportFragmentManager(),
+                    "DatePickerDialog",
+                    null,
+                    0,
+                    initialDate,
+                    minDate,
+                    yesterday,
+                    pickedDate -> {
+                        String date = pickedDate.toString();
+                        Common.showLog(date);
+                        Intent intent = new Intent(mContext, RankActivity.class);
+                        intent.putExtra("date", date);
+                        intent.putExtra("dataType", dataType);
+                        intent.putExtra("index", baseBind.viewPager.getCurrentItem());
+                        startActivity(intent);
+                        finish();
+                    }
+            );
             return true;
         }
         return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    public void onDateSet(DatePickerDialog view, int year, int monthOfYear, int dayOfMonth) {
-        String date = year + "-" + (monthOfYear + 1) + "-" + dayOfMonth;
-        Common.showLog(date);
-        Intent intent = new Intent(mContext, RankActivity.class);
-        intent.putExtra("date", date);
-        intent.putExtra("dataType", dataType);
-        intent.putExtra("index", baseBind.viewPager.getCurrentItem());
-        startActivity(intent);
-        finish();
     }
 
     @Override
