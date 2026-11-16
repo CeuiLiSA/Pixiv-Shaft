@@ -271,6 +271,19 @@ object BulkDownloadCacheCleaner {
                     }
                 }
             }
+
+            if (recordsBytes > 0L) {
+                // 主库文件可能尚未包含 WAL 中已提交的页；用逻辑页数约束采样值，
+                // 避免 checkpoint 之前把实际占用截成旧主库文件的大小。
+                cancellationSignal?.throwIfCanceled()
+                val pageCount = raw.query(
+                    SimpleSQLiteQuery("PRAGMA page_count"), cancellationSignal
+                ).use { c -> if (c.moveToFirst()) c.getLong(0) else 0L }
+                val databaseBytes = pageCount * raw.pageSize
+                if (databaseBytes > 0L) {
+                    recordsBytes = minOf(recordsBytes, databaseBytes)
+                }
+            }
         }.onFailure {
             if (it is OperationCanceledException) throw it
             Timber.tag(TAG).w(it, "estimateStorageStats db query failed")
@@ -283,17 +296,6 @@ object BulkDownloadCacheCleaner {
         }.onFailure {
             if (it is OperationCanceledException) throw it
             Timber.tag(TAG).w(it, "estimateStorageStats staging_dl failed")
-        }
-
-        // 用库文件真实大小做上限兜底，避免估算值超出物理文件
-        runCatching {
-            val dbFile = context.getDatabasePath(AppDatabase.DATABASE_NAME)
-            if (dbFile.exists()) {
-                val dbLen = dbFile.length()
-                if (recordsBytes > dbLen) {
-                    recordsBytes = dbLen
-                }
-            }
         }
 
         val total = recordsBytes + queueBytes + stagingBytes

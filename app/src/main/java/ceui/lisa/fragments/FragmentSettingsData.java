@@ -722,7 +722,7 @@ public class FragmentSettingsData extends SettingsPageFragment<FragmentSettingsD
                 size = android.text.format.Formatter.formatShortFileSize(mContext, 0L);
             } else {
                 String formatted = android.text.format.Formatter.formatShortFileSize(mContext, bytes);
-                size = getString(R.string.approximate_size_format, formatted);
+                size = mContext.getString(R.string.approximate_size_format, formatted);
             }
             target.post(() -> {
                 if (isAdded() && !signal.isCanceled()) {
@@ -754,6 +754,7 @@ public class FragmentSettingsData extends SettingsPageFragment<FragmentSettingsD
         manageDialogSignal = new CancellationSignal();
         final CancellationSignal signal = manageDialogSignal;
         final Context context = getActivity();
+        final Handler main = new Handler(Looper.getMainLooper());
 
         final ceui.pixiv.witstudio.dialog.WitTipDialog loadingDialog =
                 new ceui.pixiv.witstudio.dialog.WitTipDialog.Builder(getActivity())
@@ -774,38 +775,23 @@ public class FragmentSettingsData extends SettingsPageFragment<FragmentSettingsD
         loadingDialog.show();
 
         new Thread(() -> {
-            final ceui.pixiv.db.bulkclean.BulkDownloadCacheCleaner.StorageStats stats;
-            final int active;
+            ceui.pixiv.db.bulkclean.BulkDownloadCacheCleaner.StorageStats stats = null;
+            int active = 0;
             try {
-                stats = ceui.pixiv.db.bulkclean.BulkDownloadCacheCleaner
+                final ceui.pixiv.db.bulkclean.BulkDownloadCacheCleaner.StorageStats loadedStats = ceui.pixiv.db.bulkclean.BulkDownloadCacheCleaner
                         .computeStorageStats(context.getApplicationContext(), signal);
                 active = ceui.pixiv.db.bulkclean.BulkDownloadCacheCleaner
                         .activeQueueCount(context.getApplicationContext(), signal);
+                stats = loadedStats;
             } catch (OperationCanceledException ignored) {
-                return;
             } catch (Throwable t) {
-                if (signal.isCanceled()) return;
-                Timber.e(t, "showManageBulkDownloadDialog stats failed");
-                return;
-            } finally {
-                if (signal.isCanceled()) {
-                    completed.set(true);
-                    if (getActivity() != null) {
-                        getActivity().runOnUiThread(() -> {
-                            try {
-                                loadingDialog.dismiss();
-                            } catch (Throwable ignored) {
-                            }
-                            if (manageLoadingDialog == loadingDialog) {
-                                manageLoadingDialog = null;
-                            }
-                        });
-                    }
+                if (!signal.isCanceled()) {
+                    Timber.e(t, "showManageBulkDownloadDialog stats failed");
                 }
             }
-            if (signal.isCanceled()) return;
-            if (getActivity() == null || getActivity().isFinishing() || getActivity().isDestroyed()) return;
-            getActivity().runOnUiThread(() -> {
+            final ceui.pixiv.db.bulkclean.BulkDownloadCacheCleaner.StorageStats result = stats;
+            final int activeCount = active;
+            main.post(() -> {
                 completed.set(true);
                 try {
                     loadingDialog.dismiss();
@@ -814,8 +800,11 @@ public class FragmentSettingsData extends SettingsPageFragment<FragmentSettingsD
                 if (manageLoadingDialog == loadingDialog) {
                     manageLoadingDialog = null;
                 }
-                if (!isAdded() || signal.isCanceled()) return;
-                showManageBulkDownloadDialogWithStats(stats, active);
+                if (manageDialogSignal == signal) {
+                    manageDialogSignal = null;
+                }
+                if (!isAdded() || signal.isCanceled() || result == null) return;
+                showManageBulkDownloadDialogWithStats(result, activeCount);
             });
         }, "bulk-dl-stats").start();
     }
