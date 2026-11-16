@@ -1190,6 +1190,7 @@
     <string name="update_banner_done_title">アップデートのダウンロードが完了しました</string>
     <string name="update_banner_done_message">タップして %1$s のインストールを続行</string>
     <string name="update_banner_action">インストールへ</string>
+    <string name="feed_thumbnail_failure_banner_title">画像の読み込みに失敗しました。ネットワークテストをお試しください</string>
     <string name="update_download_failed">ダウンロードに失敗しました</string>
     <string name="update_check_failed">更新確認に失敗しました</string>
     <string name="update_rate_limited">レート制限に達しました。しばらく待ってから再試行してください</string>

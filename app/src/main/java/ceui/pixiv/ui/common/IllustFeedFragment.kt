@@ -193,6 +193,13 @@ abstract class IllustFeedFragment(
             .bind(viewLifecycleOwner, feedViewModel.uiState)
         observeMuteRevision()
         observeSnapshotRevision()
+        feedBinding.feedListView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                if (newState == RecyclerView.SCROLL_STATE_IDLE) {
+                    FeedThumbnailFailureNotifier.checkAndNotify(recyclerView)
+                }
+            }
+        })
     }
 
     override fun onResume() {
