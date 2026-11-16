@@ -56,7 +56,9 @@ object ShaftDatePicker {
             builder.setTitleText(title)
         }
 
-        val selectedUtcMillis = selectedDate?.toUtcEpochMilli()
+        // Existing profile dates can fall outside the moving range (for example, after New Year).
+        // Clamp before setting both the selection and openAt, as the previous picker did.
+        val selectedUtcMillis = selectedDate?.coerceIn(minDate, maxDate)?.toUtcEpochMilli()
         if (selectedUtcMillis != null) {
             builder.setSelection(selectedUtcMillis)
         }

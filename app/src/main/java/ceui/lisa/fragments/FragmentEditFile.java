@@ -291,7 +291,7 @@ public class FragmentEditFile extends BaseLazyFragment<FragmentEditFileBinding> 
                 ShaftDatePicker.show(
                         getParentFragmentManager(),
                         "DatePickerDialog",
-                        getString(R.string.string_138),
+                        getString(R.string.string_412),
                         0,
                         initialDate,
                         minDate,
