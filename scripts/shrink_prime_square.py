@@ -1,65 +1,145 @@
 #!/usr/bin/env python3
-"""把 app/src/main/assets/prime_square/ 里登录页回廊用的方图压到实际显示规格。
+"""生成登录页回廊使用的单张纹理图集 (Texture Atlas)。
 
-TracedTunnelView 把每张图画进 28x16 的图集，每格 IMAGE_TILE_SIZE=200 px，RGB_565。
-源图 540x540 JPG 里超出 200 px 的部分解码后立刻被丢掉，所以离线缩到 200 px 存 WebP
-在屏幕上一个像素都不少；图集只有 448 格，多出来的图永远轮不到，一并删掉。
+将方形插画切片合批烘焙为 28x16 网格（共 448 格，单格 200x200 px，总分辨率 5600x3200）的单张 WebP 图集，
+供 TracedTunnelView 的 AGSL 着色器直接采样。同时生成单张样例 preview_sample.webp。
 
-用法：python3 scripts/shrink_prime_square.py [--keep 448] [--size 200] [--quality 85]
-幂等：已经是 <size>x<size> WebP 的文件原样保留。
+着色器通过 hash21(id) 随机选择切片，图集序号不代表景深。
+所有切片均保留 200x200 细节；压缩率由 WebP quality 参数统一控制。
+源切片已删除时，从最近仍包含源图的 Git 历史版本重建（需要完整历史）。
+
+用法：python3 scripts/shrink_prime_square.py [--source-dir <dir>] [--quality 68]
 """
 import argparse
+import io
+import subprocess
 import sys
 from pathlib import Path
 
 from PIL import Image
 
 ROOT = Path(__file__).resolve().parent.parent
-ASSET_DIR = ROOT / "app/src/main/assets/prime_square"
+TARGET_DIR = ROOT / "app/src/main/assets/prime_square"
 IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png", ".webp"}
+GENERATED_NAMES = {"tunnel_atlas.webp", "preview_sample.webp"}
+
+ATLAS_COLS = 28
+ATLAS_ROWS = 16
+TILE_SIZE = 200
+TOTAL_TILES = ATLAS_COLS * ATLAS_ROWS  # 448
+
+
+def load_image(item) -> Image.Image:
+    if isinstance(item, Path):
+        im = Image.open(item)
+    elif isinstance(item, bytes):
+        im = Image.open(io.BytesIO(item))
+    else:
+        raise TypeError(f"Unsupported image source: {type(item)}")
+    im = im.convert("RGB")
+    if im.width != im.height:
+        side = min(im.size)
+        left = (im.width - side) // 2
+        top = (im.height - side) // 2
+        im = im.crop((left, top, left + side, top + side))
+    return im
+
+
+def process_tile(im: Image.Image) -> Image.Image:
+    if im.size != (TILE_SIZE, TILE_SIZE):
+        im = im.resize((TILE_SIZE, TILE_SIZE), Image.Resampling.LANCZOS)
+
+    return im
+
+
+def build_atlas(images: list, output_atlas: Path, output_sample: Path, quality: int) -> None:
+    atlas_w = ATLAS_COLS * TILE_SIZE
+    atlas_h = ATLAS_ROWS * TILE_SIZE
+    atlas = Image.new("RGB", (atlas_w, atlas_h))
+
+    for i in range(TOTAL_TILES):
+        item = images[i % len(images)]
+        col = i % ATLAS_COLS
+        row = i // ATLAS_COLS
+        with load_image(item) as im:
+            tile = process_tile(im)
+            atlas.paste(tile, (col * TILE_SIZE, row * TILE_SIZE))
+
+    output_atlas.parent.mkdir(parents=True, exist_ok=True)
+    atlas.save(output_atlas, "WEBP", quality=quality, method=6)
+
+    with load_image(images[0]) as first_im:
+        if first_im.size != (TILE_SIZE, TILE_SIZE):
+            first_im = first_im.resize((TILE_SIZE, TILE_SIZE), Image.Resampling.LANCZOS)
+        first_im.save(output_sample, "WEBP", quality=75, method=6)
+
+
+def load_from_git() -> list[bytes]:
+    try:
+        asset_path = TARGET_DIR.relative_to(ROOT).as_posix() + "/"
+        revisions = subprocess.check_output(
+            ["git", "log", "--format=%H", "--", asset_path],
+            cwd=ROOT,
+            text=True,
+        ).splitlines()
+        for revision in revisions:
+            git_ls = subprocess.check_output(
+                ["git", "ls-tree", "-r", "--name-only", revision, "--", asset_path],
+                cwd=ROOT,
+                text=True,
+            )
+            files = sorted(
+                line for line in git_ls.splitlines()
+                if Path(line).suffix.lower() in IMAGE_SUFFIXES
+                and Path(line).name not in GENERATED_NAMES
+            )
+            if files:
+                return [
+                    subprocess.check_output(["git", "show", f"{revision}:{f}"], cwd=ROOT)
+                    for f in files
+                ]
+        return []
+    except (OSError, subprocess.CalledProcessError) as e:
+        print(f"Warning: failed to load from git: {e}", file=sys.stderr)
+        return []
 
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--keep", type=int, default=28 * 16, help="保留张数 = ATLAS_COLS*ATLAS_ROWS")
-    ap.add_argument("--size", type=int, default=200, help="边长 = IMAGE_TILE_SIZE")
-    ap.add_argument("--quality", type=int, default=85)
+    ap.add_argument("--source-dir", type=Path, default=None, help="源切片图片目录")
+    ap.add_argument("--quality", type=int, default=68, help="WebP 压缩质量 (默认 68)")
     args = ap.parse_args()
 
-    files = sorted(
-        p for p in ASSET_DIR.iterdir()
-        if p.is_file() and p.suffix.lower() in IMAGE_SUFFIXES  # 跳过 .DS_Store 之类
-    )
+    src_dir = args.source_dir or TARGET_DIR
+    files = []
+    if src_dir.exists():
+        files = sorted(
+            p for p in src_dir.iterdir()
+            if p.is_file() and p.suffix.lower() in IMAGE_SUFFIXES and p.name not in GENERATED_NAMES
+        )
+
+    atlas_path = TARGET_DIR / "tunnel_atlas.webp"
+    sample_path = TARGET_DIR / "preview_sample.webp"
+
     if not files:
-        print(f"no files in {ASSET_DIR}", file=sys.stderr)
-        return 1
+        # 尝试从 Git 历史回溯源图
+        git_images = load_from_git()
+        if git_images:
+            print(f"Loaded {len(git_images)} source images from git history.")
+            build_atlas(git_images, atlas_path, sample_path, args.quality)
+        else:
+            print(
+                f"no source images found in {src_dir} or git history; "
+                "fetch the full Git history or pass --source-dir",
+                file=sys.stderr,
+            )
+            return 1
+    else:
+        build_atlas(files, atlas_path, sample_path, args.quality)
 
-    keep, drop = files[: args.keep], files[args.keep :]
-    before = sum(p.stat().st_size for p in files)
-
-    for p in drop:
-        p.unlink()
-
-    converted = 0
-    for p in keep:
-        with Image.open(p) as im:
-            if p.suffix == ".webp" and im.size == (args.size, args.size):
-                continue
-            im = im.convert("RGB")
-            if im.width != im.height:  # 保险：非正方形先居中裁方
-                side = min(im.size)
-                left, top = (im.width - side) // 2, (im.height - side) // 2
-                im = im.crop((left, top, left + side, top + side))
-            im = im.resize((args.size, args.size), Image.LANCZOS)
-            im.save(p.with_suffix(".webp"), "WEBP", quality=args.quality, method=6)
-        if p.suffix != ".webp":
-            p.unlink()
-        converted += 1
-
-    after = sum(p.stat().st_size for p in ASSET_DIR.iterdir() if p.is_file())
     print(
-        f"kept {len(keep)}, dropped {len(drop)}, converted {converted}; "
-        f"{before / 1024 / 1024:.1f} MB -> {after / 1024 / 1024:.2f} MB"
+        f"Built atlas ({atlas_path.stat().st_size / 1024 / 1024:.2f} MB) and "
+        f"sample ({sample_path.stat().st_size / 1024:.1f} KB)."
     )
     return 0
 

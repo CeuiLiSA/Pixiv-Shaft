@@ -28,8 +28,8 @@ import java.util.concurrent.Executors
  *       android:layout_width="match_parent"
  *       android:layout_height="match_parent" />
  *
- * Images live in assets/prime_square/ as IMAGE_TILE_SIZE-px square WebPs,
- * produced by scripts/shrink_prime_square.py (ATLAS_COLS*ATLAS_ROWS of them).
+ * 纹理图集为 28x16 网格（共 448 格，单格 200x200 px），
+ * 存放于 assets/prime_square/tunnel_atlas.webp。
  */
 class TracedTunnelView @JvmOverloads constructor(
     context: Context,
@@ -99,7 +99,7 @@ class TracedTunnelView @JvmOverloads constructor(
 
 private const val ATLAS_COLS = 28
 private const val ATLAS_ROWS = 16
-private const val IMAGE_TILE_SIZE = 200
+private const val ATLAS_ASSET_PATH = "prime_square/tunnel_atlas.webp"
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 private class TunnelImpl(private val view: View, private val onReady: () -> Unit) {
@@ -211,47 +211,25 @@ private class TunnelImpl(private val view: View, private val onReady: () -> Unit
 
     private fun loadAtlas(context: Context): AtlasData? {
         return try {
-            val assetManager = context.assets
-            val files = assetManager.list("prime_square")?.toList()?.shuffled()
-            if (files.isNullOrEmpty()) {
-                Timber.w("TracedTunnelView: no images found in assets/prime_square/")
-                return null
+            val options = BitmapFactory.Options().apply {
+                inPreferredConfig = android.graphics.Bitmap.Config.RGB_565
             }
-
-            val atlasW = ATLAS_COLS * IMAGE_TILE_SIZE
-            val atlasH = ATLAS_ROWS * IMAGE_TILE_SIZE
-            val atlasBitmap = android.graphics.Bitmap.createBitmap(
-                atlasW, atlasH, android.graphics.Bitmap.Config.RGB_565
-            )
-            val atlasCanvas = Canvas(atlasBitmap)
-
-            // 资源已由 scripts/shrink_prime_square.py 预缩到 IMAGE_TILE_SIZE 见方的 WebP，
-            // 这里不能再 inSampleSize，否则 200 会被砍成 100 才拉回 200。
-            val tilePaint = Paint(Paint.FILTER_BITMAP_FLAG)
-
-            for (row in 0 until ATLAS_ROWS) {
-                for (col in 0 until ATLAS_COLS) {
-                    val index = (row * ATLAS_COLS + col) % files.size
-                    val bitmap = assetManager.open("prime_square/${files[index]}").use {
-                        BitmapFactory.decodeStream(it)
-                    }
-                    bitmap?.let {
-                        val destRect = android.graphics.RectF(
-                            (col * IMAGE_TILE_SIZE).toFloat(),
-                            (row * IMAGE_TILE_SIZE).toFloat(),
-                            ((col + 1) * IMAGE_TILE_SIZE).toFloat(),
-                            ((row + 1) * IMAGE_TILE_SIZE).toFloat()
-                        )
-                        atlasCanvas.drawBitmap(it, null, destRect, tilePaint)
-                        it.recycle()
-                    }
-                }
+            val atlasBitmap = context.assets.open(ATLAS_ASSET_PATH).use { stream ->
+                BitmapFactory.decodeStream(stream, null, options)
+            } ?: run {
+                Timber.w("TracedTunnelView: failed to decode atlas from $ATLAS_ASSET_PATH")
+                return null
             }
 
             val bitmapShader = BitmapShader(
                 atlasBitmap, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP
             )
-            AtlasData(bitmapShader, atlasBitmap, atlasW.toFloat(), atlasH.toFloat())
+            AtlasData(
+                shader = bitmapShader,
+                bitmap = atlasBitmap,
+                width = atlasBitmap.width.toFloat(),
+                height = atlasBitmap.height.toFloat()
+            )
         } catch (e: Exception) {
             Timber.e(e, "TracedTunnelView: failed to load atlas")
             null
