@@ -15,7 +15,7 @@ import androidx.annotation.Nullable;
 
 import com.blankj.utilcode.util.UriUtils;
 import com.bumptech.glide.Glide;
-import com.wdullaer.materialdatetimepicker.date.DatePickerDialog;
+import ceui.pixiv.utils.ShaftDatePicker;
 
 import java.io.File;
 import java.time.LocalDate;
@@ -47,7 +47,7 @@ import retrofit2.Response;
 import static android.app.Activity.RESULT_OK;
 import ceui.pixiv.session.SessionManager;
 
-public class FragmentEditFile extends BaseLazyFragment<FragmentEditFileBinding> implements Display<Preset>, DatePickerDialog.OnDateSetListener {
+public class FragmentEditFile extends BaseLazyFragment<FragmentEditFileBinding> implements Display<Preset> {
 
     private File imageFile = null;
 
@@ -274,35 +274,33 @@ public class FragmentEditFile extends BaseLazyFragment<FragmentEditFileBinding> 
             baseBind.birthday.setText(birthday);
 
             // 生日设置
-            baseBind.birthdayArea.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    DatePickerDialog dpd;
-                    Calendar now = Calendar.getInstance();
-                    Calendar start = Calendar.getInstance();
-                    if (!TextUtils.isEmpty(birthday)) {
-                        String[] t = birthday.split("-");
-                        dpd = DatePickerDialog.newInstance(
-                                FragmentEditFile.this,
-                                Integer.parseInt(t[0]), // Initial year selection
-                                Integer.parseInt(t[1]) - 1, // Initial month selection
-                                Integer.parseInt(t[2]) // Initial day selection
-                        );
-                    } else {
-                        dpd = DatePickerDialog.newInstance(
-                                FragmentEditFile.this,
-                                now.get(Calendar.YEAR) - 18, // Initial year selection
-                                0, // Initial month selection
-                                1 // Initial day selection
-                        );
+            baseBind.birthdayArea.setOnClickListener(v -> {
+                LocalDate initialDate = null;
+                if (!TextUtils.isEmpty(birthday)) {
+                    try {
+                        initialDate = LocalDate.parse(birthday);
+                    } catch (Exception ignored) {
                     }
-                    start.set(now.get(Calendar.YEAR) - 100, 0, 1);
-                    dpd.setMinDate(start);
-                    dpd.setMaxDate(now);
-                    dpd.setAccentColor(Common.resolveThemeAttribute(mContext, androidx.appcompat.R.attr.colorPrimary));
-                    dpd.setThemeDark(mContext.getResources().getBoolean(R.bool.is_night_mode));
-                    dpd.show(getParentFragmentManager(), "DatePickerDialog");
                 }
+                LocalDate now = LocalDate.now();
+                if (initialDate == null) {
+                    initialDate = now.minusYears(18).withMonth(1).withDayOfMonth(1);
+                }
+                LocalDate minDate = now.minusYears(100).withMonth(1).withDayOfMonth(1);
+
+                ShaftDatePicker.show(
+                        getParentFragmentManager(),
+                        "DatePickerDialog",
+                        getString(R.string.string_412),
+                        0,
+                        initialDate,
+                        minDate,
+                        now,
+                        pickedDate -> {
+                            birthday = pickedDate.toString();
+                            baseBind.birthday.setText(birthday);
+                        }
+                );
             });
         });
     }
@@ -310,11 +308,4 @@ public class FragmentEditFile extends BaseLazyFragment<FragmentEditFileBinding> 
     private String sex = "", address = "", job = "", country = "", birthday = "";
     private boolean isGlobal = false;
     private final boolean isDeleteProfileImage = false;
-
-
-    @Override
-    public void onDateSet(DatePickerDialog view, int year, int monthOfYear, int dayOfMonth) {
-        birthday = LocalDate.of(year, monthOfYear + 1, dayOfMonth).toString();
-        baseBind.birthday.setText(birthday);
-    }
 }
