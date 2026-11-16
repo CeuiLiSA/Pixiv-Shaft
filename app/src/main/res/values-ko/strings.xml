@@ -1154,6 +1154,14 @@
     <string name="artwork_link">작품 링크: %1$s</string>
     <string name="user_link">작가 링크: %1$s</string>
     <string name="prime_tags">인기 태그</string>
+    <string name="user_tag_advanced_search">고급 검색</string>
+    <string name="user_tag_sheet_title">고급 검색</string>
+    <string name="user_tag_sheet_hint">키워드 입력</string>
+    <string name="user_tag_section_works">작품 태그</string>
+    <string name="user_tag_sheet_no_match">일치하는 태그가 없습니다</string>
+    <string name="user_tag_sheet_no_tag">이 작가는 아직 작품 태그가 없습니다</string>
+    <string name="user_tag_sheet_failed">태그를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요</string>
+    <string name="user_tag_sheet_web_expired">웹 세션 만료, 익명으로 재시도하시겠습니까?</string>
     <string name="pinned_tags">고정된 태그</string>
     <string name="clear_pinned_tags_msg">고정된 모든 태그를 해제합니다</string>
     <string name="pinned_tags_cleared">고정된 태그를 모두 해제했습니다</string>
@@ -2955,6 +2963,14 @@
     <!-- 계정 관리 (V3 / MD3-E 리디자인) -->
     <string name="account_switch_current_badge">사용 중</string>
     <string name="account_switch_premium">Premium</string>
+    <string name="account_switch_web_not_logged_in">웹 동시 로그인 안 됨</string>
+    <string name="account_switch_web_checking">웹 로그인 상태 확인 중</string>
+    <string name="account_switch_web_expired">웹 로그인 상태 만료</string>
+    <string name="account_switch_web_logged_in">웹 로그인됨</string>
+    <string name="account_switch_web_clear_title">웹 로그인 상태 지우기</string>
+    <string name="account_switch_web_clear_confirm">현재 계정의 웹 로그인 상태를 지우시겠습니까? 지우면 웹 세션에서 로그아웃됩니다.</string>
+    <string name="account_switch_web_clear_action">지우기</string>
+    <string name="account_switch_web_cleared">웹 로그인 상태가 지워졌습니다</string>
     <string name="account_switch_others">다른 계정</string>
     <string name="account_switch_others_hint">눌러서 전환</string>
     <string name="account_switch_only_one">이 기기에는 이 계정뿐입니다</string>
@@ -3643,4 +3659,5 @@
     <string name="ai_results_clear_success">선택한 결과 이미지를 삭제했습니다</string>
     <string name="ai_results_clear_failed">일부 이미지를 삭제하지 못했습니다. 다시 시도하세요.</string>
     <string name="ai_results_stats_failed">크기를 계산하지 못했습니다</string>
+    <string name="account_switch_web_check_failed">웹 로그인을 확인할 수 없습니다. 눌러서 재시도</string>
 </resources>

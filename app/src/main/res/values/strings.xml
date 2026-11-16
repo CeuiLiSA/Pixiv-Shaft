@@ -1208,6 +1208,7 @@
     <string name="user_tag_sheet_no_match">没有匹配的标签</string>
     <string name="user_tag_sheet_no_tag">这位画师还没有作品标签</string>
     <string name="user_tag_sheet_failed">标签加载失败，请稍后重试</string>
+    <string name="user_tag_sheet_web_expired">Web登录过期，以匿名重试？</string>
     <string name="fanbox_followed">已关注</string>
     <string name="comic_stories_count">全 %1$d 话</string>
     <string name="comic_badge_new">新连载</string>
@@ -3248,6 +3249,14 @@
     <!-- 账号管理（V3 / MD3-E 重做版） -->
     <string name="account_switch_current_badge">当前使用中</string>
     <string name="account_switch_premium">Premium</string>
+    <string name="account_switch_web_not_logged_in">未同时登录Web（网页）</string>
+    <string name="account_switch_web_checking">正在检测Web（网页）登录状态</string>
+    <string name="account_switch_web_expired">Web（网页）登录状态失效</string>
+    <string name="account_switch_web_logged_in">Web（网页）已登录</string>
+    <string name="account_switch_web_clear_title">清除Web登录状态</string>
+    <string name="account_switch_web_clear_confirm">确定要清除当前账号的Web（网页）登录状态吗？清除后将退出网页端会话。</string>
+    <string name="account_switch_web_clear_action">清除</string>
+    <string name="account_switch_web_cleared">已清除Web登录状态</string>
     <string name="account_switch_others">其他账号</string>
     <string name="account_switch_others_hint">点一下即可切换</string>
     <string name="account_switch_only_one">这台设备上只有这一个账号</string>
@@ -3953,4 +3962,5 @@
     <string name="ai_results_clear_success">所选结果图已清理</string>
     <string name="ai_results_clear_failed">部分结果图未能清理，请重试</string>
     <string name="ai_results_stats_failed">统计失败</string>
+    <string name="account_switch_web_check_failed">无法检测Web（网页）登录状态，点击重试</string>
 </resources>

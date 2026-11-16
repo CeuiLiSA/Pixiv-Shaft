@@ -42,8 +42,14 @@ import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import android.content.res.ColorStateList
+import android.graphics.Color
+import android.graphics.drawable.RippleDrawable
+import ceui.lisa.BuildConfig
+import ceui.pixiv.session.WebSessionManager
 import ceui.pixiv.witstudio.theme.WitRowStyle
 import ceui.pixiv.ui.navigation.TemplateRoute
+import kotlinx.coroutines.Job
 
 /**
  * 账号管理（V3 / MD3-Expressive），替代 legacy `ceui.lisa.fragments.FragmentLocalUsers`。
@@ -87,6 +93,13 @@ class AccountSwitchV3Fragment : Fragment(R.layout.fragment_account_switch_v3) {
 
     /** 最近一次渲染出来的当前账号；会话刷新时拿它重画 hero 卡（见 [observeSession]）。 */
     private var renderedCurrent: LocalAccount? = null
+
+    private var webCheckJob: Job? = null
+
+    /** 重试时取当前账号，避免监听器携带上一轮检测的 uid / Cookie。 */
+    private val retryWebCheck = View.OnClickListener {
+        renderedCurrent?.let { bindWebLoginBadge(it.user.id) }
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -263,6 +276,169 @@ class AccountSwitchV3Fragment : Fragment(R.layout.fragment_account_switch_v3) {
             .into(binding.currentAvatar)
 
         binding.currentMore.setOnClick { showActions(user, isCurrent = true) }
+        bindWebLoginBadge(user.id)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        renderedCurrent?.let { bindWebLoginBadge(it.user.id) }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        webCheckJob?.cancel()
+        webCheckJob = null
+    }
+
+    private enum class WebLoginState {
+        NOT_LOGGED_IN,
+        CHECKING,
+        CHECK_FAILED,
+        SUCCESS,
+        EXPIRED
+    }
+
+    /**
+     * Web（网页）登录状态胶囊。
+     * - Google 渠道（BuildConfig.IS_LITE）：不可见；
+     * - 近一小时内有成功持久化记录：直接展示【Web（网页）已登录】，不额外检测；
+     * - 有匹配 Web Cookie 但未记录过或超过一小时：展示【正在检测Web（网页）登录状态】，并异步调用查看自己端点检测；
+     *   成功则写进持久化记录并展示【Web（网页）已登录】；
+     *   明确过期才清空 Cookie，临时网络错误保留凭证并提供重试；
+     * - 无 Web Cookie 且最后记录为失败态：展示【Web（网页）登录状态失效】，点击重走登录流程；
+     * - 无 Web Cookie 且非失败态：展示【未同时登录Web（网页）】，点击走登录流程。
+     */
+    private fun bindWebLoginBadge(uid: Long) {
+        webCheckJob?.cancel()
+        webCheckJob = null
+        if (BuildConfig.IS_LITE || uid <= 0L) {
+            binding.badgeWebLogin.isVisible = false
+            return
+        }
+
+        binding.badgeWebLogin.isVisible = true
+
+        val hasCookie = WebSessionManager.hasMatchingWebCookie(uid)
+        val status = WebSessionManager.getStatus(uid)
+        val isRecentSuccess = WebSessionManager.hasRecentSuccess(uid)
+
+        if (hasCookie) {
+            if (isRecentSuccess) {
+                renderWebLoginState(WebLoginState.SUCCESS, uid)
+            } else {
+                renderWebLoginState(WebLoginState.CHECKING, uid)
+                val cookie = WebSessionManager.getCookie()
+                webCheckJob = viewLifecycleOwner.lifecycleScope.launch {
+                    val result = WebSessionManager.check(uid, cookie)
+                    if (uid != SessionManager.loggedInUid) return@launch
+                    when (result) {
+                        WebSessionManager.CheckResult.SUCCESS -> renderWebLoginState(WebLoginState.SUCCESS, uid)
+                        WebSessionManager.CheckResult.EXPIRED -> renderWebLoginState(WebLoginState.EXPIRED, uid)
+                        WebSessionManager.CheckResult.UNAVAILABLE -> renderWebLoginState(WebLoginState.CHECK_FAILED, uid)
+                        WebSessionManager.CheckResult.STALE -> {
+                            // 旧结果只丢弃，不再自动发起下一轮请求。
+                            val state = when {
+                                WebSessionManager.hasRecentSuccess(uid) -> WebLoginState.SUCCESS
+                                WebSessionManager.hasMatchingWebCookie(uid) -> WebLoginState.CHECK_FAILED
+                                WebSessionManager.getStatus(uid) == WebSessionManager.STATUS_FAILED -> WebLoginState.EXPIRED
+                                else -> WebLoginState.NOT_LOGGED_IN
+                            }
+                            renderWebLoginState(state, uid)
+                        }
+                    }
+                }
+            }
+        } else {
+            if (status == WebSessionManager.STATUS_FAILED) {
+                renderWebLoginState(WebLoginState.EXPIRED, uid)
+            } else {
+                renderWebLoginState(WebLoginState.NOT_LOGGED_IN, uid)
+            }
+        }
+    }
+
+    private fun renderWebLoginState(state: WebLoginState, uid: Long) {
+        val b = binding.badgeWebLogin
+        when (state) {
+            WebLoginState.NOT_LOGGED_IN -> {
+                b.setText(R.string.account_switch_web_not_logged_in)
+                val bgColor = if (palette.isDark) 0x26FFFFFF.toInt() else 0x14000000
+                b.background = pillWithRipple(bgColor, palette.alpha20)
+                b.setTextColor(ContextCompat.getColor(requireContext(), R.color.v3_text_2))
+                b.setOnClick {
+                    startActivity(SessionManager.createWebLoginIntent(requireContext()))
+                }
+                b.setOnLongClickListener(null)
+                b.isLongClickable = false
+            }
+            WebLoginState.CHECKING -> {
+                b.setText(R.string.account_switch_web_checking)
+                b.background = pill(palette.alpha10)
+                b.setTextColor(palette.textAccent)
+                b.setOnClickListener(null)
+                b.isClickable = false
+                b.setOnLongClickListener(null)
+                b.isLongClickable = false
+            }
+            WebLoginState.SUCCESS -> {
+                b.setText(R.string.account_switch_web_logged_in)
+                b.background = pillWithRipple(palette.alpha20, palette.alpha30)
+                b.setTextColor(palette.textAccent)
+                b.setOnClickListener(null)
+                b.isClickable = false
+                b.setOnLongClickListener {
+                    showClearWebLoginConfirm(uid)
+                    true
+                }
+            }
+            WebLoginState.CHECK_FAILED -> {
+                b.setText(R.string.account_switch_web_check_failed)
+                b.background = pillWithRipple(palette.alpha10, palette.alpha20)
+                b.setTextColor(palette.textSecondary)
+                b.setOnClickListener(retryWebCheck)
+                b.setOnLongClickListener(null)
+                b.isLongClickable = false
+            }
+            WebLoginState.EXPIRED -> {
+                b.setText(R.string.account_switch_web_expired)
+                val red = ContextCompat.getColor(requireContext(), R.color.warning_red)
+                val bgColor = V3Palette.withAlpha(red, 0.16f)
+                b.background = pillWithRipple(bgColor, V3Palette.withAlpha(red, 0.30f))
+                b.setTextColor(red)
+                b.setOnClick {
+                    startActivity(SessionManager.createWebLoginIntent(requireContext()))
+                }
+                b.setOnLongClickListener(null)
+                b.isLongClickable = false
+            }
+        }
+        b.requestLayout()
+    }
+
+    private fun showClearWebLoginConfirm(uid: Long) {
+        val act = activity ?: return
+        if (act.isFinishing || act.isDestroyed) return
+        WitDialog.MessageDialogBuilder(act)
+            .setTitle(R.string.account_switch_web_clear_title)
+            .setMessage(R.string.account_switch_web_clear_confirm)
+            .addAction(R.string.cancel) { dialog, _ -> dialog.dismiss() }
+            .addAction(0, R.string.account_switch_web_clear_action, WitDialogAction.ACTION_PROP_NEGATIVE) { dialog, _ ->
+                dialog.dismiss()
+                WebSessionManager.clear(uid)
+                Common.showToast(getString(R.string.account_switch_web_cleared))
+                bindWebLoginBadge(uid)
+            }
+            .show()
+    }
+
+    private fun pillWithRipple(color: Int, rippleColor: Int): RippleDrawable {
+        val content = pill(color)
+        val mask = pill(Color.WHITE)
+        return RippleDrawable(
+            ColorStateList.valueOf(rippleColor),
+            content,
+            mask
+        )
     }
 
     private fun buildRow(account: LocalAccount, index: Int, total: Int): View {

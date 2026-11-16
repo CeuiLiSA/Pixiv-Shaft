@@ -159,44 +159,70 @@
                         app:tint="@color/v3_text_3" />
                 </LinearLayout>
 
-                <!-- 徽章行：当前使用中 / Premium，底色与文字色由 V3Palette 注入 -->
-                <LinearLayout
-                    android:layout_width="wrap_content"
+                <!-- 徽章行：当前使用中 / Premium / Web登录状态，底色与文字色由 V3Palette 注入 -->
+                <HorizontalScrollView
+                    android:id="@+id/badge_scroll"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="14dp"
-                    android:orientation="horizontal">
+                    android:overScrollMode="never"
+                    android:scrollbars="none">
 
-                    <TextView
-                        android:id="@+id/badge_current"
+                    <LinearLayout
+                        android:id="@+id/badge_row"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:paddingHorizontal="11dp"
-                        android:paddingVertical="5dp"
-                        android:text="@string/account_switch_current_badge"
-                        android:textSize="11sp"
-                        android:textStyle="bold" />
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
 
-                    <TextView
-                        android:id="@+id/badge_premium"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="6dp"
-                        android:paddingHorizontal="11dp"
-                        android:paddingVertical="5dp"
-                        android:text="@string/account_switch_premium"
-                        android:textColor="@color/v3_gold"
-                        android:textSize="11sp"
-                        android:textStyle="bold"
-                        android:visibility="gone"
-                        tools:visibility="visible" />
-                </LinearLayout>
+                        <TextView
+                            android:id="@+id/badge_current"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:paddingHorizontal="11dp"
+                            android:paddingVertical="5dp"
+                            android:text="@string/account_switch_current_badge"
+                            android:textSize="11sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/badge_premium"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="6dp"
+                            android:paddingHorizontal="11dp"
+                            android:paddingVertical="5dp"
+                            android:text="@string/account_switch_premium"
+                            android:textColor="@color/v3_gold"
+                            android:textSize="11sp"
+                            android:textStyle="bold"
+                            android:visibility="gone"
+                            tools:visibility="visible" />
+
+                        <TextView
+                            android:id="@+id/badge_web_login"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="6dp"
+                            android:gravity="center"
+                            android:includeFontPadding="false"
+                            android:paddingHorizontal="11dp"
+                            android:paddingVertical="5dp"
+                            android:singleLine="true"
+                            android:textSize="11sp"
+                            android:textStyle="bold"
+                            android:visibility="gone"
+                            tools:text="@string/account_switch_web_logged_in"
+                            tools:visibility="visible" />
+                    </LinearLayout>
+                </HorizontalScrollView>
 
                 <TextView
                     android:id="@+id/current_mail"
                     style="@style/textMontserratRegular"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="14dp"
+                    android:layout_marginTop="8dp"
                     android:ellipsize="end"
                     android:maxLines="1"
                     android:textColor="@color/v3_text_2"

@@ -71,6 +71,22 @@ object SessionManager {
     @JvmStatic
     fun hasValidWebSession(): Boolean = ceui.pixiv.ui.discovery.WebDiscoverySession.isCurrentAccount
 
+    /** 静默注销失效的网页 Cookie 并清空 CSRF Token。 */
+    @JvmStatic
+    fun clearWebCookie() {
+        prefStore.removeValueForKey(COOKIE_KEY)
+        ceui.pixiv.api.CsrfTokenProvider.clear()
+    }
+
+    /** Debug 测试专用：即时注入失效的 Web Cookie 并清空 CSRF Token。 */
+    @JvmStatic
+    fun injectExpiredWebCookieForTesting() {
+        val uid = loggedInUid.takeIf { it > 0L } ?: 128734570L
+        val expiredCookie = "PHPSESSID=${uid}_EXPIRED0000000000000000000000000"
+        prefStore.putString(COOKIE_KEY, expiredCookie)
+        ceui.pixiv.api.CsrfTokenProvider.clear()
+    }
+
     /**
      * 错误信息是否指示官网网页接口未登录或登录态无效。
      * - 400（未登录）：message 包含「不正确的请求」/「不正なリクエスト」/「Invalid request」
@@ -80,7 +96,7 @@ object SessionManager {
     fun isUnauthenticatedWebMessage(msg: String?): Boolean {
         if (msg.isNullOrBlank()) return false
         return msg.contains("不正确的请求") || msg.contains("不正なリクエスト") || msg.contains("Invalid request") ||
-            msg.contains("出现了未知错误") || msg.contains("エラーが発生しました") || msg.contains("Unknown error")
+            msg.contains("出现了未知错误") || msg.contains("エラーが発生しました") || msg.contains("Unknown error", ignoreCase = true)
     }
 
     /**
@@ -120,7 +136,7 @@ object SessionManager {
         return when (code) {
             400 -> msg.contains("不正确的请求") || msg.contains("不正なリクエスト") || msg.contains("Invalid request") ||
                 rawBody.contains("不正确的请求") || rawBody.contains("\\u4e0d\\u6b63\\u786e\\u7684\\u8bf7\\u6c42")
-            401 -> msg.contains("出现了未知错误") || msg.contains("エラーが発生しました") || msg.contains("Unknown error") ||
+            401 -> msg.contains("出现了未知错误") || msg.contains("エラーが発生しました") || msg.contains("Unknown error", ignoreCase = true) ||
                 rawBody.contains("出现了未知错误") || rawBody.contains("\\u51fa\\u73b0\\u4e86\\u672a\\u77e5\\u9519\\u8bef") ||
                 http.response()?.headers()?.get("Set-Cookie")?.contains("PHPSESSID=deleted") == true
             else -> false

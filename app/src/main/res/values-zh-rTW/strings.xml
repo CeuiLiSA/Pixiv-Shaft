@@ -1155,6 +1155,14 @@
     <string name="artwork_link">作品連結：%1$s</string>
     <string name="user_link">作者連結：%1$s</string>
     <string name="prime_tags">熱門標籤</string>
+    <string name="user_tag_advanced_search">進階搜尋</string>
+    <string name="user_tag_sheet_title">進階搜尋</string>
+    <string name="user_tag_sheet_hint">輸入關鍵字</string>
+    <string name="user_tag_section_works">作品標籤</string>
+    <string name="user_tag_sheet_no_match">沒有相符的標籤</string>
+    <string name="user_tag_sheet_no_tag">這位畫師還沒有作品標籤</string>
+    <string name="user_tag_sheet_failed">標籤載入失敗，請稍後重試</string>
+    <string name="user_tag_sheet_web_expired">Web登入過期，以匿名重試？</string>
     <string name="pinned_tags">釘選標籤</string>
     <string name="clear_pinned_tags_msg">這將會取消所有釘選標籤</string>
     <string name="pinned_tags_cleared">已取消所有釘選標籤</string>
@@ -2970,6 +2978,14 @@
     <!-- 帳號管理（V3 / MD3-E 重做版） -->
     <string name="account_switch_current_badge">目前使用中</string>
     <string name="account_switch_premium">Premium</string>
+    <string name="account_switch_web_not_logged_in">未同時登入Web（網頁）</string>
+    <string name="account_switch_web_checking">正在檢測Web（網頁）登入狀態</string>
+    <string name="account_switch_web_expired">Web（網頁）登入狀態失效</string>
+    <string name="account_switch_web_logged_in">Web（網頁）已登入</string>
+    <string name="account_switch_web_clear_title">清除Web登入狀態</string>
+    <string name="account_switch_web_clear_confirm">確定要清除目前帳號的Web（網頁）登入狀態嗎？清除後將退出網頁端工作階段。</string>
+    <string name="account_switch_web_clear_action">清除</string>
+    <string name="account_switch_web_cleared">已清除Web登入狀態</string>
     <string name="account_switch_others">其他帳號</string>
     <string name="account_switch_others_hint">點一下即可切換</string>
     <string name="account_switch_only_one">這台裝置上只有這一個帳號</string>
@@ -3643,4 +3659,5 @@
     <string name="ai_results_clear_success">所選結果圖已清理</string>
     <string name="ai_results_clear_failed">部分結果圖未能清理，請重試</string>
     <string name="ai_results_stats_failed">統計失敗</string>
+    <string name="account_switch_web_check_failed">無法檢測Web（網頁）登入狀態，點擊重試</string>
 </resources>

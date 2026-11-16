@@ -106,6 +106,12 @@ public open class WitTagFlowView @JvmOverloads public constructor(
             field = value
             if (changedRole) invalidateItems()
         }
+    public var onOverflowLongClick: (() -> Boolean)? = null
+        set(value) {
+            val changedRole = (field == null) != (value == null)
+            field = value
+            if (changedRole) invalidateItems()
+        }
     public var overflowActionText: String? = null
         set(value) { if (field != value) { field = value; invalidateItems() } }
     public var overflowActionIcon: Int? = null
@@ -231,12 +237,17 @@ public open class WitTagFlowView @JvmOverloads public constructor(
         val actionText = overflowActionText ?: if (overflowCount > 0) "+$overflowCount" else null
         if (actionText != null) {
             val action = newText(actionText, palette).apply {
-                setTextColor(if (onOverflowClick != null) palette.textAccent else palette.textSecondary)
+                setTextColor(if (onOverflowClick != null || onOverflowLongClick != null) palette.textAccent else palette.textSecondary)
                 background = chipBackground(palette, touchEdge)
                 layoutParams = chipLayoutParams(true, touchEdge)
-                if (onOverflowClick != null) {
+                if (onOverflowClick != null || onOverflowLongClick != null) {
                     overflowActionIcon?.let { setLeadingIcon(this, it, palette) }
-                    setOnClickListener { onOverflowClick?.invoke() }
+                    if (onOverflowClick != null) {
+                        setOnClickListener { onOverflowClick?.invoke() }
+                    }
+                    if (onOverflowLongClick != null) {
+                        setOnLongClickListener { onOverflowLongClick?.invoke() ?: false }
+                    }
                     applyTouchScale(this)
                 }
             }

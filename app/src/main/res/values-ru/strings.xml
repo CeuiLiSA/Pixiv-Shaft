@@ -1163,6 +1163,14 @@
     <string name="artwork_link">Ссылка на иллюстрацию: %1$s</string>
     <string name="user_link">Ссылка на автора: %1$s</string>
     <string name="prime_tags">Популярные теги</string>
+    <string name="user_tag_advanced_search">Расширенный поиск</string>
+    <string name="user_tag_sheet_title">Расширенный поиск</string>
+    <string name="user_tag_sheet_hint">Введите ключевые слова</string>
+    <string name="user_tag_section_works">Теги работ</string>
+    <string name="user_tag_sheet_no_match">Нет подходящих тегов</string>
+    <string name="user_tag_sheet_no_tag">У этого автора пока нет тегов к работам</string>
+    <string name="user_tag_sheet_failed">Не удалось загрузить теги, повторите попытку позже</string>
+    <string name="user_tag_sheet_web_expired">Сессия Web истекла, повторить анонимно?</string>
     <string name="pinned_tags">Закреплённые теги</string>
     <string name="clear_pinned_tags_msg">Все закреплённые теги будут откреплены</string>
     <string name="pinned_tags_cleared">Закреплённые теги удалены</string>
@@ -2973,6 +2981,14 @@
     <!-- Управление аккаунтами (V3 / MD3-E) -->
     <string name="account_switch_current_badge">Используется</string>
     <string name="account_switch_premium">Premium</string>
+    <string name="account_switch_web_not_logged_in">Не выполнен вход в Web</string>
+    <string name="account_switch_web_checking">Проверка статуса входа Web</string>
+    <string name="account_switch_web_expired">Статус входа Web истек</string>
+    <string name="account_switch_web_logged_in">Выполнен вход в Web</string>
+    <string name="account_switch_web_clear_title">Очистить статус входа Web</string>
+    <string name="account_switch_web_clear_confirm">Вы уверены, что хотите очистить статус входа Web для этого аккаунта? Это приведет к выходу из веб-сессии.</string>
+    <string name="account_switch_web_clear_action">Очистить</string>
+    <string name="account_switch_web_cleared">Статус входа Web очищен</string>
     <string name="account_switch_others">Другие аккаунты</string>
     <string name="account_switch_others_hint">Нажмите, чтобы переключиться</string>
     <string name="account_switch_only_one">На этом устройстве только один аккаунт</string>
@@ -3685,4 +3701,5 @@
     <string name="ai_results_clear_success">Выбранные изображения удалены</string>
     <string name="ai_results_clear_failed">Не все изображения удалось удалить. Повторите попытку.</string>
     <string name="ai_results_stats_failed">Не удалось подсчитать размер</string>
+    <string name="account_switch_web_check_failed">Не удалось проверить вход Web. Нажмите для повтора</string>
 </resources>
