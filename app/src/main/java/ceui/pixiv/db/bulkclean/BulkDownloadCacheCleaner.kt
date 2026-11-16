@@ -166,6 +166,8 @@ object BulkDownloadCacheCleaner {
         cancellationSignal: CancellationSignal? = null,
     ): StorageStats {
         cancellationSignal?.throwIfCanceled()
+        // sqlite-framework 2.5.1 的带取消参数重载要求非空，即使调用方不需要取消。
+        val querySignal = cancellationSignal ?: CancellationSignal()
         var recordsBytes = 0L
         var recordsCount = 0
         var queueBytes = 0L
@@ -181,7 +183,7 @@ object BulkDownloadCacheCleaner {
             // 1. 快速读取记录行数（走 index_illust_download_table_illustId 覆盖索引，毫秒级）
             raw.query(
                 SimpleSQLiteQuery("SELECT COUNT(*) FROM illust_download_table"),
-                cancellationSignal
+                querySignal
             ).use { c ->
                 if (c.moveToFirst()) {
                     recordsCount = c.getInt(0)
@@ -195,7 +197,7 @@ object BulkDownloadCacheCleaner {
                     // 小表：直接精确计算，耗时极短
                     raw.query(
                         SimpleSQLiteQuery("SELECT IFNULL(SUM(LENGTH(CAST(illustGson AS BLOB))), 0) FROM illust_download_table"),
-                        cancellationSignal
+                        querySignal
                     ).use { c ->
                         if (c.moveToFirst()) {
                             recordsBytes = c.getLong(0)
@@ -216,7 +218,7 @@ object BulkDownloadCacheCleaner {
                     """.trimIndent()
                     raw.query(
                         SimpleSQLiteQuery(sampleSql),
-                        cancellationSignal
+                        querySignal
                     ).use { c ->
                         if (c.moveToFirst()) {
                             val avgLen = c.getDouble(0)
@@ -231,7 +233,7 @@ object BulkDownloadCacheCleaner {
             // 2. 队列表（若有残留才查，有索引）
             raw.query(
                 SimpleSQLiteQuery("SELECT COUNT(*) FROM download_queue WHERE status = '${QueueStatus.SUCCESS}' AND (illustGson IS NOT NULL OR errorMsg IS NOT NULL)"),
-                cancellationSignal
+                querySignal
             ).use { c ->
                 if (c.moveToFirst()) {
                     queueCount = c.getInt(0)
@@ -242,7 +244,7 @@ object BulkDownloadCacheCleaner {
                 if (queueCount <= 100) {
                     raw.query(
                         SimpleSQLiteQuery("SELECT IFNULL(SUM(LENGTH(CAST(illustGson AS BLOB))), 0) FROM download_queue WHERE status = '${QueueStatus.SUCCESS}' AND (illustGson IS NOT NULL OR errorMsg IS NOT NULL)"),
-                        cancellationSignal
+                        querySignal
                     ).use { c ->
                         if (c.moveToFirst()) {
                             queueBytes = c.getLong(0)
@@ -262,7 +264,7 @@ object BulkDownloadCacheCleaner {
                     """.trimIndent()
                     raw.query(
                         SimpleSQLiteQuery(queueSampleSql),
-                        cancellationSignal
+                        querySignal
                     ).use { c ->
                         if (c.moveToFirst()) {
                             val avgLen = c.getDouble(0)
@@ -272,16 +274,19 @@ object BulkDownloadCacheCleaner {
                 }
             }
 
-            if (recordsBytes > 0L) {
+            val estimatedDatabaseBytes = recordsBytes + queueBytes
+            if (estimatedDatabaseBytes > 0L) {
                 // 主库文件可能尚未包含 WAL 中已提交的页；用逻辑页数约束采样值，
                 // 避免 checkpoint 之前把实际占用截成旧主库文件的大小。
                 cancellationSignal?.throwIfCanceled()
                 val pageCount = raw.query(
-                    SimpleSQLiteQuery("PRAGMA page_count"), cancellationSignal
+                    SimpleSQLiteQuery("PRAGMA page_count"), querySignal
                 ).use { c -> if (c.moveToFirst()) c.getLong(0) else 0L }
                 val databaseBytes = pageCount * raw.pageSize
-                if (databaseBytes > 0L) {
-                    recordsBytes = minOf(recordsBytes, databaseBytes)
+                if (databaseBytes > 0L && estimatedDatabaseBytes > databaseBytes) {
+                    // 两张表共用一个容量上限；按比例缩回界内，保持分项与合计一致。
+                    recordsBytes = (recordsBytes.toDouble() / estimatedDatabaseBytes * databaseBytes).toLong()
+                    queueBytes = databaseBytes - recordsBytes
                 }
             }
         }.onFailure {

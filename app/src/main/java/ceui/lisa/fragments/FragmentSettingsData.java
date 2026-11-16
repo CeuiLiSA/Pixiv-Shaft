@@ -792,6 +792,10 @@ public class FragmentSettingsData extends SettingsPageFragment<FragmentSettingsD
             final ceui.pixiv.db.bulkclean.BulkDownloadCacheCleaner.StorageStats result = stats;
             final int activeCount = active;
             main.post(() -> {
+                // 取消/关闭监听器异步投递；窗口已关闭时，结果不能抢先重新弹窗。
+                if (!loadingDialog.isShowing()) {
+                    signal.cancel();
+                }
                 completed.set(true);
                 try {
                     loadingDialog.dismiss();
