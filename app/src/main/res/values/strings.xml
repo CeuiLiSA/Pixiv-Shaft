@@ -389,6 +389,8 @@
     <string name="clear_bulk_download_cache_progress">正在清除下载关联数据…</string>
     <string name="clear_bulk_download_cache_queue_not_empty">批量队列不为空！未执行清理</string>
     <string name="clear_bulk_download_cache_failed">清理未完成，请稍后重试</string>
+    <string name="download_cache_calculating">正在统计数据占用…</string>
+    <string name="approximate_size_format">约 %1$s</string>
     <string name="manage_download_cache_dialog_title">管理下载关联数据</string>
     <string name="download_cache_action_slim">深度瘦身</string>
     <string name="download_cache_action_wipe">清空全部</string>
