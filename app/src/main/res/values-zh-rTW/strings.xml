@@ -1153,6 +1153,14 @@
     <string name="artwork_link">作品連結：%1$s</string>
     <string name="user_link">作者連結：%1$s</string>
     <string name="prime_tags">熱門標籤</string>
+    <string name="user_tag_advanced_search">進階搜尋</string>
+    <string name="user_tag_sheet_title">進階搜尋</string>
+    <string name="user_tag_sheet_hint">輸入關鍵字</string>
+    <string name="user_tag_section_works">作品標籤</string>
+    <string name="user_tag_sheet_no_match">沒有相符的標籤</string>
+    <string name="user_tag_sheet_no_tag">這位畫師還沒有作品標籤</string>
+    <string name="user_tag_sheet_failed">標籤載入失敗，請稍後重試</string>
+    <string name="user_tag_sheet_web_expired">Web登入過期，以匿名重試？</string>
     <string name="pinned_tags">釘選標籤</string>
     <string name="clear_pinned_tags_msg">這將會取消所有釘選標籤</string>
     <string name="pinned_tags_cleared">已取消所有釘選標籤</string>

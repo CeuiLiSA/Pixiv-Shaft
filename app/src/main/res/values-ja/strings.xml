@@ -1152,6 +1152,14 @@
     <string name="artwork_link">作品リンク：%1$s</string>
     <string name="user_link">作者リンク：%1$s</string>
     <string name="prime_tags">人気タグ</string>
+    <string name="user_tag_advanced_search">詳細検索</string>
+    <string name="user_tag_sheet_title">詳細検索</string>
+    <string name="user_tag_sheet_hint">キーワードを入力</string>
+    <string name="user_tag_section_works">作品タグ</string>
+    <string name="user_tag_sheet_no_match">一致するタグがありません</string>
+    <string name="user_tag_sheet_no_tag">この絵師の作品タグはまだありません</string>
+    <string name="user_tag_sheet_failed">タグの読み込みに失敗しました。後でもう一度お試しください</string>
+    <string name="user_tag_sheet_web_expired">Webセッションの有効期限切れ，匿名で再試行しますか？</string>
     <string name="pinned_tags">ピン留めしたタグ</string>
     <string name="clear_pinned_tags_msg">すべてのピン留めタグを解除します</string>
     <string name="pinned_tags_cleared">すべてのピン留めを解除しました</string>

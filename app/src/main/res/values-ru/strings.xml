@@ -1161,6 +1161,14 @@
     <string name="artwork_link">Ссылка на иллюстрацию: %1$s</string>
     <string name="user_link">Ссылка на автора: %1$s</string>
     <string name="prime_tags">Популярные теги</string>
+    <string name="user_tag_advanced_search">Расширенный поиск</string>
+    <string name="user_tag_sheet_title">Расширенный поиск</string>
+    <string name="user_tag_sheet_hint">Введите ключевые слова</string>
+    <string name="user_tag_section_works">Теги работ</string>
+    <string name="user_tag_sheet_no_match">Нет подходящих тегов</string>
+    <string name="user_tag_sheet_no_tag">У этого автора пока нет тегов к работам</string>
+    <string name="user_tag_sheet_failed">Не удалось загрузить теги, повторите попытку позже</string>
+    <string name="user_tag_sheet_web_expired">Сессия Web истекла, повторить анонимно?</string>
     <string name="pinned_tags">Закреплённые теги</string>
     <string name="clear_pinned_tags_msg">Все закреплённые теги будут откреплены</string>
     <string name="pinned_tags_cleared">Закреплённые теги удалены</string>

@@ -1155,6 +1155,14 @@
     <string name="artwork_link">Artwork link: %1$s</string>
     <string name="user_link">Author link: %1$s</string>
     <string name="prime_tags">Popular tags</string>
+    <string name="user_tag_advanced_search">Advanced search</string>
+    <string name="user_tag_sheet_title">Advanced search</string>
+    <string name="user_tag_sheet_hint">Enter keyword</string>
+    <string name="user_tag_section_works">Artwork tags</string>
+    <string name="user_tag_sheet_no_match">No matching tags</string>
+    <string name="user_tag_sheet_no_tag">This artist has no artwork tags yet</string>
+    <string name="user_tag_sheet_failed">Failed to load tags, please try again later</string>
+    <string name="user_tag_sheet_web_expired">Web session expired, retry anonymously?</string>
     <string name="pinned_tags">Pinned Tags</string>
     <string name="clear_pinned_tags_msg">This will unpin all pinned tags</string>
     <string name="pinned_tags_cleared">All pinned tags removed</string>

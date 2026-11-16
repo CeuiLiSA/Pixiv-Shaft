@@ -1155,6 +1155,14 @@
     <string name="artwork_link">Eser bağlantısı: %1$s</string>
     <string name="user_link">Yazar bağlantısı: %1$s</string>
     <string name="prime_tags">Popüler etiketler</string>
+    <string name="user_tag_advanced_search">Gelişmiş arama</string>
+    <string name="user_tag_sheet_title">Gelişmiş arama</string>
+    <string name="user_tag_sheet_hint">Anahtar kelime girin</string>
+    <string name="user_tag_section_works">Eser etiketleri</string>
+    <string name="user_tag_sheet_no_match">Eşleşen etiket yok</string>
+    <string name="user_tag_sheet_no_tag">Bu sanatçının henüz eser etiketi yok</string>
+    <string name="user_tag_sheet_failed">Etiketler yüklenemedi, lütfen daha sonra tekrar deneyin</string>
+    <string name="user_tag_sheet_web_expired">Web oturumu süresi doldu, anonim olarak tekrar denensin mi?</string>
     <string name="pinned_tags">Sabitlenen Etiketler</string>
     <string name="clear_pinned_tags_msg">Tüm sabitlenmiş etiketler kaldırılacak</string>
     <string name="pinned_tags_cleared">Tüm sabitlenmiş etiketler kaldırıldı</string>
