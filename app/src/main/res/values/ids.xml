@@ -89,4 +89,5 @@
     <item type="id" name="novel_header_cover_key"/>
     <item type="id" name="novel_header_avatar_key"/>
     <item type="id" name="tag_feed_thumbnail_load_failed"/>
+    <item type="id" name="tag_feed_thumbnail_visibility_observer"/>
 </resources>

@@ -5,8 +5,13 @@ import android.graphics.Rect
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewParent
+import android.view.ViewTreeObserver
 import androidx.annotation.VisibleForTesting
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.Observer
+import androidx.lifecycle.findViewTreeLifecycleOwner
 import androidx.recyclerview.widget.RecyclerView
 import ceui.lisa.R
 import ceui.pixiv.banner.BannerAction
@@ -114,6 +119,68 @@ object FeedThumbnailFailureNotifier {
         }
     }
 
+    private fun isActive(view: View): Boolean = view.isAttachedToWindow && view.isShown &&
+        view.findViewTreeLifecycleOwner()?.lifecycle?.currentState
+            ?.isAtLeast(Lifecycle.State.STARTED) != false
+
+    private fun watchVisibility(list: RecyclerView) {
+        if (list.getTag(R.id.tag_feed_thumbnail_visibility_observer) != null) return
+        val observer = VisibilityObserver(list)
+        list.setTag(R.id.tag_feed_thumbnail_visibility_observer, observer)
+        list.addOnAttachStateChangeListener(observer)
+        if (list.isAttachedToWindow) observer.onViewAttachedToWindow(list)
+    }
+
+    /** Page switches and enclosing scroll containers can reveal cards without scrolling this list. */
+    private class VisibilityObserver(private val list: RecyclerView) :
+        View.OnAttachStateChangeListener, ViewTreeObserver.OnPreDrawListener,
+        ViewTreeObserver.OnGlobalLayoutListener, LifecycleEventObserver {
+        private val lastBounds = Rect()
+        private val bounds = Rect()
+        private var lifecycle: Lifecycle? = null
+
+        override fun onViewAttachedToWindow(v: View) {
+            lastBounds.setEmpty()
+            v.viewTreeObserver.addOnPreDrawListener(this)
+            v.viewTreeObserver.addOnGlobalLayoutListener(this)
+            lifecycle = v.findViewTreeLifecycleOwner()?.lifecycle
+            lifecycle?.addObserver(this)
+        }
+
+        override fun onViewDetachedFromWindow(v: View) {
+            // During detach this is still the window's observer; remove before mAttachInfo clears.
+            v.viewTreeObserver.removeOnPreDrawListener(this)
+            v.viewTreeObserver.removeOnGlobalLayoutListener(this)
+            lifecycle?.removeObserver(this)
+            lifecycle = null
+            lastBounds.setEmpty()
+        }
+
+        override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
+            if (event == Lifecycle.Event.ON_START || event == Lifecycle.Event.ON_STOP) {
+                lastBounds.setEmpty()
+            }
+        }
+
+        override fun onGlobalLayout() {
+            // Filtering/removing cards can change the ratio while this list's bounds stay fixed.
+            lastBounds.setEmpty()
+        }
+
+        override fun onPreDraw(): Boolean {
+            if (hasPopped) return true
+            // Local bounds also change when an enclosing scroller moves this list while its
+            // clipped rectangle on the screen remains identical.
+            if (!isActive(list) || !list.getLocalVisibleRect(bounds)) {
+                lastBounds.setEmpty()
+            } else if (bounds != lastBounds) {
+                lastBounds.set(bounds)
+                checkAndNotify(list)
+            }
+            return true
+        }
+    }
+
     /** Count artwork roots once; descend into header rails, but never into a timeline card's grid. */
     @VisibleForTesting
     internal fun visibleFailureCounts(recyclerView: RecyclerView): Pair<Int, Int> {
@@ -121,7 +188,7 @@ object FeedThumbnailFailureNotifier {
         var visible = 0
         var failed = 0
         fun visit(view: View) {
-            if (!view.isAttachedToWindow || !view.isShown || !view.getGlobalVisibleRect(bounds)) return
+            if (!isActive(view) || !view.getGlobalVisibleRect(bounds)) return
             val failure = view.getTag(R.id.tag_feed_thumbnail_load_failed) as? Boolean
             if (failure != null) {
                 visible++
@@ -141,6 +208,7 @@ object FeedThumbnailFailureNotifier {
         if (hasPopped) return
 
         val list = outermostList(recyclerView)
+        watchVisibility(list)
         val context = list.context
         if (!networkObserved.get()) {
             runCatching {

@@ -59,6 +59,7 @@ private data class TimelineImageKey(
 
 /** 宫格格子的同款 key：格子是正方形，尺寸只需一维，另带页码区分同卡的不同格。 */
 private data class TimelineGridImageKey(
+    val generation: Int,
     val illustId: Long,
     val cacheKey: String?,
     val cellSize: Int,
@@ -341,7 +342,9 @@ internal class TimelineGridAdapter(
 
         val url = GlideUtil.getLargeImage(bean, position)
         // masked 进 key：屏蔽态切换时 url 和格子尺寸都没变，少了它就跳过重新加载、图不糊
-        val requestKey = TimelineGridImageKey(bean.id, url?.cacheKey, cellSize, position, masked)
+        // A -> B -> A can happen before the inner list lays out. The retained A request still
+        // carries its old generation's listener, even though its URL and dimensions match again.
+        val requestKey = TimelineGridImageKey(generation, bean.id, url?.cacheKey, cellSize, position, masked)
         if (holder.binding.gridImage.tag != requestKey) {
             holder.binding.gridImage.tag = requestKey
             failedPositions.remove(position)

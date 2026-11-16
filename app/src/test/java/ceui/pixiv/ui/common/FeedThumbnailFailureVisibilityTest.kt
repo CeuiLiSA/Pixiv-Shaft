@@ -1,12 +1,12 @@
 package ceui.pixiv.ui.common
 
-import android.app.Activity
 import android.app.Application
 import android.os.Looper
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.ImageView
+import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.MutableLiveData
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -34,7 +34,7 @@ import org.robolectric.annotation.LooperMode
 @Config(sdk = [28, 35], application = Application::class)
 @LooperMode(LooperMode.Mode.PAUSED)
 class FeedThumbnailFailureVisibilityTest {
-    private lateinit var activity: ActivityController<Activity>
+    private lateinit var activity: ActivityController<FragmentActivity>
     private val network = MutableLiveData(NetworkType.WIFI)
 
     @Before
@@ -43,7 +43,7 @@ class FeedThumbnailFailureVisibilityTest {
         FeedThumbnailFailureNotifier.init(object : INetworkState {
             override val networkState = network
         })
-        activity = Robolectric.buildActivity(Activity::class.java).setup().visible()
+        activity = Robolectric.buildActivity(FragmentActivity::class.java).setup().visible()
         activity.get().setTheme(R.style.AppTheme)
     }
 
@@ -69,6 +69,100 @@ class FeedThumbnailFailureVisibilityTest {
         list.visibility = View.VISIBLE
         list.translationX = 500f // a retained ViewPager page outside the viewport
         assertEquals(0 to 0, counts(list))
+    }
+
+    @Test
+    fun `returning to an already attached failed page rechecks without scrolling or reloading`() {
+        val card = card(false)
+        val list = listOfViews(card)
+        show(list)
+        list.translationX = 500f
+        FeedThumbnailFailureNotifier.onThumbnailFailed(card)
+        shadowOf(Looper.getMainLooper()).idle()
+        list.viewTreeObserver.dispatchOnPreDraw()
+        assertFalse(FeedThumbnailFailureNotifier.isPendingTrigger())
+
+        list.translationX = 0f
+        list.viewTreeObserver.dispatchOnPreDraw()
+        assertTrue(FeedThumbnailFailureNotifier.isPendingTrigger())
+    }
+
+    @Test
+    fun `stopped activity cannot enqueue a reminder from its retained view tree`() {
+        val list = listOfViews(card(true))
+        show(list)
+        assertEquals(1 to 1, counts(list))
+        activity.pause().stop()
+        try {
+            assertEquals(0 to 0, counts(list))
+            FeedThumbnailFailureNotifier.checkAndNotify(list)
+            assertFalse(FeedThumbnailFailureNotifier.isPendingTrigger())
+        } finally {
+            activity.restart().start().resume()
+        }
+        list.viewTreeObserver.dispatchOnPreDraw()
+        assertTrue(FeedThumbnailFailureNotifier.isPendingTrigger())
+    }
+
+    @Test
+    fun `enclosing scroll can reveal failures while the clipped screen bounds stay unchanged`() {
+        val list = listOfViews(card(false), card(true), card(true))
+        val scroller = FrameLayout(activity.get()).apply {
+            addView(list, FrameLayout.LayoutParams(400, 600))
+        }
+        activity.get().setContentView(scroller)
+        scroller.measure(
+            View.MeasureSpec.makeMeasureSpec(400, View.MeasureSpec.EXACTLY),
+            View.MeasureSpec.makeMeasureSpec(200, View.MeasureSpec.EXACTLY),
+        )
+        scroller.layout(0, 0, 400, 200)
+        FeedThumbnailFailureNotifier.checkAndNotify(list)
+        list.viewTreeObserver.dispatchOnPreDraw()
+        assertEquals(1 to 0, counts(list))
+        assertFalse(FeedThumbnailFailureNotifier.isPendingTrigger())
+
+        scroller.scrollTo(0, 200)
+        list.viewTreeObserver.dispatchOnPreDraw()
+        assertEquals(1 to 1, counts(list))
+        assertTrue(FeedThumbnailFailureNotifier.isPendingTrigger())
+    }
+
+    @Test
+    fun `a layout hiding healthy cards reevaluates the remaining failures without scrolling`() {
+        val healthy = card(false)
+        val list = listOfViews(healthy, card(true))
+        show(list)
+        FeedThumbnailFailureNotifier.checkAndNotify(list)
+        list.viewTreeObserver.dispatchOnPreDraw()
+        assertFalse(FeedThumbnailFailureNotifier.isPendingTrigger())
+
+        healthy.visibility = View.GONE
+        list.viewTreeObserver.dispatchOnGlobalLayout()
+        list.viewTreeObserver.dispatchOnPreDraw()
+        assertEquals(1 to 1, counts(list))
+        assertTrue(FeedThumbnailFailureNotifier.isPendingTrigger())
+    }
+
+    @Test
+    fun `visibility observer resumes after the list detaches and reattaches`() {
+        val card = card(false)
+        val list = listOfViews(card)
+        show(list)
+        list.translationX = 500f
+        FeedThumbnailFailureNotifier.onThumbnailFailed(card)
+        shadowOf(Looper.getMainLooper()).idle()
+        list.viewTreeObserver.dispatchOnPreDraw()
+        assertFalse(FeedThumbnailFailureNotifier.isPendingTrigger())
+
+        val parent = list.parent as ViewGroup
+        parent.removeView(list)
+        assertFalse(list.isAttachedToWindow)
+        list.translationX = 0f
+        parent.addView(list)
+        show(list)
+        list.viewTreeObserver.dispatchOnPreDraw()
+        assertEquals(1 to 1, counts(list))
+        assertTrue(FeedThumbnailFailureNotifier.isPendingTrigger())
     }
 
     @Test
@@ -170,6 +264,13 @@ class FeedThumbnailFailureVisibilityTest {
         show(list)
         shadowOf(Looper.getMainLooper()).idle()
         assertEquals(1 to 1, counts(list)) // same null URL still belongs to a new request
+
+        // The outer holder can be rebound twice before its nested RecyclerView gets a layout.
+        adapter.submit(bean.copy(id = 3), 2, 200, false, 0, false)
+        adapter.submit(bean.copy(id = 2), 2, 200, false, 0, false)
+        show(list)
+        shadowOf(Looper.getMainLooper()).idle()
+        assertEquals(1 to 1, counts(list))
     }
 
     private fun counts(list: RecyclerView) = FeedThumbnailFailureNotifier.visibleFailureCounts(list)
@@ -197,6 +298,7 @@ class FeedThumbnailFailureVisibilityTest {
 
     private fun show(list: RecyclerView) {
         if (!list.isAttachedToWindow) activity.get().setContentView(list)
+        list.requestLayout()
         list.measure(
             View.MeasureSpec.makeMeasureSpec(400, View.MeasureSpec.EXACTLY),
             View.MeasureSpec.makeMeasureSpec(600, View.MeasureSpec.EXACTLY),
