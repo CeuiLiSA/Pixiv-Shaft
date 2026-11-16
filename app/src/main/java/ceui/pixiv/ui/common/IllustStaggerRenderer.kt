@@ -152,9 +152,6 @@ internal fun IllustFeedFragment.staggerIllustRenderer():
                     cell.binding.likeAnim.isVisible = false
                 }
             })
-            // lottie 默认 failure listener 会直接抛 IllegalStateException 崩 app；
-            // 动画资源解析失败就静默降级成无动画（静态爱心链路完全不受影响）
-            cell.binding.likeAnim.setFailureListener { }
             // 爱心长按 → 按标签收藏（对齐 IAdapter）
             cell.binding.likeButton.setOnLongClickListener {
                 val bean = cell.item.illust
@@ -289,7 +286,7 @@ internal fun IllustFeedFragment.staggerIllustRenderer():
  * 两个条件的与——屏蔽态之外还有 [IllustFeedFragment.hideLikeButton]（全局「插画列表显示收藏按钮」
  * + 自己收藏页的「收藏页隐藏收藏按钮」），漏掉它会让那些页面在取消屏蔽后凭空多出一颗爱心。
  *
- * 爆发动画层单独收一次：屏蔽发生在 lottie 正播到一半时（长按菜单点屏蔽），只藏爱心的话
+ * 爆发动画层单独收一次：屏蔽发生在爆发动画正播到一半时（长按菜单点屏蔽），只藏爱心的话
  * 那 72dp 的动画层会继续在糊掉的图上炸完。
  */
 private fun IllustFeedFragment.applyIllustSpoilerMask(
@@ -494,23 +491,13 @@ private fun buildBadges(
 
 /**
  * 收藏爆发动画：静态爱心由点击处当帧切红（异步乐观重绑只是兜底，等它就晚了），
- * 上层 72dp Lottie 播弹性爱心 + 白闪 + 冲击波圆环 + 三色粒子向作品图上炸开，
+ * 上层 72dp LikeBurstView 播弹性爱心 + 冲击波圆环 + 三色粒子向作品图上炸开，
  * 播完自动收起。动画层非 clickable，播放中不挡按钮点击；局部重绑只动静态爱心，
  * 不打断动画。
  */
 private fun playLikeBurst(binding: RecyIllustStaggerBinding) {
     playLikePressHaptic(binding.likeButton)
-    binding.likeAnim.apply {
-        // 懒加载（见 recy_illust_stagger 里 like_anim 的注释）。只在还没有 composition 时设置：
-        // setAnimation 会先 clearComposition，已加载过再调会打断正在播的动画。首次加载未完成时
-        // playAnimation 会排进 lottie 的待执行队列，加载完自动开播。
-        if (composition == null) {
-            setAnimation(R.raw.like_heart_burst)
-        }
-        isVisible = true
-        progress = 0f
-        playAnimation()
-    }
+    binding.likeAnim.playAnimation()
 }
 
 /** 取消收藏：静态爱心一个干脆的回弹缩放，不放烟花；触感只给单下轻 tick。 */

@@ -31,10 +31,8 @@ interpolator = "1.0.0"
 jsoup = "1.18.1"
 junit4 = "4.13.2"
 lifecycle = "2.8.7"
-lottie = "6.7.1"
 markwon = "4.6.2"
 material = "1.14.0"
-materialDateTimePicker = "4.2.3"
 mmkv = "2.2.3"
 mockWebServer = "4.12.0"
 muzei = "3.4.2"
@@ -111,10 +109,8 @@ hiltAndroid = { module = "com.google.dagger:hilt-android", version.ref = "hilt" 
 hiltCompiler = { module = "com.google.dagger:hilt-compiler", version.ref = "hilt" }
 jsoup = { module = "org.jsoup:jsoup", version.ref = "jsoup" }
 junit4 = { module = "junit:junit", version.ref = "junit4" }
-lottie = { module = "com.airbnb.android:lottie", version.ref = "lottie" }
 markwon = { module = "io.noties.markwon:core", version.ref = "markwon" }
 material = { module = "com.google.android.material:material", version.ref = "material" }
-materialDateTimePicker = { module = "com.wdullaer:materialdatetimepicker", version.ref = "materialDateTimePicker" }
 mmkv = { module = "com.tencent:mmkv-static", version.ref = "mmkv" }
 mockWebServer = { module = "com.squareup.okhttp3:mockwebserver", version.ref = "mockWebServer" }
 muzei = { module = "com.google.android.apps.muzei:muzei-api", version.ref = "muzei" }

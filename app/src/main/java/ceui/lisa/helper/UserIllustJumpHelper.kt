@@ -11,7 +11,7 @@ import ceui.lisa.utils.Common
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
 import ceui.pixiv.witstudio.dialog.WitTipDialog
-import com.wdullaer.materialdatetimepicker.date.DatePickerDialog
+import ceui.pixiv.utils.ShaftDatePicker
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import ceui.lisa.core.JavaAsync
@@ -21,7 +21,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
 import java.time.OffsetDateTime
-import java.util.Calendar
 
 /**
  * 支持用户跳转到指定位置（按时间 / 按页码 / 最早作品）
@@ -142,25 +141,20 @@ object UserIllustJumpHelper {
         total: Int,
         onJump: OnJumpPicked
     ) {
-        val now = Calendar.getInstance()
-        val listener = DatePickerDialog.OnDateSetListener { _, year, month0, day ->
-            val target = LocalDate.of(year, month0 + 1, day)
-            locateByDate(activity, userID, kind, total, target, onJump)
-        }
-        val dpd = DatePickerDialog.newInstance(
-            listener,
-            now.get(Calendar.YEAR),
-            now.get(Calendar.MONTH),
-            now.get(Calendar.DAY_OF_MONTH)
+        if (activity !is FragmentActivity) return
+        val now = LocalDate.now()
+        val minDate = LocalDate.of(2007, 1, 1) // Pixiv 创立于 2007
+        ShaftDatePicker.show(
+            fragmentManager = activity.supportFragmentManager,
+            tag = "UserIllustJumpDatePicker",
+            title = activity.getString(R.string.user_jump_by_date),
+            selectedDate = now,
+            minDate = minDate,
+            maxDate = now,
+            onDateSelected = { target ->
+                locateByDate(activity, userID, kind, total, target, onJump)
+            }
         )
-        val start = Calendar.getInstance().apply { set(2007, 0, 1) } // Pixiv 创立于 2007
-        dpd.setMinDate(start)
-        dpd.setMaxDate(now)
-        dpd.setAccentColor(Common.resolveThemeAttribute(activity, androidx.appcompat.R.attr.colorPrimary))
-        dpd.setThemeDark(activity.resources.getBoolean(R.bool.is_night_mode))
-        if (activity is FragmentActivity) {
-            dpd.show(activity.supportFragmentManager, "UserIllustJumpDatePicker")
-        }
     }
 
     /**
