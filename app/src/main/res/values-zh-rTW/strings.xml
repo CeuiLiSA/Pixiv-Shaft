@@ -3656,4 +3656,5 @@
     <string name="ai_results_clear_success">所選結果圖已清理</string>
     <string name="ai_results_clear_failed">部分結果圖未能清理，請重試</string>
     <string name="ai_results_stats_failed">統計失敗</string>
+    <string name="account_switch_web_check_failed">無法檢測Web（網頁）登入狀態，點擊重試</string>
 </resources>

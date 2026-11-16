@@ -3625,4 +3625,5 @@
     <string name="ai_results_clear_success">Gambar hasil yang dipilih telah dihapus</string>
     <string name="ai_results_clear_failed">Beberapa gambar tidak dapat dihapus. Coba lagi.</string>
     <string name="ai_results_stats_failed">Ukuran tidak dapat dihitung</string>
+    <string name="account_switch_web_check_failed">Gagal memeriksa login Web, ketuk untuk mencoba lagi</string>
 </resources>

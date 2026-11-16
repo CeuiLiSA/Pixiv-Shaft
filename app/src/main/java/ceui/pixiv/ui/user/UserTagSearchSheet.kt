@@ -34,9 +34,9 @@ import android.text.Spanned
 import android.text.style.ForegroundColorSpan
 import android.text.style.UnderlineSpan
 import kotlinx.coroutines.launch
-import retrofit2.HttpException
 import java.util.Locale
 import ceui.pixiv.session.SessionManager
+import ceui.pixiv.session.WebSessionManager
 import ceui.pixiv.ui.navigation.TemplateRoute
 import ceui.pixiv.utils.screenHeight
 import kotlin.math.roundToInt
@@ -163,16 +163,15 @@ class UserTagSearchSheet : V3BottomSheetBase() {
         binding.emptyText.isVisible = false
         binding.emptyText.setOnClickListener(null)
         binding.emptyText.isClickable = false
+        val sessionUid = SessionManager.loggedInUid
+        val requestCookie = if (forceAnonymous) "" else WebSessionManager.getCookie()
         viewLifecycleOwner.lifecycleScope.launch {
             val uid = userId
             var isWebExpired = false
             val tags = try {
-                val resp = if (forceAnonymous) {
-                    Client.webApi.getUserWorkTags(uid, category, cookie = "")
-                } else {
-                    Client.webApi.getUserWorkTags(uid, category)
-                }
+                val resp = Client.webApi.getUserWorkTags(uid, category, cookie = requestCookie)
                 if (resp.error == true) {
+                    isWebExpired = !forceAnonymous && SessionManager.isUnauthenticatedWebResponse(resp)
                     null
                 } else {
                     resp.body
@@ -185,7 +184,7 @@ class UserTagSearchSheet : V3BottomSheetBase() {
                     e,
                     "UserTagSearchSheet: loadTags failed, forceAnonymous=$forceAnonymous"
                 )
-                if (!forceAnonymous && (e as? HttpException)?.code() == 401) {
+                if (!forceAnonymous && SessionManager.isUnauthenticatedWebSession(e)) {
                     isWebExpired = true
                 }
                 null
@@ -194,7 +193,7 @@ class UserTagSearchSheet : V3BottomSheetBase() {
             b.loading.isVisible = false
             if (tags == null) {
                 if (isWebExpired) {
-                    ceui.pixiv.session.WebSessionManager.recordFailure(SessionManager.loggedInUid)
+                    WebSessionManager.recordFailure(sessionUid, requestCookie)
                     showWebExpiredEmpty()
                 } else {
                     showEmpty(getString(R.string.user_tag_sheet_failed)) {

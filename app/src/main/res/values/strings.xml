@@ -3959,4 +3959,5 @@
     <string name="ai_results_clear_success">所选结果图已清理</string>
     <string name="ai_results_clear_failed">部分结果图未能清理，请重试</string>
     <string name="ai_results_stats_failed">统计失败</string>
+    <string name="account_switch_web_check_failed">无法检测Web（网页）登录状态，点击重试</string>
 </resources>

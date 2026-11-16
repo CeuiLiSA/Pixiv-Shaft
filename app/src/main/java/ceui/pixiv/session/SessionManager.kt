@@ -96,7 +96,7 @@ object SessionManager {
     fun isUnauthenticatedWebMessage(msg: String?): Boolean {
         if (msg.isNullOrBlank()) return false
         return msg.contains("不正确的请求") || msg.contains("不正なリクエスト") || msg.contains("Invalid request") ||
-            msg.contains("出现了未知错误") || msg.contains("エラーが発生しました") || msg.contains("Unknown error")
+            msg.contains("出现了未知错误") || msg.contains("エラーが発生しました") || msg.contains("Unknown error", ignoreCase = true)
     }
 
     /**
@@ -136,7 +136,7 @@ object SessionManager {
         return when (code) {
             400 -> msg.contains("不正确的请求") || msg.contains("不正なリクエスト") || msg.contains("Invalid request") ||
                 rawBody.contains("不正确的请求") || rawBody.contains("\\u4e0d\\u6b63\\u786e\\u7684\\u8bf7\\u6c42")
-            401 -> msg.contains("出现了未知错误") || msg.contains("エラーが発生しました") || msg.contains("Unknown error") ||
+            401 -> msg.contains("出现了未知错误") || msg.contains("エラーが発生しました") || msg.contains("Unknown error", ignoreCase = true) ||
                 rawBody.contains("出现了未知错误") || rawBody.contains("\\u51fa\\u73b0\\u4e86\\u672a\\u77e5\\u9519\\u8bef") ||
                 http.response()?.headers()?.get("Set-Cookie")?.contains("PHPSESSID=deleted") == true
             else -> false

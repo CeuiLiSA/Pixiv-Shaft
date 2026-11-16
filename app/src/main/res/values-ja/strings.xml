@@ -3656,4 +3656,5 @@
     <string name="ai_results_clear_success">選択した結果画像を削除しました</string>
     <string name="ai_results_clear_failed">一部の画像を削除できませんでした。再度お試しください。</string>
     <string name="ai_results_stats_failed">サイズを計算できませんでした</string>
+    <string name="account_switch_web_check_failed">Webログインを確認できません。タップして再試行</string>
 </resources>

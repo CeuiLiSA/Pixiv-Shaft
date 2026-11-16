@@ -3669,4 +3669,5 @@
     <string name="ai_results_clear_success">Selected result images cleared</string>
     <string name="ai_results_clear_failed">Some result images could not be removed. Try again.</string>
     <string name="ai_results_stats_failed">Could not calculate size</string>
+    <string name="account_switch_web_check_failed">Cannot check Web login, tap to retry</string>
 </resources>

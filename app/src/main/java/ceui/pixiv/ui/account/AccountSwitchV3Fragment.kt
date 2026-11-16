@@ -46,7 +46,6 @@ import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.drawable.RippleDrawable
 import ceui.lisa.BuildConfig
-import ceui.pixiv.api.Client
 import ceui.pixiv.session.WebSessionManager
 import ceui.pixiv.witstudio.theme.WitRowStyle
 import ceui.pixiv.ui.navigation.TemplateRoute
@@ -96,6 +95,11 @@ class AccountSwitchV3Fragment : Fragment(R.layout.fragment_account_switch_v3) {
     private var renderedCurrent: LocalAccount? = null
 
     private var webCheckJob: Job? = null
+
+    /** 重试时取当前账号，避免监听器携带上一轮检测的 uid / Cookie。 */
+    private val retryWebCheck = View.OnClickListener {
+        renderedCurrent?.let { bindWebLoginBadge(it.user.id) }
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -289,6 +293,7 @@ class AccountSwitchV3Fragment : Fragment(R.layout.fragment_account_switch_v3) {
     private enum class WebLoginState {
         NOT_LOGGED_IN,
         CHECKING,
+        CHECK_FAILED,
         SUCCESS,
         EXPIRED
     }
@@ -299,11 +304,13 @@ class AccountSwitchV3Fragment : Fragment(R.layout.fragment_account_switch_v3) {
      * - 近一小时内有成功持久化记录：直接展示【Web（网页）已登录】，不额外检测；
      * - 有匹配 Web Cookie 但未记录过或超过一小时：展示【正在检测Web（网页）登录状态】，并异步调用查看自己端点检测；
      *   成功则写进持久化记录并展示【Web（网页）已登录】；
-     *   失败则立即清空 Web Cookie，持久化记录失败态与时间，并展示【Web（网页）登录状态失效】；
+     *   明确过期才清空 Cookie，临时网络错误保留凭证并提供重试；
      * - 无 Web Cookie 且最后记录为失败态：展示【Web（网页）登录状态失效】，点击重走登录流程；
      * - 无 Web Cookie 且非失败态：展示【未同时登录Web（网页）】，点击走登录流程。
      */
     private fun bindWebLoginBadge(uid: Long) {
+        webCheckJob?.cancel()
+        webCheckJob = null
         if (BuildConfig.IS_LITE || uid <= 0L) {
             binding.badgeWebLogin.isVisible = false
             return
@@ -320,25 +327,24 @@ class AccountSwitchV3Fragment : Fragment(R.layout.fragment_account_switch_v3) {
                 renderWebLoginState(WebLoginState.SUCCESS, uid)
             } else {
                 renderWebLoginState(WebLoginState.CHECKING, uid)
-                webCheckJob?.cancel()
+                val cookie = WebSessionManager.getCookie()
                 webCheckJob = viewLifecycleOwner.lifecycleScope.launch {
-                    try {
-                        val resp = withContext(Dispatchers.IO) {
-                            Client.webApi.getWebUserDetail(uid)
+                    val result = WebSessionManager.check(uid, cookie)
+                    if (uid != SessionManager.loggedInUid) return@launch
+                    when (result) {
+                        WebSessionManager.CheckResult.SUCCESS -> renderWebLoginState(WebLoginState.SUCCESS, uid)
+                        WebSessionManager.CheckResult.EXPIRED -> renderWebLoginState(WebLoginState.EXPIRED, uid)
+                        WebSessionManager.CheckResult.UNAVAILABLE -> renderWebLoginState(WebLoginState.CHECK_FAILED, uid)
+                        WebSessionManager.CheckResult.STALE -> {
+                            // 旧结果只丢弃，不再自动发起下一轮请求。
+                            val state = when {
+                                WebSessionManager.hasRecentSuccess(uid) -> WebLoginState.SUCCESS
+                                WebSessionManager.hasMatchingWebCookie(uid) -> WebLoginState.CHECK_FAILED
+                                WebSessionManager.getStatus(uid) == WebSessionManager.STATUS_FAILED -> WebLoginState.EXPIRED
+                                else -> WebLoginState.NOT_LOGGED_IN
+                            }
+                            renderWebLoginState(state, uid)
                         }
-                        if (resp.error != true && resp.body != null) {
-                            WebSessionManager.recordSuccess(uid)
-                            renderWebLoginState(WebLoginState.SUCCESS, uid)
-                        } else {
-                            WebSessionManager.recordFailure(uid)
-                            renderWebLoginState(WebLoginState.EXPIRED, uid)
-                        }
-                    } catch (ce: CancellationException) {
-                        throw ce
-                    } catch (e: Throwable) {
-                        timber.log.Timber.w(e, "AccountSwitchV3Fragment: web session check failed")
-                        WebSessionManager.recordFailure(uid)
-                        renderWebLoginState(WebLoginState.EXPIRED, uid)
                     }
                 }
             }
@@ -384,6 +390,14 @@ class AccountSwitchV3Fragment : Fragment(R.layout.fragment_account_switch_v3) {
                     showClearWebLoginConfirm(uid)
                     true
                 }
+            }
+            WebLoginState.CHECK_FAILED -> {
+                b.setText(R.string.account_switch_web_check_failed)
+                b.background = pillWithRipple(palette.alpha10, palette.alpha20)
+                b.setTextColor(palette.textSecondary)
+                b.setOnClickListener(retryWebCheck)
+                b.setOnLongClickListener(null)
+                b.isLongClickable = false
             }
             WebLoginState.EXPIRED -> {
                 b.setText(R.string.account_switch_web_expired)
