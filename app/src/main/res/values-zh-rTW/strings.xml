@@ -2975,6 +2975,14 @@
     <!-- 帳號管理（V3 / MD3-E 重做版） -->
     <string name="account_switch_current_badge">目前使用中</string>
     <string name="account_switch_premium">Premium</string>
+    <string name="account_switch_web_not_logged_in">未同時登入Web（網頁）</string>
+    <string name="account_switch_web_checking">正在檢測Web（網頁）登入狀態</string>
+    <string name="account_switch_web_expired">Web（網頁）登入狀態失效</string>
+    <string name="account_switch_web_logged_in">Web（網頁）已登入</string>
+    <string name="account_switch_web_clear_title">清除Web登入狀態</string>
+    <string name="account_switch_web_clear_confirm">確定要清除目前帳號的Web（網頁）登入狀態嗎？清除後將退出網頁端工作階段。</string>
+    <string name="account_switch_web_clear_action">清除</string>
+    <string name="account_switch_web_cleared">已清除Web登入狀態</string>
     <string name="account_switch_others">其他帳號</string>
     <string name="account_switch_others_hint">點一下即可切換</string>
     <string name="account_switch_only_one">這台裝置上只有這一個帳號</string>

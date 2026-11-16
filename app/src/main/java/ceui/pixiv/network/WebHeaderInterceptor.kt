@@ -3,6 +3,8 @@ package ceui.pixiv.network
 import ceui.lisa.helper.LanguageHelper
 import ceui.pixiv.api.ClientManager
 import ceui.pixiv.session.SessionManager
+import ceui.pixiv.session.WebSessionManager
+import ceui.pixiv.ui.discovery.WebDiscoverySession
 import com.tencent.mmkv.MMKV
 import okhttp3.Interceptor
 import okhttp3.Request
@@ -15,9 +17,16 @@ class WebHeaderInterceptor : Interceptor {
     }
 
     override fun intercept(chain: Interceptor.Chain): Response {
-        return chain.proceed(
+        val response = chain.proceed(
             addHeader(chain.request()).build()
         )
+        if (response.isSuccessful && WebDiscoverySession.isCurrentAccount) {
+            val uid = SessionManager.loggedInUid
+            if (uid > 0L) {
+                WebSessionManager.recordSuccess(uid)
+            }
+        }
+        return response
     }
 
     private fun addHeader(request: Request): Request.Builder {

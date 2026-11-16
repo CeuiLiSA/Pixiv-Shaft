@@ -2968,6 +2968,14 @@
     <string name="work_tag_edit_need_web_login">Edit tag memakai API web dan memerlukan login web tambahan.</string>
     <string name="account_switch_current_badge">Sedang digunakan</string>
     <string name="account_switch_premium">Premium</string>
+    <string name="account_switch_web_not_logged_in">Belum masuk ke Web bersamaan</string>
+    <string name="account_switch_web_checking">Memeriksa status masuk Web</string>
+    <string name="account_switch_web_expired">Status masuk Web kedaluwarsa</string>
+    <string name="account_switch_web_logged_in">Sudah masuk ke Web</string>
+    <string name="account_switch_web_clear_title">Hapus Status Masuk Web</string>
+    <string name="account_switch_web_clear_confirm">Yakin ingin menghapus status masuk Web untuk akun ini? Ini akan keluar dari sesi web.</string>
+    <string name="account_switch_web_clear_action">Hapus</string>
+    <string name="account_switch_web_cleared">Status masuk Web telah dihapus</string>
     <string name="account_switch_others">Akun lain</string>
     <string name="account_switch_others_hint">Ketuk untuk berganti</string>
     <string name="account_switch_only_one">Hanya ada satu akun di perangkat ini</string>

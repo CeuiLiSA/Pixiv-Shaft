@@ -2983,6 +2983,14 @@
     <!-- Account manager (V3 / MD3-E redesign) -->
     <string name="account_switch_current_badge">Currently in use</string>
     <string name="account_switch_premium">Premium</string>
+    <string name="account_switch_web_not_logged_in">Not logged in on Web</string>
+    <string name="account_switch_web_checking">Checking Web login status</string>
+    <string name="account_switch_web_expired">Web login expired</string>
+    <string name="account_switch_web_logged_in">Web logged in</string>
+    <string name="account_switch_web_clear_title">Clear Web Login Status</string>
+    <string name="account_switch_web_clear_confirm">Are you sure you want to clear the Web login status for this account? This will log out of the web session.</string>
+    <string name="account_switch_web_clear_action">Clear</string>
+    <string name="account_switch_web_cleared">Web login status cleared</string>
     <string name="account_switch_others">Other accounts</string>
     <string name="account_switch_others_hint">Tap to switch</string>
     <string name="account_switch_only_one">This is the only account on this device</string>

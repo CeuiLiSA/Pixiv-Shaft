@@ -3246,6 +3246,14 @@
     <!-- 账号管理（V3 / MD3-E 重做版） -->
     <string name="account_switch_current_badge">当前使用中</string>
     <string name="account_switch_premium">Premium</string>
+    <string name="account_switch_web_not_logged_in">未同时登录Web（网页）</string>
+    <string name="account_switch_web_checking">正在检测Web（网页）登录状态</string>
+    <string name="account_switch_web_expired">Web（网页）登录状态失效</string>
+    <string name="account_switch_web_logged_in">Web（网页）已登录</string>
+    <string name="account_switch_web_clear_title">清除Web登录状态</string>
+    <string name="account_switch_web_clear_confirm">确定要清除当前账号的Web（网页）登录状态吗？清除后将退出网页端会话。</string>
+    <string name="account_switch_web_clear_action">清除</string>
+    <string name="account_switch_web_cleared">已清除Web登录状态</string>
     <string name="account_switch_others">其他账号</string>
     <string name="account_switch_others_hint">点一下即可切换</string>
     <string name="account_switch_only_one">这台设备上只有这一个账号</string>

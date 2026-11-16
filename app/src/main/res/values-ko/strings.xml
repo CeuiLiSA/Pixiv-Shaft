@@ -2960,6 +2960,14 @@
     <!-- 계정 관리 (V3 / MD3-E 리디자인) -->
     <string name="account_switch_current_badge">사용 중</string>
     <string name="account_switch_premium">Premium</string>
+    <string name="account_switch_web_not_logged_in">웹 동시 로그인 안 됨</string>
+    <string name="account_switch_web_checking">웹 로그인 상태 확인 중</string>
+    <string name="account_switch_web_expired">웹 로그인 상태 만료</string>
+    <string name="account_switch_web_logged_in">웹 로그인됨</string>
+    <string name="account_switch_web_clear_title">웹 로그인 상태 지우기</string>
+    <string name="account_switch_web_clear_confirm">현재 계정의 웹 로그인 상태를 지우시겠습니까? 지우면 웹 세션에서 로그아웃됩니다.</string>
+    <string name="account_switch_web_clear_action">지우기</string>
+    <string name="account_switch_web_cleared">웹 로그인 상태가 지워졌습니다</string>
     <string name="account_switch_others">다른 계정</string>
     <string name="account_switch_others_hint">눌러서 전환</string>
     <string name="account_switch_only_one">이 기기에는 이 계정뿐입니다</string>

@@ -194,7 +194,7 @@ class UserTagSearchSheet : V3BottomSheetBase() {
             b.loading.isVisible = false
             if (tags == null) {
                 if (isWebExpired) {
-                    SessionManager.clearWebCookie()
+                    ceui.pixiv.session.WebSessionManager.recordFailure(SessionManager.loggedInUid)
                     showWebExpiredEmpty()
                 } else {
                     showEmpty(getString(R.string.user_tag_sheet_failed)) {

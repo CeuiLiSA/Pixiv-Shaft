@@ -2978,6 +2978,14 @@
     <!-- Управление аккаунтами (V3 / MD3-E) -->
     <string name="account_switch_current_badge">Используется</string>
     <string name="account_switch_premium">Premium</string>
+    <string name="account_switch_web_not_logged_in">Не выполнен вход в Web</string>
+    <string name="account_switch_web_checking">Проверка статуса входа Web</string>
+    <string name="account_switch_web_expired">Статус входа Web истек</string>
+    <string name="account_switch_web_logged_in">Выполнен вход в Web</string>
+    <string name="account_switch_web_clear_title">Очистить статус входа Web</string>
+    <string name="account_switch_web_clear_confirm">Вы уверены, что хотите очистить статус входа Web для этого аккаунта? Это приведет к выходу из веб-сессии.</string>
+    <string name="account_switch_web_clear_action">Очистить</string>
+    <string name="account_switch_web_cleared">Статус входа Web очищен</string>
     <string name="account_switch_others">Другие аккаунты</string>
     <string name="account_switch_others_hint">Нажмите, чтобы переключиться</string>
     <string name="account_switch_only_one">На этом устройстве только один аккаунт</string>

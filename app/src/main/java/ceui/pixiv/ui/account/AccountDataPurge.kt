@@ -85,6 +85,10 @@ object AccountDataPurge {
                 step("清除账号私有配置", targetUid) {
                     app.appServices().remoteAppConfig.forgetUid(targetUid)
                 }
+
+                step("清除 Web 会话持久化记录", targetUid) {
+                    ceui.pixiv.session.WebSessionManager.purge(targetUid)
+                }
             }
 
             // 4. 凭证行**永远**删。这一步之后账号在界面上就不存在了，放最后保证前面任何一步失败

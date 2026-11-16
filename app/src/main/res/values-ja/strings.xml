@@ -2960,6 +2960,14 @@
     <!-- アカウント管理（V3 / MD3-E リニューアル） -->
     <string name="account_switch_current_badge">使用中</string>
     <string name="account_switch_premium">Premium</string>
+    <string name="account_switch_web_not_logged_in">Web（ブラウザ）未ログイン</string>
+    <string name="account_switch_web_checking">Web（ブラウザ）ログイン状態確認中</string>
+    <string name="account_switch_web_expired">Web（ブラウザ）ログイン期限切れ</string>
+    <string name="account_switch_web_logged_in">Web（ブラウザ）ログイン済み</string>
+    <string name="account_switch_web_clear_title">Webログイン状態をクリア</string>
+    <string name="account_switch_web_clear_confirm">このアカウントのWeb（ブラウザ）ログイン状態をクリアしますか？クリアするとWebセッションからログアウトします。</string>
+    <string name="account_switch_web_clear_action">クリア</string>
+    <string name="account_switch_web_cleared">Webログイン状態をクリアしました</string>
     <string name="account_switch_others">他のアカウント</string>
     <string name="account_switch_others_hint">タップで切り替え</string>
     <string name="account_switch_only_one">この端末にはこのアカウントしかありません</string>
