@@ -10,6 +10,8 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
+import ceui.pixiv.ui.common.PreviewImageTransitionFactory
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 
 /**
  * 从已删的 UserFollowingFragment.kt 抽出的全局图片加载函数。
@@ -61,7 +63,7 @@ fun ImageView.binding_loadUserIcon(user: User?) {
         .into(this)
 }
 
-fun ImageView.binding_loadSquareMedia(illust: Illust?) {
+fun ImageView.binding_loadSquareMedia(illust: Illust?, fadeOnLoad: Boolean = true, durationMs: Int? = null) {
     val url = illust?.image_urls?.square_medium?.takeIf { it.isNotBlank() }
     if (url == null) {
         // 标签卡固定保留三个预览槽；空槽必须清掉 RecyclerView 复用留下的上一张图，
@@ -71,9 +73,16 @@ fun ImageView.binding_loadSquareMedia(illust: Illust?) {
         return
     }
     scaleType = ImageView.ScaleType.CENTER_CROP
-    Glide.with(this)
+    val request = Glide.with(this)
         .load(GlideUrlChild(url))
         .placeholder(R.drawable.bg_tag_preview_placeholder)
         .error(R.drawable.bg_tag_preview_placeholder)
-        .into(this)
+    val imageRequest = if (fadeOnLoad) {
+        request.transition(
+            DrawableTransitionOptions().transition(PreviewImageTransitionFactory(context, durationMs))
+        )
+    } else {
+        request
+    }
+    imageRequest.into(this)
 }

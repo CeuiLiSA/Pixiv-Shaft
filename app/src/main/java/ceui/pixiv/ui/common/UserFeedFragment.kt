@@ -272,9 +272,16 @@ abstract class UserFeedFragment(
 }
 
 /** 手动计时的 TransitionDrawable 不跟随系统动画开关，需在每次图片就绪时现读。 */
-internal class UserPreviewTransitionFactory(context: Context) : TransitionFactory<Drawable> {
+internal class PreviewImageTransitionFactory(
+    context: Context,
+    durationMs: Int? = null,
+) : TransitionFactory<Drawable> {
     private val contentResolver = context.applicationContext.contentResolver
-    private val crossFade = DrawableCrossFadeFactory.Builder().build()
+    private val crossFade = if (durationMs != null) {
+        DrawableCrossFadeFactory.Builder(durationMs).build()
+    } else {
+        DrawableCrossFadeFactory.Builder().build()
+    }
 
     override fun build(dataSource: DataSource, isFirstResource: Boolean): Transition<Drawable> {
         val enabled = if (Build.VERSION.SDK_INT >= 26) {
@@ -286,6 +293,8 @@ internal class UserPreviewTransitionFactory(context: Context) : TransitionFactor
         return if (enabled) crossFade.build(dataSource, isFirstResource) else NoTransition.get()
     }
 }
+
+internal typealias UserPreviewTransitionFactory = PreviewImageTransitionFactory
 
 /**
  * [UserPreview] 列表 → [UserFeedItem] 列表：**丢掉 user 为 null 的预览**。
