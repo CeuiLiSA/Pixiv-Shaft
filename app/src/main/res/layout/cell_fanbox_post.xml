@@ -38,15 +38,12 @@
         android:paddingHorizontal="16dp"
         android:paddingTop="14dp">
 
-        <!-- 不要给 RoundedImageView 加 android:background:riv_oval 只裁 drawable,
-             背景是整块矩形画在底下,会露出四个角。占位色交给 Glide 的 placeholder。 -->
-        <com.makeramen.roundedimageview.RoundedImageView
+        <de.hdodenhof.circleimageview.CircleImageView
             android:id="@+id/creator_icon"
             android:layout_width="36dp"
             android:layout_height="36dp"
             android:contentDescription="@null"
-            android:scaleType="centerCrop"
-            app:riv_oval="true" />
+            android:scaleType="centerCrop" />
 
         <LinearLayout
             android:layout_width="0dp"

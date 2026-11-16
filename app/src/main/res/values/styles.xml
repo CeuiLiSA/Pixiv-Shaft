@@ -392,9 +392,9 @@
         <item name="android:layout_marginBottom">@dimen/sixteen_dp</item>
         <item name="android:textColor">@color/about_user_right</item>
         <item name="android:textColorHint">@color/about_user_right</item>
-        <item name="android:autoLink">all</item>
         <item name="android:textColorLink">?attr/colorPrimary</item>
         <item name="android:textSize">15sp</item>
+        <item name="android:autoLink">all</item>
     </style>
 
     <style name="AboutUserRightDarkText" parent="AboutUserRight">

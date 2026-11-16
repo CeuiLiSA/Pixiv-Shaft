@@ -120,7 +120,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:alpha="0.78"
-                android:autoLink="all"
                 android:lineSpacingMultiplier="1.6"
                 android:textColor="@color/v3_text_1"
                 android:textColorLink="#3D8BFD"

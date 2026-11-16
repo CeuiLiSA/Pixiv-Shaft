@@ -1298,8 +1298,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
             return
         }
         descriptionView.visibility = View.VISIBLE
-        // HtmlTextView.setHtml 在 caption 含 <a> 链接时会直接吐出空串（#552）。
-        // 换成 androidx HtmlCompat.fromHtml + LinkMovementMethod，文本和可点链接都能正常渲染。
+        // 使用 HtmlCompat 配合 LinkMovementMethod，使文本与链接均可正常渲染并点击。
         descriptionView.text = androidx.core.text.HtmlCompat.fromHtml(
             caption, androidx.core.text.HtmlCompat.FROM_HTML_MODE_COMPACT
         ).replaceWithCustomTabSpans()

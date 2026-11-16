@@ -10,14 +10,14 @@
     android:paddingHorizontal="16dp"
     android:paddingVertical="12dp">
 
-    <com.makeramen.roundedimageview.RoundedImageView
+    <net.csdn.roundview.RoundImageView
         android:id="@+id/thumb"
         android:layout_width="56dp"
         android:layout_height="56dp"
         android:background="@color/v3_surface_2"
         android:contentDescription="@null"
         android:scaleType="centerCrop"
-        app:riv_corner_radius="@dimen/eight_dp" />
+        app:rRadius="@dimen/eight_dp" />
 
     <LinearLayout
         android:layout_width="0dp"

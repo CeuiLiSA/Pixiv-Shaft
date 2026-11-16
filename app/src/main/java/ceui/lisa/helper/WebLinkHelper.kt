@@ -15,6 +15,11 @@ import androidx.browser.customtabs.CustomTabColorSchemeParams
 import androidx.browser.customtabs.CustomTabsIntent
 import ceui.lisa.R
 import ceui.pixiv.witstudio.theme.V3Palette
+import android.text.method.LinkMovementMethod
+import android.text.util.Linkify
+import android.widget.TextView
+import androidx.core.text.HtmlCompat
+import androidx.core.text.util.LinkifyCompat
 import ceui.lisa.utils.Common
 import ceui.pixiv.ui.settings.ChromeTabsPrefs
 import timber.log.Timber
@@ -186,6 +191,7 @@ fun Spanned.replaceWithCustomTabSpans(): Spanned {
     val spannable = if (this is Spannable) this else SpannableStringBuilder(this)
     val urlSpans = spannable.getSpans(0, spannable.length, URLSpan::class.java)
     for (span in urlSpans) {
+        if (span is CustomTabUrlSpan) continue
         val start = spannable.getSpanStart(span)
         val end = spannable.getSpanEnd(span)
         val flags = spannable.getSpanFlags(span)
@@ -194,4 +200,38 @@ fun Spanned.replaceWithCustomTabSpans(): Spanned {
         spannable.setSpan(CustomTabUrlSpan(url), start, end, flags)
     }
     return spannable
+}
+
+fun formatWebLinks(content: CharSequence?): Spanned {
+    val raw = content?.toString()?.trim().orEmpty()
+    if (raw.isEmpty()) {
+        return SpannableStringBuilder("")
+    }
+    val normalized = if (!raw.contains("<br", ignoreCase = true) && raw.contains("\n")) {
+        raw.replace("\r\n", "\n").replace("\n", "<br/>")
+    } else {
+        raw
+    }
+    val spanned = HtmlCompat.fromHtml(normalized, HtmlCompat.FROM_HTML_MODE_COMPACT)
+    val spannable = if (spanned is Spannable) spanned else SpannableStringBuilder(spanned)
+    // Linkify 的 mask 重载会先删除所有 URLSpan。在独立文本上探测裸 URL，
+    // 只合并不与 HTML 链接重叠的结果，保住 <a> 的标签、目标和范围。
+    val autoLinked = SpannableStringBuilder(spannable.toString())
+    LinkifyCompat.addLinks(autoLinked, Linkify.WEB_URLS)
+    for (span in autoLinked.getSpans(0, autoLinked.length, URLSpan::class.java)) {
+        val start = autoLinked.getSpanStart(span)
+        val end = autoLinked.getSpanEnd(span)
+        if (spannable.getSpans(start, end, URLSpan::class.java).isEmpty()) {
+            spannable.setSpan(span, start, end, autoLinked.getSpanFlags(span))
+        }
+    }
+    return spannable.replaceWithCustomTabSpans()
+}
+
+fun TextView.setWebLinks(content: CharSequence?) {
+    val formatted = formatWebLinks(content)
+    // 仅在接管链接的 TextView 上关闭系统重解析，不影响共享样式的其它使用方。
+    autoLinkMask = 0
+    text = formatted
+    movementMethod = LinkMovementMethod.getInstance()
 }
