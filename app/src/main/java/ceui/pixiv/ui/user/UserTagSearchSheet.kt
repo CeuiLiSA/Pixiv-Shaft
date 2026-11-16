@@ -29,9 +29,17 @@ import ceui.pixiv.api.Client
 import ceui.pixiv.api.model.UserWorkTag
 import ceui.pixiv.ui.search.v3.V3BottomSheetBase
 import ceui.pixiv.utils.setOnClick
+import android.text.SpannableStringBuilder
+import android.text.Spanned
+import android.text.style.ForegroundColorSpan
+import android.text.style.UnderlineSpan
 import kotlinx.coroutines.launch
+import retrofit2.HttpException
 import java.util.Locale
+import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.navigation.TemplateRoute
+import ceui.pixiv.utils.screenHeight
+import kotlin.math.roundToInt
 
 /**
  * 画师主页「高级搜索」—— 该画师**全量**作品标签的可搜索列表，对齐网页版画师页的同名面板。
@@ -88,6 +96,19 @@ class UserTagSearchSheet : V3BottomSheetBase() {
         return binding.root
     }
 
+    override fun onStart() {
+        super.onStart()
+        val sheet = dialog?.findViewById<View>(
+            com.google.android.material.R.id.design_bottom_sheet
+        ) ?: return
+        val targetHeight = (screenHeight * maxHeightFraction).roundToInt()
+        sheet.layoutParams = sheet.layoutParams.apply {
+            height = targetHeight
+        }
+        val behavior = com.google.android.material.bottomsheet.BottomSheetBehavior.from(sheet)
+        behavior.state = com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         // adapter 置空，断开 RecyclerView ←→ adapter 的互引；binding 置空前做。
@@ -118,8 +139,11 @@ class UserTagSearchSheet : V3BottomSheetBase() {
         ViewCompat.setOnApplyWindowInsetsListener(view) { v, insets ->
             val bottom = insets.getInsets(WindowInsetsCompat.Type.systemBars()).bottom
             val ime = insets.getInsets(WindowInsetsCompat.Type.ime()).bottom
+            val navBottom = (bottom - ime).coerceAtLeast(0)
             v.updatePadding(bottom = ime)
-            _binding?.tagList?.updatePadding(bottom = (bottom - ime).coerceAtLeast(0))
+            _binding?.tagList?.updatePadding(bottom = navBottom)
+            _binding?.emptyText?.updatePadding(bottom = navBottom)
+            _binding?.loading?.updatePadding(bottom = navBottom)
             insets
         }
         ViewCompat.requestApplyInsets(view)
@@ -134,25 +158,49 @@ class UserTagSearchSheet : V3BottomSheetBase() {
         loadTags()
     }
 
-    private fun loadTags() {
+    private fun loadTags(forceAnonymous: Boolean = false) {
         binding.loading.isVisible = true
         binding.emptyText.isVisible = false
+        binding.emptyText.setOnClickListener(null)
+        binding.emptyText.isClickable = false
         viewLifecycleOwner.lifecycleScope.launch {
             val uid = userId
+            var isWebExpired = false
             val tags = try {
-                Client.webApi.getUserWorkTags(uid, category).body
+                val resp = if (forceAnonymous) {
+                    Client.webApi.getUserWorkTags(uid, category, cookie = "")
+                } else {
+                    Client.webApi.getUserWorkTags(uid, category)
+                }
+                if (resp.error == true) {
+                    null
+                } else {
+                    resp.body
+                }
             } catch (e: kotlinx.coroutines.CancellationException) {
                 // 不吞取消：view 销毁时 scope 被取消，必须让它继续向上传播。
                 throw e
             } catch (e: Throwable) {
+                timber.log.Timber.w(
+                    e,
+                    "UserTagSearchSheet: loadTags failed, forceAnonymous=$forceAnonymous"
+                )
+                if (!forceAnonymous && (e as? HttpException)?.code() == 401) {
+                    isWebExpired = true
+                }
                 null
             }
             val b = _binding ?: return@launch
             b.loading.isVisible = false
             if (tags == null) {
-                // 只有网络/解析失败才走这里；空列表是合法结果，交给下面的空态文案。
-                // 保持 loaded=false，这样之后打字不会把失败提示顶掉。
-                showEmpty(getString(R.string.user_tag_sheet_failed))
+                if (isWebExpired) {
+                    SessionManager.clearWebCookie()
+                    showWebExpiredEmpty()
+                } else {
+                    showEmpty(getString(R.string.user_tag_sheet_failed)) {
+                        loadTags(forceAnonymous = forceAnonymous)
+                    }
+                }
                 return@launch
             }
             // 服务端不排序，这里定序：热度降序，同频次按 tag 名稳定兜底（否则每次请求顺序可能抖）。
@@ -166,6 +214,32 @@ class UserTagSearchSheet : V3BottomSheetBase() {
                 .toList()
             loaded = true
             applyFilter(b.searchInput.text?.toString().orEmpty())
+        }
+    }
+
+    private fun showWebExpiredEmpty() {
+        val raw = getString(R.string.user_tag_sheet_web_expired)
+        val spannable = SpannableStringBuilder(raw)
+        val splitIdx = raw.indexOf("，").takeIf { it >= 0 } ?: raw.indexOf(", ")
+        val startIdx = if (splitIdx >= 0) {
+            if (raw[splitIdx] == ',') splitIdx + 2 else splitIdx + 1
+        } else 0
+        if (startIdx < raw.length) {
+            spannable.setSpan(
+                ForegroundColorSpan(palette.primary),
+                startIdx,
+                raw.length,
+                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE,
+            )
+            spannable.setSpan(
+                UnderlineSpan(),
+                startIdx,
+                raw.length,
+                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE,
+            )
+        }
+        showEmpty(spannable) {
+            loadTags(forceAnonymous = true)
         }
     }
 
@@ -196,9 +270,18 @@ class UserTagSearchSheet : V3BottomSheetBase() {
         }
     }
 
-    private fun showEmpty(text: CharSequence) {
+    private fun showEmpty(text: CharSequence, action: (() -> Unit)? = null) {
         val b = _binding ?: return
         b.emptyText.text = text
+        if (action != null) {
+            b.emptyText.isClickable = true
+            b.emptyText.isFocusable = true
+            b.emptyText.setOnClick { action() }
+        } else {
+            b.emptyText.setOnClickListener(null)
+            b.emptyText.isClickable = false
+            b.emptyText.isFocusable = false
+        }
         b.emptyText.isVisible = true
         b.tagList.isVisible = false
     }

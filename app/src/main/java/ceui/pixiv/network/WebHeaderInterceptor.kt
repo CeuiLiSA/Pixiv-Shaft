@@ -13,10 +13,10 @@ class WebHeaderInterceptor : Interceptor {
     private val prefStore: MMKV by lazy {
         MMKV.defaultMMKV()
     }
+
     override fun intercept(chain: Interceptor.Chain): Response {
-        val request = chain.request()
         return chain.proceed(
-            addHeader(request).build()
+            addHeader(chain.request()).build()
         )
     }
 

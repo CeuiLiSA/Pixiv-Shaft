@@ -122,6 +122,7 @@ interface PixivWebApi {
         @Path("category") category: String,
         @Query("all") all: Int = 1,
         @Query("lang") lang: String = "zh",
+        @Header("Cookie") cookie: String? = null,
     ): WebResponse<List<UserWorkTag>>
 
     /**

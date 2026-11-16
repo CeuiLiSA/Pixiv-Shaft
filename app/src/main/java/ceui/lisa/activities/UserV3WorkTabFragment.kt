@@ -17,6 +17,8 @@ import ceui.pixiv.ui.user.UserIllustFeedFragment
 import ceui.pixiv.ui.user.UserMangaFeedFragment
 import ceui.pixiv.ui.user.UserNovelFeedFragment
 import ceui.pixiv.ui.user.UserTagSearchSheet
+import ceui.lisa.BuildConfig
+import ceui.pixiv.session.SessionManager
 import ceui.pixiv.widgets.V3TagFlowView
 
 private const val ARG_USER_ID = "illust_tab_user_id"
@@ -156,6 +158,13 @@ class UserV3WorkTabFragment : Fragment(), UserIllustFirstPageListener, UserNovel
         filterBar.overflowActionText = getString(R.string.user_tag_advanced_search)
         filterBar.overflowActionIcon = R.drawable.ic_baseline_filter_24
         filterBar.onOverflowClick = { UserTagSearchSheet.show(childFragmentManager, userId, category) }
+        if (BuildConfig.DEBUG) {
+            filterBar.onOverflowLongClick = {
+                SessionManager.injectExpiredWebCookieForTesting()
+                UserTagSearchSheet.show(childFragmentManager, userId, category)
+                true
+            }
+        }
         // 折叠必须在展示之前完成:之前是先可见渲染全量 chip 再 post 折叠,
         // 中间一两帧用户会看到七八行 tag 闪现又缩回去。FlexboxLayout 在 measure
         // 阶段就产出 flexLines,不需要真的上屏 —— 离屏量好、同步收敛,再淡入。

@@ -1164,6 +1164,7 @@
     <string name="user_tag_sheet_no_match">Tidak ada tag yang cocok</string>
     <string name="user_tag_sheet_no_tag">Ilustrator ini belum punya tag karya</string>
     <string name="user_tag_sheet_failed">Gagal memuat tag, coba lagi nanti</string>
+    <string name="user_tag_sheet_web_expired">Sesi web kedaluwarsa, coba lagi secara anonim?</string>
     <string name="fanbox_followed">Diikuti</string>
     <string name="comic_stories_count">%1$d episode</string>
     <string name="comic_badge_new">Serial baru</string>

@@ -124,6 +124,7 @@
             android:layout_gravity="center"
             android:gravity="center"
             android:paddingHorizontal="32dp"
+            android:paddingVertical="16dp"
             android:textColor="@color/v3_text_3"
             android:textSize="14sp"
             android:visibility="gone" />
