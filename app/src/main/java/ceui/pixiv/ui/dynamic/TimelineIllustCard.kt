@@ -59,6 +59,7 @@ private data class TimelineImageKey(
 
 /** 宫格格子的同款 key：格子是正方形，尺寸只需一维，另带页码区分同卡的不同格。 */
 private data class TimelineGridImageKey(
+    val illustId: Long,
     val cacheKey: String?,
     val cellSize: Int,
     val position: Int,
@@ -101,7 +102,7 @@ fun timelineIllustRenderer(
                 layoutManager = GridLayoutManager(context, 2)
                 addItemDecoration(TimelineGridGapDecoration(DensityUtil.dp2px(GRID_GAP_DP)))
                 // 格子点击等价于点整卡（对齐 legacy 的 gridClick）
-                adapter = TimelineGridAdapter { cell.itemOrNull?.let(handleTap) }
+                adapter = TimelineGridAdapter(cell.binding.root) { cell.itemOrNull?.let(handleTap) }
             }
         },
         recycle = { cell ->
@@ -111,14 +112,19 @@ fun timelineIllustRenderer(
             // 否则复用到恰好同 url 同尺寸的条目时会以为图还在而漏加载
             cell.binding.illustImage.tag = null
             cell.binding.userIcon.tag = null
+            (cell.binding.imageGrid.adapter as TimelineGridAdapter).deactivate()
             cell.binding.root.setTag(R.id.tag_feed_thumbnail_load_failed, false)
+        },
+        attach = { cell ->
+            if (cell.binding.root.getTag(R.id.tag_feed_thumbnail_load_failed) == true) {
+                FeedThumbnailFailureNotifier.checkAfterLayout(cell.binding.root)
+            }
         },
     ) { cell -> bindTimelineCard(cell) }
 }
 
 private fun bindTimelineCard(cell: FeedCell<IllustFeedItem, RecyTimelineIllustBinding>) {
     val b = cell.binding
-    b.root.setTag(R.id.tag_feed_thumbnail_load_failed, false)
     val bean = cell.item.illust
     val ctx = b.root.context
 
@@ -187,6 +193,7 @@ private fun bindSingleImage(
 ) {
     b.illustImage.isVisible = true
     b.imageGrid.isVisible = false
+    (b.imageGrid.adapter as TimelineGridAdapter).deactivate()
 
     val ratio = if (bean.width > 0 && bean.height > 0) {
         (bean.height.toFloat() / bean.width.toFloat()).coerceIn(MIN_HEIGHT_RATIO, MAX_HEIGHT_RATIO)
@@ -208,6 +215,7 @@ private fun bindSingleImage(
     val requestKey = TimelineImageKey(url?.cacheKey, imageWidth, imageHeight, masked)
     if (b.illustImage.tag != requestKey) {
         b.illustImage.tag = requestKey
+        b.root.setTag(R.id.tag_feed_thumbnail_load_failed, false)
         var request = Glide.with(b.illustImage)
             .load(url)
             .override(imageWidth, imageHeight)
@@ -226,22 +234,7 @@ private fun bindSingleImage(
                     target: Target<Drawable>,
                     isFirstResource: Boolean,
                 ): Boolean {
-                    b.root.setTag(R.id.tag_feed_thumbnail_load_failed, true)
-                    b.illustImage.setTag(R.id.tag_feed_thumbnail_load_failed, true)
-                    val check = Runnable {
-                        val rv = (b.root.parent as? RecyclerView)
-                            ?: FeedThumbnailFailureNotifier.findParentRecyclerView(b.root)
-                        if (rv != null) {
-                            FeedThumbnailFailureNotifier.checkAndNotify(rv)
-                        }
-                    }
-                    val rv = (b.root.parent as? RecyclerView)
-                        ?: FeedThumbnailFailureNotifier.findParentRecyclerView(b.root)
-                    if (rv != null) {
-                        check.run()
-                    } else {
-                        b.root.post(check)
-                    }
+                    FeedThumbnailFailureNotifier.onThumbnailFailed(b.root)
                     return false
                 }
 
@@ -289,7 +282,8 @@ private fun bindGrid(
  * 时间线大卡里的多图宫格。数据整批替换（一张卡的图只有几张），所以 notifyDataSetChanged
  * 就是最诚实的表达；每个格子按「url + 尺寸」tag 去重，外层卡因为浏览量变化重绑时不会重发请求。
  */
-private class TimelineGridAdapter(
+internal class TimelineGridAdapter(
+    private val cardRoot: View,
     private val onCellClick: () -> Unit,
 ) : RecyclerView.Adapter<TimelineGridAdapter.VH>() {
 
@@ -299,6 +293,13 @@ private class TimelineGridAdapter(
     private var hasMore = false
     private var remaining = 0
     private var masked = false
+    private var active = false
+    private var generation = 0
+    private val failedPositions = mutableSetOf<Int>()
+
+    fun deactivate() {
+        active = false
+    }
 
     @SuppressLint("NotifyDataSetChanged")
     fun submit(
@@ -309,12 +310,18 @@ private class TimelineGridAdapter(
         remaining: Int,
         masked: Boolean,
     ) {
+        if (this.illust?.id != illust.id || this.cellSize != cellSize || this.masked != masked) {
+            generation++
+            failedPositions.clear()
+        }
+        active = true
         this.illust = illust
         this.showCount = showCount
         this.cellSize = cellSize
         this.hasMore = hasMore
         this.remaining = remaining
         this.masked = masked
+        cardRoot.setTag(R.id.tag_feed_thumbnail_load_failed, failedPositions.isNotEmpty())
         notifyDataSetChanged()
     }
 
@@ -334,10 +341,19 @@ private class TimelineGridAdapter(
 
         val url = GlideUtil.getLargeImage(bean, position)
         // masked 进 key：屏蔽态切换时 url 和格子尺寸都没变，少了它就跳过重新加载、图不糊
-        val requestKey = TimelineGridImageKey(url?.cacheKey, cellSize, position, masked)
+        val requestKey = TimelineGridImageKey(bean.id, url?.cacheKey, cellSize, position, masked)
         if (holder.binding.gridImage.tag != requestKey) {
             holder.binding.gridImage.tag = requestKey
-            var request = Glide.with(holder.binding.gridImage)
+            failedPositions.remove(position)
+            if (active) {
+                cardRoot.setTag(R.id.tag_feed_thumbnail_load_failed, failedPositions.isNotEmpty())
+            }
+            val requestGeneration = generation
+            val requestManager = Glide.with(holder.binding.gridImage)
+            // Glide can reuse an equivalent failed request (notably a null URL), including its
+            // old listener. A different request key must install this generation's listener.
+            requestManager.clear(holder.binding.gridImage)
+            var request = requestManager
                 .load(url)
                 .override(cellSize, cellSize)
             if (masked) {
@@ -347,7 +363,16 @@ private class TimelineGridAdapter(
             }
             request
                 .placeholder(R.color.v3_surface_2)
-                .addListener(TimelineGridImageListener(holder.itemView))
+                .addListener(TimelineGridImageListener { failed ->
+                    // Inner requests may complete after this outer holder has switched cards/modes.
+                    if (generation == requestGeneration) {
+                        if (failed) failedPositions.add(position) else failedPositions.remove(position)
+                        if (active) {
+                            cardRoot.setTag(R.id.tag_feed_thumbnail_load_failed, failedPositions.isNotEmpty())
+                            FeedThumbnailFailureNotifier.checkAfterLayout(cardRoot)
+                        }
+                    }
+                })
                 .into(holder.binding.gridImage)
         }
 
@@ -362,7 +387,7 @@ private class TimelineGridAdapter(
 }
 
 private class TimelineGridImageListener(
-    private val itemView: View,
+    private val onResult: (Boolean) -> Unit,
 ) : RequestListener<Drawable> {
     override fun onLoadFailed(
         e: GlideException?,
@@ -370,10 +395,7 @@ private class TimelineGridImageListener(
         target: Target<Drawable>,
         isFirstResource: Boolean,
     ): Boolean {
-        val innerRv = itemView.parent as? RecyclerView
-        val cardRoot = innerRv?.parent as? View
-        cardRoot?.setTag(R.id.tag_feed_thumbnail_load_failed, true)
-        (cardRoot?.parent as? RecyclerView)?.let(FeedThumbnailFailureNotifier::checkAndNotify)
+        onResult(true)
         return false
     }
 
@@ -383,7 +405,10 @@ private class TimelineGridImageListener(
         target: Target<Drawable>?,
         dataSource: DataSource,
         isFirstResource: Boolean,
-    ): Boolean = false
+    ): Boolean {
+        onResult(false)
+        return false
+    }
 }
 
 /**

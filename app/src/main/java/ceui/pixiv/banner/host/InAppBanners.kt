@@ -100,7 +100,6 @@ object InAppBanners {
         val installer = BannerHostInstaller(manager)
         app.registerActivityLifecycleCallbacks(installer)
         app.registerActivityLifecycleCallbacks(foreground)
-        ChatBannerBridge(app, manager, scope, app.appServices().chatGateway).start()
         FeedThumbnailFailureNotifier.init(app.appServices().networkStateManager)
         existingActivity?.let {
             foreground.seed(it)
@@ -126,7 +125,7 @@ object InAppBanners {
 
         Timber.tag(TAG).i("InAppBanners bootstrap complete")
         UpgradeRequiredPrompt.onForeground()
-        FeedThumbnailFailureNotifier.onBannerReady(app)
+        FeedThumbnailFailureNotifier.onBannerReady()
     }
 
     private suspend fun handleTap(app: Application, deepLink: String?) {

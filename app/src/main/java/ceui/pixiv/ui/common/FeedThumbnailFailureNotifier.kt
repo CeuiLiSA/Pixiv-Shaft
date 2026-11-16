@@ -1,9 +1,12 @@
 package ceui.pixiv.ui.common
 
 import android.content.Context
+import android.graphics.Rect
 import android.view.View
+import android.view.ViewGroup
 import android.view.ViewParent
 import androidx.annotation.VisibleForTesting
+import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.RecyclerView
 import ceui.lisa.R
 import ceui.pixiv.banner.BannerAction
@@ -11,10 +14,11 @@ import ceui.pixiv.banner.BannerCategory
 import ceui.pixiv.banner.BannerPriority
 import ceui.pixiv.banner.BannerRequest
 import ceui.pixiv.banner.host.InAppBanners
-import ceui.pixiv.feeds.FeedCell
 import ceui.pixiv.services.appServices
+import ceui.pixiv.utils.INetworkState
 import ceui.pixiv.utils.NetworkStateManager
 import timber.log.Timber
+import java.lang.ref.WeakReference
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
@@ -37,36 +41,41 @@ object FeedThumbnailFailureNotifier {
     private var hasPopped = false
 
     @Volatile
-    private var pendingTrigger = false
+    private var pendingList: WeakReference<RecyclerView>? = null
 
     private val networkObserved = AtomicBoolean(false)
     private var lastNetworkType: NetworkStateManager.NetworkType? = null
+    private var networkSource: INetworkState? = null
+    private val networkObserver = Observer<NetworkStateManager.NetworkType>(::onNetworkChanged)
 
     /**
      * Registers network state listener to reset [hasPopped] on network change.
      */
-    fun init(networkStateManager: NetworkStateManager) {
+    fun init(networkStateManager: INetworkState) {
         if (!networkObserved.compareAndSet(false, true)) return
-        networkStateManager.networkState.observeForever { type ->
-            val prev = lastNetworkType
-            lastNetworkType = type
-            // Skip initial sticky emission (prev == null)
-            if (prev != null && prev != type) {
-                Timber.tag(TAG).i("Network changed (%s -> %s), resetting thumbnail failure banner state", prev, type)
-                hasPopped = false
-                pendingTrigger = false
-            }
+        networkSource = networkStateManager
+        networkStateManager.networkState.observeForever(networkObserver)
+    }
+
+    private fun onNetworkChanged(type: NetworkStateManager.NetworkType) {
+        val prev = lastNetworkType
+        lastNetworkType = type
+        // Skip initial sticky emission (prev == null).
+        if (prev != null && prev != type) {
+            Timber.tag(TAG).i("Network changed (%s -> %s), resetting thumbnail failure banner state", prev, type)
+            hasPopped = false
+            pendingList = null
         }
     }
 
     /**
      * Called when [InAppBanners] becomes ready. If a trigger was pending, fires it now.
      */
-    fun onBannerReady(context: Context) {
-        Timber.tag(TAG).d("onBannerReady: pendingTrigger=%s, hasPopped=%s", pendingTrigger, hasPopped)
-        if (pendingTrigger && !hasPopped) {
-            triggerBanner(context)
-        }
+    fun onBannerReady() {
+        val list = pendingList?.get()
+        pendingList = null
+        // The user may have left, or the images may have recovered during bootstrap.
+        list?.let(::checkAndNotify)
     }
 
     fun canPop(): Boolean = !hasPopped
@@ -83,52 +92,71 @@ object FeedThumbnailFailureNotifier {
         return null
     }
 
+    /** Recheck after layout, including failures delivered synchronously before holder attachment. */
+    fun checkAfterLayout(card: View) {
+        if (hasPopped) return
+        card.post {
+            if (card.isAttachedToWindow) {
+                findParentRecyclerView(card)?.let(::checkAndNotify)
+            }
+        }
+    }
+
+    fun onThumbnailFailed(card: View) {
+        card.setTag(R.id.tag_feed_thumbnail_load_failed, true)
+        checkAfterLayout(card)
+    }
+
+    private fun outermostList(list: RecyclerView): RecyclerView {
+        var outer = list
+        while (true) {
+            outer = findParentRecyclerView(outer) ?: return outer
+        }
+    }
+
+    /** Count artwork roots once; descend into header rails, but never into a timeline card's grid. */
+    @VisibleForTesting
+    internal fun visibleFailureCounts(recyclerView: RecyclerView): Pair<Int, Int> {
+        val bounds = Rect()
+        var visible = 0
+        var failed = 0
+        fun visit(view: View) {
+            if (!view.isAttachedToWindow || !view.isShown || !view.getGlobalVisibleRect(bounds)) return
+            val failure = view.getTag(R.id.tag_feed_thumbnail_load_failed) as? Boolean
+            if (failure != null) {
+                visible++
+                if (failure) failed++
+            } else if (view is ViewGroup) {
+                for (index in 0 until view.childCount) visit(view.getChildAt(index))
+            }
+        }
+        visit(outermostList(recyclerView))
+        return visible to failed
+    }
+
     /**
      * Inspects visible artwork cards in [recyclerView] and pops banner if failure threshold is reached.
      */
     fun checkAndNotify(recyclerView: RecyclerView) {
         if (hasPopped) return
 
-        val context = recyclerView.context
+        val list = outermostList(recyclerView)
+        val context = list.context
         if (!networkObserved.get()) {
             runCatching {
                 context.appServices().networkStateManager.let(::init)
             }
         }
 
-        val childCount = recyclerView.childCount
-        if (childCount == 0) return
-
-        var visibleCards = 0
-        var failedCards = 0
-
-        for (i in 0 until childCount) {
-            val child = recyclerView.getChildAt(i) ?: continue
-            val holder = recyclerView.getChildViewHolder(child)
-
-            // Artwork card with thumbnail check: either holder has IllustFeedItem or view has illust_image
-            val isArtworkCard = (holder as? FeedCell<*, *>)?.itemOrNull is IllustFeedItem ||
-                    child.findViewById<View>(R.id.illust_image) != null
-            if (!isArtworkCard) continue
-
-            // Check if vertically visible in recyclerView viewport
-            if (child.bottom <= 0 || child.top >= recyclerView.height) {
-                continue
-            }
-
-            visibleCards++
-            val thumbView = child.findViewById<View>(R.id.illust_image)
-            val isFailed = child.getTag(R.id.tag_feed_thumbnail_load_failed) == true ||
-                    thumbView?.getTag(R.id.tag_feed_thumbnail_load_failed) == true
-            if (isFailed) {
-                failedCards++
-            }
-        }
+        val (visibleCards, failedCards) = visibleFailureCounts(list)
 
         Timber.tag(TAG).d("checkAndNotify: visibleCards=%d, failedCards=%d, hasPopped=%s", visibleCards, failedCards, hasPopped)
 
         if (shouldTrigger(visibleCards, failedCards)) {
-            triggerBanner(context)
+            if (InAppBanners.isReady()) triggerBanner(context)
+            else pendingList = WeakReference(list)
+        } else if (pendingList?.get() === list) {
+            pendingList = null
         }
     }
 
@@ -142,14 +170,8 @@ object FeedThumbnailFailureNotifier {
     private fun triggerBanner(context: Context) {
         if (hasPopped) return
 
-        if (!InAppBanners.isReady()) {
-            Timber.tag(TAG).w("InAppBanners is not ready yet, mark pendingTrigger = true")
-            pendingTrigger = true
-            return
-        }
-
         hasPopped = true
-        pendingTrigger = false
+        pendingList = null
         Timber.tag(TAG).i("Thumbnail load failure reached 2/3 on screen, popping network test banner")
         runCatching {
             InAppBanners.manager.enqueue(
@@ -175,8 +197,10 @@ object FeedThumbnailFailureNotifier {
 
     @VisibleForTesting
     fun resetForTesting() {
+        networkSource?.networkState?.removeObserver(networkObserver)
+        networkSource = null
         hasPopped = false
-        pendingTrigger = false
+        pendingList = null
         lastNetworkType = null
         networkObserved.set(false)
     }
@@ -190,15 +214,10 @@ object FeedThumbnailFailureNotifier {
     fun isPopped(): Boolean = hasPopped
 
     @VisibleForTesting
-    fun isPendingTrigger(): Boolean = pendingTrigger
+    fun isPendingTrigger(): Boolean = pendingList?.get() != null
 
     @VisibleForTesting
     fun notifyNetworkChangedForTesting(type: NetworkStateManager.NetworkType) {
-        val prev = lastNetworkType
-        lastNetworkType = type
-        if (prev != null && prev != type) {
-            hasPopped = false
-            pendingTrigger = false
-        }
+        onNetworkChanged(type)
     }
 }

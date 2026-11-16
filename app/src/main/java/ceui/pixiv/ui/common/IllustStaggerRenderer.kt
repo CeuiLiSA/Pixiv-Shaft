@@ -181,6 +181,9 @@ internal fun IllustFeedFragment.staggerIllustRenderer():
             resetLikeAnim(cell.binding)
         },
         attach = { cell ->
+            if (cell.binding.root.getTag(R.id.tag_feed_thumbnail_load_failed) == true) {
+                FeedThumbnailFailureNotifier.checkAfterLayout(cell.binding.root)
+            }
             val spoilered = cell.itemOrNull?.let {
                 IllustMuteStore.isMuted(it.illust.id) || IllustNovelFilter.shouldBlurAi(it.illust)
             }
@@ -452,22 +455,7 @@ private fun IllustFeedFragment.loadIllustImage(
                 target: Target<Drawable>,
                 isFirstResource: Boolean,
             ): Boolean {
-                binding.root.setTag(R.id.tag_feed_thumbnail_load_failed, true)
-                binding.illustImage.setTag(R.id.tag_feed_thumbnail_load_failed, true)
-                val check = Runnable {
-                    val rv = (binding.root.parent as? RecyclerView)
-                        ?: FeedThumbnailFailureNotifier.findParentRecyclerView(binding.root)
-                    if (rv != null) {
-                        FeedThumbnailFailureNotifier.checkAndNotify(rv)
-                    }
-                }
-                val rv = (binding.root.parent as? RecyclerView)
-                    ?: FeedThumbnailFailureNotifier.findParentRecyclerView(binding.root)
-                if (rv != null) {
-                    check.run()
-                } else {
-                    binding.root.post(check)
-                }
+                FeedThumbnailFailureNotifier.onThumbnailFailed(binding.root)
                 return false
             }
 
@@ -479,7 +467,6 @@ private fun IllustFeedFragment.loadIllustImage(
                 isFirstResource: Boolean,
             ): Boolean {
                 binding.root.setTag(R.id.tag_feed_thumbnail_load_failed, false)
-                binding.illustImage.setTag(R.id.tag_feed_thumbnail_load_failed, false)
                 return false
             }
         })

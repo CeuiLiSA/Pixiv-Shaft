@@ -4,6 +4,7 @@ import android.content.Context;
 
 import android.view.View;
 import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 
@@ -13,8 +14,18 @@ import ceui.lisa.R;
 import ceui.lisa.databinding.RecyRankIllustHorizontalBinding;
 import ceui.pixiv.api.model.Illust;
 import ceui.lisa.utils.GlideUtil;
+import ceui.pixiv.ui.common.FeedThumbnailFailureNotifier;
 
 public class RAdapter extends BaseAdapter<Illust, RecyRankIllustHorizontalBinding> {
+
+    private final RecyclerView.OnScrollListener thumbnailScrollListener = new RecyclerView.OnScrollListener() {
+        @Override
+        public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
+            if (newState == RecyclerView.SCROLL_STATE_IDLE) {
+                FeedThumbnailFailureNotifier.INSTANCE.checkAndNotify(recyclerView);
+            }
+        }
+    };
 
     public RAdapter(List<Illust> targetList, Context context) {
         super(targetList, context);
@@ -34,6 +45,7 @@ public class RAdapter extends BaseAdapter<Illust, RecyRankIllustHorizontalBindin
     @Override
     public void bindData(Illust target, ViewHolder<RecyRankIllustHorizontalBinding> bindView, int position) {
         Illust bean = allItems.get(position);
+        bindView.itemView.setTag(R.id.tag_feed_thumbnail_load_failed, false);
         bindView.baseBind.title.setText(bean.getTitle());
         // user / image_urls / profile_image_urls 都可能为 null(精简·网页来源 bean,见 #569;发现页
         // 站长推荐/当前最热的 shaft-api-v2 上报 bean 也可能缺字段)。链式 getter 直接点会 NPE 崩,
@@ -46,22 +58,13 @@ public class RAdapter extends BaseAdapter<Illust, RecyRankIllustHorizontalBindin
                 .addListener(new com.bumptech.glide.request.RequestListener<android.graphics.drawable.Drawable>() {
                     @Override
                     public boolean onLoadFailed(@androidx.annotation.Nullable com.bumptech.glide.load.engine.GlideException e, Object model, com.bumptech.glide.request.target.Target<android.graphics.drawable.Drawable> target, boolean isFirstResource) {
-                        bindView.itemView.setTag(R.id.tag_feed_thumbnail_load_failed, true);
-                        bindView.baseBind.illustImage.setTag(R.id.tag_feed_thumbnail_load_failed, true);
-                        android.view.ViewParent p = bindView.itemView.getParent();
-                        while (p != null) {
-                            if (p instanceof androidx.recyclerview.widget.RecyclerView) {
-                                ceui.pixiv.ui.common.FeedThumbnailFailureNotifier.INSTANCE.checkAndNotify((androidx.recyclerview.widget.RecyclerView) p);
-                            }
-                            p = p.getParent();
-                        }
+                        FeedThumbnailFailureNotifier.INSTANCE.onThumbnailFailed(bindView.itemView);
                         return false;
                     }
 
                     @Override
                     public boolean onResourceReady(android.graphics.drawable.Drawable resource, Object model, com.bumptech.glide.request.target.Target<android.graphics.drawable.Drawable> target, com.bumptech.glide.load.DataSource dataSource, boolean isFirstResource) {
                         bindView.itemView.setTag(R.id.tag_feed_thumbnail_load_failed, false);
-                        bindView.baseBind.illustImage.setTag(R.id.tag_feed_thumbnail_load_failed, false);
                         return false;
                     }
                 })
@@ -79,5 +82,25 @@ public class RAdapter extends BaseAdapter<Illust, RecyRankIllustHorizontalBindin
                 return true;
             });
         }
+    }
+
+    @Override
+    public void onViewAttachedToWindow(@NonNull RecyclerView.ViewHolder holder) {
+        super.onViewAttachedToWindow(holder);
+        if (Boolean.TRUE.equals(holder.itemView.getTag(R.id.tag_feed_thumbnail_load_failed))) {
+            FeedThumbnailFailureNotifier.INSTANCE.checkAfterLayout(holder.itemView);
+        }
+    }
+
+    @Override
+    public void onAttachedToRecyclerView(@NonNull RecyclerView recyclerView) {
+        super.onAttachedToRecyclerView(recyclerView);
+        recyclerView.addOnScrollListener(thumbnailScrollListener);
+    }
+
+    @Override
+    public void onDetachedFromRecyclerView(@NonNull RecyclerView recyclerView) {
+        recyclerView.removeOnScrollListener(thumbnailScrollListener);
+        super.onDetachedFromRecyclerView(recyclerView);
     }
 }
