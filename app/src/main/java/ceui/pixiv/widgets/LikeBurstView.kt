@@ -59,15 +59,15 @@ class LikeBurstView @JvmOverloads constructor(
             }
             addListener(object : AnimatorListenerAdapter() {
                 override fun onAnimationEnd(animation: Animator) {
-                    listeners.forEach { it.onAnimationEnd(animation) }
+                    this@LikeBurstView.listeners.forEach { it.onAnimationEnd(animation) }
                 }
 
                 override fun onAnimationCancel(animation: Animator) {
-                    listeners.forEach { it.onAnimationCancel(animation) }
+                    this@LikeBurstView.listeners.forEach { it.onAnimationCancel(animation) }
                 }
 
                 override fun onAnimationStart(animation: Animator) {
-                    listeners.forEach { it.onAnimationStart(animation) }
+                    this@LikeBurstView.listeners.forEach { it.onAnimationStart(animation) }
                 }
             })
             start()
