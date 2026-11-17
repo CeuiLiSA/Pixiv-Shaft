@@ -72,6 +72,12 @@ import ceui.pixiv.services.appServices
 import ceui.pixiv.session.SessionManager
 import timber.log.Timber
 import java.util.concurrent.ConcurrentLinkedQueue
+import ceui.pixiv.feeds.FeedSkeletonView
+import ceui.pixiv.feeds.FeedStaggeredSkeletonView
+import ceui.pixiv.snapshot.SnapshotIndex
+import ceui.pixiv.ui.common.IllustLayoutSkeletonView
+import ceui.pixiv.ui.common.IllustListLayout
+import ceui.pixiv.ui.common.heightRatioOf
 
 /**
  * 首页「推荐插画」tab / 推荐漫画页（feeds 框架版，替代 legacy FragmentRecmdIllust +
@@ -86,13 +92,84 @@ import java.util.concurrent.ConcurrentLinkedQueue
  * - 「收藏时显示相关作品」：收藏成功后 FRAGMENT_ADD_RELATED_DATA 回流，
  *   截前 5 条打 NEW 角标插到被收藏作品后面（feeds 版按作品 id 锚定 + 身份去重，
  *   替代 legacy 不可靠的 adapter 位置语义）；
- * - SpacesItemWithHeadDecoration（带头瀑布流的间距规则；LayoutManager 随「插画列表布局」走基类）。
+ * - 正向索引瀑布流自带头部与卡片间距；齐行和单列沿用各自的 ItemDecoration。
  */
 open class RecmdIllustFeedFragment(
     @LayoutRes contentLayoutId: Int = ceui.pixiv.feeds.R.layout.fragment_feed,
 ) : IllustFeedFragment(contentLayoutId) {
 
     override val keepAdapterOnLayoutChange: Boolean = true
+
+    private var cachedRankHeaderWidth = -1
+    private var cachedRankHeaderHeight = -1
+    private val rankHeaderSizeListener = object : RecyclerView.OnScrollListener() {
+        override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+            val header = recyclerView.findViewHolderForAdapterPosition(0)?.itemView ?: return
+            if (feedAdapter?.currentList?.firstOrNull() !is RankPreviewHeaderItem) return
+            if (header.width > 0 && header.height > 0) {
+                cachedRankHeaderWidth = header.width
+                cachedRankHeaderHeight = header.height
+            }
+        }
+    }
+
+    override fun onCreateLayoutManager(): RecyclerView.LayoutManager =
+        when (illustListLayout) {
+            IllustListLayout.MASONRY, IllustListLayout.GRID -> {
+                val hasRankHeader = feedAdapter?.currentList?.firstOrNull() is RankPreviewHeaderItem
+                val header = if (hasRankHeader) {
+                    feedBinding.feedListView.findViewHolderForAdapterPosition(0)?.itemView
+                } else null
+                IndexedMasonryLayoutManager(
+                    Shaft.sSettings.lineCount,
+                    DensityUtil.dp2px(8.0f),
+                    initialHeaderWidth = if (hasRankHeader) {
+                        header?.width?.takeIf { it > 0 } ?: cachedRankHeaderWidth
+                    } else -1,
+                    initialHeaderHeight = if (hasRankHeader) {
+                        header?.height?.takeIf { it > 0 } ?: cachedRankHeaderHeight
+                    } else -1,
+                    heightOf = ::indexedCardHeight,
+                )
+            }
+            else -> super.onCreateLayoutManager()
+        }
+
+    /** 与现有 FrameLayout + DynamicHeightImageView + Flexbox 按钮的实际测量高度一致。 */
+    private fun indexedCardHeight(item: FeedItem, cardWidth: Int): Int {
+        val bean = (item as? IllustFeedItem)?.illust ?: return DensityUtil.dp2px(56.0f)
+        val ratio = if (illustListLayout == IllustListLayout.GRID) 1f else heightRatioOf(bean)
+        val imageHeight = (cardWidth * ratio).toInt()
+        val four = DensityUtil.dp2px(4.0f)
+        val forty = DensityUtil.dp2px(40.0f)
+        val fortyEight = DensityUtil.dp2px(48.0f)
+        val wrapThreshold = fortyEight + forty + 3 * four
+        // 常见双列卡的图已高于任何按钮组合；不访问快照索引或逐条扫描 AI 标签。
+        if (imageHeight >= fortyEight + forty + 2 * four) return imageHeight
+        val like = !hideLikeButton
+        val snapshot = SnapshotIndex.entryFor(bean.id) != null
+        val actionHeight = when {
+            like && snapshot && cardWidth < wrapThreshold -> fortyEight + forty + 2 * four
+            snapshot -> fortyEight + 2 * four
+            like -> forty + 2 * four
+            else -> 0
+        }
+        if (imageHeight >= actionHeight) return imageHeight
+        val masked = IllustMuteStore.isMuted(bean.id) || IllustNovelFilter.shouldBlurAi(bean)
+        return if (masked) imageHeight else actionHeight
+    }
+
+    override fun onCreateSkeletonView(layoutManager: RecyclerView.LayoutManager): FeedSkeletonView? {
+        if (layoutManager is IndexedMasonryLayoutManager) {
+            val columns = Shaft.sSettings.lineCount
+            return if (illustListLayout == IllustListLayout.GRID) {
+                IllustLayoutSkeletonView(requireContext(), IllustListLayout.GRID, columns, DensityUtil.dp2px(8.0f))
+            } else {
+                FeedStaggeredSkeletonView(requireContext()).apply { spanCount = columns }
+            }
+        }
+        return super.onCreateSkeletonView(layoutManager)
+    }
 
     /**
      * 铺到屏幕底,底部安全区靠 inset 补:无底栏的宿主是手势条/导航栏,首页那份是浮在内容之上的
@@ -215,6 +292,7 @@ open class RecmdIllustFeedFragment(
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        feedBinding.feedListView.addOnScrollListener(rankHeaderSizeListener)
         LocalBroadcastManager.getInstance(requireContext())
             .registerReceiver(relatedReceiver, IntentFilter(Params.FRAGMENT_ADD_RELATED_DATA))
         // 本类在两处被复用：FragmentLeft（首页推荐 tab，TYPE_ILLUST）和独立的
@@ -295,6 +373,7 @@ open class RecmdIllustFeedFragment(
     }
 
     override fun onDestroyView() {
+        feedBinding.feedListView.removeOnScrollListener(rankHeaderSizeListener)
         LocalBroadcastManager.getInstance(requireContext()).unregisterReceiver(relatedReceiver)
         super.onDestroyView()
     }
@@ -344,8 +423,9 @@ open class RecmdIllustFeedFragment(
     }
 
     override fun onListReady(listView: RecyclerView) {
-        // 首位是整行榜单条，贴边不留白；齐行布局走自己的分行间距
+        // 索引布局自行计算间距；齐行和单列仍使用对应的 ItemDecoration。
         val manager = listView.layoutManager
+        if (manager is IndexedMasonryLayoutManager) return
         listView.addItemDecoration(
             if (manager is JustifiedLayoutManager) {
                 JustifiedItemDecoration(manager, edgeHeaderAtTop = true)
