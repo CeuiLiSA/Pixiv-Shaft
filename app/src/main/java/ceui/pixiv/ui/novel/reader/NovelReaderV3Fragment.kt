@@ -76,7 +76,8 @@ import ceui.pixiv.ui.novel.reader.render.NovelScrollReaderView
 import ceui.pixiv.ui.novel.reader.render.ReaderTextBlockView
 import ceui.pixiv.ui.novel.reader.render.PageOverlays
 import ceui.pixiv.ui.translate.appTranslateTargetLang
-import ceui.pixiv.ui.translate.promptProxyNeededIfPossible
+import ceui.pixiv.ui.translate.AiTranslator
+import ceui.pixiv.ui.translate.promptTranslateFailedIfPossible
 import ceui.pixiv.ui.novel.reader.settings.ReaderSettings
 import ceui.pixiv.ui.novel.reader.model.TranslationRole
 import ceui.pixiv.ui.novel.reader.settings.ReaderTheme
@@ -699,8 +700,8 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
                 NovelReaderV3ViewModel.TranslationState.Done ->
                     Toaster.showShort(getString(R.string.msg_reader_translate_done))
                 is NovelReaderV3ViewModel.TranslationState.Failed ->
-                    if (state.error is java.io.IOException) {
-                        promptProxyNeededIfPossible()
+                    if (state.translator === AiTranslator || state.error is java.io.IOException) {
+                        promptTranslateFailedIfPossible(state.error, state.translator)
                     } else {
                         Toaster.showLong(getString(R.string.msg_reader_translate_failed, state.error.message.orEmpty()))
                     }

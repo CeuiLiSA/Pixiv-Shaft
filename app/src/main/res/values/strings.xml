@@ -2969,10 +2969,12 @@
 
     <!-- 自定义 AI 翻译 (#975) -->
     <string name="ai_translate_settings_title">自定义 AI 翻译</string>
-    <string name="ai_translate_settings_entry_desc">用 OpenAI 兼容接口翻译评论与漫画</string>
-    <string name="ai_translate_intro_body">配置一个 OpenAI 兼容接口，评论翻译与漫画翻译将改走该接口，替代内置的 Google 网页翻译。\n\n接口地址可指向任意兼容服务：OpenAI、DeepSeek 等云端 API，或 Ollama、llama.cpp server（Sakura 模型）等本地部署（本地服务 API key 可留空）。</string>
+    <string name="ai_translate_settings_entry_desc">用 OpenAI 兼容接口翻译评论、漫画与小说</string>
+    <string name="ai_translate_intro_body">配置一个 OpenAI 兼容接口，评论、漫画与小说翻译将改走该接口，替代内置的 Google 网页翻译。\n\n接口地址可指向任意兼容服务：OpenAI、DeepSeek 等云端 API，或 Ollama、llama.cpp server（Sakura 模型）等本地部署（本地服务 API key 可留空）。</string>
+    <string name="novel_translate_list_titles">翻译列表标题</string>
+    <string name="novel_restore_list_titles">恢复原文标题</string>
     <string name="ai_translate_enable_title">启用自定义 AI 翻译</string>
-    <string name="ai_translate_enable_desc">启用后评论翻译与漫画翻译走下方配置的接口；关闭则继续使用内置 Google 翻译</string>
+    <string name="ai_translate_enable_desc">启用后评论、漫画与小说翻译走下方配置的接口；关闭则继续使用默认翻译引擎</string>
     <string name="ai_translate_base_url_label">接口地址（Base URL）</string>
     <string name="ai_translate_base_url_hint">https://api.openai.com/v1</string>
     <string name="ai_translate_api_key_label">API Key（本地服务可留空）</string>

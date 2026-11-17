@@ -2675,10 +2675,12 @@
     <string name="aria2_task_sent">%1$s aria2로 전송됨</string>
     <string name="aria2_send_failed">aria2 전송 실패: %1$s</string>
     <string name="ai_translate_settings_title">사용자 지정 AI 번역</string>
-    <string name="ai_translate_settings_entry_desc">OpenAI 호환 API로 댓글과 만화 번역</string>
-    <string name="ai_translate_intro_body">OpenAI 호환 API를 설정하면 댓글 번역과 만화 번역이 내장 Google 웹 번역 대신 해당 API를 사용합니다.\n\nBase URL은 호환되는 모든 서비스를 지정할 수 있습니다: OpenAI, DeepSeek 등의 클라우드 API 또는 Ollama, llama.cpp server(Sakura 모델) 등의 로컬 배포(로컬 서비스는 API key 생략 가능).</string>
+    <string name="ai_translate_settings_entry_desc">OpenAI 호환 API로 댓글, 만화, 소설 번역</string>
+    <string name="ai_translate_intro_body">OpenAI 호환 API를 설정하면 댓글, 만화, 소설 번역이 내장 Google 웹 번역 대신 해당 API를 사용합니다.\n\nBase URL은 호환되는 모든 서비스를 지정할 수 있습니다: OpenAI, DeepSeek 등의 클라우드 API 또는 Ollama, llama.cpp server(Sakura 모델) 등의 로컬 배포(로컬 서비스는 API key 생략 가능).</string>
+    <string name="novel_translate_list_titles">목록 제목 번역</string>
+    <string name="novel_restore_list_titles">원래 제목 복원</string>
     <string name="ai_translate_enable_title">사용자 지정 AI 번역 사용</string>
-    <string name="ai_translate_enable_desc">사용 시 댓글 번역과 만화 번역이 아래 API를 사용하고, 끄면 내장 Google 번역을 사용합니다</string>
+    <string name="ai_translate_enable_desc">사용 시 댓글, 만화, 소설 번역이 아래 API를 사용하고, 끄면 기본 번역 엔진을 사용합니다</string>
     <string name="ai_translate_base_url_label">Base URL</string>
     <string name="ai_translate_base_url_hint">https://api.openai.com/v1</string>
     <string name="ai_translate_api_key_label">API key(로컬 서비스는 생략 가능)</string>

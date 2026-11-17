@@ -2681,10 +2681,12 @@
     <string name="aria2_task_sent">%1$s aria2 hizmetine gönderildi</string>
     <string name="aria2_send_failed">aria2 hizmetine gönderilemedi: %1$s</string>
     <string name="ai_translate_settings_title">Özel AI çevirisi</string>
-    <string name="ai_translate_settings_entry_desc">Yorumları ve mangaları OpenAI uyumlu API ile çevir</string>
-    <string name="ai_translate_intro_body">OpenAI uyumlu bir API yapılandırın; yorum ve manga çevirisi, yerleşik Google web çevirisi yerine bu API\'yi kullanır.\n\nBase URL herhangi bir uyumlu hizmete işaret edebilir: OpenAI, DeepSeek gibi bulut API\'leri veya Ollama, llama.cpp server (Sakura modelleri) gibi yerel kurulumlar. Yerel hizmetlerde API key boş bırakılabilir.</string>
+    <string name="ai_translate_settings_entry_desc">Yorumları, mangaları ve romanları OpenAI uyumlu API ile çevir</string>
+    <string name="ai_translate_intro_body">OpenAI uyumlu bir API yapılandırın; yorum, manga ve roman çevirisi, yerleşik Google web çevirisi yerine bu API\'yi kullanır.\n\nBase URL herhangi bir uyumlu hizmete işaret edebilir: OpenAI, DeepSeek gibi bulut API\'leri veya Ollama, llama.cpp server (Sakura modelleri) gibi yerel kurulumlar. Yerel hizmetlerde API key boş bırakılabilir.</string>
+    <string name="novel_translate_list_titles">Listedeki başlıkları çevir</string>
+    <string name="novel_restore_list_titles">Özgün başlıkları geri yükle</string>
     <string name="ai_translate_enable_title">Özel AI çevirisini etkinleştir</string>
-    <string name="ai_translate_enable_desc">Etkinleştirildiğinde yorum ve manga çevirisi aşağıda yapılandırılan API\'yi kullanır; kapalıyken yerleşik Google çevirisi kullanılır</string>
+    <string name="ai_translate_enable_desc">Etkinleştirildiğinde yorum, manga ve roman çevirisi aşağıda yapılandırılan API\'yi kullanır; kapalıyken varsayılan çeviri motoru kullanılır</string>
     <string name="ai_translate_base_url_label">Base URL</string>
     <string name="ai_translate_base_url_hint">https://api.openai.com/v1</string>
     <string name="ai_translate_api_key_label">API key (yerel hizmetler için isteğe bağlı)</string>

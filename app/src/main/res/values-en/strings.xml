@@ -2698,10 +2698,12 @@
     <string name="aria2_task_sent">%1$s sent to aria2</string>
     <string name="aria2_send_failed">Failed to send to aria2: %1$s</string>
     <string name="ai_translate_settings_title">Custom AI translation</string>
-    <string name="ai_translate_settings_entry_desc">Translate comments and manga via an OpenAI-compatible API</string>
-    <string name="ai_translate_intro_body">Configure an OpenAI-compatible API and comment/manga translation will use it instead of the built-in Google web translation.\n\nThe base URL can point to any compatible service: cloud APIs such as OpenAI or DeepSeek, or local deployments like Ollama and llama.cpp server (Sakura models). API key can be left empty for local services.</string>
+    <string name="ai_translate_settings_entry_desc">Translate comments, manga and novels via an OpenAI-compatible API</string>
+    <string name="ai_translate_intro_body">Configure an OpenAI-compatible API and comment, manga and novel translation will use it instead of the built-in Google web translation.\n\nThe base URL can point to any compatible service: cloud APIs such as OpenAI or DeepSeek, or local deployments like Ollama and llama.cpp server (Sakura models). API key can be left empty for local services.</string>
+    <string name="novel_translate_list_titles">Translate list titles</string>
+    <string name="novel_restore_list_titles">Restore original titles</string>
     <string name="ai_translate_enable_title">Enable custom AI translation</string>
-    <string name="ai_translate_enable_desc">When enabled, comment and manga translation use the API configured below; when off, the built-in Google translation is used</string>
+    <string name="ai_translate_enable_desc">When enabled, comment, manga and novel translation use the API configured below; when off, the default translation engine is used</string>
     <string name="ai_translate_base_url_label">Base URL</string>
     <string name="ai_translate_base_url_hint">https://api.openai.com/v1</string>
     <string name="ai_translate_api_key_label">API key (optional for local services)</string>

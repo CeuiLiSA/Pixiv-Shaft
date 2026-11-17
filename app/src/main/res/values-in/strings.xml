@@ -2716,10 +2716,12 @@
     <string name="aria2_task_sent">%1$s telah dikirim ke aria2</string>
     <string name="aria2_send_failed">Gagal mengirim ke aria2: %1$s</string>
     <string name="ai_translate_settings_title">Terjemahan AI khusus</string>
-    <string name="ai_translate_settings_entry_desc">Terjemahkan komentar dan manga dengan API yang kompatibel OpenAI</string>
-    <string name="ai_translate_intro_body">Atur API yang kompatibel OpenAI; terjemahan komentar dan manga akan memakai API tersebut, menggantikan terjemahan web Google bawaan.\n\nAlamat API dapat mengarah ke layanan kompatibel apa pun: API cloud seperti OpenAI, DeepSeek, atau layanan lokal seperti Ollama, llama.cpp server (model Sakura) (API key layanan lokal boleh dikosongkan).</string>
+    <string name="ai_translate_settings_entry_desc">Terjemahkan komentar, manga, dan novel dengan API yang kompatibel OpenAI</string>
+    <string name="ai_translate_intro_body">Atur API yang kompatibel OpenAI; terjemahan komentar, manga, dan novel akan memakai API tersebut, menggantikan terjemahan web Google bawaan.\n\nAlamat API dapat mengarah ke layanan kompatibel apa pun: API cloud seperti OpenAI, DeepSeek, atau layanan lokal seperti Ollama, llama.cpp server (model Sakura) (API key layanan lokal boleh dikosongkan).</string>
+    <string name="novel_translate_list_titles">Terjemahkan judul daftar</string>
+    <string name="novel_restore_list_titles">Pulihkan judul asli</string>
     <string name="ai_translate_enable_title">Aktifkan terjemahan AI khusus</string>
-    <string name="ai_translate_enable_desc">Jika aktif, terjemahan komentar dan manga memakai API yang diatur di bawah; jika nonaktif tetap memakai Google Translate bawaan</string>
+    <string name="ai_translate_enable_desc">Jika aktif, terjemahan komentar, manga, dan novel memakai API yang diatur di bawah; jika nonaktif memakai mesin terjemahan bawaan</string>
     <string name="ai_translate_base_url_label">Alamat API (Base URL)</string>
     <string name="ai_translate_base_url_hint">https://api.openai.com/v1</string>
     <string name="ai_translate_api_key_label">API Key (boleh kosong untuk layanan lokal)</string>

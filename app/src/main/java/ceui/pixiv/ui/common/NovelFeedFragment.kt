@@ -21,6 +21,7 @@ import ceui.lisa.transformer.CpuBlurTransformation
 import ceui.pixiv.ui.bookmark.SelectTagBottomSheet
 import ceui.lisa.databinding.RecyNovelBinding
 import ceui.lisa.utils.GlideUtil
+import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
 import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.pixiv.witstudio.theme.dpF
@@ -55,6 +56,10 @@ import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.request.RequestOptions.bitmapTransform
 import timber.log.Timber
 import ceui.pixiv.ui.navigation.TemplateRoute
+import ceui.pixiv.ui.translate.appTranslateTargetLang
+import ceui.pixiv.ui.translate.currentTranslator
+import ceui.pixiv.ui.translate.promptTranslateFailedIfPossible
+import ceui.pixiv.ui.detail.V3MenuBuilder
 
 /** 收藏态局部重绑的 payload 标记（按引用识别）。 */
 private val PAYLOAD_NOVEL_BOOKMARK = Any()
@@ -67,6 +72,7 @@ private val PAYLOAD_NOVEL_SPOILER_CHANGED = Any()
  * 由接了多选的宿主页在状态变化时经 [NovelFeedFragment.notifyNovelCardSelectionChanged] 发。
  */
 private val PAYLOAD_NOVEL_SELECTION = Any()
+private val PAYLOAD_NOVEL_TITLE = Any()
 
 /** 封面 Glide 请求去重 key（存在 ImageView.tag 上）：url + 请求尺寸 + 是否模糊。 */
 private data class NovelImageRequestKey(
@@ -110,6 +116,26 @@ abstract class NovelFeedFragment(
     abstract override val feedViewModel: FeedViewModel<String>
 
     private val novelDownloadRequest by viewModels { NovelDownloadRequestViewModel() }
+    private val titleTranslations by viewModels { NovelTitleTranslationViewModel() }
+
+    protected open fun novelTitlesForTranslation(): List<String> =
+        currentNovelItems().mapNotNull { it.novel.title }
+
+    protected fun novelDisplayTitle(title: String?): String =
+        titleTranslations.title(title, appTranslateTargetLang())
+
+    internal fun addNovelTitleTranslationMenu(menu: V3MenuBuilder, titles: () -> List<String> = ::novelTitlesForTranslation) {
+        val label = if (titleTranslations.state.value?.running == true) R.string.string_translating else R.string.novel_translate_list_titles
+        menu.item(getString(label), R.drawable.ic_baseline_translate_24) {
+            Common.showToast(R.string.string_translating)
+            titleTranslations.translate(titles(), appTranslateTargetLang(), currentTranslator())
+        }
+        if (titleTranslations.shown) {
+            menu.item(getString(R.string.novel_restore_list_titles), R.drawable.ic_baseline_translate_24) {
+                titleTranslations.hide()
+            }
+        }
+    }
 
     /**
      * 小说卡“下载这一篇”：有默认格式直接下，设置为“每次询问”时弹 [ExportSheet]。
@@ -167,6 +193,19 @@ abstract class NovelFeedFragment(
             transform = { item, liked -> item.withBookmarked(liked) },
         ).bind(requireContext(), viewLifecycleOwner)
         observeMuteRevision()
+        var lastTitleState: NovelTitleTranslationViewModel.State? = null
+        titleTranslations.state.observe(viewLifecycleOwner) { state ->
+            onNovelTitleTranslationsChanged()
+            if (lastTitleState?.running == true && state.error != null) {
+                promptTranslateFailedIfPossible(state.error, titleTranslations.translationEngine() ?: currentTranslator())
+            }
+            lastTitleState = state
+        }
+    }
+
+    private fun onNovelTitleTranslationsChanged() {
+        val adapter = feedAdapter ?: return
+        adapter.notifyItemRangeChanged(0, adapter.itemCount, PAYLOAD_NOVEL_TITLE)
     }
 
     /**
@@ -298,9 +337,14 @@ abstract class NovelFeedFragment(
         bindPayloads = { cell, payloads ->
             val known = payloads.all {
                 it === PAYLOAD_NOVEL_BOOKMARK || it === PAYLOAD_NOVEL_SPOILER_CHANGED ||
-                    it === PAYLOAD_NOVEL_SELECTION
+                    it === PAYLOAD_NOVEL_SELECTION || it === PAYLOAD_NOVEL_TITLE
             }
             if (known) {
+                if (payloads.any { it === PAYLOAD_NOVEL_TITLE }) {
+                    val novel = cell.item.novel
+                    val spoilered = NovelMuteStore.isMuted(novel.id) || IllustNovelFilter.shouldBlurAi(novel)
+                    if (!spoilered) cell.binding.title.text = novelDisplayTitle(novel.title)
+                }
                 if (payloads.any { it === PAYLOAD_NOVEL_BOOKMARK }) {
                     val novel = cell.item.novel
                     renderNovelLike(cell.binding.like, novel.is_bookmarked == true)
@@ -413,7 +457,7 @@ abstract class NovelFeedFragment(
             b.series.setOnClickListener(null)
         }
 
-        b.title.text = novel.title ?: ""
+        b.title.text = novelDisplayTitle(novel.title)
         b.author.text = novel.user?.name ?: ""
         b.date.text = novel.create_date?.take(10) ?: ""
         b.bookmarkCount.text = (novel.total_bookmarks ?: 0).toString()

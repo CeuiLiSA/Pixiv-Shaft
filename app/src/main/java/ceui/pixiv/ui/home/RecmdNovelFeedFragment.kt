@@ -33,6 +33,8 @@ import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
 import com.bumptech.glide.Glide
 
+private val PAYLOAD_RANK_TITLE = Any()
+
 /**
  * 「推荐小说」页（FragmentNewNovel 的推荐 tab，feeds 框架版，替代 legacy FragmentRecmdNovel +
  * NAdapterWithHeadView + RecmdNovelRepo）。异构列表 = 横向排行榜预览头（整行）+ 小说卡列表，
@@ -42,6 +44,11 @@ import com.bumptech.glide.Glide
  * 「查看更多」进 RankActivity 小说榜，卡片点击开小说详情。本地优先缓存（同 RecmdIllustFeedFragment）。
  */
 class RecmdNovelFeedFragment : NovelFeedFragment() {
+
+    override fun novelTitlesForTranslation(): List<String> =
+        super.novelTitlesForTranslation() + feedViewModel.uiState.value.visibleItems
+            .filterIsInstance<NovelRankPreviewHeaderItem>().flatMap { it.rankNovels }
+            .filterNot { NovelMuteStore.isMuted(it.id) }.mapNotNull { it.title }
 
     override val feedViewModel by feedViewModels {
         // 本地优先：给稳定 slot 开磁盘缓存，冷启秒显上次首屏再拉最新覆盖。
@@ -95,16 +102,21 @@ class RecmdNovelFeedFragment : NovelFeedFragment() {
         // 同一批榜单重复 bind（滚动回收再回来）不重设 adapter，保留横向滚动位置。
         // 按 id 序列而不是条目本身认「同一批」：屏蔽掉一篇后条目没变、可见集合变了，得重建。
         val batchKey = novels.map { it.id }
-        if (cell.binding.ranking.tag == batchKey) return
+        if (cell.binding.ranking.tag == batchKey) {
+            cell.binding.ranking.adapter?.let { it.notifyItemRangeChanged(0, it.itemCount, PAYLOAD_RANK_TITLE) }
+            return
+        }
         cell.binding.ranking.tag = batchKey
         cell.binding.ranking.adapter = RecmdNovelRankAdapter(
             novels = novels,
+            titleOf = { novelDisplayTitle(it.title) },
             onClickNovel = { novelId -> openNovelDetail(novelId) },
             onLongClickNovel = { novel ->
                 showNovelCardMenu(
                     // 这批小说在 mapRecmdNovelPage 里已经滤过了，不再跑一遍内容过滤
                     NovelFeedItem(novel),
                     scopedNovels = { novels },
+                    scopedTitleTexts = { novels.mapNotNull { it.title } },
                     onToggleSpoiler = { muted ->
                         if (NovelMuteStore.setMuted(novel.id, muted) { novel }) {
                             bindRankStrip(cell)
@@ -163,6 +175,7 @@ class NovelRankPreviewHeaderItem(val rankNovels: List<Novel>) : FeedItem {
  */
 private class RecmdNovelRankAdapter(
     private val novels: List<Novel>,
+    private val titleOf: (Novel) -> String,
     private val onClickNovel: (Long) -> Unit,
     private val onLongClickNovel: (Novel) -> Unit,
 ) : RecyclerView.Adapter<RecmdNovelRankAdapter.VH>() {
@@ -179,11 +192,19 @@ private class RecmdNovelRankAdapter(
 
     override fun getItemCount(): Int = novels.size
 
+    override fun onBindViewHolder(holder: VH, position: Int, payloads: MutableList<Any>) {
+        if (payloads.isNotEmpty() && payloads.all { it === PAYLOAD_RANK_TITLE }) {
+            holder.binding.title.text = titleOf(novels[position])
+        } else {
+            onBindViewHolder(holder, position)
+        }
+    }
+
     override fun onBindViewHolder(holder: VH, position: Int) {
         val novel = novels[position]
         val b = holder.binding
         val ctx = b.root.context
-        b.title.text = novel.title ?: ""
+        b.title.text = titleOf(novel)
         b.author.text = novel.user?.name ?: ""
         b.novelLength.text =
             ctx.getString(R.string.v3_novel_word_count, (novel.text_length ?: 0).toString())

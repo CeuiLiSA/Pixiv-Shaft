@@ -2693,10 +2693,12 @@
     <string name="aria2_task_sent">%1$s отправлено в aria2</string>
     <string name="aria2_send_failed">Не удалось отправить в aria2: %1$s</string>
     <string name="ai_translate_settings_title">Пользовательский AI-перевод</string>
-    <string name="ai_translate_settings_entry_desc">Перевод комментариев и манги через OpenAI-совместимый API</string>
-    <string name="ai_translate_intro_body">Настройте OpenAI-совместимый API, и перевод комментариев и манги будет использовать его вместо встроенного веб-перевода Google.\n\nBase URL может указывать на любой совместимый сервис: облачные API (OpenAI, DeepSeek) или локальные развёртывания (Ollama, llama.cpp server с моделями Sakura). Для локальных сервисов API key можно оставить пустым.</string>
+    <string name="ai_translate_settings_entry_desc">Перевод комментариев, манги и новелл через OpenAI-совместимый API</string>
+    <string name="ai_translate_intro_body">Настройте OpenAI-совместимый API, и перевод комментариев, манги и новелл будет использовать его вместо встроенного веб-перевода Google.\n\nBase URL может указывать на любой совместимый сервис: облачные API (OpenAI, DeepSeek) или локальные развёртывания (Ollama, llama.cpp server с моделями Sakura). Для локальных сервисов API key можно оставить пустым.</string>
+    <string name="novel_translate_list_titles">Перевести заголовки списка</string>
+    <string name="novel_restore_list_titles">Вернуть исходные заголовки</string>
     <string name="ai_translate_enable_title">Включить пользовательский AI-перевод</string>
-    <string name="ai_translate_enable_desc">Если включено, перевод комментариев и манги идёт через настроенный ниже API; если выключено — используется встроенный перевод Google</string>
+    <string name="ai_translate_enable_desc">Если включено, перевод комментариев, манги и новелл идёт через настроенный ниже API; если выключено — используется переводчик по умолчанию</string>
     <string name="ai_translate_base_url_label">Base URL</string>
     <string name="ai_translate_base_url_hint">https://api.openai.com/v1</string>
     <string name="ai_translate_api_key_label">API key (для локальных сервисов можно оставить пустым)</string>

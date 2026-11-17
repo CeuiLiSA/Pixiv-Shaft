@@ -48,6 +48,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import ceui.pixiv.ui.usage.observeNana7miQuotaNotice
 import ceui.pixiv.ui.navigation.TemplateRoute
+import ceui.pixiv.ui.detail.showV3Menu
 
 /**
  * 搜索「小说」tab（feeds 框架版，替代 legacy FragmentSearchNovel + SearchNovelRepo + NAdapter）。
@@ -60,6 +61,10 @@ import ceui.pixiv.ui.navigation.TemplateRoute
  * 响应式重搜：observe nowGo → 命中小说标签匹配档才 refresh（对齐 legacy TAG_MATCH_VALUE_NOVEL guard）。
  */
 class SearchNovelFeedFragment : NovelFeedFragment() {
+
+    override fun novelTitlesForTranslation(): List<String> =
+        super.novelTitlesForTranslation() + feedViewModel.uiState.value.visibleItems
+            .filterIsInstance<SearchNovelSeriesFeedItem>().mapNotNull { it.novel.title }
 
     private var searchRefreshPending = false
     private var syncVisibilityJob: Job? = null
@@ -278,6 +283,15 @@ class SearchNovelFeedFragment : NovelFeedFragment() {
                 }
                 cell.binding.userHead.setOnClick { cell.itemOrNull?.let { openSeriesAuthor(it.novel) } }
                 cell.binding.author.setOnClick { cell.itemOrNull?.let { openSeriesAuthor(it.novel) } }
+                val translateMenu = View.OnLongClickListener {
+                    if (cell.itemOrNull == null) return@OnLongClickListener false
+                    showV3Menu("NovelSeriesTitleMenu") { addNovelTitleTranslationMenu(this) }
+                    true
+                }
+                listOf(
+                    cell.binding.root, cell.binding.cover, cell.binding.userHead,
+                    cell.binding.author, cell.binding.series, cell.binding.novelTag,
+                ).forEach { it.setOnLongClickListener(translateMenu) }
             },
             recycle = { cell ->
                 seriesGlide.clear(cell.binding.cover)
@@ -299,7 +313,7 @@ class SearchNovelFeedFragment : NovelFeedFragment() {
             .transition(DrawableTransitionOptions.withCrossFade())
             .into(b.cover)
 
-        b.title.text = novel.title ?: ""
+        b.title.text = novelDisplayTitle(novel.title)
         b.series.isVisible = true
         b.series.setTextColor(palette.textAccent)
         b.series.text = ctx.getString(

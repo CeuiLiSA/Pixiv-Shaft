@@ -2675,10 +2675,12 @@
     <string name="aria2_task_sent">%1$s を aria2 に送信しました</string>
     <string name="aria2_send_failed">aria2 への送信に失敗：%1$s</string>
     <string name="ai_translate_settings_title">カスタム AI 翻訳</string>
-    <string name="ai_translate_settings_entry_desc">OpenAI 互換 API でコメントと漫画を翻訳</string>
-    <string name="ai_translate_intro_body">OpenAI 互換 API を設定すると、コメント翻訳と漫画翻訳が内蔵の Google ウェブ翻訳の代わりにその API を使用します。\n\nBase URL は任意の互換サービスを指定できます：OpenAI・DeepSeek などのクラウド API、または Ollama・llama.cpp server（Sakura モデル）などのローカル環境（ローカルサービスでは API key は空欄可）。</string>
+    <string name="ai_translate_settings_entry_desc">OpenAI 互換 API でコメント・漫画・小説を翻訳</string>
+    <string name="ai_translate_intro_body">OpenAI 互換 API を設定すると、コメント・漫画・小説の翻訳が内蔵の Google ウェブ翻訳の代わりにその API を使用します。\n\nBase URL は任意の互換サービスを指定できます：OpenAI・DeepSeek などのクラウド API、または Ollama・llama.cpp server（Sakura モデル）などのローカル環境（ローカルサービスでは API key は空欄可）。</string>
+    <string name="novel_translate_list_titles">一覧のタイトルを翻訳</string>
+    <string name="novel_restore_list_titles">元のタイトルに戻す</string>
     <string name="ai_translate_enable_title">カスタム AI 翻訳を有効にする</string>
-    <string name="ai_translate_enable_desc">有効にするとコメント翻訳と漫画翻訳は下記の API を使用します。無効の場合は内蔵の Google 翻訳を使用します</string>
+    <string name="ai_translate_enable_desc">有効にするとコメント・漫画・小説の翻訳は下記の API を使用します。無効の場合は既定の翻訳エンジンを使用します</string>
     <string name="ai_translate_base_url_label">Base URL</string>
     <string name="ai_translate_base_url_hint">https://api.openai.com/v1</string>
     <string name="ai_translate_api_key_label">API key（ローカルサービスは空欄可）</string>

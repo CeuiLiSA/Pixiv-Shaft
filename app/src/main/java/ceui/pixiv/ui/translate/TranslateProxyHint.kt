@@ -36,7 +36,7 @@ internal fun promptProxyNeededIfPossible() {
  * 翻译失败的统一提示:走自定义 AI 引擎(#975)时「需要代理」是误导 — 失败多半是
  * key 无效/模型名错/服务没起,把真实错误摆给用户;走 Google 引擎才提示代理。
  */
-internal fun promptTranslateFailedIfPossible(e: Exception?) {
+internal fun promptTranslateFailedIfPossible(e: Exception?, translator: Translator? = null) {
     // 取消异常(「Job was cancelled」之类)不是翻译失败:是页面/任务被取消,
     // 不该把原始 message 当错误弹给用户,静默跳过即可(调用方已按取消语义处理)。
     if (e is CancellationException) {
@@ -50,9 +50,9 @@ internal fun promptTranslateFailedIfPossible(e: Exception?) {
     }
     // 异常本身说是云翻译的就按云翻译报：服务端刚关停时 CloudTranslator 会先把开关翻掉再抛，
     // 这时再问 isActive() 已经是 false，会误弹成「需要代理」。
-    val cloud = e is CloudTranslateException ||
-        (!AiTranslator.isActive() && CloudTranslator.isActive())
-    if (!AiTranslator.isActive() && !cloud) {
+    val engine = translator ?: currentTranslator()
+    val cloud = e is CloudTranslateException || engine === CloudTranslator
+    if (engine !== AiTranslator && !cloud) {
         promptProxyNeededIfPossible()
         return
     }

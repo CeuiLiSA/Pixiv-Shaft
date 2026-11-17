@@ -42,6 +42,9 @@ import ceui.pixiv.ui.novel.reader.paginate.ChapterOutlineEntry
 import ceui.pixiv.ui.novel.reader.paginate.TranslationInserter
 import ceui.pixiv.ui.novel.reader.model.TranslationRole
 import ceui.pixiv.ui.translate.appTranslateTargetLang
+import ceui.pixiv.ui.translate.AiTranslator
+import ceui.pixiv.ui.translate.GoogleWebTranslator
+import ceui.pixiv.ui.translate.Translator
 import android.os.SystemClock
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -150,7 +153,7 @@ class NovelReaderV3ViewModel(
         object Off : TranslationState()
         data class Running(val done: Int, val total: Int) : TranslationState()
         object Done : TranslationState()
-        data class Failed(val error: Exception) : TranslationState()
+        data class Failed(val error: Exception, val translator: Translator) : TranslationState()
     }
 
     private val _translationState = MutableLiveData<TranslationState>(TranslationState.Off)
@@ -163,6 +166,7 @@ class NovelReaderV3ViewModel(
     /** 原文段落 sourceStart → 译文，目标语言为 [translationsLang]。 */
     private var translations: Map<Int, String> = emptyMap()
     private var translationsLang: String? = null
+    private var translationsTranslator: Translator? = null
     private var translationJob: Job? = null
     private var lastTranslationRefreshAt = 0L
 
@@ -306,9 +310,11 @@ class NovelReaderV3ViewModel(
     fun startBodyTranslation() {
         if (_translationState.value is TranslationState.Running || tokens.isEmpty()) return
         val lang = appTranslateTargetLang()
-        if (translationsLang != lang) {
+        val translator = if (AiTranslator.isActive()) AiTranslator else GoogleWebTranslator
+        if (translationsLang != lang || translationsTranslator !== translator) {
             translations = emptyMap()
             translationsLang = lang
+            translationsTranslator = translator
         }
         // 从当前阅读位置往后先翻，再回头补前面——译文先出现在用户正在看的地方。
         val (before, after) = tokens.asSequence()
@@ -329,7 +335,7 @@ class NovelReaderV3ViewModel(
         translationJob = viewModelScope.launch {
             var done = 0
             try {
-                NovelBodyTranslator.translate(pending, lang) { chunk ->
+                NovelBodyTranslator.translate(pending, lang, translator) { chunk ->
                     translations = translations + chunk
                     done += chunk.size
                     _translationState.value = TranslationState.Running(done, pending.size)
@@ -340,7 +346,7 @@ class NovelReaderV3ViewModel(
                 throw e
             } catch (e: Exception) {
                 Timber.tag("NovelReaderV3").w(e, "body translation stopped at %d/%d", done, pending.size)
-                _translationState.value = TranslationState.Failed(e)
+                _translationState.value = TranslationState.Failed(e, translator)
             }
             refreshTranslationDisplay(force = true)
         }

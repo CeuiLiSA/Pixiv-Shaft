@@ -35,6 +35,7 @@ import ceui.pixiv.ui.navigation.TemplateRoute
 internal fun NovelFeedFragment.showNovelCardMenu(
     item: NovelFeedItem,
     scopedNovels: () -> List<Novel> = { currentNovelItems().map { it.novel } },
+    scopedTitleTexts: (() -> List<String>)? = null,
     onToggleSpoiler: (Boolean) -> Unit = { setNovelMuted(item.novel, it) },
 ) {
     val novel = item.novel
@@ -104,6 +105,11 @@ internal fun NovelFeedFragment.showNovelCardMenu(
                 putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.NOVEL_BULK_SELECT.key) // route key, not UI text
                 putExtra(BulkSelectHandoff.ARG_HANDOFF_KEY, key)
             })
+        }
+        if (scopedTitleTexts == null) {
+            addNovelTitleTranslationMenu(this)
+        } else {
+            addNovelTitleTranslationMenu(this, scopedTitleTexts)
         }
         // 下载这一篇：复用批量/系列下载同一条小说下载队列（PixivActions.downloadNovels），
         // 不灌 download_queue——小说下载本来就不走那张表。

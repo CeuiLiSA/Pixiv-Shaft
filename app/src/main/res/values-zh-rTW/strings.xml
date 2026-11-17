@@ -2690,10 +2690,12 @@
     <string name="aria2_task_sent">%1$s 已傳送到 aria2</string>
     <string name="aria2_send_failed">傳送到 aria2 失敗：%1$s</string>
     <string name="ai_translate_settings_title">自訂 AI 翻譯</string>
-    <string name="ai_translate_settings_entry_desc">用 OpenAI 相容介面翻譯留言與漫畫</string>
-    <string name="ai_translate_intro_body">設定一個 OpenAI 相容介面，留言翻譯與漫畫翻譯將改走該介面，取代內建的 Google 網頁翻譯。\n\n介面位址可指向任意相容服務：OpenAI、DeepSeek 等雲端 API，或 Ollama、llama.cpp server（Sakura 模型）等本機部署（本機服務 API key 可留空）。</string>
+    <string name="ai_translate_settings_entry_desc">用 OpenAI 相容介面翻譯留言、漫畫與小說</string>
+    <string name="ai_translate_intro_body">設定一個 OpenAI 相容介面，留言、漫畫與小說翻譯將改走該介面，取代內建的 Google 網頁翻譯。\n\n介面位址可指向任意相容服務：OpenAI、DeepSeek 等雲端 API，或 Ollama、llama.cpp server（Sakura 模型）等本機部署（本機服務 API key 可留空）。</string>
+    <string name="novel_translate_list_titles">翻譯列表標題</string>
+    <string name="novel_restore_list_titles">還原原文標題</string>
     <string name="ai_translate_enable_title">啟用自訂 AI 翻譯</string>
-    <string name="ai_translate_enable_desc">啟用後留言翻譯與漫畫翻譯走下方設定的介面；關閉則繼續使用內建 Google 翻譯</string>
+    <string name="ai_translate_enable_desc">啟用後留言、漫畫與小說翻譯走下方設定的介面；關閉則繼續使用預設翻譯引擎</string>
     <string name="ai_translate_base_url_label">介面位址（Base URL）</string>
     <string name="ai_translate_base_url_hint">https://api.openai.com/v1</string>
     <string name="ai_translate_api_key_label">API Key（本機服務可留空）</string>
