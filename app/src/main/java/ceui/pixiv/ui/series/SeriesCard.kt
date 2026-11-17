@@ -5,6 +5,7 @@ import ceui.lisa.databinding.CellSeriesV3Binding
 import ceui.lisa.utils.GlideUtil
 import ceui.pixiv.witstudio.theme.V3Palette
 import com.bumptech.glide.RequestManager
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 
 /**
  * 系列卡([ceui.lisa.R.layout.cell_series_v3])的显示模型 —— 追更列表(pixiv `WatchlistSeries`)
@@ -45,7 +46,12 @@ object SeriesCard {
         b.subtitle.tag = palette.textAccent
     }
 
-    fun bind(b: CellSeriesV3Binding, m: SeriesCardModel, glide: RequestManager) {
+    fun bind(
+        b: CellSeriesV3Binding,
+        m: SeriesCardModel,
+        glide: RequestManager,
+        coverTransition: DrawableTransitionOptions? = null,
+    ) {
         val mask = m.maskText
         if (mask != null) {
             // 屏蔽态:保住卡高(封面 INVISIBLE 而非 GONE),其余文案清空、按钮与头像藏起来。
@@ -85,7 +91,14 @@ object SeriesCard {
             b.rankBadge.visibility = View.GONE
         }
         // URL 为空时 GlideUtil.getUrl 回 null,Glide 走 fallback 留底色占位,不抛。
-        glide.load(GlideUtil.getUrl(m.coverUrl)).into(b.cover)
+        val coverRequest = glide.load(GlideUtil.getUrl(m.coverUrl))
+            .placeholder(ceui.lisa.R.color.v3_surface_2)
+        val imageRequest = if (coverTransition != null) {
+            coverRequest.transition(coverTransition)
+        } else {
+            coverRequest
+        }
+        imageRequest.into(b.cover)
         glide.load(GlideUtil.getUrl(m.authorHeadUrl)).into(b.userHead)
     }
 }
