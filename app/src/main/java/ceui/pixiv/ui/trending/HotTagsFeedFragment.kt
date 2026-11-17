@@ -70,12 +70,9 @@ class HotTagsFeedFragment : FeedFragment() {
     }
 
     override fun onDestroyView() {
-        val listView = view?.findViewById<RecyclerView>(ceui.pixiv.feeds.R.id.feed_list_view)
-        if (listView != null) {
-            for (i in 0 until listView.childCount) {
-                listView.getChildAt(i)?.findViewById<View>(R.id.illust_image)?.clearGlideOnRecycle()
-            }
-        }
+        // 卸下 adapter 会把屏上和屏外缓存的 holder 一起送进 recycle，不能只遍历 childCount。
+        // Glide 绑定的是 Fragment 生命周期；仅销毁 view 时，旧视图的请求不会自动清掉。
+        feedBinding.feedListView.adapter = null
         super.onDestroyView()
     }
 
@@ -135,6 +132,10 @@ class HotTagsFeedFragment : FeedFragment() {
         create = { cell ->
             cell.binding.root.setOnClick { openSearch(cell.item.trendingTag) }
             cell.binding.root.setOnLongClickListener { openIllustDetail(cell.item.bean) }
+        },
+        recycle = { cell ->
+            // 屏外缓存命中不会进这里；只有真正回收时才释放请求，不影响往复滚动复用。
+            cell.binding.illustImage.clearGlideOnRecycle()
         },
     ) { cell ->
         val trendingTag = cell.item.trendingTag
