@@ -34,7 +34,10 @@ private const val SORT_AVG = "avg"
  * 自带 toolbar（fragment_toolbar_feed），复用 [UserFeedFragment] 的用户卡渲染（画师 + 3 张代表作
  * 缩略图）/ 关注切换 / LIKED_USER 广播同步 / 点击进画师页。
  */
-class ArtistRankFeedFragment : UserFeedFragment(R.layout.fragment_toolbar_feed) {
+class ArtistRankFeedFragment : UserFeedFragment(
+    R.layout.fragment_toolbar_feed,
+    fadePreviewImagesOnLoad = true,
+) {
 
     private val binding by viewBinding(FragmentToolbarFeedBinding::bind)
 

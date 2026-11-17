@@ -32,7 +32,9 @@ import ceui.pixiv.utils.clearGlideOnRecycle
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
 import com.bumptech.glide.Glide
+import ceui.pixiv.ui.common.PreviewImageTransitionFactory
 import com.bumptech.glide.RequestManager
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.google.gson.JsonObject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -107,6 +109,9 @@ class SeriesRankFeedFragment : FeedFragment() {
 
     /** 封面 / 头像的 Glide 请求管理器,建一次复用(理由见 NovelFeedFragment.novelGlide)。 */
     private val seriesGlide: RequestManager by lazy { Glide.with(this) }
+    private val coverTransition by lazy(LazyThreadSafetyMode.NONE) {
+        DrawableTransitionOptions().transition(PreviewImageTransitionFactory(requireContext()))
+    }
 
     override val feedViewModel by feedViewModels(autoLoad = false) {
         // 零捕获:只捕获局部值,不把 Fragment 钉进 VM。
@@ -153,13 +158,17 @@ class SeriesRankFeedFragment : FeedFragment() {
                     title = item.title,
                     coverUrl = item.coverUrl,
                     countText = getString(R.string.episode_number, item.workCount),
-                    subtitle = getString(R.string.series_total_bookmarks, formatRankCount(item.totalBookmarks)),
+                    subtitle = getString(
+                        R.string.series_total_bookmarks,
+                        formatRankCount(item.totalBookmarks)
+                    ),
                     subtitleAccent = true,
                     authorName = item.userName,
                     authorHeadUrl = item.userHeadUrl,
                     rank = item.rank,
                 ),
                 seriesGlide,
+                coverTransition = coverTransition,
             )
         }
 
@@ -221,7 +230,8 @@ class SeriesRankFeedSource(
         // gson 解析 cover_bean 挪 Default,保住 load 的 main-safe 契约。
         val items = withContext(Dispatchers.Default) {
             val base = (resp.offset ?: 0) + 1
-            resp.items.orEmpty().mapIndexedNotNull { i, it -> mapSeriesItem(it, type, isNovel, base + i) }
+            resp.items.orEmpty()
+                .mapIndexedNotNull { i, it -> mapSeriesItem(it, type, isNovel, base + i) }
         }
         val withNotice = if (cursor == null && resp.complete == false && items.isNotEmpty()) {
             listOf(RankNoticeItem(R.string.rank_incomplete_notice)) + items
@@ -253,7 +263,8 @@ class SeriesRankFeedSource(
                     }
                 } catch (e: Throwable) {
                     // 封面 bean 坏了只丢封面,不丢整条 —— 系列标题 / 画师 / 计数都还在服务端字段里。
-                    Timber.tag("SeriesRank").w(e, "skip malformed cover_bean series=${item.series_id}")
+                    Timber.tag("SeriesRank")
+                        .w(e, "skip malformed cover_bean series=${item.series_id}")
                     null
                 }
             }
