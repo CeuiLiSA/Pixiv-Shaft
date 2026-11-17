@@ -4,29 +4,52 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import ceui.lisa.activities.Shaft
 import ceui.pixiv.ui.translate.AiTranslator
+import ceui.pixiv.ui.translate.CloudTranslator
 import ceui.pixiv.ui.translate.Translator
+import ceui.pixiv.utils.Event
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 import java.io.IOException
 
+/** 小说译文的缓存身份：AI 是单例，接口、模型或提示词变化也必须使旧译文失效。 */
+internal data class NovelTranslationKey(
+    val translator: Translator,
+    val targetLang: String,
+    private val baseUrl: String = "",
+    private val model: String = "",
+    private val prompt: String = "",
+    private val thinkingMode: Int = 0,
+) {
+    companion object {
+        fun capture(translator: Translator, targetLang: String): NovelTranslationKey {
+            if (translator !== AiTranslator) return NovelTranslationKey(translator, targetLang)
+            val settings = Shaft.sSettings
+            return NovelTranslationKey(
+                translator, targetLang, settings.aiTranslateBaseUrl, settings.aiTranslateModel,
+                settings.aiTranslatePrompt, settings.aiTranslateThinkingMode,
+            )
+        }
+    }
+}
+
 /** 列表标题译文只用于展示，不改 Novel.title，避免污染详情、导出与 feed 缓存（#1372）。 */
 class NovelTitleTranslationViewModel : ViewModel() {
-    data class State(val running: Boolean = false, val error: Exception? = null)
+    data class State(val running: Boolean = false, val error: Event<Exception>? = null)
 
     private val _state = MutableLiveData(State())
     val state: LiveData<State> = _state
     private val translations = mutableMapOf<String, String>()
-    private var targetLang: String? = null
-    private var translator: Translator? = null
+    private var translationKey: NovelTranslationKey? = null
     private var job: Job? = null
     var shown: Boolean = false
         private set
 
     fun title(original: String?, lang: String): String =
-        if (shown && lang == targetLang) translations[original] ?: original.orEmpty() else original.orEmpty()
+        if (shown && lang == translationKey?.targetLang) translations[original] ?: original.orEmpty() else original.orEmpty()
 
     fun hide() {
         job?.cancel()
@@ -35,11 +58,12 @@ class NovelTitleTranslationViewModel : ViewModel() {
     }
 
     fun translate(titles: List<String>, lang: String, engine: Translator) {
-        if (_state.value?.running == true) return
-        if (targetLang != lang || translator !== engine) {
+        val key = NovelTranslationKey.capture(engine, lang)
+        if (_state.value?.running == true && translationKey == key) return
+        job?.cancel()
+        if (translationKey != key) {
             translations.clear()
-            targetLang = lang
-            translator = engine
+            translationKey = key
         }
         shown = true
         val pending = titles.filter { it.isNotBlank() && it !in translations }.distinct()
@@ -63,11 +87,11 @@ class NovelTitleTranslationViewModel : ViewModel() {
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                _state.value = State(error = e)
+                _state.value = State(error = Event(e))
             }
         }
     }
 
-    /** 失败提示按发请求时的引擎分流，不能受后台修改设置影响。 */
-    fun translationEngine(): Translator? = translator
+    /** AI / Google 按请求时的引擎报错；云翻译可能已关闭并回退 Google，交给现有动态分流。 */
+    fun translationEngine(): Translator? = translationKey?.translator?.takeUnless { it === CloudTranslator }
 }

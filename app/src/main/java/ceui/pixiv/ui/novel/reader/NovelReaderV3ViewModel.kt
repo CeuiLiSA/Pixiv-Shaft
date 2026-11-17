@@ -45,6 +45,7 @@ import ceui.pixiv.ui.translate.appTranslateTargetLang
 import ceui.pixiv.ui.translate.AiTranslator
 import ceui.pixiv.ui.translate.GoogleWebTranslator
 import ceui.pixiv.ui.translate.Translator
+import ceui.pixiv.ui.common.NovelTranslationKey
 import android.os.SystemClock
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -163,10 +164,9 @@ class NovelReaderV3ViewModel(
     private val _translationVersion = MutableLiveData(0)
     val translationVersion: LiveData<Int> = _translationVersion
 
-    /** 原文段落 sourceStart → 译文，目标语言为 [translationsLang]。 */
+    /** 原文段落 sourceStart → 译文，缓存身份包含目标语言与 AI 配置。 */
     private var translations: Map<Int, String> = emptyMap()
-    private var translationsLang: String? = null
-    private var translationsTranslator: Translator? = null
+    private var translationsKey: NovelTranslationKey? = null
     private var translationJob: Job? = null
     private var lastTranslationRefreshAt = 0L
 
@@ -311,10 +311,10 @@ class NovelReaderV3ViewModel(
         if (_translationState.value is TranslationState.Running || tokens.isEmpty()) return
         val lang = appTranslateTargetLang()
         val translator = if (AiTranslator.isActive()) AiTranslator else GoogleWebTranslator
-        if (translationsLang != lang || translationsTranslator !== translator) {
+        val key = NovelTranslationKey.capture(translator, lang)
+        if (translationsKey != key) {
             translations = emptyMap()
-            translationsLang = lang
-            translationsTranslator = translator
+            translationsKey = key
         }
         // 从当前阅读位置往后先翻，再回头补前面——译文先出现在用户正在看的地方。
         val (before, after) = tokens.asSequence()

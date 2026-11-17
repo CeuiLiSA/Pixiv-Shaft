@@ -87,7 +87,7 @@ class NovelTitleTranslationViewModelTest {
         val engine = Engine { _, _ -> listOf("译文", "") }
         model.translate(listOf("a", "b"), "en", engine)
         advanceUntilIdle()
-        assertTrue(model.state.value?.error is IOException)
+        assertTrue(model.state.value?.error?.peekContent() is IOException)
         assertEquals("译文", model.title("a", "en"))
         assertEquals("b", model.title("b", "en"))
         engine.reply = { items, _ -> items.map { "完成" } }
@@ -114,8 +114,20 @@ class NovelTitleTranslationViewModelTest {
     @Test fun `wrong result count cannot replace unrelated titles`() = runTest(dispatcher) {
         model.translate(listOf("a", "b"), "en", Engine { _, _ -> listOf("one") })
         advanceUntilIdle()
-        assertTrue(model.state.value?.error is IOException)
+        assertTrue(model.state.value?.error?.peekContent() is IOException)
         assertEquals("a", model.title("a", "en"))
         assertEquals("b", model.title("b", "en"))
+    }
+
+    @Test fun `switching engine during a request cancels the old task before publishing the new result`() = runTest(dispatcher) {
+        var cancelled = false
+        val slow = Engine { _, _ -> try { awaitCancellation() } finally { cancelled = true } }
+        model.translate(listOf("a"), "en", slow)
+        runCurrent()
+        model.translate(listOf("a"), "en", Engine { _, _ -> listOf("new engine") })
+        advanceUntilIdle()
+        assertTrue(cancelled)
+        assertEquals("new engine", model.title("a", "en"))
+        assertNull(model.state.value?.error)
     }
 }

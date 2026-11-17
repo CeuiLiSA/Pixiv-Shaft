@@ -193,13 +193,11 @@ abstract class NovelFeedFragment(
             transform = { item, liked -> item.withBookmarked(liked) },
         ).bind(requireContext(), viewLifecycleOwner)
         observeMuteRevision()
-        var lastTitleState: NovelTitleTranslationViewModel.State? = null
         titleTranslations.state.observe(viewLifecycleOwner) { state ->
             onNovelTitleTranslationsChanged()
-            if (lastTitleState?.running == true && state.error != null) {
-                promptTranslateFailedIfPossible(state.error, titleTranslations.translationEngine() ?: currentTranslator())
+            state.error?.getContentIfNotHandled()?.let { error ->
+                promptTranslateFailedIfPossible(error, titleTranslations.translationEngine() ?: currentTranslator())
             }
-            lastTitleState = state
         }
     }
 
