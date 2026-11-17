@@ -33,11 +33,11 @@ import ceui.lisa.R
 import ceui.lisa.activities.BaseActivity
 import ceui.lisa.activities.SearchActivity
 import ceui.lisa.activities.TemplateActivity
-import ceui.lisa.database.AppDatabase
 import ceui.lisa.download.IllustDownload
 import ceui.lisa.interfaces.Callback
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
+import ceui.pixiv.db.synonym.SynonymDao
 import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.pixiv.session.SessionManager
 import com.blankj.utilcode.util.BarUtils
@@ -48,6 +48,7 @@ import kotlinx.coroutines.withContext
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
 import ceui.pixiv.ui.navigation.TemplateRoute
+import javax.inject.Inject
 
 /**
  * 同义词词典管理页（issue #904），承载于 TemplateActivity「同义词词典」。
@@ -68,6 +69,7 @@ import ceui.pixiv.ui.navigation.TemplateRoute
 @AndroidEntryPoint
 class SynonymDictFragment : Fragment(R.layout.fragment_synonym_dict) {
 
+    @Inject lateinit var synonymDaoLazy: dagger.Lazy<SynonymDao>
     private val viewModel by viewModels<SynonymDictViewModel>()
     private lateinit var adapter: DictAdapter
     private val searchDebounce = android.os.Handler(android.os.Looper.getMainLooper())
@@ -230,10 +232,9 @@ class SynonymDictFragment : Fragment(R.layout.fragment_synonym_dict) {
 
     /** 清空词典（退路）：用户不想要内置词典/想重新开始时一键清空。清空后不会再自动导入。 */
     private fun confirmClearAll() {
-        val appContext = requireContext().applicationContext
         // 同步 COUNT（毫秒级，本库允许主线程查询）：不依赖 totalCount LiveData 的发射时序，
         // 避免数据未加载完时弹出「清空 0 个目标标签」的误导文案
-        val targetCount = AppDatabase.getAppDatabase(appContext).synonymDao().countTargets()
+        val targetCount = synonymDaoLazy.get().countTargets()
         if (targetCount == 0) {
             Common.showToast(getString(R.string.synonym_dict_empty))
             return
@@ -246,7 +247,7 @@ class SynonymDictFragment : Fragment(R.layout.fragment_synonym_dict) {
                 d.dismiss()
                 viewLifecycleOwner.lifecycleScope.launch {
                     withContext(Dispatchers.IO) {
-                        AppDatabase.getAppDatabase(appContext).synonymDao().clearAll()
+                        synonymDaoLazy.get().clearAll()
                         // 清空后保持「已导入」标记 —— 这是用户的主动选择，不要在下次启动时偷偷导回来
                         SynonymBuiltinDict.markImported()
                     }

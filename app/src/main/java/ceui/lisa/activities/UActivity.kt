@@ -14,7 +14,7 @@ import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import ceui.lisa.R
-import ceui.lisa.database.AppDatabase
+import ceui.lisa.database.SearchDao
 import ceui.lisa.databinding.ActivityNewUserBinding
 import ceui.lisa.fragments.FragmentHolder.Companion.newInstance
 import ceui.lisa.helper.UserIllustJumpHelper
@@ -60,6 +60,7 @@ class UActivity : BaseActivity<ActivityNewUserBinding>(), Display<UserDetailResp
 
     @Inject lateinit var appLevelState: AppLevelState
     @Inject lateinit var entityWrapper: EntityWrapper
+    @Inject lateinit var searchDaoLazy: dagger.Lazy<SearchDao>
     override fun initLayout(): Int {
         return R.layout.activity_new_user
     }
@@ -105,7 +106,7 @@ class UActivity : BaseActivity<ActivityNewUserBinding>(), Display<UserDetailResp
         // 屏蔽/拉黑标记走 Room。别在 onCreate 里同步查 —— 会阻塞主线程，一旦 Room 读连接池
         // 被后台的下载探测占满就 ANR（本页正是 ANR 现场）。挪到 IO 线程 postValue 回来。
         lifecycleScope.launch(Dispatchers.IO) {
-            val dao = AppDatabase.getAppDatabase(applicationContext).searchDao()
+            val dao = searchDaoLazy.get()
             val muted = dao.getUserMuteEntityByID(userId) != null
             val blocked = dao.getBlockMuteEntityByID(userId) != null
             mUserViewModel.isUserMuted.postValue(muted)

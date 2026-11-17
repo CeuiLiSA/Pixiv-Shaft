@@ -21,14 +21,12 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import ceui.lisa.R
-import ceui.lisa.activities.Shaft
 import ceui.lisa.activities.VActivity
 import ceui.lisa.core.Container
 import ceui.lisa.core.DownloadItem
 import ceui.lisa.core.Manager
 import ceui.lisa.core.ManagerReactive
 import ceui.lisa.core.PageData
-import ceui.lisa.database.AppDatabase
 import ceui.lisa.download.FileSizeUtil
 import ceui.pixiv.api.model.Illust
 import ceui.lisa.utils.GlideUtil
@@ -83,12 +81,11 @@ class ActiveListV3Fragment : Fragment() {
      */
     @Inject lateinit var queueDownloadManager: QueueDownloadManager
     @Inject lateinit var imagePageSaver: ceui.pixiv.download.ImagePageSaver
+    @Inject lateinit var queueDaoLazy: dagger.Lazy<DownloadQueueDao>
 
     private val adapter = ActiveAdapterV3()
     private var statusHeader: TextView? = null
-    private val queueDao: DownloadQueueDao by lazy {
-        AppDatabase.getAppDatabase(Shaft.getContext()).downloadQueueDao()
-    }
+    private val queueDao: DownloadQueueDao get() = queueDaoLazy.get()
 
     /**
      * 1s 采样的整体下载速度（B/s）。0 表示当前没有可观测的字节增量（空闲 / 暂停 / 全失败）。

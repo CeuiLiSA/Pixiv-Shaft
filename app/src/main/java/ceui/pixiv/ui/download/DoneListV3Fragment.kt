@@ -34,7 +34,6 @@ import ceui.lisa.activities.VActivity
 import ceui.lisa.core.Container
 import ceui.lisa.core.ManagerReactive
 import ceui.lisa.core.PageData
-import ceui.lisa.database.AppDatabase
 import ceui.lisa.database.DownloadDao
 import ceui.lisa.database.DownloadEntity
 import ceui.pixiv.api.model.Illust
@@ -42,6 +41,7 @@ import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Local
 import ceui.lisa.utils.Params
 import ceui.loxia.Novel
+import ceui.pixiv.db.queue.DownloadQueueDao
 import ceui.pixiv.db.queue.QueueStatus
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.model.GlideUrl
@@ -93,12 +93,14 @@ class DoneListV3Fragment : Fragment() {
     @Inject
     lateinit var queueDownloadManager: QueueDownloadManager
 
-    private val dao: DownloadDao by lazy {
-        AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao()
-    }
-    private val queueDao by lazy {
-        AppDatabase.getAppDatabase(Shaft.getContext()).downloadQueueDao()
-    }
+    @Inject
+    lateinit var daoLazy: dagger.Lazy<DownloadDao>
+
+    @Inject
+    lateinit var queueDaoLazy: dagger.Lazy<DownloadQueueDao>
+
+    private val dao: DownloadDao get() = daoLazy.get()
+    private val queueDao: DownloadQueueDao get() = queueDaoLazy.get()
     private val sharedVm: DownloadManagerSharedViewModel by activityViewModels()
     private val adapter = DoneAdapterV3(
         initialMode = DoneLayoutMode.fromInt(Shaft.sSettings.doneListLayoutMode),

@@ -25,7 +25,6 @@ import ceui.lisa.activities.VActivity
 import ceui.lisa.core.Container
 import ceui.lisa.core.Manager
 import ceui.lisa.core.PageData
-import ceui.lisa.database.AppDatabase
 import ceui.pixiv.api.model.Illust
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
@@ -69,10 +68,9 @@ class QueueListV3Fragment : Fragment() {
      * 实例是应用级的,拿住没有泄漏问题。
      */
     @Inject lateinit var queueDownloadManager: QueueDownloadManager
+    @Inject lateinit var daoLazy: dagger.Lazy<DownloadQueueDao>
 
-    private val dao: DownloadQueueDao by lazy {
-        AppDatabase.getAppDatabase(Shaft.getContext()).downloadQueueDao()
-    }
+    private val dao: DownloadQueueDao get() = daoLazy.get()
     private val sharedVm: DownloadManagerSharedViewModel by activityViewModels()
     private lateinit var adapter: QueueAdapterV3
 
@@ -82,7 +80,7 @@ class QueueListV3Fragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        adapter = QueueAdapterV3(viewLifecycleOwner.lifecycleScope, dao)
+        adapter = QueueAdapterV3(viewLifecycleOwner.lifecycleScope, daoLazy)
         val list = view.findViewById<RecyclerView>(R.id.list)
         list.layoutManager = LinearLayoutManager(requireContext())
         list.adapter = adapter
@@ -339,7 +337,7 @@ private suspend fun loadIllustForRow(dao: DownloadQueueDao, rowId: Long): Illust
 
 private class QueueAdapterV3(
     private val scope: CoroutineScope,
-    private val dao: DownloadQueueDao,
+    private val daoLazy: dagger.Lazy<DownloadQueueDao>,
 ) : ListAdapter<DownloadQueueRow, QueueAdapterV3.VH>(QueueDiff) {
 
     /** 点击 row 的回调；fragment 端按 row.id 单独反序列化 illustGson 拼 PageData */
@@ -404,7 +402,7 @@ private class QueueAdapterV3(
         // 同时刻活跃 load job 也就十来个，相比"一次反序列化 5000 行"省 100×+ 内存。
         renderPlaceholder(h, item)
         h.loadJob = scope.launch {
-            val bean = loadIllustForRow(dao, item.id) ?: return@launch
+            val bean = loadIllustForRow(daoLazy.get(), item.id) ?: return@launch
             // 灌 ObjectPool —— 跟 consumer.resolveIllust 行为一致；后续别处 get
             // 同 id 直接命中，本 fragment 滚动回这条也直接走上面的 cached 分支。
             runCatching { ObjectPool.updateIllust(bean) }
