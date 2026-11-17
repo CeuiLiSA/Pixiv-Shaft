@@ -5,6 +5,11 @@
     <include layout="@layout/toolbar_layout" />
     <FrameLayout android:id="@+id/artlist_filters" android:layout_width="match_parent"
         android:layout_height="wrap_content" android:paddingHorizontal="16dp" android:paddingVertical="12dp" />
+    <TextView android:id="@+id/artlist_picker_hint" android:layout_width="match_parent"
+        android:layout_height="wrap_content" android:paddingStart="16dp" android:paddingEnd="16dp"
+        android:paddingTop="12dp" android:paddingBottom="12dp" android:textSize="14sp"
+        android:textColor="@color/v3_text_2" android:text="@string/artlist_public_hint"
+        android:visibility="gone" android:accessibilityLiveRegion="polite" />
     <include android:id="@+id/feed_root" layout="@layout/fragment_feed"
         android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" />
     <FrameLayout android:id="@+id/artlist_actions" android:layout_width="match_parent"

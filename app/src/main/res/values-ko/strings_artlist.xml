@@ -48,4 +48,9 @@
     <string name="artlist_description_limit">설명을 1000자 이내로 줄인 후 저장해 주세요</string>
     <string name="artlist_operation_done">저장했습니다</string>
     <string name="artlist_cover_description">목록 표지</string>
+    <string name="artlist_bulk_add">작품 모음에 일괄 추가 (%1$d개)</string>
+    <string name="artlist_bulk_confirm">선택한 작품을 ‘%1$s’에 추가할까요?</string>
+    <string name="artlist_bulk_progress">‘%3$s’에 추가됨: %1$d / %2$d개</string>
+    <string name="artlist_bulk_retry">같은 작품 모음을 누르면 나머지 작품 추가를 계속합니다.</string>
+    <string name="artlist_bulk_running_hint">이 페이지를 열어 두세요. 뒤로 가면 일괄 추가가 중단되며 이미 추가된 작품은 유지됩니다.</string>
 </resources>

@@ -268,11 +268,18 @@ internal class BookmarkLibraryUi(
         // 所以这条退路只为「原序 + 最新」这两点存在。
         binding.toolbar.menu.add(0, MENU_CLASSIC, 0, profile.openClassic)
         binding.toolbar.menu.add(0, MENU_REBUILD, 1, R.string.bookmark_library_rebuild)
+        if (contentType == MirrorContentType.ILLUST) {
+            binding.toolbar.menu.add(0, MENU_ARTLISTS, 2, R.string.artlist_mine_title)
+        }
         if (contentType == MirrorContentType.USER) {
             binding.toolbar.menu.add(0, MENU_EXPORT, 2, R.string.following_export_menu)
         }
         binding.toolbar.setOnMenuItemClickListener { item ->
             when (item.itemId) {
+                MENU_ARTLISTS -> {
+                    ceui.pixiv.ui.artlist.ArtlistNavigation.mine(context)
+                    true
+                }
                 MENU_CLASSIC -> {
                     openClassicCollection()
                     true
@@ -711,6 +718,7 @@ internal class BookmarkLibraryUi(
         private const val MENU_REBUILD = 1
         private const val MENU_CLASSIC = 2
         private const val MENU_EXPORT = 3
+        private const val MENU_ARTLISTS = 4
 
         /** 内容类型入参。**必须由路由方引用这个常量**，别在别处再抄一遍字面量。 */
         const val ARG_CONTENT_TYPE = "bookmark_library_content_type"

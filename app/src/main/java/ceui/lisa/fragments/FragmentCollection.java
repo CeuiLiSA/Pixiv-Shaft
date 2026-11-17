@@ -264,7 +264,8 @@ public class FragmentCollection extends BaseFragment<ViewpagerWithTablayoutBindi
         String[] items = type == 0
                 ? new String[]{
                         getString(R.string.bookmark_library_menu_entry),
-                        getString(R.string.bulk_collection_menu_download_all)
+                        getString(R.string.bulk_collection_menu_download_all),
+                        getString(R.string.artlist_mine_title)
                 }
                 : new String[]{
                         getString(type == 2
@@ -282,6 +283,8 @@ public class FragmentCollection extends BaseFragment<ViewpagerWithTablayoutBindi
                                 ceui.pixiv.ui.library.BookmarkLibraryUi.ARG_CONTENT_TYPE,
                                 libraryContentType().getCode());
                         startActivity(intent);
+                    } else if (which == 2) {
+                        ceui.pixiv.ui.artlist.ArtlistNavigation.mine(requireContext());
                     } else if (which == 1) {
                         long uid = SessionManager.INSTANCE.getLoggedInUid();
                         String restrictLabel = getString(restrict.equals(Params.TYPE_PUBLIC)

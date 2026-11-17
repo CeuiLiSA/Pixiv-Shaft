@@ -258,6 +258,13 @@ class BulkSelectV3Fragment : Fragment() {
             toBookmark,
         )
         showV3Menu("BulkBookmarkMenu") {
+            item(getString(R.string.artlist_bulk_add, picked.size), R.drawable.ic_collections_black_24dp) {
+                if (picked.map { it.id }.distinct().size > 1000) {
+                    Toaster.showShort(R.string.artlist_limit_error)
+                } else {
+                    ceui.pixiv.ui.artlist.ArtlistNavigation.add(requireContext(), picked)
+                }
+            }
             item(addLabel, R.drawable.ic_like_heart_fill) {
                 confirmBookmark(picked, toBookmark, restrict, isPrivate)
             }

@@ -48,4 +48,9 @@
     <string name="artlist_description_limit">Сократите описание до 1000 символов перед сохранением</string>
     <string name="artlist_operation_done">Сохранено</string>
     <string name="artlist_cover_description">Обложка подборки</string>
+    <string name="artlist_bulk_add">Добавить в артлист (%1$d работ)</string>
+    <string name="artlist_bulk_confirm">Добавить выбранные работы в «%1$s»?</string>
+    <string name="artlist_bulk_progress">Добавлено в «%3$s»: %1$d / %2$d работ</string>
+    <string name="artlist_bulk_retry">Нажмите тот же артлист, чтобы продолжить добавление оставшихся работ.</string>
+    <string name="artlist_bulk_running_hint">Оставьте эту страницу открытой. Возврат остановит добавление; уже добавленные работы сохранятся.</string>
 </resources>

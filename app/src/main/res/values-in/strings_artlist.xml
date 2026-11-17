@@ -48,4 +48,9 @@
     <string name="artlist_description_limit">Ringkas deskripsi menjadi maksimal 1000 karakter sebelum menyimpan</string>
     <string name="artlist_operation_done">Tersimpan</string>
     <string name="artlist_cover_description">Sampul daftar</string>
+    <string name="artlist_bulk_add">Tambahkan ke daftar karya (%1$d karya)</string>
+    <string name="artlist_bulk_confirm">Tambahkan karya yang dipilih ke “%1$s”?</string>
+    <string name="artlist_bulk_progress">Ditambahkan ke “%3$s”: %1$d / %2$d karya</string>
+    <string name="artlist_bulk_retry">Ketuk daftar yang sama untuk melanjutkan karya yang tersisa.</string>
+    <string name="artlist_bulk_running_hint">Biarkan halaman ini terbuka. Kembali akan menghentikan proses; karya yang sudah ditambahkan tetap tersimpan.</string>
 </resources>

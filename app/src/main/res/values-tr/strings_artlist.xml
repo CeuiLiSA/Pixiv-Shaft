@@ -48,4 +48,9 @@
     <string name="artlist_description_limit">Kaydetmeden önce açıklamayı 1000 karaktere kısaltın</string>
     <string name="artlist_operation_done">Kaydedildi</string>
     <string name="artlist_cover_description">Liste kapağı</string>
+    <string name="artlist_bulk_add">Sanat listesine ekle (%1$d eser)</string>
+    <string name="artlist_bulk_confirm">Seçilen eserler “%1$s” listesine eklensin mi?</string>
+    <string name="artlist_bulk_progress">“%3$s” listesine eklendi: %1$d / %2$d eser</string>
+    <string name="artlist_bulk_retry">Kalan eserleri eklemeye devam etmek için aynı listeye dokunun.</string>
+    <string name="artlist_bulk_running_hint">Bu sayfayı açık tutun. Geri dönmek işlemi durdurur; eklenen eserler listede kalır.</string>
 </resources>

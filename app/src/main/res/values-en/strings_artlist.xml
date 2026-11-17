@@ -48,4 +48,9 @@
     <string name="artlist_description_limit">Keep the description within 1000 characters before saving</string>
     <string name="artlist_operation_done">Saved</string>
     <string name="artlist_cover_description">Artlist cover</string>
+    <string name="artlist_bulk_add">Add to artlist (%1$d works)</string>
+    <string name="artlist_bulk_confirm">Add the selected works to “%1$s”?</string>
+    <string name="artlist_bulk_progress">Added to “%3$s”: %1$d / %2$d works</string>
+    <string name="artlist_bulk_retry">Tap the same artlist to resume the remaining works.</string>
+    <string name="artlist_bulk_running_hint">Keep this page open. Going back stops the batch; works already added will remain.</string>
 </resources>

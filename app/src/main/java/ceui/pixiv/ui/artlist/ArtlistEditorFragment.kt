@@ -82,7 +82,8 @@ class ArtlistEditorFragment : Fragment(R.layout.fragment_artlist_editor) {
                     state.completed?.let { item ->
                         model.consumeResult()
                         Common.showToast(R.string.artlist_operation_done)
-                        if (model.listId == 0L) ArtlistNavigation.open(context, item.id)
+                        if (model.listId == 0L && arguments?.getBoolean(ArtlistNavigation.RETURN_TO_PICKER) != true)
+                            ArtlistNavigation.open(context, item.id)
                         requireActivity().finish()
                     }
                 }

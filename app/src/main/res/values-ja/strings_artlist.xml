@@ -48,4 +48,9 @@
     <string name="artlist_description_limit">説明を 1000 文字以内にしてから保存してください</string>
     <string name="artlist_operation_done">保存しました</string>
     <string name="artlist_cover_description">リストの表紙</string>
+    <string name="artlist_bulk_add">画集にまとめて追加（%1$d 件）</string>
+    <string name="artlist_bulk_confirm">選択した作品を「%1$s」に追加しますか？</string>
+    <string name="artlist_bulk_progress">「%3$s」に追加済み：%1$d / %2$d 件</string>
+    <string name="artlist_bulk_retry">同じ画集をタップすると残りの作品の追加を再開します。</string>
+    <string name="artlist_bulk_running_hint">このページを開いたままお待ちください。戻ると追加が停止します。追加済みの作品は残ります。</string>
 </resources>

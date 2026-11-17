@@ -48,4 +48,9 @@
     <string name="artlist_description_limit">簡介最多 1000 字，請精簡後再儲存</string>
     <string name="artlist_operation_done">已儲存</string>
     <string name="artlist_cover_description">畫單封面</string>
+    <string name="artlist_bulk_add">批次加入畫單（%1$d 項）</string>
+    <string name="artlist_bulk_confirm">將所選作品加入「%1$s」？</string>
+    <string name="artlist_bulk_progress">已加入「%3$s」：%1$d / %2$d 項</string>
+    <string name="artlist_bulk_retry">點選同一畫單繼續加入尚未完成的作品。</string>
+    <string name="artlist_bulk_running_hint">請保持此頁開啟，返回會停止加入；已加入的作品會保留。</string>
 </resources>

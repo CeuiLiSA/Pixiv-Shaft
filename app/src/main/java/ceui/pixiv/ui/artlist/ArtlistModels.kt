@@ -15,6 +15,7 @@ import ceui.pixiv.ui.common.withMirroredBookmarks
 import com.google.gson.Gson
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -24,18 +25,28 @@ import java.util.UUID
 internal data class ArtlistCardItem(val list: Artlist) : FeedItem { override val feedKey: Any = list.id }
 internal data class ArtlistHeaderItem(val list: Artlist) : FeedItem { override val feedKey: Any = "artlist_header" }
 internal data class ArtlistNotice(val message: String? = null, val finish: Boolean = false)
+internal data class ArtlistBatchProgress(val completed: Int, val total: Int, val name: String, val error: String? = null)
 
 /** Survives rotation; requests capture the initiating uid, never a Fragment or a view. */
 internal class ArtlistModel(private val saved: SavedStateHandle) : ViewModel() {
     val listId: Long = saved[ArtlistNavigation.ID] ?: 0L
     val work: Illust? = saved.get<String>(ArtlistNavigation.WORK)?.let { Gson().fromJson(it, Illust::class.java) }
+    private val workIds: LongArray? = saved[ArtlistNavigation.WORK_IDS]
+    val picking: Boolean get() = work != null || workIds != null
+    val batchPicking: Boolean get() = workIds != null
     var scope: String
-        get() = saved[ArtlistNavigation.SCOPE] ?: if (work != null) "mine" else "all"
+        get() = if (picking) "mine" else saved[ArtlistNavigation.SCOPE] ?: "all"
         set(value) { saved[ArtlistNavigation.SCOPE] = value }
     private val mutableBusy = MutableStateFlow(false)
     val busy = mutableBusy.asStateFlow()
     private val mutableNotice = MutableStateFlow<ArtlistNotice?>(null)
     val notice = mutableNotice.asStateFlow()
+    private val mutableBatchProgress = MutableStateFlow(workIds?.let { ids ->
+        saved.get<String>("batch_name")?.let { name ->
+            ArtlistBatchProgress(saved["batch_completed"] ?: 0, ids.size, name)
+        }
+    })
+    val batchProgress = mutableBatchProgress.asStateFlow()
     // The feed survives configuration changes, so its invalidation watermark must survive too.
     private var seenRevision = ArtlistRepository.revision.value
     fun consumeRevisionChange(revision: Long): Boolean {
@@ -43,14 +54,59 @@ internal class ArtlistModel(private val saved: SavedStateHandle) : ViewModel() {
         seenRevision = revision
         return true
     }
-    var account = SessionManager.loggedInUid
+    var account = saved.get<Long>("artlist_account") ?: SessionManager.loggedInUid
         private set
+
+    init { saved["artlist_account"] = account }
 
     fun accountChanged(): Boolean {
         val next = SessionManager.loggedInUid
         if (next == account) return false
-        account = next
+        // A picker selection belongs to its initiating account, including after restoration.
+        if (!picking) {
+            account = next
+            saved["artlist_account"] = next
+        }
         return true
+    }
+
+    fun addTo(list: Artlist) {
+        if (mutableBusy.value) return
+        val ids = workIds
+        if (ids == null) {
+            val selected = work ?: return
+            mutate(finish = true) { uid ->
+                val updated = ArtlistRepository.add(uid, list.id, selected)
+                Shaft.getContext().getString(R.string.artlist_add_done, updated.name)
+            }
+            return
+        }
+        if (saved.get<Long>("batch_target") != list.id) {
+            saved["batch_target"] = list.id
+            saved["batch_completed"] = 0
+        }
+        saved["batch_name"] = list.name
+        var completed = saved.get<Int>("batch_completed") ?: 0
+        mutableBatchProgress.value = ArtlistBatchProgress(completed, ids.size, list.name)
+        mutate(finish = true) { uid ->
+            try {
+                val start = completed
+                for (index in start until ids.size) {
+                    // The existing artlist API permits 60 writes per account per minute.
+                    if (index > start) delay(1100)
+                    ArtlistRepository.add(uid, list.id, Illust(id = ids[index]))
+                    completed = index + 1
+                    saved["batch_completed"] = completed
+                    mutableBatchProgress.value = ArtlistBatchProgress(completed, ids.size, list.name)
+                }
+                Shaft.getContext().getString(R.string.artlist_add_done, list.name)
+            } catch (e: CancellationException) { throw e }
+            catch (e: Exception) {
+                mutableBatchProgress.value = ArtlistBatchProgress(completed, ids.size, list.name,
+                    e.message ?: Shaft.getContext().getString(R.string.artlist_network_error))
+                throw e
+            }
+        }
     }
 
     val lists = FeedSource<String> { cursor ->
