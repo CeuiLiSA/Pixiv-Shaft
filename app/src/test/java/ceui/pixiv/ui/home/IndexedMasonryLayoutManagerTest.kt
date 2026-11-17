@@ -3,9 +3,11 @@ package ceui.pixiv.ui.home
 import android.app.Application
 import android.view.View
 import android.widget.TextView
+import androidx.core.view.accessibility.AccessibilityNodeInfoCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.GridLayoutManager
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import androidx.viewbinding.ViewBinding
 import ceui.pixiv.feeds.FeedAdapter
 import ceui.pixiv.feeds.FeedItem
@@ -17,6 +19,7 @@ import org.junit.Assert.assertSame
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
+import org.junit.Assert.assertFalse
 import java.util.concurrent.atomic.AtomicInteger
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -27,6 +30,111 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [35], application = Application::class)
 class IndexedMasonryLayoutManagerTest {
+    @Test
+    fun scrollBoundsAreReportedToRefreshAndAccessibility() {
+        val controller = Robolectric.buildActivity(FragmentActivity::class.java).setup()
+        try {
+            val refresh = SwipeRefreshLayout(controller.get())
+            val list = RecyclerView(controller.get())
+            refresh.addView(list)
+            controller.get().setContentView(refresh)
+            list.setPadding(0, 24, 0, 64)
+            val adapter = FeedAdapter(listOf(
+                feedRenderer<Work, WidthCellBinding>(inflate = ::widthCell) { },
+            ))
+            list.layoutManager = IndexedMasonryLayoutManager(2, 8) { _, width -> width }
+            list.adapter = adapter
+            adapter.submitList((1..60).map(::Work))
+            layout(refresh)
+
+            assertFalse(list.canScrollVertically(-1))
+            assertTrue(list.canScrollVertically(1))
+            assertFalse(refresh.canChildScrollUp())
+            list.scrollBy(0, 250)
+            assertTrue(list.canScrollVertically(-1))
+            assertTrue(list.canScrollVertically(1))
+            assertTrue(refresh.canChildScrollUp())
+            assertEquals(250, list.computeVerticalScrollOffset())
+            assertEquals(412, list.computeVerticalScrollExtent())
+
+            val info = AccessibilityNodeInfoCompat.obtain()
+            list.compatAccessibilityDelegate!!.onInitializeAccessibilityNodeInfo(list, info)
+            assertTrue(info.isScrollable)
+            assertTrue(info.actionList.contains(
+                AccessibilityNodeInfoCompat.AccessibilityActionCompat.ACTION_SCROLL_BACKWARD
+            ))
+
+            list.scrollBy(0, Int.MAX_VALUE)
+            assertTrue(list.canScrollVertically(-1))
+            assertFalse(list.canScrollVertically(1))
+            assertEquals(
+                list.computeVerticalScrollRange() - list.computeVerticalScrollExtent(),
+                list.computeVerticalScrollOffset(),
+            )
+        } finally {
+            controller.pause().stop().destroy()
+        }
+    }
+
+    @Test
+    fun shortAndEmptyListsDoNotReportScrollableContent() {
+        val controller = Robolectric.buildActivity(FragmentActivity::class.java).setup()
+        try {
+            val list = RecyclerView(controller.get())
+            controller.get().setContentView(list)
+            val adapter = FeedAdapter(listOf(
+                feedRenderer<Work, WidthCellBinding>(inflate = ::widthCell) { },
+            ))
+            list.layoutManager = IndexedMasonryLayoutManager(2, 8) { _, width -> width }
+            list.adapter = adapter
+            adapter.submitList(listOf(Work(1)))
+            layout(list)
+            assertFalse(list.canScrollVertically(-1))
+            assertFalse(list.canScrollVertically(1))
+            assertEquals(0, list.computeVerticalScrollOffset())
+            adapter.submitList(null)
+            layout(list)
+            assertEquals(0, list.computeVerticalScrollRange())
+            assertEquals(0, list.computeVerticalScrollExtent())
+        } finally {
+            controller.pause().stop().destroy()
+        }
+    }
+
+    @Test
+    fun unclippedPaddingKeepsCardsVisibleUntilTheyLeaveTheView() {
+        assertPaddingVisibility(clipToPadding = false)
+    }
+
+    @Test
+    fun clippedPaddingOnlyKeepsCardsInTheContentArea() {
+        assertPaddingVisibility(clipToPadding = true)
+    }
+
+    private fun assertPaddingVisibility(clipToPadding: Boolean) {
+        val controller = Robolectric.buildActivity(FragmentActivity::class.java).setup()
+        try {
+            val list = RecyclerView(controller.get())
+            controller.get().setContentView(list)
+            list.clipToPadding = clipToPadding
+            list.setPadding(0, 100, 0, 100)
+            val adapter = FeedAdapter(listOf(
+                feedRenderer<Work, WidthCellBinding>(inflate = ::widthCell) { },
+            ))
+            list.layoutManager = IndexedMasonryLayoutManager(2, 8) { _, width -> width }
+            list.adapter = adapter
+            adapter.submitList((1..60).map(::Work))
+            layout(list)
+            // The second row starts at y=404, inside the bottom padding of this 500px view.
+            assertEquals(!clipToPadding, list.findViewHolderForAdapterPosition(2) != null)
+            list.scrollBy(0, 350)
+            // The first row still intersects the top padding, ending at y=46.
+            assertEquals(!clipToPadding, list.findViewHolderForAdapterPosition(0) != null)
+        } finally {
+            controller.pause().stop().destroy()
+        }
+    }
+
     @Test
     fun deepJumpThenScrollToHeaderKeepsBothFirstCardsAligned() {
         val controller = Robolectric.buildActivity(FragmentActivity::class.java).setup()
@@ -259,7 +367,7 @@ class IndexedMasonryLayoutManagerTest {
         }
     }
 
-    private fun layout(list: RecyclerView) {
+    private fun layout(list: View) {
         list.measure(
             View.MeasureSpec.makeMeasureSpec(600, View.MeasureSpec.EXACTLY),
             View.MeasureSpec.makeMeasureSpec(500, View.MeasureSpec.EXACTLY),

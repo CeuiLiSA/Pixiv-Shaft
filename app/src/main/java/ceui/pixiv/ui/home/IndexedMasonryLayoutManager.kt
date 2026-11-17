@@ -53,6 +53,25 @@ internal class IndexedMasonryLayoutManager(
     override fun canScrollVertically() = true
     override fun supportsPredictiveItemAnimations() = false
 
+    // View.canScrollVertically(direction) 和 SwipeRefreshLayout、无障碍翻页都依赖这三个值。
+    override fun computeVerticalScrollExtent(state: RecyclerView.State): Int =
+        if (index == null) 0 else (height - paddingTop - paddingBottom).coerceAtLeast(0)
+
+    override fun computeVerticalScrollRange(state: RecyclerView.State): Int {
+        val model = index ?: return 0
+        val extent = computeVerticalScrollExtent(state)
+        return (maxScroll(model) + extent).coerceAtMost(Int.MAX_VALUE.toLong()).toInt()
+    }
+
+    override fun computeVerticalScrollOffset(state: RecyclerView.State): Int {
+        val model = index ?: return 0
+        val maxOffset = computeVerticalScrollRange(state) - computeVerticalScrollExtent(state)
+        val maxScroll = maxScroll(model)
+        return if (maxScroll <= maxOffset) scrollY.toInt() else {
+            (scrollY.toDouble() / maxScroll * maxOffset).toInt()
+        }
+    }
+
     override fun onLayoutChildren(recycler: RecyclerView.Recycler, state: RecyclerView.State) {
         if (state.isPreLayout) return
         val anchorView =
@@ -227,10 +246,11 @@ internal class IndexedMasonryLayoutManager(
     }
 
     private fun fill(recycler: RecyclerView.Recycler, model: MasonryPlacementIndex) {
-        val viewportBottom = scrollY + height - paddingTop - paddingBottom
-        var position = model.firstCandidate(scrollY)
+        val viewportTop = scrollY + layoutStart - paddingTop
+        val viewportBottom = scrollY + layoutEnd - paddingTop
+        var position = model.firstCandidate(viewportTop)
         while (position < model.size && model.top[position] <= viewportBottom) {
-            if (model.bottom[position] > scrollY && findViewByPosition(position) == null) {
+            if (model.bottom[position] > viewportTop && findViewByPosition(position) == null) {
                 val view = recycler.getViewForPosition(position)
                 var insertion = 0
                 while (insertion < childCount && getPosition(getChildAt(insertion)!!) < position) insertion++
@@ -286,11 +306,16 @@ internal class IndexedMasonryLayoutManager(
     private fun recycleOutside(recycler: RecyclerView.Recycler) {
         for (child in childCount - 1 downTo 0) {
             val view = getChildAt(child) ?: continue
-            if (getDecoratedBottom(view) < paddingTop || getDecoratedTop(view) > height - paddingBottom) {
+            if (getDecoratedBottom(view) < layoutStart || getDecoratedTop(view) > layoutEnd) {
                 removeAndRecycleView(view, recycler)
             }
         }
     }
+
+    // clipToPadding=false 的卡片继续画进安全区，滚动终点仍按 padding 内的内容区计算。
+    private val layoutStart: Int get() = if (attachedView?.clipToPadding == false) 0 else paddingTop
+    private val layoutEnd: Int get() =
+        if (attachedView?.clipToPadding == false) height else height - paddingBottom
 
     private fun firstVisibleChild(): View? {
         var best: View? = null
