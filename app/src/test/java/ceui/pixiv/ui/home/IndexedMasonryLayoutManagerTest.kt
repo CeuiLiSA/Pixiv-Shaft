@@ -1,6 +1,7 @@
 package ceui.pixiv.ui.home
 
 import android.app.Application
+import android.os.Looper
 import android.view.View
 import android.widget.TextView
 import androidx.core.view.accessibility.AccessibilityNodeInfoCompat
@@ -25,11 +26,101 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [35], application = Application::class)
 class IndexedMasonryLayoutManagerTest {
+    @Test
+    fun invalidRestoredPositionDoesNotJumpWhenLaterPagesArrive() = withIndexedList { list, adapter, manager ->
+        submit(adapter, (1..60).map(::Work))
+        layout(list)
+        manager.scrollToFeedPositionWithOffset(28, -17)
+        layout(list)
+        val saved = manager.onSaveInstanceState()
+
+        adapter.submitList(null)
+        val restored = IndexedMasonryLayoutManager(2, 8) { _, width -> width }
+        list.layoutManager = restored
+        restored.onRestoreInstanceState(saved)
+        layout(list)
+        submit(adapter, (1..8).map(::Work))
+        layout(list)
+        list.scrollBy(0, 120)
+        val offset = list.computeVerticalScrollOffset()
+        assertEquals(120, offset)
+
+        submit(adapter, (1..60).map(::Work))
+        layout(list)
+        assertEquals(offset, list.computeVerticalScrollOffset())
+    }
+
+    @Test
+    fun emptyLayoutRetainsAValidPendingRestoration() = withIndexedList { list, adapter, manager ->
+        submit(adapter, (1..60).map(::Work))
+        layout(list)
+        manager.scrollToFeedPositionWithOffset(28, -17)
+        layout(list)
+        val saved = manager.onSaveInstanceState()
+
+        adapter.submitList(null)
+        val restored = IndexedMasonryLayoutManager(2, 8) { _, width -> width }
+        list.layoutManager = restored
+        restored.onRestoreInstanceState(saved)
+        layout(list)
+        submit(adapter, (1..60).map(::Work))
+        layout(list)
+        assertEquals(-17, list.findViewHolderForAdapterPosition(28)!!.itemView.top)
+    }
+
+    @Test
+    fun insertionAndRemovalAboveTheViewportKeepTheSameWorkInPlace() = withIndexedList { list, adapter, manager ->
+        submit(adapter, (1..60).map(::Work))
+        layout(list)
+        manager.scrollToFeedPositionWithOffset(28, -17)
+        layout(list)
+        val anchor = list.findViewHolderForAdapterPosition(28)!!.itemView
+        val top = anchor.top
+
+        submit(adapter, (101..104).map(::Work) + (1..60).map(::Work))
+        layout(list)
+        assertSame(anchor, list.findViewHolderForAdapterPosition(32)!!.itemView)
+        assertEquals(top, anchor.top)
+        submit(adapter, (1..60).map(::Work))
+        layout(list)
+        assertSame(anchor, list.findViewHolderForAdapterPosition(28)!!.itemView)
+        assertEquals(top, anchor.top)
+    }
+
+    private fun withIndexedList(block: (RecyclerView, FeedAdapter, IndexedMasonryLayoutManager) -> Unit) {
+        val controller = Robolectric.buildActivity(FragmentActivity::class.java).setup()
+        try {
+            val list = RecyclerView(controller.get())
+            controller.get().setContentView(list)
+            val adapter = FeedAdapter(listOf(
+                feedRenderer<Work, WidthCellBinding>(inflate = ::widthCell) { },
+            ))
+            val manager = IndexedMasonryLayoutManager(2, 8) { _, width -> width }
+            list.layoutManager = manager
+            list.adapter = adapter
+            block(list, adapter, manager)
+        } finally {
+            controller.pause().stop().destroy()
+        }
+    }
+
+    private fun submit(adapter: FeedAdapter, items: List<FeedItem>) {
+        var committed = false
+        adapter.submitList(items) { committed = true }
+        val deadline = System.nanoTime() + 5_000_000_000L
+        while (!committed) {
+            shadowOf(Looper.getMainLooper()).idle()
+            check(System.nanoTime() < deadline) { "ListAdapter commit timed out" }
+            Thread.sleep(10)
+        }
+    }
+
     @Test
     fun scrollBoundsAreReportedToRefreshAndAccessibility() {
         val controller = Robolectric.buildActivity(FragmentActivity::class.java).setup()

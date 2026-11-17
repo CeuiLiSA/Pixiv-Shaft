@@ -74,6 +74,11 @@ internal class IndexedMasonryLayoutManager(
 
     override fun onLayoutChildren(recycler: RecyclerView.Recycler, state: RecyclerView.State) {
         if (state.isPreLayout) return
+        // 空列表继续等待首批数据；非空列表里的越界旧位置必须丢弃，不能留到翻页后再跳过去。
+        if (state.itemCount > 0 && pendingPosition !in 0 until state.itemCount) {
+            pendingPosition = RecyclerView.NO_POSITION
+            pendingOffset = 0
+        }
         val anchorView =
             if (pendingPosition == RecyclerView.NO_POSITION) firstVisibleChild() else null
         val anchorPosition = anchorView?.let(::getPosition) ?: RecyclerView.NO_POSITION
