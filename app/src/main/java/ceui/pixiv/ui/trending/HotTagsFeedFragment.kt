@@ -2,6 +2,7 @@ package ceui.pixiv.ui.trending
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
 import ceui.lisa.R
@@ -24,8 +25,11 @@ import ceui.pixiv.feeds.FeedRenderer
 import ceui.pixiv.feeds.pixiv.pixivFeedSource
 import ceui.pixiv.feeds.feedRenderer
 import ceui.pixiv.feeds.feedViewModels
-import ceui.pixiv.ui.common.IllustFeedItem
+import ceui.pixiv.ui.common.UserPreviewTransitionFactory
 import ceui.pixiv.utils.clearGlideOnRecycle
+import ceui.pixiv.utils.pinHostGlide
+import com.bumptech.glide.RequestManager
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import ceui.pixiv.utils.setOnClick
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.model.GlideUrl
@@ -55,6 +59,23 @@ class HotTagsFeedFragment : FeedFragment() {
         requireArguments().getString(ARG_CONTENT_TYPE) ?: Params.TYPE_ILLUST
     }
 
+    private val tagGlide: RequestManager by lazy { Glide.with(this) }
+    private val previewImageTransition by lazy(LazyThreadSafetyMode.NONE) {
+        DrawableTransitionOptions().transition(UserPreviewTransitionFactory(requireContext()))
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        pinHostGlide(tagGlide)
+    }
+
+    override fun onDestroyView() {
+        // 卸下 adapter 会把屏上和屏外缓存的 holder 一起送进 recycle，不能只遍历 childCount。
+        // Glide 绑定的是 Fragment 生命周期；仅销毁 view 时，旧视图的请求不会自动清掉。
+        feedBinding.feedListView.adapter = null
+        super.onDestroyView()
+    }
+
     override val feedViewModel by feedViewModels(autoLoad = false) {
         // 零捕获约定（见 feedViewModels 文档）：contentType 取成局部值，不把 Fragment 钉进 VM
         val contentType = contentType
@@ -64,7 +85,12 @@ class HotTagsFeedFragment : FeedFragment() {
             // 已屏蔽的标签也不再摆出来（pixez#1182）；先滤再编号，头图始终落在第一个可见标签上。
             val mutedTags = IllustNovelFilter.getMutedTags()
             resp.trend_tags
-                .filter { !it.tag.isNullOrEmpty() && !IllustNovelFilter.isTagNameMuted(it.tag, mutedTags) }
+                .filter {
+                    !it.tag.isNullOrEmpty() && !IllustNovelFilter.isTagNameMuted(
+                        it.tag,
+                        mutedTags
+                    )
+                }
                 .mapIndexed { index, trendingTag ->
                     val bean = trendingTag.illust
                     if (index == 0) {
@@ -81,6 +107,8 @@ class HotTagsFeedFragment : FeedFragment() {
     }
 
     override fun onListReady(listView: RecyclerView) {
+        listView.itemAnimator = null
+        listView.setItemViewCacheSize(ITEM_VIEW_CACHE_SIZE)
         listView.addItemDecoration(
             TagItemDecoration(SPAN_COUNT, DensityUtil.dp2px(1.0f), false)
         )
@@ -106,14 +134,16 @@ class HotTagsFeedFragment : FeedFragment() {
             cell.binding.root.setOnLongClickListener { openIllustDetail(cell.item.bean) }
         },
         recycle = { cell ->
+            // 屏外缓存命中不会进这里；只有真正回收时才释放请求，不影响往复滚动复用。
             cell.binding.illustImage.clearGlideOnRecycle()
         },
     ) { cell ->
         val trendingTag = cell.item.trendingTag
         cell.binding.illustImage.setHeightRatio(ratio)
-        Glide.with(cell.binding.illustImage)
+        tagGlide
             .load(cell.item.bean?.let(imageOf))
             .placeholder(R.color.light_bg)
+            .transition(previewImageTransition)
             .into(cell.binding.illustImage)
         val translated = trendingTag.translated_name
         cell.binding.chineseTitle.text =
@@ -145,6 +175,7 @@ class HotTagsFeedFragment : FeedFragment() {
         private const val SPAN_COUNT = 3
         private const val HEADER_RATIO = 0.66f
         private const val CONTENT_RATIO = 1.0f
+        private const val ITEM_VIEW_CACHE_SIZE = 40
 
         /** [contentType] 取 [Params.TYPE_ILLUST] / [Params.TYPE_NOVEL]。 */
         @JvmStatic
