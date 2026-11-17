@@ -54,7 +54,7 @@ import java.util.Locale
  * 信息栏在旁边（或下方）独立滚动：
  *
  * - **排布**（[arrange]）：窗口宽于高时舞台在左、信息栏在右（宽度取窗口 36%，夹在
- *   400–520dp）；否则舞台在上（半屏）、信息栏在下。信息栏压在整页环境色上，
+ *   400–520dp；开了「平板详情左右互换」则左右对调，#1332）；否则舞台在上（半屏）、信息栏在下。信息栏压在整页环境色上，
  *   靠舞台一侧是 28dp 圆角。
  * - **作品**：上下贴满舞台（连状态栏下面也铺），按原比例居中、不裁切；横图放不下时按宽度
  *   放、上下露出环境色。多页作品上下翻页，侧边页码条可直接跳页，底部是「当前 / 总页」读数；
@@ -79,9 +79,11 @@ internal class ArtworkTabletStage(
     private val ctx = stage.context
     private val palette = V3Palette.from(ctx)
 
-    /** true = 舞台在左、信息栏在右；false = 舞台在上、信息栏在下（信息栏不贴屏幕顶）。 */
+    /** true = 舞台与信息栏左右并排（默认舞台在左，见 [swapped]）；false = 舞台在上、信息栏在下（信息栏不贴屏幕顶）。 */
     var sideBySide: Boolean = true
         private set
+    /** 并排且开了「平板详情左右互换」（#1332）：舞台在结束侧、信息栏在起始侧，作品挪到右手边。 */
+    private var swapped: Boolean = false
     val currentPage: Int get() = pager.currentItem
     private var illust: Illust? = null
     private var systemInsets: Insets = Insets.NONE
@@ -162,6 +164,7 @@ internal class ArtworkTabletStage(
         val widthDp = config.screenWidthDp
         val heightDp = config.screenHeightDp
         sideBySide = widthDp > heightDp
+        swapped = sideBySide && Shaft.sSettings.isTabletDetailSwapSides
         val rtl = stage.layoutDirection == View.LAYOUT_DIRECTION_RTL
         val radius = ctx.dpF(PANEL_RADIUS_DP)
         val panel = GradientDrawable().apply { setColor(panelColor()) }
@@ -169,15 +172,19 @@ internal class ArtworkTabletStage(
             val infoDp = (widthDp * SIDE_INFO_RATIO).toInt()
                 .coerceIn(SIDE_INFO_MIN_DP, SIDE_INFO_MAX_DP)
                 .coerceAtMost(widthDp / 2)
-            infoColumn.layoutParams = FrameLayout.LayoutParams(ctx.dp(infoDp), MATCH, Gravity.END)
-            stage.layoutParams = FrameLayout.LayoutParams(MATCH, MATCH, Gravity.START).apply {
-                marginEnd = ctx.dp(infoDp)
+            infoColumn.layoutParams = FrameLayout.LayoutParams(
+                ctx.dp(infoDp), MATCH, if (swapped) Gravity.START else Gravity.END,
+            )
+            stage.layoutParams = FrameLayout.LayoutParams(
+                MATCH, MATCH, if (swapped) Gravity.END else Gravity.START,
+            ).apply {
+                if (swapped) marginStart = ctx.dp(infoDp) else marginEnd = ctx.dp(infoDp)
             }
-            // 靠舞台那一侧（起始侧）圆角；顺序 tl, tr, br, bl
-            panel.cornerRadii = if (rtl) {
-                floatArrayOf(0f, 0f, radius, radius, radius, radius, 0f, 0f)
-            } else {
+            // 靠舞台那一侧圆角；顺序 tl, tr, br, bl。信息栏在物理右侧时圆角落在左边
+            panel.cornerRadii = if (rtl == swapped) {
                 floatArrayOf(radius, radius, 0f, 0f, 0f, 0f, radius, radius)
+            } else {
+                floatArrayOf(0f, 0f, radius, radius, radius, radius, 0f, 0f)
             }
         } else {
             val stageDp = (heightDp * STACKED_STAGE_RATIO).toInt()
@@ -206,9 +213,14 @@ internal class ArtworkTabletStage(
     private fun end(): Int =
         if (stage.layoutDirection == View.LAYOUT_DIRECTION_RTL) systemInsets.left else systemInsets.right
 
-    /** 作品贴满舞台、不让系统栏；浮在上面的控件各自让开。 */
+    /** 作品贴满舞台、不让系统栏；浮在上面的控件各自让开。贴着信息栏的那一侧不是屏幕边，不用让。 */
     private fun applyInsets() {
-        val start = if (stage.layoutDirection == View.LAYOUT_DIRECTION_RTL) systemInsets.right else systemInsets.left
+        val start = when {
+            swapped -> 0
+            stage.layoutDirection == View.LAYOUT_DIRECTION_RTL -> systemInsets.right
+            else -> systemInsets.left
+        }
+        val endEdge = if (sideBySide && !swapped) 0 else end()
         val top = systemInsets.top
         val bottom = if (sideBySide) systemInsets.bottom else 0
         (backButton.layoutParams as FrameLayout.LayoutParams).let {
@@ -218,13 +230,13 @@ internal class ArtworkTabletStage(
         }
         (moreButton.layoutParams as FrameLayout.LayoutParams).let {
             it.topMargin = top + ctx.dp(16)
-            // 并排时舞台结束侧贴着信息栏，不是屏幕边，不用让导航栏
-            it.marginEnd = ctx.dp(20) + if (sideBySide) 0 else end()
+            it.marginEnd = ctx.dp(20) + endEdge
             moreButton.layoutParams = it
         }
         (strip.layoutParams as? FrameLayout.LayoutParams)?.let {
             it.topMargin = top + ctx.dp(OVERLAY_EDGE_DP)
             it.bottomMargin = bottom + ctx.dp(OVERLAY_EDGE_DP)
+            it.marginEnd = ctx.dp(STRIP_EDGE_DP) + endEdge
             strip.layoutParams = it
         }
         (counter.layoutParams as? FrameLayout.LayoutParams)?.let {

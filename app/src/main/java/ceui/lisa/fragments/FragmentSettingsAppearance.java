@@ -594,6 +594,15 @@ public class FragmentSettingsAppearance extends SettingsPageFragment<FragmentSet
         });
         baseBind.tabletLayoutRela.setOnClickListener(
                 v -> baseBind.tabletLayout.performClick());
+
+        // 平板横屏详情左右互换（#1332）：ArtworkTabletStage 建舞台时读，下次进详情页生效
+        baseBind.tabletDetailSwapSides.setChecked(Shaft.sSettings.isTabletDetailSwapSides());
+        baseBind.tabletDetailSwapSides.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            Shaft.sSettings.setTabletDetailSwapSides(isChecked);
+            Local.setSettings(Shaft.sSettings);
+        });
+        baseBind.tabletDetailSwapSidesRela.setOnClickListener(
+                v -> baseBind.tabletDetailSwapSides.performClick());
     }
 
     private boolean hasWidget(Class<?> providerClass) {

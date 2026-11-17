@@ -509,6 +509,9 @@ public class Settings {
     /** 平板适配排版（侧边导航栏 / 瀑布流按宽度加列 / 作品舞台详情，#1087），见 TabletLayout。默认关闭。 */
     private boolean tabletLayout = false;
 
+    /** 平板横屏作品详情左右互换：作品舞台放到结束侧、信息栏放到起始侧（#1332），见 ArtworkTabletStage.arrange。默认关闭。 */
+    private boolean tabletDetailSwapSides = false;
+
     /** 首页底栏是否跟随列表滚动收起（false = 固定常显），见 BottomBarAutoHide.setEnabled。默认开启。 */
     private boolean bottomBarHideOnScroll = true;
 
@@ -1593,6 +1596,14 @@ public class Settings {
 
     public void setTabletLayout(boolean enable) {
         this.tabletLayout = enable;
+    }
+
+    public boolean isTabletDetailSwapSides() {
+        return tabletDetailSwapSides;
+    }
+
+    public void setTabletDetailSwapSides(boolean swap) {
+        this.tabletDetailSwapSides = swap;
     }
 
     public boolean isBottomBarHideOnScroll() {

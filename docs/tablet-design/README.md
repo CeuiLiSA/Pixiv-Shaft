@@ -120,7 +120,7 @@ cardWidth = (contentWidth - (columns - 1) * gap) / columns
 | 位置 | 行为 |
 | --- | --- |
 | [layout-sw600dp/fragment_artwork_v3.xml](../../app/src/main/res/layout-sw600dp/fragment_artwork_v3.xml) | 与手机版共用全部 id；最底层整页模糊环境色 → 作品舞台 `tablet_stage` → 信息栏 `tablet_info_column`（原列表、胶囊、评论输入整体装入）；屏蔽遮罩与 AI 覆盖层盖整页 |
-| [ArtworkTabletStage.kt](../../app/src/main/java/ceui/pixiv/ui/detail/ArtworkTabletStage.kt) | 窗口宽于高：舞台在左、信息栏在右（窗口 36%，400–520dp）；否则舞台占上 52%、信息栏在下。作品上下贴满舞台、按原比例居中不裁切，先用列表缩略图垫底再换大图；多页上下翻 + 侧边页码条 + 「当前 / 总页」；动图原地播放；返回 / 更多为舞台两角的玻璃圆钮；多页作品有阅读器入口。点作品进全屏大图 |
+| [ArtworkTabletStage.kt](../../app/src/main/java/ceui/pixiv/ui/detail/ArtworkTabletStage.kt) | 窗口宽于高：舞台在左、信息栏在右（窗口 36%，400–520dp；设置「平板详情左右互换」可对调，方便右手翻页，#1332）；否则舞台占上 52%、信息栏在下。作品上下贴满舞台、按原比例居中不裁切，先用列表缩略图垫底再换大图；多页上下翻 + 侧边页码条 + 「当前 / 总页」；动图原地播放；返回 / 更多为舞台两角的玻璃圆钮；多页作品有阅读器入口。点作品进全屏大图 |
 | [ArtworkV3Fragment.kt](../../app/src/main/java/ceui/pixiv/ui/detail/ArtworkV3Fragment.kt) | `TabletLayout.isEnabled` 为 true 时数据源不产出图片条目（`ArtworkV3FeedSource.includePages`）；信息栏不要顶栏，列表首帧前让出状态栏；VM 跨折叠屏开合存活时由 `reconcilePageItems` 补上 / 拿掉图片条目；快照模式与关掉开关的平板仍按手机排版（sw600dp 布局里舞台收起、信息栏铺满） |
 
 信息栏里的区块（标题、画师、简介、标签、数据、作品详情、评论、作者作品、相关作品）与全部操作沿用手机版实现，后续按平板规格继续调整字级与留白。

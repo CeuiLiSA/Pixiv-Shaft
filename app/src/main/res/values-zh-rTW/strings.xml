@@ -140,6 +140,8 @@
     <string name="use_account_avatar_as_drawer_icon">側邊欄圖示顯示為帳號頭像</string>
     <string name="use_account_avatar_as_drawer_icon_desc">在首頁左上角顯示目前登入帳號的圓形頭像；未登入時顯示訪客頭像</string>
     <string name="tablet_layout_desc">在平板等大螢幕裝置上使用側邊導覽列、依螢幕寬度自動增加欄數的瀑布流與左右排列的作品詳情；關閉後與手機版面一致，僅平板生效</string>
+    <string name="tablet_detail_swap_sides">平板詳情左右互換</string>
+    <string name="tablet_detail_swap_sides_desc">平板橫向查看作品詳情時，作品與資訊欄左右對調，作品移到右側，方便右手單手翻頁；僅平板適配版面開啟時生效</string>
     <!-- 平板首页侧边导航栏（#1087）：快捷入口与菜单按钮 -->
     <string name="rail_bookmarks">收藏</string>
     <string name="rail_downloads">下載</string>

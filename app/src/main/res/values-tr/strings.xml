@@ -140,6 +140,8 @@
     <string name="use_account_avatar_as_drawer_icon">Kenar çubuğu simgesi olarak hesap profilini göster</string>
     <string name="use_account_avatar_as_drawer_icon_desc">Ana sayfanın sol üstündeki kenar çubuğu simgesinde giriş yapılmış hesabın dairesel profil resmini gösterir; giriş yapılmadığında misafir resmi gösterilir</string>
     <string name="tablet_layout_desc">Tablet gibi büyük ekranlarda yan gezinme çubuğu, ekran genişliğine göre sütun ekleyen akış ve yan yana eser ayrıntısı kullanılır. Kapalıyken telefon düzeni kullanılır. Yalnızca tablette geçerlidir</string>
+    <string name="tablet_detail_swap_sides">Tablet ayrıntısında tarafları değiştir</string>
+    <string name="tablet_detail_swap_sides_desc">Tablette yatay eser ayrıntısında eser ile bilgi panelinin yerini değiştirir; eser sağda olur, sağ elle tek elle sayfa çevirmek kolaylaşır. Yalnızca Tablet düzeni açıkken geçerlidir</string>
     <!-- 平板首页侧边导航栏（#1087）：快捷入口与菜单按钮 -->
     <string name="rail_bookmarks">Yer İşaretleri</string>
     <string name="rail_downloads">İndirilenler</string>

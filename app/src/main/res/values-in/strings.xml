@@ -139,6 +139,8 @@
     <string name="use_account_avatar_as_drawer_icon">Tampilkan avatar akun sebagai ikon bilah samping</string>
     <string name="use_account_avatar_as_drawer_icon_desc">Tampilkan avatar bulat akun yang sedang masuk sebagai ikon bilah samping di kiri atas beranda; tampilkan avatar tamu jika belum masuk</string>
     <string name="tablet_layout_desc">Di perangkat layar besar seperti tablet, gunakan bilah navigasi samping, tata letak masonry yang menambah kolom sesuai lebar layar, dan detail karya berdampingan kiri-kanan. Jika dimatikan, tata letak sama seperti ponsel. Hanya berlaku di tablet</string>
+    <string name="tablet_detail_swap_sides">Tukar sisi detail tablet</string>
+    <string name="tablet_detail_swap_sides_desc">Pada detail karya mode lanskap di tablet, tukar posisi karya dan panel info sehingga karya berada di kanan agar mudah digeser dengan satu tangan kanan. Hanya berlaku saat Tata letak tablet aktif</string>
     <string name="rail_bookmarks">Bookmark</string>
     <string name="rail_downloads">Unduhan</string>
     <string name="rail_open_menu">Buka menu</string>

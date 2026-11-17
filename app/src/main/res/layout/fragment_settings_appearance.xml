@@ -328,7 +328,7 @@
             <RelativeLayout
                 android:id="@+id/tablet_layout_rela"
                 style="@style/M3SetRow"
-                android:background="@drawable/wit_row_bottom">
+                android:background="@drawable/wit_row_mid">
 
                 <LinearLayout style="@style/M3SetTexts">
 
@@ -343,6 +343,28 @@
 
                 <androidx.appcompat.widget.SwitchCompat
                     android:id="@+id/tablet_layout"
+                    style="@style/M3SetSwitch" />
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:id="@+id/tablet_detail_swap_sides_rela"
+                style="@style/M3SetRow"
+                android:background="@drawable/wit_row_bottom">
+
+                <LinearLayout style="@style/M3SetTexts">
+
+                    <TextView
+                        style="@style/M3SetTitle"
+                        android:text="@string/tablet_detail_swap_sides" />
+
+                    <TextView
+                        style="@style/M3SetDesc"
+                        android:text="@string/tablet_detail_swap_sides_desc" />
+                </LinearLayout>
+
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/tablet_detail_swap_sides"
                     style="@style/M3SetSwitch" />
 
             </RelativeLayout>
