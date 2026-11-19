@@ -31,17 +31,18 @@ class ManageStorageSettingsFragment : Fragment(R.layout.fragment_manage_storage_
 
     private val binding by viewBinding(FragmentManageStorageSettingsBinding::bind)
 
-    private enum class StorageType {
+    internal enum class StorageType {
         PICTURES,
         DOWNLOADS,
         SAF,
     }
 
-    private val initialBucketChoices = mutableMapOf<Bucket, StorageType>()
+    private val initialBucketStorages = LinkedHashMap<Bucket, StorageChoice>()
     private val bucketChoices = mutableMapOf<Bucket, StorageType>()
-    private var initialSafUri: Uri? = null
     private var configuredSafUri: Uri? = null
     private var sessionGrantedSafUri: Uri? = null
+    private var cachedSafPathUri: Uri? = null
+    private var cachedSafPathText: String? = null
     private var boundHostActivity: BaseActivity<*>? = null
     private var unsetSafDialog: WitDialog? = null
     private var isExiting: Boolean = false
@@ -84,9 +85,12 @@ class ManageStorageSettingsFragment : Fragment(R.layout.fragment_manage_storage_
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putStringArray(
-            STATE_INITIAL_CHOICES,
+            STATE_INITIAL_STORAGES,
             USER_BUCKETS.map { (bucket, _) ->
-                (initialBucketChoices[bucket] ?: StorageType.DOWNLOADS).name
+                encodeStorageChoice(
+                    initialBucketStorages[bucket]
+                        ?: StorageChoice.MediaStore(StorageChoice.MediaStore.Collection.Downloads)
+                )
             }.toTypedArray(),
         )
         outState.putStringArray(
@@ -95,7 +99,6 @@ class ManageStorageSettingsFragment : Fragment(R.layout.fragment_manage_storage_
                 (bucketChoices[bucket] ?: StorageType.DOWNLOADS).name
             }.toTypedArray(),
         )
-        outState.putString(STATE_INITIAL_SAF_URI, initialSafUri?.toString())
         outState.putString(STATE_CONFIGURED_SAF_URI, configuredSafUri?.toString())
         outState.putString(STATE_SESSION_GRANTED_SAF_URI, sessionGrantedSafUri?.toString())
     }
@@ -146,44 +149,41 @@ class ManageStorageSettingsFragment : Fragment(R.layout.fragment_manage_storage_
 
     private fun initFreshState() {
         val initialConfig = DownloadsRegistry.store.loadOrFallback()
-        initialSafUri = findValidSafUri(initialConfig)
-        configuredSafUri = initialSafUri
+        configuredSafUri = findValidSafUri(initialConfig)
         sessionGrantedSafUri = null
 
-        initialBucketChoices.clear()
+        initialBucketStorages.clear()
         bucketChoices.clear()
         USER_BUCKETS.forEach { (bucket, _) ->
-            val resolved = initialConfig.resolve(bucket)
-            val choice = when (val storage = resolved.storage) {
-                is StorageChoice.MediaStore -> when (storage.collection) {
+            val resolvedStorage = initialConfig.resolve(bucket).storage
+            initialBucketStorages[bucket] = resolvedStorage
+            bucketChoices[bucket] = when (resolvedStorage) {
+                is StorageChoice.MediaStore -> when (resolvedStorage.collection) {
                     StorageChoice.MediaStore.Collection.Images -> StorageType.PICTURES
                     StorageChoice.MediaStore.Collection.Downloads -> StorageType.DOWNLOADS
                 }
                 is StorageChoice.Saf -> StorageType.SAF
                 else -> StorageType.DOWNLOADS
             }
-            initialBucketChoices[bucket] = choice
-            bucketChoices[bucket] = choice
         }
     }
 
     private fun restoreState(savedInstanceState: Bundle) {
-        val initialNames = savedInstanceState.getStringArray(STATE_INITIAL_CHOICES)
+        val initialEncoded = savedInstanceState.getStringArray(STATE_INITIAL_STORAGES)
         val currentNames = savedInstanceState.getStringArray(STATE_CURRENT_CHOICES)
-        if (initialNames == null || currentNames == null
-            || initialNames.size != USER_BUCKETS.size
+        if (initialEncoded == null || currentNames == null
+            || initialEncoded.size != USER_BUCKETS.size
             || currentNames.size != USER_BUCKETS.size
         ) {
             initFreshState()
             return
         }
-        initialBucketChoices.clear()
+        initialBucketStorages.clear()
         bucketChoices.clear()
         USER_BUCKETS.forEachIndexed { index, (bucket, _) ->
-            initialBucketChoices[bucket] = parseStorageType(initialNames[index])
+            initialBucketStorages[bucket] = decodeStorageChoice(initialEncoded[index])
             bucketChoices[bucket] = parseStorageType(currentNames[index])
         }
-        initialSafUri = savedInstanceState.getString(STATE_INITIAL_SAF_URI)?.let { runCatching { Uri.parse(it) }.getOrNull() }
         configuredSafUri = savedInstanceState.getString(STATE_CONFIGURED_SAF_URI)?.let { runCatching { Uri.parse(it) }.getOrNull() }
         sessionGrantedSafUri = savedInstanceState.getString(STATE_SESSION_GRANTED_SAF_URI)?.let { runCatching { Uri.parse(it) }.getOrNull() }
     }
@@ -231,11 +231,8 @@ class ManageStorageSettingsFragment : Fragment(R.layout.fragment_manage_storage_
     private fun needsSafWarning(): Boolean =
         bucketChoices.values.any { it == StorageType.SAF } && !hasCompletedSafSetup()
 
-    private fun hasPendingChanges(): Boolean {
-        if (bucketChoices != initialBucketChoices) return true
-        val anySafSelected = bucketChoices.values.any { it == StorageType.SAF }
-        return anySafSelected && configuredSafUri != initialSafUri
-    }
+    private fun hasPendingChanges(): Boolean =
+        hasStorageChanges(initialBucketStorages, bucketChoices, configuredSafUri)
 
     private fun refreshBackCallback() {
         if (view == null) return
@@ -270,8 +267,11 @@ class ManageStorageSettingsFragment : Fragment(R.layout.fragment_manage_storage_
     }
 
     private fun treeUriToAbsolutePath(uri: Uri): String {
+        if (cachedSafPathUri == uri) {
+            cachedSafPathText?.let { return it }
+        }
         val ctx = requireContext()
-        return formatSafTreePath(
+        val formatted = formatSafTreePath(
             uri = uri,
             externalStorageRoot = Environment.getExternalStorageDirectory().absolutePath,
             documentsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS).absolutePath,
@@ -279,6 +279,9 @@ class ManageStorageSettingsFragment : Fragment(R.layout.fragment_manage_storage_
                 runCatching { DocumentFile.fromTreeUri(ctx, uri)?.name }.getOrNull()
             },
         )
+        cachedSafPathUri = uri
+        cachedSafPathText = formatted
+        return formatted
     }
 
     private fun renderBucketCards() {
@@ -393,24 +396,7 @@ class ManageStorageSettingsFragment : Fragment(R.layout.fragment_manage_storage_
     }
 
     private fun saveConfigAndExit() {
-        val safUri = configuredSafUri
-        val updates = LinkedHashMap<Bucket, StorageChoice>(USER_BUCKETS.size)
-        USER_BUCKETS.forEach { (bucket, _) ->
-            val choiceType = bucketChoices[bucket] ?: StorageType.DOWNLOADS
-            val storageChoice: StorageChoice = when (choiceType) {
-                StorageType.PICTURES -> StorageChoice.MediaStore(StorageChoice.MediaStore.Collection.Images)
-                StorageType.DOWNLOADS -> StorageChoice.MediaStore(StorageChoice.MediaStore.Collection.Downloads)
-                StorageType.SAF -> {
-                    if (safUri != null) {
-                        StorageChoice.Saf(safUri)
-                    } else {
-                        StorageChoice.MediaStore(StorageChoice.MediaStore.Collection.Downloads)
-                    }
-                }
-            }
-            updates[bucket] = storageChoice
-        }
-        DownloadsRegistry.updateBucketStorages(updates)
+        DownloadsRegistry.updateBucketStorages(buildTargetStorages(bucketChoices, configuredSafUri))
         exitPage()
     }
 
@@ -428,9 +414,8 @@ class ManageStorageSettingsFragment : Fragment(R.layout.fragment_manage_storage_
         private const val EXTERNAL_STORAGE_AUTHORITY = "com.android.externalstorage.documents"
         private const val DOWNLOADS_DOCUMENTS_AUTHORITY = "com.android.providers.downloads.documents"
 
-        private const val STATE_INITIAL_CHOICES = "manage_storage_initial_choices"
+        private const val STATE_INITIAL_STORAGES = "manage_storage_initial_storages"
         private const val STATE_CURRENT_CHOICES = "manage_storage_current_choices"
-        private const val STATE_INITIAL_SAF_URI = "manage_storage_initial_saf_uri"
         private const val STATE_CONFIGURED_SAF_URI = "manage_storage_configured_saf_uri"
         private const val STATE_SESSION_GRANTED_SAF_URI = "manage_storage_session_granted_saf_uri"
 
@@ -443,6 +428,55 @@ class ManageStorageSettingsFragment : Fragment(R.layout.fragment_manage_storage_
             Bucket.Backup to R.string.download_path_bucket_backup,
             Bucket.Log to R.string.download_path_bucket_log,
         )
+
+        internal fun buildTargetStorages(
+            bucketChoices: Map<Bucket, StorageType>,
+            configuredSafUri: Uri?,
+        ): LinkedHashMap<Bucket, StorageChoice> {
+            val updates = LinkedHashMap<Bucket, StorageChoice>(USER_BUCKETS.size)
+            USER_BUCKETS.forEach { (bucket, _) ->
+                val choiceType = bucketChoices[bucket] ?: StorageType.DOWNLOADS
+                updates[bucket] = when (choiceType) {
+                    StorageType.PICTURES -> StorageChoice.MediaStore(StorageChoice.MediaStore.Collection.Images)
+                    StorageType.DOWNLOADS -> StorageChoice.MediaStore(StorageChoice.MediaStore.Collection.Downloads)
+                    StorageType.SAF -> {
+                        if (configuredSafUri != null) {
+                            StorageChoice.Saf(configuredSafUri)
+                        } else {
+                            StorageChoice.MediaStore(StorageChoice.MediaStore.Collection.Downloads)
+                        }
+                    }
+                }
+            }
+            return updates
+        }
+
+        internal fun hasStorageChanges(
+            initialBucketStorages: Map<Bucket, StorageChoice>,
+            bucketChoices: Map<Bucket, StorageType>,
+            configuredSafUri: Uri?,
+        ): Boolean = buildTargetStorages(bucketChoices, configuredSafUri) != initialBucketStorages
+
+        private fun encodeStorageChoice(choice: StorageChoice): String = when (choice) {
+            is StorageChoice.MediaStore -> when (choice.collection) {
+                StorageChoice.MediaStore.Collection.Images -> "IMAGES"
+                StorageChoice.MediaStore.Collection.Downloads -> "DOWNLOADS"
+            }
+            is StorageChoice.Saf -> "SAF:${choice.treeUri}"
+            StorageChoice.AppCache -> "APP_CACHE"
+        }
+
+        private fun decodeStorageChoice(encoded: String?): StorageChoice = when {
+            encoded == "IMAGES" -> StorageChoice.MediaStore(StorageChoice.MediaStore.Collection.Images)
+            encoded == "DOWNLOADS" -> StorageChoice.MediaStore(StorageChoice.MediaStore.Collection.Downloads)
+            encoded == "APP_CACHE" -> StorageChoice.AppCache
+            encoded != null && encoded.startsWith("SAF:") -> {
+                val rawUri = encoded.removePrefix("SAF:")
+                if (rawUri.isNotEmpty()) StorageChoice.Saf(Uri.parse(rawUri))
+                else StorageChoice.MediaStore(StorageChoice.MediaStore.Collection.Downloads)
+            }
+            else -> StorageChoice.MediaStore(StorageChoice.MediaStore.Collection.Downloads)
+        }
 
         /**
          * 把 SAF tree URI 转为可读路径：仅对 [EXTERNAL_STORAGE_AUTHORITY] 翻译
@@ -469,18 +503,20 @@ class ManageStorageSettingsFragment : Fragment(R.layout.fragment_manage_storage_
                     if (!docId.isNullOrEmpty() && docId.contains(":")) {
                         val parts = docId.split(":", limit = 2)
                         val volume = parts[0]
-                        val relative = parts.getOrNull(1).orEmpty().trim('/')
-                        val root = when {
-                            volume.equals("primary", ignoreCase = true) -> externalStorageRoot.trimEnd('/')
-                            volume.equals("home", ignoreCase = true) -> documentsDir.trimEnd('/')
-                            else -> "/storage/$volume"
+                        if (volume.isNotEmpty()) {
+                            val relative = parts.getOrNull(1).orEmpty().trim('/')
+                            val root = when {
+                                volume.equals("primary", ignoreCase = true) -> externalStorageRoot.trimEnd('/')
+                                volume.equals("home", ignoreCase = true) -> documentsDir.trimEnd('/')
+                                else -> "/storage/$volume"
+                            }
+                            return if (relative.isEmpty()) root else "$root/$relative"
                         }
-                        return if (relative.isEmpty()) root else "$root/$relative"
                     }
                 }
                 DOWNLOADS_DOCUMENTS_AUTHORITY -> {
                     if (!docId.isNullOrEmpty() && docId.startsWith("raw:/")) {
-                        return docId.removePrefix("raw:")
+                        return docId.removePrefix("raw:").trimEnd('/').ifEmpty { "/" }
                     }
                 }
             }

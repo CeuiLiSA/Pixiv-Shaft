@@ -12,12 +12,17 @@ import androidx.viewbinding.ViewBinding
 import ceui.lisa.activities.BaseActivity
 import ceui.lisa.activities.Shaft
 import ceui.lisa.utils.Settings
+import ceui.pixiv.download.config.StorageChoice
+import ceui.pixiv.download.model.Bucket
+import ceui.pixiv.ui.settings.ManageStorageSettingsFragment.StorageType
 import com.google.gson.Gson
 import com.hjq.toast.Toaster
 import com.hjq.toast.config.IToastInterceptor
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -39,12 +44,18 @@ class ManageStorageSettingsTest {
         override fun getRoot(): View = rootView
     }
 
-    /** 最小可实例化 BaseActivity，暴露 onActivityResult 以验证 SAF 拦截器生命周期时序。 */
+    /** 最小可实例化 BaseActivity，暴露 onActivityResult 与默认 SAF 落库分支供测试断言。 */
     class TestBaseActivity : BaseActivity<DummyBinding>() {
+        val defaultAppliedUris = mutableListOf<Uri>()
+
         override fun initLayout(): Int = android.R.layout.list_content
         override fun bindView(root: View): DummyBinding = DummyBinding(FrameLayout(this))
         override fun initView() = Unit
         override fun initData() = Unit
+
+        override fun applyDefaultSafGrant(treeUri: Uri) {
+            defaultAppliedUris += treeUri
+        }
 
         fun dispatchActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
             onActivityResult(requestCode, resultCode, data)
@@ -117,7 +128,7 @@ class ManageStorageSettingsTest {
         assertEquals(
             "/storage/emulated/0/Download/Pixiv",
             ManageStorageSettingsFragment.formatSafTreePath(
-                uri = Uri.parse("content://com.android.providers.downloads.documents/tree/raw%3A%2Fstorage%2Femulated%2F0%2FDownload%2FPixiv"),
+                uri = Uri.parse("content://com.android.providers.downloads.documents/tree/raw%3A%2Fstorage%2Femulated%2F0%2FDownload%2FPixiv%2F"),
                 externalStorageRoot = extRoot,
                 documentsDir = docsDir,
                 fallbackDisplayName = { null },
@@ -126,7 +137,7 @@ class ManageStorageSettingsTest {
     }
 
     @Test
-    fun `formatSafTreePath does not fabricate storage path for opaque or cloud providers`() {
+    fun `formatSafTreePath does not fabricate storage path for opaque, empty-volume or cloud providers`() {
         val extRoot = "/storage/emulated/0"
         val docsDir = "/storage/emulated/0/Documents"
 
@@ -148,6 +159,54 @@ class ManageStorageSettingsTest {
                 fallbackDisplayName = { "Downloads" },
             ),
         )
+        assertEquals(
+            "Pictures",
+            ManageStorageSettingsFragment.formatSafTreePath(
+                uri = Uri.parse("content://com.android.externalstorage.documents/tree/%3APictures"),
+                externalStorageRoot = extRoot,
+                documentsDir = docsDir,
+                fallbackDisplayName = { "Pictures" },
+            ),
+        )
+    }
+
+    @Test
+    fun `hasStorageChanges compares target storages against initial persisted storages`() {
+        val images = StorageChoice.MediaStore(StorageChoice.MediaStore.Collection.Images)
+        val downloads = StorageChoice.MediaStore(StorageChoice.MediaStore.Collection.Downloads)
+        val revokedUri = Uri.parse("content://com.android.externalstorage.documents/tree/primary%3ARevoked")
+        val validUri = Uri.parse("content://com.android.externalstorage.documents/tree/primary%3AValid")
+
+        val nonSafInitial = mapOf(
+            Bucket.Illust to images,
+            Bucket.Ugoira to images,
+            Bucket.Novel to downloads,
+            Bucket.NovelSeries to downloads,
+            Bucket.Caption to downloads,
+            Bucket.Backup to downloads,
+            Bucket.Log to downloads,
+        )
+        val nonSafChoices = mapOf(
+            Bucket.Illust to StorageType.PICTURES,
+            Bucket.Ugoira to StorageType.PICTURES,
+            Bucket.Novel to StorageType.DOWNLOADS,
+            Bucket.NovelSeries to StorageType.DOWNLOADS,
+            Bucket.Caption to StorageType.DOWNLOADS,
+            Bucket.Backup to StorageType.DOWNLOADS,
+            Bucket.Log to StorageType.DOWNLOADS,
+        )
+
+        // 未改任何分桶时（即便本机 rootPathUri 存在有效 SAF）不视为待保存改动
+        assertFalse(ManageStorageSettingsFragment.hasStorageChanges(nonSafInitial, nonSafChoices, validUri))
+
+        // 某分桶原配置为失效 SAF、进入后由有效 rootPathUri 兜底：必须视为有变更以便退出时自愈落库
+        val revokedInitial = nonSafInitial + (Bucket.Novel to StorageChoice.Saf(revokedUri))
+        val novelSafChoices = nonSafChoices + (Bucket.Novel to StorageType.SAF)
+        assertTrue(ManageStorageSettingsFragment.hasStorageChanges(revokedInitial, novelSafChoices, validUri))
+
+        // 正常健康的 SAF 分桶未换目录时不视为变更
+        val healthySafInitial = nonSafInitial + (Bucket.Novel to StorageChoice.Saf(validUri))
+        assertFalse(ManageStorageSettingsFragment.hasStorageChanges(healthySafInitial, novelSafChoices, validUri))
     }
 
     @Test
@@ -179,6 +238,7 @@ class ManageStorageSettingsTest {
         controllerA.restart().start().resume()
 
         assertEquals(expectedUri, receivedByA)
+        assertTrue("拦截命中时不应再走默认重绑落库", activityA.defaultAppliedUris.isEmpty())
         assertNull("activityA 的 SAF 授权不应串台到 activityB", receivedByB)
 
         // 用不匹配的引用 clear 不会误清其他拦截器
@@ -186,15 +246,14 @@ class ManageStorageSettingsTest {
         val secondUri = Uri.parse("content://com.android.externalstorage.documents/tree/primary%3ASecond")
         activityA.dispatchActivityResult(BaseActivity.ASK_URI, Activity.RESULT_OK, Intent().setData(secondUri))
         assertEquals(secondUri, receivedByA)
+        assertTrue(activityA.defaultAppliedUris.isEmpty())
 
-        // 正确引用 clear 后不再拦截（再次回调不会触发原拦截器）
+        // 正确引用 clear 后不再拦截，并回落到默认 SAF 重绑分支
         receivedByA = null
+        val thirdUri = Uri.parse("content://com.android.externalstorage.documents/tree/primary%3AThird")
         activityA.clearSafGrantInterceptor(interceptorA)
-        activityA.dispatchActivityResult(
-            BaseActivity.ASK_URI,
-            Activity.RESULT_OK,
-            Intent().setData(Uri.parse("content://com.android.externalstorage.documents/tree/primary%3AThird")),
-        )
+        activityA.dispatchActivityResult(BaseActivity.ASK_URI, Activity.RESULT_OK, Intent().setData(thirdUri))
         assertNull(receivedByA)
+        assertEquals(listOf(thirdUri), activityA.defaultAppliedUris)
     }
 }

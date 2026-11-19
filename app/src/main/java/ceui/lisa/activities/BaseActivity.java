@@ -204,7 +204,7 @@ public abstract class BaseActivity<Layout extends ViewBinding> extends AppCompat
             }
             if (!intercepted) {
                 try {
-                    DownloadsRegistry.rebindSafStorage(treeUri);
+                    applyDefaultSafGrant(treeUri);
                 } catch (Throwable t) {
                     t.printStackTrace();
                 }
@@ -212,6 +212,11 @@ public abstract class BaseActivity<Layout extends ViewBinding> extends AppCompat
             Common.showToast(getString(R.string.saf_grant_success));
             doAfterGranted();
         }
+    }
+
+    /** 未被页面级拦截器接管时的默认 SAF 落库策略；拆成独立方法便于子类/单测观察。 */
+    protected void applyDefaultSafGrant(@NonNull Uri treeUri) {
+        DownloadsRegistry.rebindSafStorage(treeUri);
     }
 
     public void doAfterGranted() {
