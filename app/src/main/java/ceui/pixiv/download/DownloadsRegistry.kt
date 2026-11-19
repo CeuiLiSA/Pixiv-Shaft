@@ -7,6 +7,7 @@ import ceui.pixiv.download.backend.AppCacheBackend
 import ceui.pixiv.download.backend.MediaStoreBackend
 import ceui.pixiv.download.backend.SafBackend
 import ceui.pixiv.download.backend.StorageBackend
+import ceui.pixiv.download.config.BucketConfig
 import ceui.pixiv.download.config.ConfigPresets
 import ceui.pixiv.download.config.DownloadConfig
 import ceui.pixiv.download.config.DownloadConfigStore
@@ -105,6 +106,77 @@ object DownloadsRegistry {
             cfg.copy(defaults = newDefaults, perBucket = newPerBucket)
         }
         invalidateBackends()
+    }
+
+    /**
+     * Update storage choices per bucket independently.
+     * Bucket.Illust updates defaults.storage as baseline.
+     * Non-image buckets normalize [StorageChoice.MediaStore.Collection.Images] to Downloads.
+     */
+    @JvmStatic
+    fun updateBucketStorages(bucketStorages: Map<Bucket, StorageChoice>) {
+        if (bucketStorages.isEmpty()) return
+        require(Bucket.TempCache !in bucketStorages) {
+            "Bucket.TempCache is not user-configurable"
+        }
+        store.update { cfg -> applyBucketStorages(cfg, bucketStorages) }
+        invalidateBackends()
+    }
+
+    /**
+     * Rebind SAF tree URI after re-authorization.
+     * If any bucket (or defaults) already uses SAF, only those SAF entries are updated so
+     * other buckets' Pictures/Downloads selections stay intact. Otherwise switches globally
+     * to SAF for legacy / debug callers.
+     */
+    @JvmStatic
+    fun rebindSafStorage(treeUri: Uri) {
+        store.update { cfg -> applyRebindSafStorage(cfg, treeUri) }
+        invalidateBackends()
+    }
+
+    internal fun applyBucketStorages(
+        cfg: DownloadConfig,
+        bucketStorages: Map<Bucket, StorageChoice>,
+    ): DownloadConfig {
+        if (bucketStorages.isEmpty()) return cfg
+        require(Bucket.TempCache !in bucketStorages) {
+            "Bucket.TempCache is not user-configurable"
+        }
+        var newDefaults = cfg.defaults
+        val newPerBucket = cfg.perBucket.toMutableMap()
+        bucketStorages[Bucket.Illust]?.let { illustStorage ->
+            newDefaults = newDefaults.copy(storage = illustStorage)
+        }
+        bucketStorages.forEach { (bucket, storage) ->
+            val normalized = when (bucket) {
+                Bucket.Illust, Bucket.Ugoira -> storage
+                else -> storage.forDownloadsBucket()
+            }
+            val existing = newPerBucket[bucket] ?: BucketConfig()
+            newPerBucket[bucket] = existing.copy(storage = normalized)
+        }
+        return cfg.copy(defaults = newDefaults, perBucket = newPerBucket)
+    }
+
+    internal fun applyRebindSafStorage(cfg: DownloadConfig, treeUri: Uri): DownloadConfig {
+        val choice = StorageChoice.Saf(treeUri)
+        val hasExistingSaf = cfg.defaults.storage is StorageChoice.Saf
+            || cfg.perBucket.values.any { it.storage is StorageChoice.Saf }
+        if (!hasExistingSaf) {
+            val newDefaults = cfg.defaults.copy(storage = choice)
+            val newPerBucket = cfg.perBucket.mapValues { (_, bc) -> bc.copy(storage = choice) }
+            return cfg.copy(defaults = newDefaults, perBucket = newPerBucket)
+        }
+        val newDefaults = if (cfg.defaults.storage is StorageChoice.Saf) {
+            cfg.defaults.copy(storage = choice)
+        } else {
+            cfg.defaults
+        }
+        val newPerBucket = cfg.perBucket.mapValues { (_, bc) ->
+            if (bc.storage is StorageChoice.Saf) bc.copy(storage = choice) else bc
+        }
+        return cfg.copy(defaults = newDefaults, perBucket = newPerBucket)
     }
 
     /** Returns the current effective images storage (from defaults). */

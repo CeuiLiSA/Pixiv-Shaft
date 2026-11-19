@@ -12,7 +12,12 @@ import ceui.pixiv.download.template.DefaultTemplates
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [35])
 class DownloadConfigTest {
 
     private val defaults = BucketDefaults(
@@ -227,6 +232,116 @@ class DownloadConfigTest {
         // Storage switched
         assertEquals(newStorage, switched.resolve(Bucket.Illust).storage)
         assertEquals(newStorage, switched.resolve(Bucket.Novel).storage)
+    }
+
+    @Test fun `per-bucket storage configuration operates independently`() {
+        val images = StorageChoice.MediaStore(StorageChoice.MediaStore.Collection.Images)
+        val downloads = StorageChoice.MediaStore(StorageChoice.MediaStore.Collection.Downloads)
+        val saf = StorageChoice.Saf(android.net.Uri.parse("content://saf/tree"))
+
+        val cfg = DownloadConfig(
+            defaults = BucketDefaults(template = "d/{id}.{ext}", storage = images),
+            perBucket = mapOf(
+                Bucket.Illust to BucketConfig(storage = images),
+                Bucket.Novel to BucketConfig(storage = saf),
+                Bucket.Backup to BucketConfig(storage = downloads),
+            ),
+        )
+
+        assertEquals(images, cfg.resolve(Bucket.Illust).storage)
+        assertEquals(saf, cfg.resolve(Bucket.Novel).storage)
+        assertEquals(downloads, cfg.resolve(Bucket.Backup).storage)
+    }
+
+    @Test fun `applyBucketStorages updates buckets independently and normalizes non-image buckets`() {
+        val images = StorageChoice.MediaStore(StorageChoice.MediaStore.Collection.Images)
+        val downloads = StorageChoice.MediaStore(StorageChoice.MediaStore.Collection.Downloads)
+        val saf = StorageChoice.Saf(android.net.Uri.parse("content://com.android.externalstorage.documents/tree/primary%3APixiv"))
+
+        val original = DownloadConfig(
+            defaults = BucketDefaults(template = "custom/{id}.{ext}", storage = images, overwrite = OverwritePolicy.Skip),
+            perBucket = mapOf(
+                Bucket.Novel to BucketConfig(template = "my-novels/{title}.txt", storage = downloads, overwrite = OverwritePolicy.Rename),
+                Bucket.Backup to BucketConfig(template = "my-backups/{title}.json", storage = downloads),
+            ),
+        )
+
+        val updated = DownloadsRegistry.applyBucketStorages(
+            original,
+            mapOf(
+                Bucket.Illust to downloads,
+                Bucket.Ugoira to images,
+                Bucket.Novel to saf,
+                // 非图片桶传入 Images 时必须在写库前规范化为 Downloads
+                Bucket.Backup to images,
+                Bucket.Log to images,
+            ),
+        )
+
+        // defaults.storage 同步跟 Illust 走，模板和覆盖策略保持不动
+        assertEquals(downloads, updated.defaults.storage)
+        assertEquals("custom/{id}.{ext}", updated.defaults.template)
+        assertEquals(OverwritePolicy.Skip, updated.defaults.overwrite)
+
+        // 各分桶存储相互独立且保留原有模板 / 策略
+        assertEquals(downloads, updated.perBucket[Bucket.Illust]?.storage)
+        assertEquals(images, updated.perBucket[Bucket.Ugoira]?.storage)
+        assertEquals(saf, updated.perBucket[Bucket.Novel]?.storage)
+        assertEquals("my-novels/{title}.txt", updated.perBucket[Bucket.Novel]?.template)
+        assertEquals(OverwritePolicy.Rename, updated.perBucket[Bucket.Novel]?.overwrite)
+        assertEquals(downloads, updated.perBucket[Bucket.Backup]?.storage)
+        assertEquals("my-backups/{title}.json", updated.perBucket[Bucket.Backup]?.template)
+        assertEquals(downloads, updated.perBucket[Bucket.Log]?.storage)
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun `applyBucketStorages rejects TempCache bucket`() {
+        val downloads = StorageChoice.MediaStore(StorageChoice.MediaStore.Collection.Downloads)
+        val original = DownloadConfig(defaults = defaults)
+        DownloadsRegistry.applyBucketStorages(original, mapOf(Bucket.TempCache to downloads))
+    }
+
+    @Test fun `applyRebindSafStorage preserves non-SAF buckets when SAF is already in use`() {
+        val images = StorageChoice.MediaStore(StorageChoice.MediaStore.Collection.Images)
+        val downloads = StorageChoice.MediaStore(StorageChoice.MediaStore.Collection.Downloads)
+        val oldSafUri = android.net.Uri.parse("content://com.android.externalstorage.documents/tree/primary%3AOld")
+        val newSafUri = android.net.Uri.parse("content://com.android.externalstorage.documents/tree/primary%3ANew")
+        val oldSaf = StorageChoice.Saf(oldSafUri)
+        val newSaf = StorageChoice.Saf(newSafUri)
+
+        val original = DownloadConfig(
+            defaults = BucketDefaults(template = "d/{id}.{ext}", storage = oldSaf),
+            perBucket = mapOf(
+                Bucket.Illust to BucketConfig(storage = oldSaf),
+                Bucket.Ugoira to BucketConfig(storage = images),
+                Bucket.Novel to BucketConfig(storage = downloads),
+                Bucket.Backup to BucketConfig(storage = oldSaf),
+            ),
+        )
+
+        val rebound = DownloadsRegistry.applyRebindSafStorage(original, newSafUri)
+
+        assertEquals(newSaf, rebound.defaults.storage)
+        assertEquals(newSaf, rebound.resolve(Bucket.Illust).storage)
+        assertEquals(images, rebound.resolve(Bucket.Ugoira).storage)
+        assertEquals(downloads, rebound.resolve(Bucket.Novel).storage)
+        assertEquals(newSaf, rebound.resolve(Bucket.Backup).storage)
+    }
+
+    @Test fun `applyRebindSafStorage switches globally when no bucket uses SAF yet`() {
+        val images = StorageChoice.MediaStore(StorageChoice.MediaStore.Collection.Images)
+        val downloads = StorageChoice.MediaStore(StorageChoice.MediaStore.Collection.Downloads)
+        val newSafUri = android.net.Uri.parse("content://com.android.externalstorage.documents/tree/primary%3AFresh")
+        val newSaf = StorageChoice.Saf(newSafUri)
+
+        val original = ConfigPresets.shaftClassic(images, downloads)
+        val rebound = DownloadsRegistry.applyRebindSafStorage(original, newSafUri)
+
+        assertEquals(newSaf, rebound.defaults.storage)
+        assertEquals(newSaf, rebound.resolve(Bucket.Illust).storage)
+        assertEquals(newSaf, rebound.resolve(Bucket.Ugoira).storage)
+        assertEquals(newSaf, rebound.resolve(Bucket.Novel).storage)
+        assertEquals(newSaf, rebound.resolve(Bucket.Backup).storage)
     }
 
     @Test fun `all presets produce valid configs for every user bucket`() {
