@@ -124,7 +124,10 @@ class RecmdNovelFeedFragment : NovelFeedFragment() {
         // 按 id 序列而不是条目本身认「同一批」：屏蔽掉一篇后条目没变、可见集合变了，得重建。
         val batchKey = novels.map { it.id }
         if (cell.binding.ranking.tag == batchKey) {
-            cell.binding.ranking.adapter?.let { it.notifyItemRangeChanged(0, it.itemCount, PAYLOAD_RANK_TITLE) }
+            cell.binding.ranking.adapter?.let {
+                it.notifyItemRangeChanged(0, it.itemCount, PAYLOAD_RANK_TITLE)
+                it.notifyItemRangeChanged(0, it.itemCount, PAYLOAD_RANK_PROGRESS)
+            }
             return
         }
         cell.binding.ranking.tag = batchKey

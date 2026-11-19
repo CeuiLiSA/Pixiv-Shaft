@@ -28,30 +28,49 @@
         android:layout_gravity="bottom"
         android:background="@drawable/bg_v3_card_scrim" />
 
-    <!-- 本地阅读进度毛玻璃胶囊，贴左上角（与右上角字数胶囊对称）；未读时 GONE -->
-    <ceui.pixiv.ui.novel.NovelReadingProgressView
-        android:id="@+id/reading_progress"
-        android:layout_width="wrap_content"
+    <!-- 顶部角标行：左为本地阅读进度毛玻璃胶囊，右为字数胶囊；用水平容器隔离，防止长译文或大字号下互相压盖 -->
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="top|start"
-        android:layout_margin="8dp"
-        android:visibility="gone"
-        app:nrp_style="glass_pill" />
+        android:layout_gravity="top"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="8dp"
+        android:paddingTop="8dp"
+        android:paddingEnd="8dp">
 
-    <!-- 字数胶囊,贴右上角 -->
-    <TextView
-        android:id="@+id/novel_length"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="top|end"
-        android:layout_margin="8dp"
-        android:background="@drawable/bg_v3_rank_novel_pill"
-        android:letterSpacing="0.02"
-        android:paddingHorizontal="8dp"
-        android:paddingVertical="3dp"
-        android:textColor="@color/always_white"
-        android:textSize="10sp"
-        android:textStyle="bold" />
+        <ceui.pixiv.ui.novel.NovelReadingProgressView
+            android:id="@+id/reading_progress"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="6dp"
+            android:visibility="gone"
+            app:nrp_style="glass_pill" />
+
+        <FrameLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1">
+
+            <!-- 字数胶囊,贴右上角 -->
+            <TextView
+                android:id="@+id/novel_length"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end|center_vertical"
+                android:background="@drawable/bg_v3_rank_novel_pill"
+                android:ellipsize="end"
+                android:letterSpacing="0.02"
+                android:maxLines="1"
+                android:paddingStart="8dp"
+                android:paddingTop="3dp"
+                android:paddingEnd="8dp"
+                android:paddingBottom="3dp"
+                android:textColor="@color/always_white"
+                android:textSize="10sp"
+                android:textStyle="bold" />
+        </FrameLayout>
+    </LinearLayout>
 
     <!-- 标题 + 作者簇,贴卡底左下 -->
     <LinearLayout

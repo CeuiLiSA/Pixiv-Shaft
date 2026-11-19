@@ -69,14 +69,13 @@ internal object NovelReadingProgressColors {
         @ColorInt val glassDoneBadgeCheck: Int,
     )
 
-    private data class CacheKey(
+    private class CacheEntry(
         val primary: Int,
         val isDark: Boolean,
         val pageBg: Int,
         val greenBase: Int,
+        val palette: Palette,
     )
-
-    private class CacheEntry(val key: CacheKey, val palette: Palette)
 
     @Volatile
     private var cached: CacheEntry? = null
@@ -90,8 +89,15 @@ internal object NovelReadingProgressColors {
         val opaquePrimary = primary or (0xFF shl 24)
         val opaquePageBg = pageBg or (0xFF shl 24)
         val opaqueGreen = greenBase or (0xFF shl 24)
-        val key = CacheKey(opaquePrimary, isDark, opaquePageBg, opaqueGreen)
-        cached?.let { if (it.key == key) return it.palette }
+        cached?.let { entry ->
+            if (entry.primary == opaquePrimary &&
+                entry.isDark == isDark &&
+                entry.pageBg == opaquePageBg &&
+                entry.greenBase == opaqueGreen
+            ) {
+                return entry.palette
+            }
+        }
 
         val shiftedPrimary = hueShift(opaquePrimary, 26f)
         val shiftedGreen = hueShift(opaqueGreen, 14f)
@@ -186,7 +192,7 @@ internal object NovelReadingProgressColors {
             glassDoneBadgeFill = glassDoneGreen,
             glassDoneBadgeCheck = glassDoneBadgeCheck,
         )
-        cached = CacheEntry(key, palette)
+        cached = CacheEntry(opaquePrimary, isDark, opaquePageBg, opaqueGreen, palette)
         return palette
     }
 
@@ -274,6 +280,7 @@ class NovelReadingProgressView @JvmOverloads constructor(
     private var styleMode: Int = STYLE_RIBBON
     private var percent: Int? = null
     private var palette: NovelReadingProgressColors.Palette? = null
+    private val tmpTypedValue = TypedValue()
 
     private val density = resources.displayMetrics.density
     private val ribbonMinHeightPx = dp(24f)
@@ -382,7 +389,7 @@ class NovelReadingProgressView @JvmOverloads constructor(
             }
             return
         }
-        val nextPalette = resolvePalette(context)
+        val nextPalette = resolvePalette(context, tmpTypedValue)
         val strings = localeStrings(context)
         val sizeChanged = syncTextSizes()
         val sameState = percent == clamped &&
@@ -405,11 +412,11 @@ class NovelReadingProgressView @JvmOverloads constructor(
         if (wasGone) {
             visibility = VISIBLE
         }
-        if (styleMode == STYLE_GLASS_PILL && !wasGone && prevWidth > 0) {
-            if (measureGlassWidth() != prevWidth) {
-                requestLayout()
-            }
-        } else if (sizeChanged) {
+        val glassWidthChanged = styleMode == STYLE_GLASS_PILL &&
+            !wasGone &&
+            prevWidth > 0 &&
+            measureGlassWidth() != prevWidth
+        if (sizeChanged || glassWidthChanged) {
             requestLayout()
         }
         invalidate()
@@ -420,17 +427,18 @@ class NovelReadingProgressView @JvmOverloads constructor(
 
     override fun onConfigurationChanged(newConfig: Configuration?) {
         super.onConfigurationChanged(newConfig)
-        if (percent != null) {
-            palette = resolvePalette(context)
-            currentStrings = localeStrings(context)
-            val p = percent ?: return
-            percentText = currentStrings!!.percentText(p)
-            labelText = if (p >= 100) currentStrings!!.doneLabel else currentStrings!!.inProgressLabel
-            contentDescription = currentStrings!!.contentDescription(p)
-            builtWidth = -1
-            if (syncTextSizes()) requestLayout()
-            invalidate()
+        val p = percent ?: return
+        val strings = localeStrings(context)
+        palette = resolvePalette(context, tmpTypedValue)
+        currentStrings = strings
+        percentText = strings.percentText(p)
+        labelText = if (p >= 100) strings.doneLabel else strings.inProgressLabel
+        contentDescription = strings.contentDescription(p)
+        builtWidth = -1
+        if (syncTextSizes() || styleMode == STYLE_GLASS_PILL) {
+            requestLayout()
         }
+        invalidate()
     }
 
     override fun onRtlPropertiesChanged(layoutDirection: Int) {
@@ -487,7 +495,7 @@ class NovelReadingProgressView @JvmOverloads constructor(
         val w = width
         val h = height
         if (w <= 0 || h <= 0) return
-        val pal = palette ?: resolvePalette(context).also { palette = it }
+        val pal = palette ?: resolvePalette(context, tmpTypedValue).also { palette = it }
         val completed = p >= 100
         val rtl = layoutDirection == LAYOUT_DIRECTION_RTL
 
@@ -834,7 +842,7 @@ class NovelReadingProgressView @JvmOverloads constructor(
         private fun localeStrings(context: Context): LocaleStrings {
             val locales = context.resources.configuration.locales
             val locale = if (locales.isEmpty) Locale.getDefault() else locales[0]
-            val tag = locale.toLanguageTag()
+            val tag = if (locales.isEmpty) locale.toLanguageTag() else locales.toLanguageTags()
             cachedStrings?.let { if (it.tag == tag) return it }
             return LocaleStrings(
                 tag = tag,
@@ -847,10 +855,9 @@ class NovelReadingProgressView @JvmOverloads constructor(
             ).also { cachedStrings = it }
         }
 
-        private fun resolvePalette(context: Context): NovelReadingProgressColors.Palette {
-            val tv = TypedValue()
-            context.theme.resolveAttribute(androidx.appcompat.R.attr.colorPrimary, tv, true)
-            val primary = tv.data or (0xFF shl 24)
+        private fun resolvePalette(context: Context, outValue: TypedValue): NovelReadingProgressColors.Palette {
+            context.theme.resolveAttribute(androidx.appcompat.R.attr.colorPrimary, outValue, true)
+            val primary = outValue.data or (0xFF shl 24)
             val isDark = (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
                 Configuration.UI_MODE_NIGHT_YES
             val pageBg = ContextCompat.getColor(context, R.color.v3_bg)
