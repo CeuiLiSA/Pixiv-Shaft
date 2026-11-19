@@ -1632,6 +1632,11 @@
         <item quantity="other">%d chapters</item>
     </plurals>
     <string name="novel_continue_reading">Continue · %d%%</string>
+    <string name="novel_card_read_progress_label">Read</string>
+    <string name="novel_card_read_done_label">Finished</string>
+    <string name="novel_card_read_percent">%d%%</string>
+    <string name="novel_card_read_progress_cd">Read %d%%</string>
+    <string name="novel_card_read_done_cd" formatted="false">Finished 100%</string>
     <string name="novel_section_info">Information</string>
     <string name="novel_info_user_id">Author ID</string>
     <string name="novel_info_user_link">Author profile</string>

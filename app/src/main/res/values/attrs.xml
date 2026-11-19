@@ -37,4 +37,12 @@
         <attr name="es_actionText" format="string" />
     </declare-styleable>
 
+    <declare-styleable name="NovelReadingProgressView">
+        <!-- ribbon：小说列表卡全宽进度胶囊条；glass_pill：排行榜封面左上角毛玻璃胶囊 -->
+        <attr name="nrp_style" format="enum">
+            <enum name="ribbon" value="0" />
+            <enum name="glass_pill" value="1" />
+        </attr>
+    </declare-styleable>
+
 </resources>

@@ -1644,6 +1644,11 @@
         <item quantity="other">%d части</item>
     </plurals>
     <string name="novel_continue_reading">Продолжить · %d%%</string>
+    <string name="novel_card_read_progress_label">Прочитано</string>
+    <string name="novel_card_read_done_label">Дочитано</string>
+    <string name="novel_card_read_percent">%d%%</string>
+    <string name="novel_card_read_progress_cd">Прочитано %d%%</string>
+    <string name="novel_card_read_done_cd" formatted="false">Дочитано 100%</string>
     <string name="novel_section_info">Информация</string>
     <string name="novel_info_user_id">ID автора</string>
     <string name="novel_info_user_link">Профиль автора</string>

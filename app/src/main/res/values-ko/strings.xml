@@ -1626,6 +1626,11 @@
         <item quantity="other">총 %d편</item>
     </plurals>
     <string name="novel_continue_reading">이어 읽기 · %d%%</string>
+    <string name="novel_card_read_progress_label">읽음</string>
+    <string name="novel_card_read_done_label">완독</string>
+    <string name="novel_card_read_percent">%d%%</string>
+    <string name="novel_card_read_progress_cd">읽음 %d%%</string>
+    <string name="novel_card_read_done_cd" formatted="false">완독 100%</string>
     <string name="novel_section_info">정보</string>
     <string name="novel_info_user_id">작가 ID</string>
     <string name="novel_info_user_link">작가 페이지</string>

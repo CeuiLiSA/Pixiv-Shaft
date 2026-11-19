@@ -273,6 +273,7 @@ class WebSessionManagerTest {
     class MemoryMMKV {
         @Implementation fun count(): Long = values.size.toLong()
         @Implementation fun containsKey(key: String): Boolean = values.containsKey(key)
+        @Implementation fun allKeys(): Array<String> = values.keys.toTypedArray()
         @Implementation fun removeValueForKey(key: String) { values.remove(key) }
         @Implementation fun decodeFloat(key: String, defaultValue: Float): Float = values[key] as? Float ?: defaultValue
         @Implementation fun decodeInt(key: String, defaultValue: Int): Int = values[key] as? Int ?: defaultValue
@@ -287,7 +288,7 @@ class WebSessionManagerTest {
         @Implementation fun encode(key: String, value: Long): Boolean { values[key] = value; return true }
 
         companion object {
-            val values = mutableMapOf<String, Any>()
+            val values: MutableMap<String, Any> = java.util.concurrent.ConcurrentHashMap()
 
             @JvmStatic
             @Implementation

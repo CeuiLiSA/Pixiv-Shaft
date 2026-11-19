@@ -230,6 +230,16 @@
                         android:textSize="11sp"
                         tools:text="2026-03-09" />
                 </LinearLayout>
+
+                <!-- 本地阅读进度胶囊条：未读或打码态 GONE；有本地阅读记录（1–100%）时显示。 -->
+                <ceui.pixiv.ui.novel.NovelReadingProgressView
+                    android:id="@+id/reading_progress"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="7dp"
+                    android:visibility="gone"
+                    app:nrp_style="ribbon"
+                    tools:visibility="visible" />
             </LinearLayout>
         </LinearLayout>
 

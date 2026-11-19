@@ -1632,6 +1632,11 @@
         <item quantity="other">%d bölüm</item>
     </plurals>
     <string name="novel_continue_reading">Okumaya devam · %%%d</string>
+    <string name="novel_card_read_progress_label">Okundu</string>
+    <string name="novel_card_read_done_label">Tamamlandı</string>
+    <string name="novel_card_read_percent">%%%d</string>
+    <string name="novel_card_read_progress_cd">%%%d okundu</string>
+    <string name="novel_card_read_done_cd" formatted="false">%100 tamamlandı</string>
     <string name="novel_section_info">Bilgi</string>
     <string name="novel_info_user_id">Yazar ID</string>
     <string name="novel_info_user_link">Yazar profili</string>

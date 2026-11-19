@@ -551,6 +551,10 @@ public class Shaft extends Application implements ServicesProvider {
         // 已绑好的卡片补上快照标记。列表页建视图时还会再调一次兜底（幂等）。
         ceui.pixiv.snapshot.SnapshotIndex.INSTANCE.ensureLoaded(this);
 
+        // 小说阅读进度索引预热：小说卡片 bind 时只读内存 Map（滚动热路径零 IO），
+        // 提前把 MMKV 里的进度扫进内存，免得首屏绑定触发主线程 MMKV 初始化。
+        ceui.pixiv.ui.novel.reader.ReaderProgressStore.INSTANCE.ensureLoaded();
+
         updateTheme();
 
         ThemeHelper.applyTheme(null, sSettings.getThemeType());

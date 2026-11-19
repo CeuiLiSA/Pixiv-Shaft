@@ -40,6 +40,7 @@ import ceui.pixiv.feeds.FeedViewModel
 import ceui.pixiv.feeds.feedRenderer
 import ceui.pixiv.ui.novel.NovelSeriesFragment
 import ceui.pixiv.ui.novel.novelCoverMasterUrl
+import ceui.pixiv.ui.novel.reader.ReaderProgressStore
 import ceui.pixiv.ui.novel.reader.export.ExportFormat
 import ceui.pixiv.ui.novel.reader.export.NovelExportManager
 import ceui.pixiv.ui.novel.reader.ui.ExportFormatCallback
@@ -73,6 +74,7 @@ private val PAYLOAD_NOVEL_SPOILER_CHANGED = Any()
  */
 private val PAYLOAD_NOVEL_SELECTION = Any()
 private val PAYLOAD_NOVEL_TITLE = Any()
+private val PAYLOAD_NOVEL_PROGRESS = Any()
 
 /** 封面 Glide 请求去重 key（存在 ImageView.tag 上）：url + 请求尺寸 + 是否模糊。 */
 private data class NovelImageRequestKey(
@@ -193,6 +195,7 @@ abstract class NovelFeedFragment(
             transform = { item, liked -> item.withBookmarked(liked) },
         ).bind(requireContext(), viewLifecycleOwner)
         observeMuteRevision()
+        observeReadingProgressRevision()
         titleTranslations.state.observe(viewLifecycleOwner) { state ->
             onNovelTitleTranslationsChanged()
             state.error?.getContentIfNotHandled()?.let { error ->
@@ -335,7 +338,8 @@ abstract class NovelFeedFragment(
         bindPayloads = { cell, payloads ->
             val known = payloads.all {
                 it === PAYLOAD_NOVEL_BOOKMARK || it === PAYLOAD_NOVEL_SPOILER_CHANGED ||
-                    it === PAYLOAD_NOVEL_SELECTION || it === PAYLOAD_NOVEL_TITLE
+                    it === PAYLOAD_NOVEL_SELECTION || it === PAYLOAD_NOVEL_TITLE ||
+                    it === PAYLOAD_NOVEL_PROGRESS
             }
             if (known) {
                 if (payloads.any { it === PAYLOAD_NOVEL_TITLE }) {
@@ -355,6 +359,10 @@ abstract class NovelFeedFragment(
                     renderSpoilerParticles(cell.binding.spoilerParticles, show = spoilered, animate = true)
                     // 掩码涉及多个 view（文字换占位条/次级信息隐藏），跟全量绑定共用同一分支。
                     bindNovelCardContent(cell.binding, novel, cell.item.trendingScore, spoilered, showTags, showSeries)
+                } else if (payloads.any { it === PAYLOAD_NOVEL_PROGRESS }) {
+                    val novel = cell.item.novel
+                    val spoilered = NovelMuteStore.isMuted(novel.id) || IllustNovelFilter.shouldBlurAi(novel)
+                    bindNovelReadingProgress(cell.binding, novel, spoilered)
                 }
                 // 掩码分支会重设爱心可见性，勾选态放最后覆盖
                 bindNovelCardSelection(cell.binding, cell.item.novel, multiSelect)
@@ -481,7 +489,18 @@ abstract class NovelFeedFragment(
 
         novel.user?.let { novelGlide.load(GlideUtil.getHead(it)).into(b.userHead) }
 
+        bindNovelReadingProgress(b, novel, spoilered = false)
         renderNovelLike(b.like, novel.is_bookmarked == true)
+    }
+
+    /** 绑定本地阅读进度条：屏蔽态强制隐藏，正常态走 [ReaderProgressStore.peekReadingPercent] 无 IO 读口。 */
+    private fun bindNovelReadingProgress(b: RecyNovelBinding, novel: Novel, spoilered: Boolean) {
+        val percent = if (spoilered) {
+            null
+        } else {
+            ReaderProgressStore.peekReadingPercent(novel.id, novel.text_length)
+        }
+        b.readingProgress.setProgress(percent)
     }
 
     /**
@@ -523,6 +542,10 @@ abstract class NovelFeedFragment(
         }
         listOf(b.date, b.bookmarkCount, b.howManyWord, b.badgeAi, b.trendingScore, b.novelTag, b.userHead, b.like)
             .forEach { it.isVisible = !masked }
+        // 屏蔽态不泄露本地阅读进度；非屏蔽态由 renderNovelCardText 直接设真实值，避免 GONE→VISIBLE→GONE 抖动。
+        if (masked) {
+            b.readingProgress.setProgress(null)
+        }
     }
 
     /**
@@ -606,6 +629,9 @@ abstract class NovelFeedFragment(
     /** 本页卡片上一次渲染时的 [NovelMuteStore.revision]，见 [observeMuteRevision]。 */
     private var lastMuteRevision = NovelMuteStore.revision
 
+    /** 本页卡片上一次渲染时的 [ReaderProgressStore.revision]，见 [observeReadingProgressRevision]。 */
+    private var lastProgressRevision = ReaderProgressStore.revision
+
     /**
      * 订阅屏蔽名单的版本号，变了就给本页所有小说卡补一次 spoiler 重绑。
      * 理由（含「为什么不能写成 onResume 里比版本号」）与插画侧逐字相同，
@@ -618,6 +644,25 @@ abstract class NovelFeedFragment(
             lastMuteRevision = revision
             rebindAllNovelCards(PAYLOAD_NOVEL_SPOILER_CHANGED)
         }
+    }
+
+    /**
+     * 订阅本地阅读进度版本号，冷启动预热完成或用户在阅读器推进进度返回后，
+     * 只局部刷新小说卡的阅读进度条（不重跑封面 Glide / 标签流）。
+     */
+    private fun observeReadingProgressRevision() {
+        lastProgressRevision = ReaderProgressStore.revision
+        ReaderProgressStore.ensureLoaded()
+        ReaderProgressStore.revisionLive.observe(viewLifecycleOwner) { revision ->
+            if (revision == lastProgressRevision) return@observe
+            lastProgressRevision = revision
+            onNovelReadingProgressChanged()
+        }
+    }
+
+    /** 供含额外小说展示位的子类（如推荐页横向榜单预览）同步刷新进度。 */
+    protected open fun onNovelReadingProgressChanged() {
+        rebindAllNovelCards(PAYLOAD_NOVEL_PROGRESS)
     }
 
     /** 只重绑小说卡（按连续区段通知），页面上的其它条目不动。 */

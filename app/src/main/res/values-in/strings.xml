@@ -1658,6 +1658,11 @@
         <item quantity="other">%d bab</item>
     </plurals>
     <string name="novel_continue_reading">Lanjutkan · %d%%</string>
+    <string name="novel_card_read_progress_label">Dibaca</string>
+    <string name="novel_card_read_done_label">Selesai</string>
+    <string name="novel_card_read_percent">%d%%</string>
+    <string name="novel_card_read_progress_cd">Dibaca %d%%</string>
+    <string name="novel_card_read_done_cd" formatted="false">Selesai 100%</string>
     <string name="novel_section_info">Informasi</string>
     <string name="novel_info_user_id">ID penulis</string>
     <string name="novel_info_user_link">Profil penulis</string>

@@ -1627,6 +1627,11 @@
         <item quantity="other">共 %d 篇</item>
     </plurals>
     <string name="novel_continue_reading">繼續閱讀 · %d%%</string>
+    <string name="novel_card_read_progress_label">已讀</string>
+    <string name="novel_card_read_done_label">已讀完</string>
+    <string name="novel_card_read_percent">%d%%</string>
+    <string name="novel_card_read_progress_cd">已讀 %d%%</string>
+    <string name="novel_card_read_done_cd" formatted="false">已讀完 100%</string>
     <string name="novel_section_info">資訊</string>
     <string name="novel_info_user_id">作者 ID</string>
     <string name="novel_info_user_link">作者主頁</string>

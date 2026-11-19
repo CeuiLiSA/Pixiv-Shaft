@@ -29,11 +29,13 @@ import ceui.pixiv.ui.common.NovelFeedItem
 import ceui.pixiv.ui.common.NovelMuteStore
 import ceui.pixiv.ui.common.openNovelDetail
 import ceui.pixiv.ui.common.showNovelCardMenu
+import ceui.pixiv.ui.novel.reader.ReaderProgressStore
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
 import com.bumptech.glide.Glide
 
 private val PAYLOAD_RANK_TITLE = Any()
+private val PAYLOAD_RANK_PROGRESS = Any()
 
 /**
  * 「推荐小说」页（FragmentNewNovel 的推荐 tab，feeds 框架版，替代 legacy FragmentRecmdNovel +
@@ -64,6 +66,15 @@ class RecmdNovelFeedFragment : NovelFeedFragment() {
         return listOf(rankHeaderRenderer(), novelCardRenderer())
     }
 
+    override fun onNovelReadingProgressChanged() {
+        super.onNovelReadingProgressChanged()
+        val adapter = feedAdapter ?: return
+        val headerPos = adapter.currentList.indexOfFirst { it is NovelRankPreviewHeaderItem }
+        if (headerPos >= 0) {
+            adapter.notifyItemChanged(headerPos, PAYLOAD_RANK_PROGRESS)
+        }
+    }
+
     /** 横向排行榜预览头（整行）。对齐 legacy NovelHeader：seeMore 进小说榜，点卡片开小说详情。 */
     private fun rankHeaderRenderer() =
         feedRenderer<NovelRankPreviewHeaderItem, RecyRecmdHeaderBinding>(
@@ -81,6 +92,16 @@ class RecmdNovelFeedFragment : NovelFeedFragment() {
                     LinearItemHorizontalDecoration(DensityUtil.dp2px(8.0f))
                 )
                 cell.binding.ranking.setHasFixedSize(true)
+            },
+            bindPayloads = { cell, payloads ->
+                if (payloads.all { it === PAYLOAD_RANK_PROGRESS }) {
+                    cell.binding.ranking.adapter?.let {
+                        it.notifyItemRangeChanged(0, it.itemCount, PAYLOAD_RANK_PROGRESS)
+                    }
+                    true
+                } else {
+                    false
+                }
             },
         ) { cell ->
             bindRankStrip(cell)
@@ -193,8 +214,19 @@ private class RecmdNovelRankAdapter(
     override fun getItemCount(): Int = novels.size
 
     override fun onBindViewHolder(holder: VH, position: Int, payloads: MutableList<Any>) {
-        if (payloads.isNotEmpty() && payloads.all { it === PAYLOAD_RANK_TITLE }) {
-            holder.binding.title.text = titleOf(novels[position])
+        val known = payloads.isNotEmpty() && payloads.all {
+            it === PAYLOAD_RANK_TITLE || it === PAYLOAD_RANK_PROGRESS
+        }
+        if (known) {
+            val novel = novels[position]
+            if (payloads.any { it === PAYLOAD_RANK_TITLE }) {
+                holder.binding.title.text = titleOf(novel)
+            }
+            if (payloads.any { it === PAYLOAD_RANK_PROGRESS }) {
+                holder.binding.readingProgress.setProgress(
+                    ReaderProgressStore.peekReadingPercent(novel.id, novel.text_length)
+                )
+            }
         } else {
             onBindViewHolder(holder, position)
         }
@@ -208,6 +240,9 @@ private class RecmdNovelRankAdapter(
         b.author.text = novel.user?.name ?: ""
         b.novelLength.text =
             ctx.getString(R.string.v3_novel_word_count, (novel.text_length ?: 0).toString())
+        b.readingProgress.setProgress(
+            ReaderProgressStore.peekReadingPercent(novel.id, novel.text_length)
+        )
         Glide.with(ctx).load(GlideUtil.getUrl(novel.image_urls?.medium))
             .placeholder(R.color.v3_surface_2).into(b.illustImage)
         // 头像总是 into（不套 ?.let）：user 为 null 时 getUrl(null) 走占位，清掉复用卡的旧头像残影

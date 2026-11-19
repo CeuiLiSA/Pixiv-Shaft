@@ -28,6 +28,16 @@
         android:layout_gravity="bottom"
         android:background="@drawable/bg_v3_card_scrim" />
 
+    <!-- 本地阅读进度毛玻璃胶囊，贴左上角（与右上角字数胶囊对称）；未读时 GONE -->
+    <ceui.pixiv.ui.novel.NovelReadingProgressView
+        android:id="@+id/reading_progress"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|start"
+        android:layout_margin="8dp"
+        android:visibility="gone"
+        app:nrp_style="glass_pill" />
+
     <!-- 字数胶囊,贴右上角 -->
     <TextView
         android:id="@+id/novel_length"
