@@ -11,7 +11,6 @@ import androidx.annotation.NonNull;
 import ceui.pixiv.witstudio.dialog.WitDialog;
 
 import ceui.lisa.R;
-import ceui.lisa.activities.BaseActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.core.Manager;
@@ -23,7 +22,6 @@ import ceui.lisa.utils.Params;
 import ceui.lisa.utils.Settings;
 import ceui.pixiv.download.DownloadsRegistry;
 import ceui.pixiv.download.config.OverwritePolicy;
-import ceui.pixiv.download.config.StorageChoice;
 import ceui.pixiv.download.toast.DownloadToasts;
 import ceui.pixiv.ui.navigation.TemplateRoute;
 import ceui.pixiv.ui.settings.DownloadToastDialog;
@@ -235,7 +233,6 @@ public class FragmentSettingsDownload extends SettingsPageFragment<FragmentSetti
         });
 
         // 管理存储位置（跳转新页面）
-        refreshStorageLabel();
         baseBind.storageChoiceRela.setOnClickListener(v -> {
             Intent intent = new Intent(mContext, TemplateActivity.class);
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.MANAGE_STORAGE_SETTINGS.key);
@@ -432,34 +429,10 @@ public class FragmentSettingsDownload extends SettingsPageFragment<FragmentSetti
                 baseBind.maxConcurrentDownloads.performClick());
     }
 
-    private String[] storageNames() {
-        return new String[]{
-                getString(R.string.setting_storage_pictures),
-                getString(R.string.setting_storage_downloads),
-                getString(R.string.setting_storage_saf)
-        };
-    }
-
-    private int currentStorageIndex() {
-        StorageChoice cur = DownloadsRegistry.currentImagesStorage();
-        if (cur instanceof StorageChoice.Saf) return 2;
-        if (cur instanceof StorageChoice.MediaStore
-                && ((StorageChoice.MediaStore) cur).getCollection()
-                    == StorageChoice.MediaStore.Collection.Downloads) {
-            return 1;
-        }
-        return 0;
-    }
-
     private void refreshNovelEpubOnImagesRow() {
         if (baseBind == null) return;
         boolean visible = "Txt".equals(Shaft.sSettings.getDefaultNovelExportFormat());
         baseBind.novelEpubOnImagesRela.setVisibility(visible ? View.VISIBLE : View.GONE);
-    }
-
-    private void refreshStorageLabel() {
-        if (baseBind == null) return;
-        baseBind.storageChoice.setText("");
     }
 
     private void refreshOverwritePolicyRow() {
@@ -533,8 +506,6 @@ public class FragmentSettingsDownload extends SettingsPageFragment<FragmentSetti
     @Override
     public void onResume() {
         super.onResume();
-        // SAF picker 在 BaseActivity#onActivityResult 落库后，回到 fragment 时把 label 拉到现态。
-        refreshStorageLabel();
         refreshOverwritePolicyRow();
         // 从 aria2 设置子页返回时把开关状态同步到入口行。
         refreshAria2Label();

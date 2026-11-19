@@ -32,7 +32,6 @@ import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
 import ceui.pixiv.banner.BannerHostOwner;
 import ceui.pixiv.download.DownloadsRegistry;
-import ceui.pixiv.download.config.StorageChoice;
 
 import static android.provider.DocumentsContract.EXTRA_INITIAL_URI;
 
@@ -47,6 +46,8 @@ public abstract class BaseActivity<Layout extends ViewBinding> extends AppCompat
 
     public static final int ASK_URI = 42;
     private FeedBack mFeedBack;
+    @Nullable
+    private SafGrantInterceptor mSafGrantInterceptor;
 
     /**
      * 把 MMKV 里持久化的 locale tag 转成 Configuration 包到 base context 上。
@@ -190,19 +191,20 @@ public abstract class BaseActivity<Layout extends ViewBinding> extends AppCompat
             } catch (SecurityException ignored) {
                 // 某些 OEM 给了 tree URI 但拒绝持久化授权，本次会话内仍可用，不卡死流程。
             }
-            // 把全局存储拨到 SAF；之前 FragmentSettings 在 setFeedBack 里干这件事，
+            // 把存储重绑到新授权的 SAF 目录；之前 FragmentSettings 在 setFeedBack 里干这件事，
             // 但 Activity 被回收时回调丢失，落库不完整。抬到 Activity 层后保证一定执行。
             boolean intercepted = false;
-            if (sSafGrantInterceptor != null) {
+            SafGrantInterceptor interceptor = mSafGrantInterceptor;
+            if (interceptor != null) {
                 try {
-                    intercepted = sSafGrantInterceptor.onSafGranted(treeUri);
+                    intercepted = interceptor.onSafGranted(treeUri);
                 } catch (Throwable t) {
                     t.printStackTrace();
                 }
             }
             if (!intercepted) {
                 try {
-                    DownloadsRegistry.applyGlobalStorage(new StorageChoice.Saf(treeUri));
+                    DownloadsRegistry.rebindSafStorage(treeUri);
                 } catch (Throwable t) {
                     t.printStackTrace();
                 }
@@ -226,10 +228,14 @@ public abstract class BaseActivity<Layout extends ViewBinding> extends AppCompat
         boolean onSafGranted(Uri treeUri);
     }
 
-    private static SafGrantInterceptor sSafGrantInterceptor = null;
+    public void setSafGrantInterceptor(@Nullable SafGrantInterceptor interceptor) {
+        mSafGrantInterceptor = interceptor;
+    }
 
-    public static void setSafGrantInterceptor(SafGrantInterceptor interceptor) {
-        sSafGrantInterceptor = interceptor;
+    public void clearSafGrantInterceptor(@NonNull SafGrantInterceptor interceptor) {
+        if (mSafGrantInterceptor == interceptor) {
+            mSafGrantInterceptor = null;
+        }
     }
 
     private void updateTheme() {

@@ -44,7 +44,7 @@
             android:layout_marginTop="4dp"
             android:layout_marginStart="8dp"
             android:text="@string/storage_pictures_not_supported_hint"
-            android:textColor="@color/v3_text_3"
+            android:textColor="@color/v3_text_2"
             android:textSize="11.5sp"
             android:visibility="gone" />
 
