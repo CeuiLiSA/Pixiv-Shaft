@@ -3,6 +3,8 @@ package ceui.lisa.utils;
 
 import android.content.Context;
 
+import androidx.sqlite.db.SupportSQLiteDatabase;
+
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
@@ -22,6 +24,8 @@ import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.Callable;
 import java.util.zip.GZIPInputStream;
 
 import ceui.lisa.activities.Shaft;
@@ -33,9 +37,12 @@ import ceui.lisa.database.SearchDao;
 import ceui.lisa.database.SearchEntity;
 import ceui.lisa.database.UserEntity;
 import ceui.lisa.feature.FeatureEntity;
+import ceui.pixiv.db.DbCallTracker;
 import ceui.pixiv.db.GeneralDao;
 import ceui.pixiv.db.GeneralEntity;
 import ceui.pixiv.db.RecordType;
+import ceui.lisa.database.HistoryIdTime;
+import ceui.pixiv.transfer.TransferRecords;
 import ceui.pixiv.download.DownloadsRegistry;
 import ceui.pixiv.download.config.DownloadConfigBackup;
 import ceui.pixiv.download.config.DownloadConfigStore;
@@ -168,6 +175,28 @@ public class BackupUtils {
      */
     public static void writeBackup(Context context, boolean backupViewHistory, boolean includeCredentials,
                                    OutputStream out) throws IOException {
+        writeBackup(context, backupViewHistory, includeCredentials, out, null);
+    }
+
+    public static void writeTransferBackup(Context context, OutputStream out, Runnable checkActive) throws IOException {
+        SupportSQLiteDatabase db = AppDatabase.getAppDatabase(context).getOpenHelper().getWritableDatabase();
+        DbCallTracker.beginLongOperation();
+        try {
+            // Read-only deferred transaction keeps a consistent WAL snapshot without blocking writers.
+            db.beginTransactionReadOnly();
+            try {
+                writeBackup(context, true, true, out, checkActive);
+                db.setTransactionSuccessful();
+            } finally {
+                db.endTransaction();
+            }
+        } finally {
+            DbCallTracker.endLongOperation();
+        }
+    }
+
+    private static void writeBackup(Context context, boolean backupViewHistory, boolean includeCredentials,
+                                    OutputStream out, Runnable transferCheck) throws IOException {
         AppDatabase appDatabase = AppDatabase.getAppDatabase(context);
         try (JsonWriter writer = new JsonWriter(new BufferedWriter(
                 new OutputStreamWriter(out, StandardCharsets.UTF_8)))) {
@@ -195,6 +224,7 @@ public class BackupUtils {
                 writer.beginArray();
                 int offset = 0;
                 while (true) {
+                    if (transferCheck != null) transferCheck.run();
                     List<IllustHistoryEntity> page =
                             appDatabase.downloadDao().getAllViewHistory(HISTORY_BATCH_SIZE, offset);
                     if (page == null || page.isEmpty()) {
@@ -213,6 +243,10 @@ public class BackupUtils {
             // 「设置 · 下载」里的下载路径 / 文件名等已经搬到 V3 下载配置，不在 Settings 里，
             // 得单独打包（#949）。
             writer.name("downloadConfigV3").value(DownloadConfigBackup.export());
+            if (transferCheck != null) {
+                writer.name("transferRecords");
+                TransferRecords.write(context, writer, transferCheck);
+            }
             writer.endObject();
         }
     }
@@ -250,6 +284,42 @@ public class BackupUtils {
      * @return 还原出的小字段（含账号列表，历史列表不保留）；解析失败返回 null。
      */
     public static BackupEntity restoreBackupEntity(Context context, InputStream inputStream) {
+        try {
+            BackupEntity backup = readBackup(context, inputStream, null);
+            applyRestored(context, backup);
+            return backup;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public static void restoreTransferBackup(Context context, InputStream input, long uid, Runnable checkActive) {
+        AppDatabase db = AppDatabase.getAppDatabase(context);
+        BackupEntity backup;
+        DbCallTracker.beginLongOperation();
+        try {
+            backup = db.runInTransaction((Callable<BackupEntity>) () -> {
+                BackupEntity parsed = readBackup(context, input, checkActive);
+                restoreMutes(db, parsed.getMuteEntityList());
+                restoreTables(context, parsed, uid);
+                checkActive.run();
+                return parsed;
+            });
+        } finally {
+            DbCallTracker.endLongOperation();
+        }
+        if (hasMutes(backup.getMuteEntityList())) MutedWorkStores.invalidateAll();
+        Context application = context.getApplicationContext();
+        if (application instanceof ServicesProvider) {
+            // Reload pinned artists, Watch Later and the other cached general-table IDs.
+            ((ServicesProvider) application).getEntityWrapper().initialize();
+        }
+        applyRestoredSettings(backup, true);
+    }
+
+    private static BackupEntity readBackup(Context context, InputStream inputStream,
+                                           Runnable transferCheck) throws IOException {
         try (InputStream decoded = maybeGunzip(inputStream);
              JsonReader reader = new JsonReader(new BufferedReader(
                      new InputStreamReader(decoded, StandardCharsets.UTF_8)))) {
@@ -258,8 +328,10 @@ public class BackupUtils {
             reader.setLenient(true);
             BackupEntity backupEntity = new BackupEntity();
             DownloadDao downloadDao = AppDatabase.getAppDatabase(context).downloadDao();
+            boolean hasTransferRecords = false;
             reader.beginObject();
             while (reader.hasNext()) {
+                if (transferCheck != null) transferCheck.run();
                 String name = reader.nextName();
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
@@ -290,23 +362,26 @@ public class BackupUtils {
                     case "downloadConfigV3":
                         backupEntity.setDownloadConfigV3(reader.nextString());
                         break;
+                    case "transferRecords":
+                        if (transferCheck == null) {
+                            reader.skipValue();
+                        } else {
+                            TransferRecords.read(context, reader, transferCheck);
+                            hasTransferRecords = true;
+                        }
+                        break;
                     case "illustHistoryEntityList":
-                        // 历史是文件里唯一可能巨大的字段：边读边分批 REPLACE 入库。
-                        // 文件中途损坏时已入库的批次会留下（历史行是幂等 upsert，无害），
-                        // 但 settings 等配置只在整个文件解析成功后才应用。
                         reader.beginArray();
                         List<IllustHistoryEntity> batch = new ArrayList<>(HISTORY_BATCH_SIZE);
                         while (reader.hasNext()) {
                             batch.add(Shaft.sGson.fromJson(reader, IllustHistoryEntity.class));
                             if (batch.size() >= HISTORY_BATCH_SIZE) {
-                                downloadDao.insertHistories(batch);
+                                restoreHistoryBatch(downloadDao, batch, transferCheck);
                                 batch.clear();
                             }
                         }
                         reader.endArray();
-                        if (!batch.isEmpty()) {
-                            downloadDao.insertHistories(batch);
-                        }
+                        if (!batch.isEmpty()) restoreHistoryBatch(downloadDao, batch, transferCheck);
                         break;
                     default:
                         reader.skipValue();
@@ -323,12 +398,26 @@ public class BackupUtils {
             if (decoded instanceof GZIPInputStream && backupEntity.getUserEntityList() == null) {
                 backupEntity.deviceLocalSettings = true;
             }
-            applyRestored(context, backupEntity);
+            if (transferCheck != null && (!hasTransferRecords || backupEntity.getSettings() == null)) {
+                throw new IOException("incomplete device transfer backup");
+            }
             return backupEntity;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
         }
+    }
+
+    private static void restoreHistoryBatch(DownloadDao dao, List<IllustHistoryEntity> batch, Runnable transferCheck) {
+        if (transferCheck != null) {
+            transferCheck.run();
+            List<Long> ids = new ArrayList<>(batch.size());
+            for (IllustHistoryEntity row : batch) ids.add(row.getIllustID());
+            Map<Long, HistoryIdTime> existing = new java.util.HashMap<>();
+            for (HistoryIdTime row : dao.getViewHistoryTimes(ids)) existing.put(row.illustID, row);
+            batch.removeIf(row -> {
+                HistoryIdTime local = existing.get(row.getIllustID());
+                return local != null && (local.type != row.getType() || local.time >= row.getTime());
+            });
+        }
+        dao.insertHistories(batch);
     }
 
     /**
@@ -349,6 +438,18 @@ public class BackupUtils {
 
     /** 应用除浏览历史外的还原内容（配置 + 各小表）。 */
     private static void applyRestored(Context context, BackupEntity backupEntity) {
+        applyRestoredSettings(backupEntity, false);
+        List<MuteEntity> mutes = backupEntity.getMuteEntityList();
+        if (hasMutes(mutes)) {
+            restoreMutes(AppDatabase.getAppDatabase(context), mutes);
+            // Legacy restores write each table independently. Refresh even if a later table fails.
+            MutedWorkStores.invalidateAll();
+        }
+        restoreTables(context, backupEntity, 0L);
+        refreshPinnedUsers(context, backupEntity.getPinnedUserEntityList());
+    }
+
+    private static void applyRestoredSettings(BackupEntity backupEntity, boolean transfer) {
         // 下载配置自己吞掉所有异常：解析不了就保持本机现状，不影响其余数据还原。
         // 必须排在 Local.setSettings 之前：本机若还没有 V3 配置，store 会用当前
         // Settings 的 downloadWay / rootPathUri 兜底，先还原 Settings 就会把备份里
@@ -366,9 +467,17 @@ public class BackupUtils {
                 if (settings.getAria2RpcSecret().isEmpty()) {
                     settings.setAria2RpcSecret(local.getAria2RpcSecret());
                 }
+            }
+            if (backupEntity.deviceLocalSettings || transfer) {
+                Settings local = Shaft.sSettings;
                 settings.setCloudHistoryConsentShown(local.isCloudHistoryConsentShown());
                 settings.setMoonAppliedVersions(new java.util.HashMap<>(local.getMoonAppliedVersions()));
                 settings.setCloudHistoryBackfillDoneUid(0L);
+                if (transfer) {
+                    settings.setCloudHistorySync(local.isCloudHistorySync());
+                    settings.setRootPathUri(local.getRootPathUri());
+                    settings.setDownloadWay(local.getDownloadWay());
+                }
             }
             Settings.migrateLegacyDoubleTapZoom(settings);
             Settings.migrateLegacyLongPressBehavior(settings);
@@ -384,17 +493,23 @@ public class BackupUtils {
             }
             Local.setSettings(settings);
         }
-        AppDatabase appDatabase = AppDatabase.getAppDatabase(context);
-        List<MuteEntity> muteEntityList = backupEntity.getMuteEntityList();
-        if (muteEntityList != null && !muteEntityList.isEmpty()) {
-            SearchDao searchDao = appDatabase.searchDao();
+    }
+
+    private static boolean hasMutes(List<MuteEntity> mutes) {
+        return mutes != null && !mutes.isEmpty();
+    }
+
+    private static void restoreMutes(AppDatabase db, List<MuteEntity> muteEntityList) {
+        if (hasMutes(muteEntityList)) {
+            SearchDao searchDao = db.searchDao();
             for (MuteEntity muteEntity : muteEntityList) {
                 searchDao.insertMuteTag(muteEntity);
             }
-            // 这里绕过 MutedWorkStore 直接灌了行，它的内存名单必须整份重读，
-            // 否则恢复回来的屏蔽作品在列表里一张都不打码。
-            MutedWorkStores.invalidateAll();
         }
+    }
+
+    private static void restoreTables(Context context, BackupEntity backupEntity, long transferUid) {
+        AppDatabase appDatabase = AppDatabase.getAppDatabase(context);
         List<FeatureEntity> featureEntityList = backupEntity.getFeatureEntityList();
         if (featureEntityList != null && !featureEntityList.isEmpty()) {
             DownloadDao downloadDao = appDatabase.downloadDao();
@@ -406,6 +521,12 @@ public class BackupUtils {
         if (searchEntityList != null && !searchEntityList.isEmpty()) {
             SearchDao searchDao = appDatabase.searchDao();
             for (SearchEntity searchEntity : searchEntityList) {
+                if (transferUid != 0) {
+                    SearchEntity local = searchDao.findSearchEntity(searchEntity.getId());
+                    if (local != null && local.isPinned() && !searchEntity.isPinned()) continue;
+                    if (local != null && local.isPinned() == searchEntity.isPinned()
+                            && local.getSearchTime() >= searchEntity.getSearchTime()) continue;
+                }
                 searchDao.insert(searchEntity);
             }
         }
@@ -413,15 +534,30 @@ public class BackupUtils {
         if (userEntityList != null && !userEntityList.isEmpty()) {
             DownloadDao downloadDao = appDatabase.downloadDao();
             for (UserEntity userEntity : userEntityList) {
-                downloadDao.insertUser(userEntity);
+                if (transferUid == 0 || (userEntity.getUserID() != transferUid
+                        && downloadDao.getUserByUid(userEntity.getUserID()) == null)) {
+                    downloadDao.insertUser(userEntity);
+                }
             }
         }
         List<GeneralEntity> pinnedUserEntityList = backupEntity.getPinnedUserEntityList();
         if (pinnedUserEntityList != null && !pinnedUserEntityList.isEmpty()) {
             GeneralDao generalDao = appDatabase.generalDao();
             for (GeneralEntity pinnedUser : pinnedUserEntityList) {
+                if (transferUid != 0) {
+                    if (pinnedUser == null || pinnedUser.getRecordType() != RecordType.PINNED_USER) {
+                        throw new IllegalArgumentException("Unsupported pinned user record");
+                    }
+                    GeneralEntity local = generalDao.getByRecordTypeAndId(RecordType.PINNED_USER, pinnedUser.getId());
+                    if (local != null && local.getUpdatedTime() >= pinnedUser.getUpdatedTime()) continue;
+                }
                 generalDao.insert(pinnedUser);
             }
+        }
+    }
+
+    private static void refreshPinnedUsers(Context context, List<GeneralEntity> pinnedUsers) {
+        if (pinnedUsers != null && !pinnedUsers.isEmpty()) {
             // 这里绕过 EntityWrapper 直接灌了 general_table，它的内存置顶集合要整份重读，
             // 否则作者主页「更多」菜单按旧集合摆「置顶 / 取消置顶」，与列表页对不上。
             Context application = context.getApplicationContext();

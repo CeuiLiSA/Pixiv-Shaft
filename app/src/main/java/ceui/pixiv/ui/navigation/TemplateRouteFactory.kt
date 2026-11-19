@@ -107,6 +107,7 @@ import ceui.pixiv.ui.recommend.WallpaperRankFragment
 import ceui.pixiv.ui.recommend.YearRankFragment
 import ceui.pixiv.ui.settings.AiTranslateSettingsFragment
 import ceui.pixiv.ui.settings.Aria2SettingsFragment
+import ceui.pixiv.transfer.DeviceTransferFragment
 import ceui.pixiv.ui.settings.WebDavSettingsFragment
 import ceui.pixiv.ui.settings.DownloadPathSettingsFragment
 import ceui.pixiv.ui.settings.NovelHeaderSettingsFragment
@@ -387,6 +388,7 @@ object TemplateRouteFactory {
             TemplateRoute.DOWNLOAD_PATH_SETTINGS -> DownloadPathSettingsFragment()
             TemplateRoute.ARIA2_SETTINGS -> Aria2SettingsFragment()
             TemplateRoute.AI_TRANSLATE_SETTINGS -> AiTranslateSettingsFragment()
+            TemplateRoute.DEVICE_TRANSFER -> DeviceTransferFragment()
             TemplateRoute.WEBDAV_SETTINGS -> WebDavSettingsFragment()
             TemplateRoute.VIEWER_DISMISS_TUNING -> ViewerDismissTuningFragment()
             TemplateRoute.NOVEL_HEADER_SETTINGS -> NovelHeaderSettingsFragment()

@@ -104,6 +104,12 @@ public class FragmentSettingsData extends SettingsPageFragment<FragmentSettingsD
 
     @Override
     protected void initData() {
+        baseBind.deviceTransferRela.setOnClickListener(v -> {
+            Intent intent = new Intent(mContext, TemplateActivity.class);
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.DEVICE_TRANSFER.key);
+            startActivity(intent);
+        });
+
         // 备份与还原
         baseBind.backupRela.setOnClickListener(v -> {
             WitDialog.CheckBoxMessageDialogBuilder builder = new WitDialog.CheckBoxMessageDialogBuilder(getActivity());

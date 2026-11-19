@@ -11,6 +11,9 @@ interface SearchDao {
     @Query("SELECT * FROM search_table WHERE id = :id LIMIT 1")
     fun getSearchEntity(id: Int): SearchEntity
 
+    @Query("SELECT * FROM search_table WHERE id = :id LIMIT 1")
+    fun findSearchEntity(id: Int): SearchEntity?
+
     @Delete
     fun deleteSearchEntity(searchEntity: SearchEntity)
 

@@ -217,6 +217,7 @@ object SettingsCatalog {
         add(Entry(AI, "ai_translate_rela", R.string.ai_translate_settings_title, R.string.ai_translate_settings_entry_desc, keywords = "翻译 自定义 接口 openai gpt deepseek sakura ollama llm api 评论翻译 漫画翻译 translate"))
 
         // 备份与缓存
+        add(Entry(DATA, "device_transfer_rela", R.string.transfer_title, R.string.transfer_settings_summary, keywords = "换机 搬家 手机 迁移 局域网 扫码 wifi transfer migrate"))
         add(Entry(DATA, "backup_rela", R.string.string_420, keywords = "备份 导出 设置 json backup"))
         add(Entry(DATA, "restore_rela", R.string.string_421, keywords = "还原 恢复 导入 restore"))
         add(Entry(DATA, "webdav_rela", R.string.webdav_settings_title, R.string.webdav_settings_entry_desc, keywords = "webdav 坚果云 nextcloud pcloud 网盘 nas 同步 多设备 备份 还原 自动备份 sync"))

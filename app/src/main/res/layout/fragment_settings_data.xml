@@ -48,9 +48,28 @@
             android:paddingEnd="16dp">
 
             <RelativeLayout
-                android:id="@+id/backup_rela"
+                android:id="@+id/device_transfer_rela"
                 style="@style/M3SetRow"
                 android:background="@drawable/wit_row_top">
+
+                <LinearLayout style="@style/M3SetTexts">
+
+                    <TextView
+                        style="@style/M3SetTitle"
+                        android:text="@string/transfer_title" />
+
+                    <TextView
+                        style="@style/M3SetDesc"
+                        android:text="@string/transfer_settings_summary" />
+                </LinearLayout>
+
+                <TextView style="@style/M3SetArrow" />
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:id="@+id/backup_rela"
+                style="@style/M3SetRow"
+                android:background="@drawable/wit_row_mid">
 
                 <LinearLayout style="@style/M3SetTexts">
 
