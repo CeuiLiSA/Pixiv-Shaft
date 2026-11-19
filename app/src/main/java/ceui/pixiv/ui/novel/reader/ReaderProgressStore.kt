@@ -36,7 +36,11 @@ object ReaderProgressStore {
         val lastReadTime: Long,
     )
 
-    private val store: MMKV by lazy { MMKV.mmkvWithID(MMKV_ID) }
+    /**
+     * 每次按需取 MMKV 实例（MMKV 原生层内部按 mmapID 复用单例，且列表热路径 [peekReadingPercent] 与
+     * 预热后的读口都不碰它）；避免用 `by lazy` 永久持有单个封装对象，在多 shadow 单测环境下发生跨测试污染。
+     */
+    private fun store(): MMKV = MMKV.mmkvWithID(MMKV_ID)
 
     /** Lock-free read map for list cards; writes are coordinated with [loadLock] until [loaded]. */
     private val progressByNovel = ConcurrentHashMap<Long, Progress>()
@@ -82,7 +86,7 @@ object ReaderProgressStore {
     @VisibleForTesting
     internal fun loadFromDisk() {
         val scanned = try {
-            scanPersisted(store)
+            scanPersisted(store())
         } catch (e: CancellationException) {
             synchronized(loadLock) { loading = false }
             throw e
@@ -130,10 +134,11 @@ object ReaderProgressStore {
             if (!loaded) touchedBeforeLoad.add(novelId)
             progressByNovel.put(novelId, next)
         }
-        store.encode("char_$novelId", charIndex)
-        store.encode("page_$novelId", pageIndex)
-        store.encode("total_$novelId", totalPages)
-        store.encode("time_$novelId", now)
+        val mmkv = store()
+        mmkv.encode("char_$novelId", charIndex)
+        mmkv.encode("page_$novelId", pageIndex)
+        mmkv.encode("total_$novelId", totalPages)
+        mmkv.encode("time_$novelId", now)
         if (prev == null ||
             prev.charIndex != charIndex ||
             prev.pageIndex != pageIndex ||
@@ -145,23 +150,23 @@ object ReaderProgressStore {
 
     fun loadCharIndex(novelId: Long): Int {
         progressByNovel[novelId]?.let { return it.charIndex }
-        return if (loaded) 0 else store.decodeInt("char_$novelId", 0)
+        return if (loaded) 0 else store().decodeInt("char_$novelId", 0)
     }
 
     fun loadLastPageIndex(novelId: Long): Int {
         progressByNovel[novelId]?.let { return it.pageIndex }
-        return if (loaded) 0 else store.decodeInt("page_$novelId", 0)
+        return if (loaded) 0 else store().decodeInt("page_$novelId", 0)
     }
 
     /** 保存那一刻的总页数；滚动模式存的是 0（它没有页的概念）。 */
     fun loadTotalPages(novelId: Long): Int {
         progressByNovel[novelId]?.let { return it.totalPages }
-        return if (loaded) 0 else store.decodeInt("total_$novelId", 0)
+        return if (loaded) 0 else store().decodeInt("total_$novelId", 0)
     }
 
     fun loadLastReadTime(novelId: Long): Long {
         progressByNovel[novelId]?.let { return it.lastReadTime }
-        return if (loaded) 0L else store.decodeLong("time_$novelId", 0L)
+        return if (loaded) 0L else store().decodeLong("time_$novelId", 0L)
     }
 
     /**
@@ -169,21 +174,22 @@ object ReaderProgressStore {
      * 超长系列的后几页章节系列页还没翻到，看不到它们的进度。
      */
     fun saveSeriesLastNovel(seriesId: Long, novelId: Long) {
-        store.encode("series_last_$seriesId", novelId)
+        store().encode("series_last_$seriesId", novelId)
     }
 
     /** 没记过返回 0。 */
-    fun loadSeriesLastNovel(seriesId: Long): Long = store.decodeLong("series_last_$seriesId", 0L)
+    fun loadSeriesLastNovel(seriesId: Long): Long = store().decodeLong("series_last_$seriesId", 0L)
 
     fun clear(novelId: Long) {
         val removed = synchronized(loadLock) {
             if (!loaded) touchedBeforeLoad.add(novelId)
             progressByNovel.remove(novelId)
         }
-        store.removeValueForKey("char_$novelId")
-        store.removeValueForKey("page_$novelId")
-        store.removeValueForKey("total_$novelId")
-        store.removeValueForKey("time_$novelId")
+        val mmkv = store()
+        mmkv.removeValueForKey("char_$novelId")
+        mmkv.removeValueForKey("page_$novelId")
+        mmkv.removeValueForKey("total_$novelId")
+        mmkv.removeValueForKey("time_$novelId")
         if (removed != null || !loaded) {
             bumpRevision()
         }
