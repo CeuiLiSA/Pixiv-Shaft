@@ -400,9 +400,9 @@ jobs:
           java-version: '17'
           distribution: 'adopt'
 
-      - name: Cache Gradle dependencies and build-cache
+      - name: Restore Gradle dependencies and build-cache
         if: steps.check_run.outputs.should_run == 'true'
-        uses: actions/cache@v4
+        uses: actions/cache/restore@v4
         with:
           path: |
             ~/.gradle/wrapper/dists
