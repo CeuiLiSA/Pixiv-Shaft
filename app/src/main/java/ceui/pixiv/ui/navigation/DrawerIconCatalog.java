@@ -22,6 +22,8 @@ public final class DrawerIconCatalog {
             return R.drawable.ic_baseline_menu_book_24;
         } else if (actionId == R.id.watch_later) {
             return R.drawable.ic_watch_later_24;
+        } else if (actionId == R.id.nav_artlists) {
+            return R.drawable.ic_collections_black_24dp;
         } else if (actionId == R.id.nav_pinned_tags) {
             return R.drawable.ic_loyalty_black_24dp;
         } else if (actionId == R.id.nav_feature) {

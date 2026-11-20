@@ -194,6 +194,7 @@ public class FragmentCenter extends BaseLazyFragment<FragmentNewCenterBinding> {
         styleCatChip(baseBind.catSfwRank, palette, R.drawable.ic_check_circle_black_24dp);
         styleCatChip(baseBind.catTrendingArtists, palette, R.drawable.outline_whatshot_24);
         styleCatChip(baseBind.catDailyRecommendations, palette, R.drawable.ic_date_range_black_24dp);
+        styleCatChip(baseBind.catArtlists, palette, R.drawable.ic_collections_black_24dp);
         styleCatChip(baseBind.catUgoiraRank, palette, R.drawable.ic_baseline_play_arrow_24);
         styleCatChip(baseBind.catWalk, palette, R.drawable.ic_collections_black_24dp);
         styleCatChip(baseBind.catPixivComic, palette, R.drawable.ic_baseline_palette_24);
