@@ -7,12 +7,14 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.ContextWrapper
 import android.content.res.ColorStateList
+import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Outline
+import android.graphics.Paint
 import android.graphics.RenderEffect
 import android.graphics.Shader
 import android.graphics.drawable.ColorDrawable
-import android.graphics.drawable.RippleDrawable
+import android.graphics.drawable.StateListDrawable
 import android.os.Build
 import android.view.Gravity
 import android.view.HapticFeedbackConstants
@@ -188,7 +190,7 @@ public class WitLiquidGlassMenu private constructor(
     private var menuGlass: WitLiquidGlassView? = null
     private var scrollView: ScrollView? = null
     private var rowsListView: LinearLayout? = null
-    private var highlightPill: View? = null
+    private var highlightPill: HighlightPillView? = null
     private var echoIconView: ImageView? = null
     private var firstFocusableRow: View? = null
 
@@ -217,7 +219,7 @@ public class WitLiquidGlassMenu private constructor(
     private var dragFingerDown = false
     private var openSettled = false
     private var highlightedRow: RowBinding? = null
-    private var highlightHeightAnimator: ValueAnimator? = null
+    private var highlightBoundsAnimator: ValueAnimator? = null
 
     private var progress = 0f
     private var backStartProgress = 1f
@@ -501,26 +503,25 @@ public class WitLiquidGlassMenu private constructor(
         anchorRadiusPx = minOf(anchorWidthPx, anchorHeightPx) * 0.5f
         endRadiusPx = minOf(context.dpF(config.cornerRadiusDp), minOf(menuWidth, menuHeight) * 0.5f)
 
-        // 5) Wrap rows in ScrollView with concentric sliding highlight pill + iOS press/drag rubber-band.
+        // 5) Wrap rows in ScrollView with zero-relayout concentric highlight pill + iOS drag physics.
         val highlightRadiusPx = context.dpF((config.cornerRadiusDp - ROW_HORIZONTAL_MARGIN_DP).coerceAtLeast(14f))
-        val pill = View(context).apply {
-            background = shape(highlightRadiusPx, if (isDark) DARK_HIGHLIGHT_FILL else LIGHT_HIGHLIGHT_FILL)
+        val pill = HighlightPillView(
+            context = context,
+            fillColor = if (isDark) DARK_HIGHLIGHT_FILL else LIGHT_HIGHLIGHT_FILL,
+            cornerRadiusPx = highlightRadiusPx,
+            horizontalInsetPx = context.dpF(ROW_HORIZONTAL_MARGIN_DP.toFloat()),
+        ).apply {
             alpha = 0f
             importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
         }
         highlightPill = pill
         val scrollContent = FrameLayout(context).apply {
-            val hMargin = context.dp(ROW_HORIZONTAL_MARGIN_DP)
             addView(
                 pill,
                 FrameLayout.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT,
-                    context.dp(ROW_MIN_HEIGHT_DP),
-                    Gravity.TOP,
-                ).apply {
-                    marginStart = hMargin
-                    marginEnd = hMargin
-                },
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                ),
             )
             addView(
                 rowsContainer,
@@ -789,14 +790,12 @@ public class WitLiquidGlassMenu private constructor(
         return row to toggle
     }
 
-    private fun buildRowRipple(isDark: Boolean): RippleDrawable {
-        val rippleColor = if (isDark) 0x26FFFFFF else 0x1A1A1A2E
+    private fun buildRowRipple(isDark: Boolean): StateListDrawable {
+        val focusColor = if (isDark) DARK_HIGHLIGHT_FILL else LIGHT_HIGHLIGHT_FILL
         val radiusPx = context.dpF((config.cornerRadiusDp - ROW_HORIZONTAL_MARGIN_DP).coerceAtLeast(14f))
-        return RippleDrawable(
-            ColorStateList.valueOf(rippleColor),
-            null,
-            shape(radiusPx, Color.WHITE),
-        )
+        return StateListDrawable().apply {
+            addState(intArrayOf(android.R.attr.state_focused), shape(radiusPx, focusColor))
+        }
     }
 
     private fun createAnchorEchoView(
@@ -874,7 +873,11 @@ public class WitLiquidGlassMenu private constructor(
         dragPullX = 0f
         dragPullY = 0f
         dragPress = 0f
-        menuGlass?.clearMorphFrame()
+        menuGlass?.let { glass ->
+            glass.translationX = 0f
+            glass.translationY = 0f
+            glass.clearMorphFrame()
+        }
         scrollView?.let { content ->
             content.alpha = 1f
             content.scaleX = 1f
@@ -917,6 +920,7 @@ public class WitLiquidGlassMenu private constructor(
                 glassPoint[0] = ev.getX(ptrIndex)
                 glassPoint[1] = ev.getY(ptrIndex)
                 matrix.mapPoints(glassPoint)
+                menuGlass?.matrix?.mapPoints(glassPoint)
             }
 
             private fun maxScrollRange(): Int {
@@ -998,17 +1002,17 @@ public class WitLiquidGlassMenu private constructor(
                             DragMode.UNDECIDED -> {
                                 if (canScroll) super.dispatchTouchEvent(ev)
                                 updateTouchHighlight(lx, ly, playHaptic = false)
-                                updateDragTargets(gx, gy, dx * 0.35f, dy * 0.14f)
+                                updateDragTargets(gx, gy, dx * 0.70f, dy * 0.35f)
                             }
                             DragMode.SCRUB -> {
                                 updateTouchHighlight(lx, ly, playHaptic = true)
-                                val effX = dx * 0.45f + overX * 0.85f
-                                val effY = dy * 0.14f + overY * 0.95f
+                                val effX = dx * 0.95f + overX * 0.65f
+                                val effY = dy * 0.42f + overY * 1.15f
                                 updateDragTargets(gx, gy, effX, effY)
                             }
                             DragMode.HORIZONTAL_ELASTIC -> {
-                                val effX = dx * 0.55f + overX * 0.85f
-                                val effY = dy * 0.18f + overY * 0.90f
+                                val effX = dx * 1.0f + overX * 0.65f
+                                val effY = dy * 0.48f + overY * 1.10f
                                 updateDragTargets(gx, gy, effX, effY)
                             }
                             DragMode.VERTICAL_SCROLL -> {
@@ -1028,8 +1032,8 @@ public class WitLiquidGlassMenu private constructor(
                                 } else {
                                     super.dispatchTouchEvent(ev)
                                 }
-                                val effX = dx * 0.30f + overX * 0.85f
-                                val effY = overscrollY * 0.85f + overY * 0.70f
+                                val effX = dx * 0.55f + overX * 0.80f
+                                val effY = overscrollY * 1.15f + overY * 0.85f
                                 updateDragTargets(gx, gy, effX, effY)
                             }
                             DragMode.IDLE -> Unit
@@ -1037,16 +1041,31 @@ public class WitLiquidGlassMenu private constructor(
                         return true
                     }
 
+                    MotionEvent.ACTION_POINTER_DOWN -> {
+                        if (passThroughToSwitch) return super.dispatchTouchEvent(ev)
+                        if (maxScrollRange() > 0 && (dragMode == DragMode.UNDECIDED || (dragMode == DragMode.VERTICAL_SCROLL && overscrollY == 0f))) {
+                            super.dispatchTouchEvent(ev)
+                        }
+                        return true
+                    }
+
                     MotionEvent.ACTION_POINTER_UP -> {
                         if (passThroughToSwitch) return super.dispatchTouchEvent(ev)
+                        if (maxScrollRange() > 0 && (dragMode == DragMode.UNDECIDED || (dragMode == DragMode.VERTICAL_SCROLL && overscrollY == 0f))) {
+                            super.dispatchTouchEvent(ev)
+                        }
                         if (ev.getPointerId(ev.actionIndex) == activePointerId) {
-                            val newIndex = if (ev.actionIndex == 0) 1 else 0
+                            val oldIndex = ev.actionIndex
+                            mapToGlassLocal(ev, oldIndex)
+                            val oldGx = glassPoint[0]
+                            val oldGy = glassPoint[1]
+                            val newIndex = if (oldIndex == 0) 1 else 0
                             if (newIndex < ev.pointerCount) {
                                 activePointerId = ev.getPointerId(newIndex)
                                 mapToGlassLocal(ev, newIndex)
-                                downX = glassPoint[0]
-                                downY = glassPoint[1]
-                                lastY = downY
+                                downX += glassPoint[0] - oldGx
+                                downY += glassPoint[1] - oldGy
+                                lastY = glassPoint[1]
                                 lastLocalX = ev.getX(newIndex)
                                 lastLocalY = ev.getY(newIndex)
                             }
@@ -1255,17 +1274,19 @@ public class WitLiquidGlassMenu private constructor(
             pressPresence = dragPress,
             patchMargin = context.dpF(MAX_MORPH_PATCH_OVERSHOOT_DP),
         )
+        glass.translationX = deform.translateX
+        glass.translationY = deform.translateY
         glass.setMorphFrame(deform.left, deform.top, deform.right, deform.bottom, deform.cornerRadius)
         glass.setMorphTouch(
-            x = dragTouchX.coerceIn(-w * 0.25f, w * 1.25f),
-            y = dragTouchY.coerceIn(-h * 0.25f, h * 1.25f),
+            x = (dragTouchX - deform.translateX).coerceIn(-w * 0.25f, w * 1.25f),
+            y = (dragTouchY - deform.translateY).coerceIn(-h * 0.25f, h * 1.25f),
             illumination = (dragPress.coerceIn(0f, 1f) * DRAG_TOUCH_GLOW_STRENGTH),
         )
         scrollView?.let { content ->
             val curW = deform.right - deform.left
             val curH = deform.bottom - deform.top
-            content.scaleX = (curW / w).coerceIn(0.92f, 1.06f)
-            content.scaleY = (curH / h).coerceIn(0.92f, 1.06f)
+            content.scaleX = (curW / w).coerceIn(0.88f, 1.12f)
+            content.scaleY = (curH / h).coerceIn(0.88f, 1.12f)
             content.translationX = (deform.left + deform.right) * 0.5f - w * 0.5f
             content.translationY = (deform.top + deform.bottom) * 0.5f - h * 0.5f
         }
@@ -1280,7 +1301,11 @@ public class WitLiquidGlassMenu private constructor(
         dragPullX = 0f
         dragPullY = 0f
         dragPress = 0f
-        menuGlass?.clearMorphFrame()
+        menuGlass?.let { glass ->
+            glass.translationX = 0f
+            glass.translationY = 0f
+            glass.clearMorphFrame()
+        }
         scrollView?.let { content ->
             content.scaleX = 1f
             content.scaleY = 1f
@@ -1326,19 +1351,14 @@ public class WitLiquidGlassMenu private constructor(
 
     private fun moveHighlightPillTo(row: View, instantPosition: Boolean) {
         val pill = highlightPill ?: return
-        val targetY = row.top.toFloat()
-        val targetH = row.height.coerceAtLeast(context.dp(ROW_MIN_HEIGHT_DP))
+        val targetTop = row.top.toFloat()
+        val targetHeight = row.height.coerceAtLeast(context.dp(ROW_MIN_HEIGHT_DP)).toFloat()
         pill.animate().cancel()
-        highlightHeightAnimator?.cancel()
+        highlightBoundsAnimator?.cancel()
 
         val animateMotion = motionEnabled() && !instantPosition
         if (!animateMotion) {
-            pill.translationY = targetY
-            val lp = pill.layoutParams
-            if (lp.height != targetH) {
-                lp.height = targetH
-                pill.layoutParams = lp
-            }
+            pill.setPillBounds(targetTop, targetHeight)
             if (motionEnabled()) {
                 pill.animate().alpha(1f).setDuration(80L).start()
             } else {
@@ -1347,24 +1367,20 @@ public class WitLiquidGlassMenu private constructor(
             return
         }
 
-        pill.animate()
-            .translationY(targetY)
-            .alpha(1f)
-            .setDuration(115L)
-            .setInterpolator(DecelerateInterpolator(1.6f))
-            .start()
-        val startH = pill.layoutParams.height.takeIf { it > 0 } ?: targetH
-        if (startH != targetH) {
-            highlightHeightAnimator = ValueAnimator.ofInt(startH, targetH).apply {
-                duration = 115L
-                interpolator = DecelerateInterpolator(1.6f)
-                addUpdateListener { anim ->
-                    val lp = pill.layoutParams
-                    lp.height = anim.animatedValue as Int
-                    pill.layoutParams = lp
-                }
-                start()
+        val startTop = pill.pillTop
+        val startHeight = pill.pillHeight.takeIf { it > 0f } ?: targetHeight
+        pill.animate().alpha(1f).setDuration(80L).start()
+        highlightBoundsAnimator = ValueAnimator.ofFloat(0f, 1f).apply {
+            duration = 115L
+            interpolator = DecelerateInterpolator(1.6f)
+            addUpdateListener { anim ->
+                val f = anim.animatedValue as Float
+                pill.setPillBounds(
+                    lerp(startTop, targetTop, f),
+                    lerp(startHeight, targetHeight, f),
+                )
             }
+            start()
         }
     }
 
@@ -1372,11 +1388,47 @@ public class WitLiquidGlassMenu private constructor(
         highlightedRow = null
         val pill = highlightPill ?: return
         pill.animate().cancel()
-        highlightHeightAnimator?.cancel()
+        highlightBoundsAnimator?.cancel()
         if (animated && motionEnabled()) {
             pill.animate().alpha(0f).setDuration(110L).start()
         } else {
             pill.alpha = 0f
+        }
+    }
+
+    private class HighlightPillView(
+        context: Context,
+        @ColorInt fillColor: Int,
+        private val cornerRadiusPx: Float,
+        private val horizontalInsetPx: Float,
+    ) : View(context) {
+        private val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            style = Paint.Style.FILL
+            color = fillColor
+        }
+        var pillTop: Float = 0f
+            private set
+        var pillHeight: Float = 0f
+            private set
+
+        fun setPillBounds(top: Float, height: Float) {
+            if (pillTop == top && pillHeight == height) return
+            pillTop = top
+            pillHeight = height
+            invalidate()
+        }
+
+        override fun onDraw(canvas: Canvas) {
+            if (pillHeight <= 0f || width <= horizontalInsetPx * 2f) return
+            canvas.drawRoundRect(
+                horizontalInsetPx,
+                pillTop,
+                width - horizontalInsetPx,
+                pillTop + pillHeight,
+                cornerRadiusPx,
+                cornerRadiusPx,
+                paint,
+            )
         }
     }
 
@@ -1456,6 +1508,8 @@ public class WitLiquidGlassMenu private constructor(
                 pressPresence = dragPress * dragCarry,
                 patchMargin = patchMargin,
             )
+            glass.translationX = dragDeform.translateX
+            glass.translationY = dragDeform.translateY
             val dL = dragDeform.left
             val dT = dragDeform.top
             val dR = dragDeform.right - w
@@ -1467,6 +1521,8 @@ public class WitLiquidGlassMenu private constructor(
             finalT = clampMorphStart(curT + dT, mergedH, h, patchMargin)
             finalB = finalT + mergedH
         } else {
+            glass.translationX = 0f
+            glass.translationY = 0f
             finalL = curL
             finalT = curT
             finalR = curR
@@ -1510,8 +1566,8 @@ public class WitLiquidGlassMenu private constructor(
             glass.setMorphFrame(finalL, finalT, finalR, finalB, bodyR)
         }
         glass.setMorphTouch(
-            x = dragTouchX,
-            y = dragTouchY,
+            x = (dragTouchX - glass.translationX).coerceIn(-w * 0.25f, w * 1.25f),
+            y = (dragTouchY - glass.translationY).coerceIn(-h * 0.25f, h * 1.25f),
             illumination = dragPress.coerceIn(0f, 1f) * dragCarry * DRAG_TOUCH_GLOW_STRENGTH,
         )
 
@@ -1520,8 +1576,8 @@ public class WitLiquidGlassMenu private constructor(
 
         // Menu content tracks Body B's live center/size and pulls from Gaussian blur into crisp focus.
         scrollView?.let { content ->
-            val sx = (finalW / w).coerceIn(0.32f, 1.06f)
-            val sy = (finalH / h).coerceIn(0.32f, 1.06f)
+            val sx = (finalW / w).coerceIn(0.32f, 1.12f)
+            val sy = (finalH / h).coerceIn(0.32f, 1.12f)
             val uni = minOf(sx, sy)
             content.scaleX = lerp(uni, sx, 0.25f)
             content.scaleY = lerp(uni, sy, 0.25f)
@@ -1597,6 +1653,9 @@ public class WitLiquidGlassMenu private constructor(
 
             override fun handleOnBackCancelled() {
                 if (state != State.OPENING_OR_OPEN) return
+                dragPullX = 0f
+                dragPullY = 0f
+                dragPress = 0f
                 if (!motionEnabled()) {
                     applyProgress(1f, closing = false)
                     settleOpen()
@@ -1634,8 +1693,8 @@ public class WitLiquidGlassMenu private constructor(
         dragSpringY = null
         dragSpringPress = null
         highlightPill?.animate()?.cancel()
-        highlightHeightAnimator?.cancel()
-        highlightHeightAnimator = null
+        highlightBoundsAnimator?.cancel()
+        highlightBoundsAnimator = null
         morphAnimator?.cancel()
         morphAnimator = null
 
@@ -1651,6 +1710,8 @@ public class WitLiquidGlassMenu private constructor(
         val glass = menuGlass
         if (glass != null) {
             detachListener?.let { glass.removeOnAttachStateChangeListener(it) }
+            glass.translationX = 0f
+            glass.translationY = 0f
             glass.clearMorphFrame()
             if (glass.parent === host) host.removeView(glass)
         }
@@ -1725,13 +1786,15 @@ public class WitLiquidGlassMenu private constructor(
 
         private const val SCRUB_CORRIDOR_X_DP = 24f
         private const val SCRUB_CORRIDOR_Y_DP = 20f
-        private const val DRAG_TOUCH_GLOW_STRENGTH = 0.48f
-        private const val DRAG_SPRING_FOLLOW_STIFFNESS = 900f
-        private const val DRAG_SPRING_FOLLOW_DAMPING = 0.92f
-        private const val DRAG_SPRING_RELEASE_STIFFNESS = 380f
-        private const val DRAG_SPRING_RELEASE_DAMPING = 0.58f
+        private const val DRAG_TOUCH_GLOW_STRENGTH = 0.62f
+        private const val DRAG_SPRING_FOLLOW_STIFFNESS = 720f
+        private const val DRAG_SPRING_FOLLOW_DAMPING = 0.88f
+        private const val DRAG_SPRING_RELEASE_STIFFNESS = 320f
+        private const val DRAG_SPRING_RELEASE_DAMPING = 0.52f
 
         internal data class DragDeform(
+            val translateX: Float,
+            val translateY: Float,
             val left: Float,
             val top: Float,
             val right: Float,
@@ -1795,31 +1858,33 @@ public class WitLiquidGlassMenu private constructor(
             pressPresence: Float,
             patchMargin: Float,
         ): DragDeform {
-            val dimX = maxOf(width * 0.65f, 120f * density)
-            val dimY = maxOf(height * 0.55f, 130f * density)
+            val dimX = maxOf(width * 0.48f, 95f * density)
+            val dimY = maxOf(height * 0.42f, 110f * density)
             val rx = rubberBand(pullX, 1f, dimX)
             val ry = rubberBand(pullY, 1f, dimY)
             val ax = abs(rx)
             val ay = abs(ry)
 
-            val maxShiftX = 9.5f * density
-            val maxShiftY = 10.5f * density
-            val maxStretchX = minOf(width * 0.036f, 11f * density)
-            val maxStretchY = minOf(height * 0.036f, 13.5f * density)
+            val maxShiftX = 22f * density
+            val maxShiftY = 26f * density
+            val maxStretchX = minOf(width * 0.080f, 22f * density)
+            val maxStretchY = minOf(height * 0.075f, 28f * density)
             val pullMag = (ax + ay).coerceIn(0f, 1f)
-            val swell = 1.6f * density * pressPresence.coerceIn(0f, 1f) * (1f - pullMag)
+            val swell = 2.6f * density * pressPresence.coerceIn(0f, 1f) * (1f - pullMag)
 
-            val deltaW = maxStretchX * ax - maxStretchX * 0.42f * ay + swell
-            val deltaH = maxStretchY * ay - maxStretchY * 0.36f * ax + swell
-            val curW = (width + deltaW).coerceAtLeast(width * 0.92f)
-            val curH = (height + deltaH).coerceAtLeast(height * 0.92f)
+            val deltaW = maxStretchX * ax - maxStretchX * 0.46f * ay + swell
+            val deltaH = maxStretchY * ay - maxStretchY * 0.42f * ax + swell
+            val curW = (width + deltaW).coerceAtLeast(width * 0.88f)
+            val curH = (height + deltaH).coerceAtLeast(height * 0.88f)
 
-            val cx = width * 0.5f + maxShiftX * rx + rx * (deltaW * 0.22f)
-            val cy = height * 0.5f + maxShiftY * ry + ry * (deltaH * 0.22f)
+            val translateX = maxShiftX * rx
+            val translateY = maxShiftY * ry
+            val cx = width * 0.5f + rx * (deltaW * 0.28f)
+            val cy = height * 0.5f + ry * (deltaH * 0.28f)
             val left = clampMorphStart(cx - curW * 0.5f, curW, width, patchMargin)
             val top = clampMorphStart(cy - curH * 0.5f, curH, height, patchMargin)
-            val radius = (endRadius + (ax + ay) * 1.5f * density).coerceIn(0f, minOf(curW, curH) * 0.5f)
-            return DragDeform(left, top, left + curW, top + curH, radius)
+            val radius = (endRadius + (ax + ay) * 2.2f * density).coerceIn(0f, minOf(curW, curH) * 0.5f)
+            return DragDeform(translateX, translateY, left, top, left + curW, top + curH, radius)
         }
 
         private fun lerp(start: Float, end: Float, fraction: Float): Float =

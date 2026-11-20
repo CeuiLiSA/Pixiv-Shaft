@@ -73,19 +73,22 @@ class WitLiquidGlassBudgetTest {
         val margin = 26f * density
 
         val rest = WitLiquidGlassMenu.computeDragDeform(w, h, radius, density, 0f, 0f, 0f, margin)
+        assertEquals(0f, rest.translateX, 0.001f)
+        assertEquals(0f, rest.translateY, 0.001f)
         assertEquals(0f, rest.left, 0.001f)
         assertEquals(0f, rest.top, 0.001f)
         assertEquals(w, rest.right, 0.001f)
         assertEquals(h, rest.bottom, 0.001f)
         assertEquals(radius, rest.cornerRadius, 0.001f)
 
-        // Pulling down stretches bottom further than top moves and narrows width slightly.
+        // Pulling down shifts downward, stretches bottom further than top moves, and narrows width.
         val pullDown = WitLiquidGlassMenu.computeDragDeform(w, h, radius, density, 0f, 160f * density, 1f, margin)
         val downW = pullDown.right - pullDown.left
         val downH = pullDown.bottom - pullDown.top
+        assertTrue(pullDown.translateY > 8f * density)
         assertTrue(downH > h)
         assertTrue(downW < w)
-        assertTrue((pullDown.bottom - h) > pullDown.top)
+        assertTrue((pullDown.bottom - h) > -pullDown.top)
 
         // Extreme cross-screen drag still stays strictly inside +/- patchMargin.
         val extreme = WitLiquidGlassMenu.computeDragDeform(w, h, radius, density, -2000f * density, 2000f * density, 1f, margin)
