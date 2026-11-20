@@ -25,6 +25,8 @@ on:
 env:
   ORIGINAL_PROJECT: "CeuiLiSA/Pixiv-Shaft"
   GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4g"
+  # 本仓未配置 Develocity 企业版服务，禁用其自动注入以消除后台无用的 gRPC/Netty 线程与退出报错
+  DEVELOCITY_INJECTION_ENABLED: "false"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -48,8 +50,24 @@ jobs:
           java-version: '17'
           distribution: 'adopt'
 
+      - name: Cache Gradle dependencies and build-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/wrapper/dists
+            ~/.gradle/caches/modules-2/files-2.1
+            ~/.gradle/caches/transforms-4
+            ~/.gradle/caches/jars-9
+            ~/.gradle/caches/build-cache-1
+          key: ${{ runner.os }}-gradle-deps-${{ hashFiles('**/libs.versions.toml', '**/*.gradle*', 'gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-deps-
+
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v3
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-disabled: true
+          develocity-injection: false
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -335,19 +353,91 @@ jobs:
         with:
           submodules: 'true'
 
+      - name: Check critical paths
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            critical:
+              - 'app/schemas/**'
+              - '**/database/**'
+              - '**/dao/**'
+              - '**/entity/**'
+              - 'app/src/main/cpp/**'
+              - 'CMakeLists.txt'
+              - 'app/proguard-rules.pro'
+              - 'actionqueue/**'
+              - 'models/**'
+              - 'app/src/main/java/ceui/pixiv/ui/search/SearchRiskPolicy.kt'
+              - 'app/src/androidTest/**'
+              - 'actionqueue/src/androidTest/**'
+              - 'gradle/**'
+              - '**/*.gradle*'
+              - 'libs.versions.toml'
+              - '.github/workflows/**'
+
+      - name: Determine if critical tests should run
+        id: check_run
+        env:
+          IS_TAG: ${{ startsWith(github.ref, 'refs/tags/') }}
+          HAS_FLAG: ${{ contains(github.event.head_commit.message, '[test-all]') }}
+          IS_CRITICAL: ${{ steps.filter.outputs.critical }}
+        run: |
+          if [ "$IS_TAG" = "true" ] || [ "$HAS_FLAG" = "true" ] || [ "$IS_CRITICAL" = "true" ]; then
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+            echo "Triggering Critical androidTest (Tag: $IS_TAG, Flag: $HAS_FLAG, Critical: $IS_CRITICAL)"
+          else
+            echo "should_run=false" >> "$GITHUB_OUTPUT"
+            echo "Skipping Critical androidTest: non-critical change"
+          fi
+
+      - name: Skip notice
+        if: steps.check_run.outputs.should_run != 'true'
+        run: |
+          echo "Skipped Critical androidTest: no database, schema, r8, native or build changes detected."
+
       - name: Set up JDK 17
+        if: steps.check_run.outputs.should_run == 'true'
         uses: actions/setup-java@v4.2.2
         with:
           java-version: '17'
           distribution: 'adopt'
 
+      - name: Restore Gradle dependencies and build-cache
+        if: steps.check_run.outputs.should_run == 'true'
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/.gradle/wrapper/dists
+            ~/.gradle/caches/modules-2/files-2.1
+            ~/.gradle/caches/transforms-4
+            ~/.gradle/caches/jars-9
+            ~/.gradle/caches/build-cache-1
+          key: ${{ runner.os }}-gradle-deps-${{ hashFiles('**/libs.versions.toml', '**/*.gradle*', 'gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-deps-
+
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v3
+        if: steps.check_run.outputs.should_run == 'true'
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-disabled: true
+          develocity-injection: false
 
       - name: Grant execute permission for gradlew
+        if: steps.check_run.outputs.should_run == 'true'
         run: chmod +x gradlew
 
+      - name: Prebuild androidTest and app APKs
+        if: steps.check_run.outputs.should_run == 'true'
+        env:
+          SHAFT_EVENTS_HMAC: ci-instrumentation-only-not-a-secret
+        run: |
+          ./gradlew :app:assembleGithubDebugAndroidTest :actionqueue:assembleDebugAndroidTest -PSHAFT_TEST_ABI=x86_64 --stacktrace
+          ./gradlew :app:assembleGithubReleaseAndroidTest -PSHAFT_TEST_BUILD_TYPE=release -PSHAFT_TEST_ABI=x86_64 --stacktrace
+
       - name: Enable KVM
+        if: steps.check_run.outputs.should_run == 'true'
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
           sudo udevadm control --reload-rules
@@ -357,6 +447,7 @@ jobs:
       # 重命名的 Kotlin stdlib；真正依赖混淆结果的契约测试则单独对 Release 跑。
       # x86_64 只对本次测试构建生效，正式 APK 仍保持 arm64-v8a。
       - name: Run critical instrumented tests
+        if: steps.check_run.outputs.should_run == 'true'
         uses: reactivecircus/android-emulator-runner@v2
         env:
           # 一次性测试键，仅用于证明 native signer 能加载；不是生产凭证。
@@ -368,11 +459,11 @@ jobs:
           profile: pixel_7_pro
           script: |
             ./gradlew :app:connectedGithubDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=ceui.lisa.database.AppDatabaseMigrationTest -PSHAFT_TEST_ABI=x86_64 --stacktrace
-            ./gradlew :app:connectedGithubReleaseAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=ceui.lisa.ExampleInstrumentedTest,ceui.lisa.model.AppApiGsonR8InstrumentedTest,ceui.pixiv.shaftapi.ShaftHmacInstrumentedTest,ceui.pixiv.ui.search.SearchRiskPolicyInstrumentedTest -PSHAFT_TEST_BUILD_TYPE=release -PSHAFT_TEST_ABI=x86_64 --stacktrace
             ./gradlew :actionqueue:connectedDebugAndroidTest --stacktrace
+            ./gradlew :app:connectedGithubReleaseAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=ceui.lisa.ExampleInstrumentedTest,ceui.lisa.model.AppApiGsonR8InstrumentedTest,ceui.pixiv.shaftapi.ShaftHmacInstrumentedTest,ceui.pixiv.ui.search.SearchRiskPolicyInstrumentedTest -PSHAFT_TEST_BUILD_TYPE=release -PSHAFT_TEST_ABI=x86_64 --stacktrace
 
       - name: Upload instrumented test reports
-        if: failure()
+        if: failure() && steps.check_run.outputs.should_run == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: android-test-reports-${{ github.run_id }}
