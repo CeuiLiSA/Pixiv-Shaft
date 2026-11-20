@@ -1397,7 +1397,7 @@ public class WitLiquidGlassMenu private constructor(
         val startHeight = pill.pillHeight.takeIf { it > 0f } ?: targetHeight
         pill.animate().alpha(1f).setDuration(80L).start()
         highlightBoundsAnimator = ValueAnimator.ofFloat(0f, 1f).apply {
-            duration = 115L
+            duration = 105L
             interpolator = DecelerateInterpolator(1.6f)
             addUpdateListener { anim ->
                 val f = anim.animatedValue as Float
@@ -1686,7 +1686,7 @@ public class WitLiquidGlassMenu private constructor(
                     applyProgress(1f, closing = false)
                     settleOpen()
                 } else {
-                    animateProgress(target = 1f, durationMs = 240L, closing = true)
+                    animateProgress(target = 1f, durationMs = 210L, closing = true)
                 }
             }
 
@@ -1790,8 +1790,8 @@ public class WitLiquidGlassMenu private constructor(
         private const val SCRIM_ELEVATION_DP = 16f
         private const val MENU_ELEVATION_DP = 18f
 
-        private const val OPEN_DURATION_MS = 480L
-        private const val CLOSE_DURATION_MS = 340L
+        private const val OPEN_DURATION_MS = 400L
+        private const val CLOSE_DURATION_MS = 300L
         private const val MAX_TOP_SAG_DP = 34f
         private const val MAX_WIDTH_OVERSHOOT_DP = 8f
         private const val MAX_HEIGHT_OVERSHOOT_DP = 10f

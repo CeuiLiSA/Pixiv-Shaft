@@ -114,6 +114,7 @@ internal fun buildLiquidGlassMorphPath(
 @RequiresApi(31)
 internal class WitLiquidGlassBackdrop {
     internal val node = RenderNode("WitLiquidGlassBackdrop")
+    internal val hasDisplayList: Boolean get() = node.hasDisplayList()
 
     internal fun begin(width: Int, height: Int): RecordingCanvas {
         node.setPosition(0, 0, width, height)
@@ -145,7 +146,7 @@ internal open class WitLiquidGlassRenderer {
     private var previousScale: Float = -1f
     private var blurRadius = -1f
 
-    internal val hasBackdrop: Boolean get() = previousBackdrop != null
+    internal val hasBackdrop: Boolean get() = previousBackdrop != null && patch.hasDisplayList()
 
     internal fun updateBackdrop(
         view: View,
@@ -172,8 +173,10 @@ internal open class WitLiquidGlassRenderer {
         val scaledWidth = ceil(view.width * effectiveScale).toInt().coerceAtLeast(1)
         val scaledHeight = ceil(view.height * effectiveScale).toInt().coerceAtLeast(1)
         val resized = patch.setPosition(0, 0, scaledWidth + 2 * inset, scaledHeight + 2 * inset)
-        if (!resized && !paddingChanged && !scaleChanged &&
-            previousBackdrop === backdrop && previousScale == effectiveScale && previousTransform == backdropToLocal
+        val missingDisplayList = !patch.hasDisplayList()
+        val backdropChanged = previousBackdrop !== backdrop
+        if (!resized && !paddingChanged && !scaleChanged && !missingDisplayList &&
+            !backdropChanged && previousScale == effectiveScale && previousTransform == backdropToLocal
         ) {
             return false
         }
@@ -192,15 +195,20 @@ internal open class WitLiquidGlassRenderer {
         previousBackdrop = backdrop
         previousScale = effectiveScale
         previousTransform.set(backdropToLocal)
-        return paddingChanged || scaleChanged
+        return paddingChanged || scaleChanged || missingDisplayList || backdropChanged
     }
 
     internal fun clearBackdrop(): Boolean {
-        if (previousBackdrop == null) return false
+        val hadBackdrop = previousBackdrop != null
         previousBackdrop = null
         previousScale = -1f
+        onBackdropCleared()
         patch.discardDisplayList()
-        return true
+        return hadBackdrop
+    }
+
+    protected open fun onBackdropCleared() {
+        blurRadius = -1f
     }
 
     internal open fun updateOptics(

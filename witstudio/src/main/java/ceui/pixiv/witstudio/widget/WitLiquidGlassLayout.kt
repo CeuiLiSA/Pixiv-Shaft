@@ -93,8 +93,9 @@ public class WitLiquidGlassLayout @JvmOverloads public constructor(
             return null
         }
 
+        if (backdrop?.hasDisplayList == false) clearBackdrop()
         val scene = backdrop ?: WitLiquidGlassBackdrop().also { backdrop = it }
-        if (!backdropDirty && recordedSource === source) return scene
+        if (!backdropDirty && recordedSource === source && scene.hasDisplayList) return scene
         val recording = scene.begin(width, height)
         try {
             // Keep coordinates in the host's visible viewport, including when the host scrolls.
@@ -157,6 +158,16 @@ public class WitLiquidGlassLayout @JvmOverloads public constructor(
     override fun onScrollChanged(l: Int, t: Int, oldl: Int, oldt: Int) {
         super.onScrollChanged(l, t, oldl, oldt)
         backdropDirty = true
+    }
+
+    override fun onWindowVisibilityChanged(visibility: Int) {
+        super.onWindowVisibilityChanged(visibility)
+        if (visibility == VISIBLE) {
+            backdropDirty = true
+            invalidate()
+        } else {
+            clearBackdrop()
+        }
     }
 
     override fun onDetachedFromWindow() {

@@ -435,6 +435,15 @@ public class WitLiquidGlassView @JvmOverloads public constructor(
         }
     }
 
+    override fun onWindowVisibilityChanged(visibility: Int) {
+        super.onWindowVisibilityChanged(visibility)
+        if (visibility != VISIBLE) {
+            if (Build.VERSION.SDK_INT >= 31) renderer?.clearBackdrop()
+        } else {
+            invalidateOptics()
+        }
+    }
+
     override fun onDetachedFromWindow() {
         resetPress()
         if (Build.VERSION.SDK_INT >= 31) discardRenderer()

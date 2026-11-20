@@ -13,6 +13,11 @@ internal class WitLiquidGlassShader : WitLiquidGlassRenderer() {
     private var blur: RenderEffect? = null
     private var blurRadius = -1f
 
+    override fun onBackdropCleared() {
+        blurRadius = -1f
+        blur = null
+    }
+
     override fun updateOptics(
         left: Float, top: Float, right: Float, bottom: Float,
         radius: Float, density: Float, dark: Boolean, clear: Boolean, largeSurface: Boolean,
@@ -26,7 +31,7 @@ internal class WitLiquidGlassShader : WitLiquidGlassRenderer() {
             largeSurface -> 3.0f
             else -> 1.95f
         }
-        if (scatter != blurRadius) {
+        if (blur == null || scatter != blurRadius) {
             blur = RenderEffect.createBlurEffect(scatter, scatter, Shader.TileMode.CLAMP)
             blurRadius = scatter
         }
