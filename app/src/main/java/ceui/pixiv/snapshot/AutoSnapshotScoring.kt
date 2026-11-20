@@ -7,9 +7,11 @@ package ceui.pixiv.snapshot
  * 判定线（[SCORE_THRESHOLD]）：
  *
  * - 每一项都饱和成 0–100 分，不再有单项悬崖；旧的「60s」降级成曲线的半饱和点。
- * - 驻留分按作品体量归一（`页数 × [PER_PAGE_REFERENCE_MS]`），少页作品不再被一刀切 60s 卡住。
+ * - 驻留分按作品体量归一（`页数 × [PER_PAGE_REFERENCE_MS]`），少页作品不再被一刀切 60s 卡住；
+ *   同时对少页作品（尤其是单图）施加驻留惩罚（[DWELL_FACTOR_SINGLE_PAGE] / [DWELL_FACTOR_TWO_PAGES]），
+ *   并提高二级大图细看/缩放等辅助行为因子的权重占比（[SECONDARY_WEIGHT_SINGLE_PAGE]）。
  * - 二级大图的浏览覆盖 / 每页细看 / 放大比例作为新分项，专治「多页作品刷过也算」。
- * - 组合规则是「核心项 + [SECONDARY_WEIGHT] × 辅助项之和 × 核心强度」：核心项（驻留 / 反复进入）可独立
+ * - 组合规则是「核心项 + secondaryWeight × 辅助项之和 × 核心强度」：核心项（驻留 / 反复进入）可独立
  *   压线，辅助项（覆盖 / 细看 / 放大）只能放大核心信号，**永远无法凭空触发**。
  * - 放大是弱信号（误触双击也会置位）：除 [ZOOM_CEILING] 上限外，还按每页细看打折。
  *
@@ -26,8 +28,20 @@ internal object AutoSnapshotScoring {
     /** 「反复进入」半饱和点：窗口内进入次数减一后达到该值即 50 分（3 次进入 → 50）。 */
     internal const val REVISIT_REFERENCE = 2.0f
 
-    /** 辅助项加权系数。 */
+    /** 辅助项基准加权系数（3p 及以上作品）。 */
     internal const val SECONDARY_WEIGHT = 0.25f
+
+    /** 单图（1p）辅助项加权系数：提高二级大图细看/缩放等行为因子的占比。 */
+    internal const val SECONDARY_WEIGHT_SINGLE_PAGE = 0.4f
+
+    /** 2p 辅助项加权系数。 */
+    internal const val SECONDARY_WEIGHT_TWO_PAGES = 0.3f
+
+    /** 单图（1p）驻留惩罚系数：避免仅看几秒就单凭时长独立触发。 */
+    internal const val DWELL_FACTOR_SINGLE_PAGE = 0.6f
+
+    /** 2p 驻留惩罚系数。 */
+    internal const val DWELL_FACTOR_TWO_PAGES = 0.8f
 
     /** 放大分上限：放大是弱信号，单独最高只能贡献这么多，永远够不到 [SCORE_THRESHOLD]。 */
     internal const val ZOOM_CEILING = 20f
@@ -69,7 +83,8 @@ internal object AutoSnapshotScoring {
         // 行为库只在写入新样本时裁剪对应列表，读出来的记录里可能还躺着窗口外的二级大图会话
         // （作品一直有新访问、记录没被 prune 掉）。评分统一按 now 重新过一遍窗口。
         val windowed = record?.trimmed(now)
-        val dwell = dwellScore(dwellMs, windowed?.pageCount ?: 0)
+        val pageCount = windowed?.pageCount ?: 0
+        val dwell = dwellScore(dwellMs, pageCount)
         val revisit = revisitScore(windowed, now)
         val attention = attentionScore(windowed)
         val coverage = coverageScore(windowed, attention)
@@ -77,8 +92,9 @@ internal object AutoSnapshotScoring {
 
         // 核心项（驻留 / 反复进入）可独立触发；辅助项只按核心强度放大 —— 实测反馈：
         // 「只看一眼就退出」若被辅助项（尤其单页 1/1 缩放打满的放大分）抬过线，会误生成。
+        // 少页作品（尤其是单图）驻留打折惩罚，同时适度提高辅助项权重占比。
         val core = maxOf(dwell, revisit)
-        val support = SECONDARY_WEIGHT * (coverage + attention + zoom)
+        val support = secondaryWeight(pageCount) * (coverage + attention + zoom)
         val total = (core + support * (core / 100f)).coerceIn(0f, 100f)
 
         val strongest = listOf(
@@ -101,13 +117,27 @@ internal object AutoSnapshotScoring {
         )
     }
 
-    /** 驻留分：按 `页数 × 每页参考` 归一；页数未知时回落到旧的 60s。 */
+    /** 驻留惩罚系数：少页作品（尤其是单图）不能仅凭几秒驻留独立触发。 */
+    internal fun dwellFactor(pageCount: Int): Float = when (pageCount) {
+        1 -> DWELL_FACTOR_SINGLE_PAGE
+        2 -> DWELL_FACTOR_TWO_PAGES
+        else -> 1.0f
+    }
+
+    /** 辅助项加权系数：少页作品在驻留被惩罚的同时，适度提高二级大图细看/缩放等辅助行为的权重占比。 */
+    internal fun secondaryWeight(pageCount: Int): Float = when (pageCount) {
+        1 -> SECONDARY_WEIGHT_SINGLE_PAGE
+        2 -> SECONDARY_WEIGHT_TWO_PAGES
+        else -> SECONDARY_WEIGHT
+    }
+
+    /** 驻留分：按 `页数 × 每页参考` 归一，并对少页作品施加惩罚；页数未知时回落到旧的 60s。 */
     private fun dwellScore(dwellMs: Long, pageCount: Int): Float {
         val ms = dwellMs.coerceAtLeast(0L)
         if (ms <= 0L) return 0f
         val reference =
             if (pageCount > 0) pageCount * PER_PAGE_REFERENCE_MS else LEGACY_DWELL_REFERENCE_MS
-        return 100f * saturate(ms.toFloat(), reference.toFloat())
+        return 100f * saturate(ms.toFloat(), reference.toFloat()) * dwellFactor(pageCount)
     }
 
     /** 反复进入分：7 天窗口内进入次数减一后饱和（3 次 → 50）。 */
