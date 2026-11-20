@@ -1,5 +1,6 @@
 package ceui.pixiv.ui.debug
 
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -229,7 +230,29 @@ data class NetworkAlert(val titleRes: Int, val message: String)
  *
  * 另含独立的「作品 API 探测」：填插画/漫画 ID，测 /v1/illust/detail 响应时间与内容。
  */
+/**
+ * 可选的网络测试模块范围（用于长按开始测试弹窗指定）。
+ */
+enum class NetworkTestModule {
+    APP_API,
+    WEB_API,
+    IMAGE,
+    PIXSHAFT,
+}
+
 class NetworkTestViewModel : ViewModel() {
+
+    /** 用户选中的测试模块集合，默认全选。仅在内存中记忆（旋转屏幕保留，不落盘持久化）。 */
+    private val _selectedModules = MutableLiveData<Set<NetworkTestModule>>(NetworkTestModule.entries.toSet())
+    val selectedModules: LiveData<Set<NetworkTestModule>> = _selectedModules
+
+    fun setSelectedModules(modules: Set<NetworkTestModule>) {
+        _selectedModules.value = modules
+    }
+
+    fun isModuleSelected(module: NetworkTestModule): Boolean {
+        return _selectedModules.value?.contains(module) ?: true
+    }
 
     val running = MutableLiveData(false)
     val illustRunning = MutableLiveData(false)
@@ -412,22 +435,34 @@ class NetworkTestViewModel : ViewModel() {
                 }
                 imageTargetTitle = imageCfg.displayName ?: imageCfg.host
                 val imageTitle = imageCfg.displayName ?: imageCfg.host
-                val configs = listOf(
-                    appApiCfg,
-                    TargetConfig(
-                        "www.pixiv.net",
-                        Shaft.getContext().getString(R.string.network_test_target_sub_web),
-                        PIXIV_CIDRS,
-                        TargetKind.WEB_API,
-                    ),
-                    imageCfg,
-                    TargetConfig(
-                        "pixshaft.com",
-                        Shaft.getContext().getString(R.string.network_test_target_sub_pixshaft),
-                        null,
-                        TargetKind.PIXSHAFT,
-                    ),
-                )
+                val activeModules = _selectedModules.value ?: NetworkTestModule.entries.toSet()
+                val configs = mutableListOf<TargetConfig>()
+                if (NetworkTestModule.APP_API in activeModules) {
+                    configs.add(appApiCfg)
+                }
+                if (NetworkTestModule.WEB_API in activeModules) {
+                    configs.add(
+                        TargetConfig(
+                            "www.pixiv.net",
+                            Shaft.getContext().getString(R.string.network_test_target_sub_web),
+                            PIXIV_CIDRS,
+                            TargetKind.WEB_API,
+                        ),
+                    )
+                }
+                if (NetworkTestModule.IMAGE in activeModules) {
+                    configs.add(imageCfg)
+                }
+                if (NetworkTestModule.PIXSHAFT in activeModules) {
+                    configs.add(
+                        TargetConfig(
+                            "pixshaft.com",
+                            Shaft.getContext().getString(R.string.network_test_target_sub_pixshaft),
+                            null,
+                            TargetKind.PIXSHAFT,
+                        ),
+                    )
+                }
                 val polluted = mutableListOf<String>()
                 val bypassOk = mutableListOf<Boolean>()
                 for (cfg in configs) {
@@ -471,12 +506,16 @@ class NetworkTestViewModel : ViewModel() {
                     }
                 }
 
-                // 所有目标握手测完之后，再做真实图片下载（插画 + 头像），联动当前图片代理。
-                if (!isActive) {
-                    log("测试已取消（退出页面），跳过图片下载探测")
-                    return@launch
+                // 所有目标握手测完之后，再做真实图片下载（插画 + 头像），联动当前图片代理（仅包含图片模块时跑）。
+                val (imageSlow, imageDimFailed) = if (NetworkTestModule.IMAGE in activeModules) {
+                    if (!isActive) {
+                        log("测试已取消（退出页面），跳过图片下载探测")
+                        return@launch
+                    }
+                    runImageDownloadPhase()
+                } else {
+                    false to false
                 }
-                val (imageSlow, imageDimFailed) = runImageDownloadPhase()
 
                 val anyFailed = work.any { it.status == TargetStatus.FAILED }
                 // 图片下载卡不在 work 里，延迟档要单独并进来，否则总览会绿、下载卡红。
@@ -488,14 +527,14 @@ class NetworkTestViewModel : ViewModel() {
                 // app-api 是 app 的主 API（PxveAPI 开启时即代理目标）：它失败（握手失败 /
                 // 污染且未绕过 / 代理转发路径异常）＝网络不可用，
                 // 总览必须是红底「网络不可用」，且绝不能报「网络勉强可用」。
-                val appApiFailed = work.any {
+                val appApiFailed = (NetworkTestModule.APP_API in activeModules) && work.any {
                     it.title == appApiTitle &&
                         (it.status == TargetStatus.FAILED || it.status == TargetStatus.POLLUTED)
                 }
                 // 图片服务器（官方 i.pximg.net 或当前反代域名）失败：卡片 pill 覆盖为红底
                 // 「图片无法加载」，顶部总览并列红底 pill，小字追加换图片代理的提示。
                 // 局部变量用 imageFailed，避免与成员属性 imageTargetFailed 重名遮蔽。
-                val imageFailed = work.any {
+                val imageFailed = (NetworkTestModule.IMAGE in activeModules) && work.any {
                     it.title == imageTitle &&
                         (it.status == TargetStatus.FAILED || it.status == TargetStatus.POLLUTED)
                 }
@@ -692,11 +731,15 @@ class NetworkTestViewModel : ViewModel() {
             log("检测到 fake-ip: ${dns.fakeIps.joinToString()}，跳过 DNS/ping，仅测握手")
             fakeIpDetected = true
             val hs = httpsHandshakeSampled(idx, cfg, null, direct, fakeIp = true)
-            // 握手走标准 TLS，成功即证书链有效；max/avg 超阈值判延迟异常。
+            var pixshaftAlive = true
+            if (cfg.kind == TargetKind.PIXSHAFT && hs.ok) {
+                pixshaftAlive = probePixshaftHealth(idx, cfg, null, direct)
+            }
+            // 握手走标准 TLS，成功即证书链有效；max/avg 超阈值判延迟异常。源站未存活直接判 FAILED。
             setStatus(
                 idx,
                 when {
-                    !hs.ok -> TargetStatus.FAILED
+                    !hs.ok || !pixshaftAlive -> TargetStatus.FAILED
                     hs.maxMs > EXTREME_LATENCY_MS -> TargetStatus.EXTREME_LATENCY
                     hs.avgMs > HIGH_LATENCY_MS -> TargetStatus.HIGH_LATENCY
                     else -> TargetStatus.OK
@@ -715,7 +758,7 @@ class NetworkTestViewModel : ViewModel() {
             log("")
             // fake-ip 下不判污染（isPolluted=false，bypassOk 不消费第二元素），但握手结果要如实返回：
             // Clash 等 fake-ip 环境正是自建 PxveAPI 的典型场景，恒填 false 会让转发路径探测整段不跑。
-            return false to hs.ok
+            return false to (hs.ok && pixshaftAlive)
         }
         log("DNS: " + dns.all.joinToString(", ") { it.hostAddress ?: "?" })
 
@@ -893,11 +936,17 @@ class NetworkTestViewModel : ViewModel() {
         if (cfg.kind == TargetKind.WEB_API && hs.ok) {
             webDegraded = !probeWebEndpoint(idx, cfg, targetIp, direct)
         }
+        // pixshaft.com 明确判断源站存活 (/health)
+        var pixshaftAlive = true
+        if (cfg.kind == TargetKind.PIXSHAFT && hs.ok) {
+            pixshaftAlive = probePixshaftHealth(idx, cfg, targetIp, direct)
+        }
 
         val status = when {
             polluted && !hs.ok -> TargetStatus.POLLUTED
             polluted -> TargetStatus.POLLUTED_BYPASSED
             !hs.ok -> TargetStatus.FAILED
+            !pixshaftAlive -> TargetStatus.FAILED
             hs.maxMs > EXTREME_LATENCY_MS -> TargetStatus.EXTREME_LATENCY
             hs.avgMs > HIGH_LATENCY_MS -> TargetStatus.HIGH_LATENCY
             webDegraded -> TargetStatus.DEGRADED
@@ -907,7 +956,7 @@ class NetworkTestViewModel : ViewModel() {
         setStatus(idx, status)
         if (hs.ok) appendLatencyToSubtitle(idx, hs.avgMs, hs.maxMs)
         log("")
-        return polluted to hs.ok
+        return polluted to (hs.ok && pixshaftAlive)
     }
 
     private fun tcpPing(idx: Int, ip: String, port: Int) {
@@ -1058,7 +1107,8 @@ class NetworkTestViewModel : ViewModel() {
             return HandshakeResult(false, 0, 0)
         }
         // SNI 由 socket 工厂控制，与 URL 无关；统一用域名即可（无 SNI 路径仍会被 RubySSLSocketFactory 抹掉）。
-        val request = Request.Builder().url("https://${cfg.host}/").head().build()
+        val reqPath = if (cfg.kind == TargetKind.PIXSHAFT) "/health" else "/"
+        val request = Request.Builder().url("https://${cfg.host}$reqPath").head().build()
 
         val samples = mutableListOf<Long>()
         var fail = 0
@@ -1262,6 +1312,60 @@ class NetworkTestViewModel : ViewModel() {
             }
         }
         return ok
+    }
+
+    /**
+     * Pixshaft 的源站存活探测：向 /health 发起 GET 请求，明确判断后端源站是否存活。
+     * 校验 HTTP 200..299 且响应体为 JSON 且 ok == true。
+     * @return 源站是否存活（失败则卡片判为 FAILED）。
+     */
+    private fun probePixshaftHealth(idx: Int, cfg: TargetConfig, ip: Inet4Address?, direct: Boolean): Boolean {
+        viewModelScope.ensureActive()
+        val stepIdx = work[idx].steps.size
+        addStep(
+            idx,
+            TestStep(strRes(R.string.network_test_pixshaft_health_step), strRes(R.string.network_test_requesting), StepStatus.RUNNING),
+        )
+        var client: OkHttpClient? = null
+        var alive = false
+        try {
+            client = buildHandshakeClient(cfg, ip, direct)
+            val t0 = System.currentTimeMillis()
+            val scheme = if (cfg.plainHttp) "http" else "https"
+            val request = Request.Builder()
+                .url("$scheme://${cfg.host}/health")
+                .get()
+                .build()
+            client.newCall(request).execute().use { resp ->
+                val ms = System.currentTimeMillis() - t0
+                val bodyStr = resp.body?.string().orEmpty()
+                val json = runCatching { Gson().fromJson(bodyStr, JsonObject::class.java) }.getOrNull()
+                val ok = json?.get("ok")?.takeIf { it.isJsonPrimitive }?.asBoolean ?: false
+                alive = resp.isSuccessful && ok
+                if (alive) {
+                    updateStep(idx, stepIdx, strRes(R.string.network_test_pixshaft_health_ok, resp.code, ms), StepStatus.OK)
+                    log("Pixshaft /health: HTTP ${resp.code} ${ms}ms ok=true")
+                } else if (resp.isSuccessful) {
+                    updateStep(idx, stepIdx, strRes(R.string.network_test_pixshaft_health_err, resp.code, ms), StepStatus.FAIL)
+                    log("Pixshaft /health 未就绪: HTTP ${resp.code} ${ms}ms ok=$ok body=$bodyStr")
+                } else {
+                    updateStep(idx, stepIdx, strRes(R.string.network_test_pixshaft_health_fail, resp.code, ms), StepStatus.FAIL)
+                    log("Pixshaft /health 失败: HTTP ${resp.code} ${ms}ms")
+                }
+            }
+        } catch (e: Exception) {
+            if (e is CancellationException) throw e
+            val msg = e.javaClass.simpleName + (e.message?.let { ": $it" } ?: "")
+            updateStep(idx, stepIdx, strRes(R.string.network_test_pixshaft_health_error, msg), StepStatus.FAIL)
+            log("Pixshaft /health 请求异常: $msg")
+        } finally {
+            client?.let {
+                activeClients.remove(it)
+                it.connectionPool.evictAll()
+                it.dispatcher.executorService.shutdown()
+            }
+        }
+        return alive
     }
 
     // ---- PxveAPI 代理转发路径探测（仅开启代理时） ----

@@ -2413,6 +2413,30 @@
     <string name="network_test_target_sub_image_official">Server gambar · Pixiv Japan</string>
     <string name="network_test_target_sub_image_proxy">Server gambar · reverse proxy %1$s</string>
     <string name="network_test_target_sub_pixshaft">Layanan cloud Shaft · sinkronisasi riwayat</string>
+
+    <!-- Uji kelangsungan server asal Pixshaft (/health) -->
+    <string name="network_test_pixshaft_health_step">Server asal (/health)</string>
+    <string name="network_test_pixshaft_health_ok">HTTP %1$d (%2$d md) · Server asal aktif</string>
+    <string name="network_test_pixshaft_health_err">HTTP %1$d (%2$d md) · Server asal belum siap</string>
+    <string name="network_test_pixshaft_health_fail">HTTP %1$d (%2$d md) · Kesalahan server asal</string>
+    <string name="network_test_pixshaft_health_error">Permintaan gagal: %1$s</string>
+
+    <!-- Lembar cakupan uji jaringan -->
+    <string name="network_test_scope_title">Cakupan Uji</string>
+    <string name="network_test_scope_desc">Tekan lama \"Mulai uji\" untuk menyesuaikan cakupan uji sementara, disetel ulang saat keluar.</string>
+    <string name="network_test_scope_select_all">Pilih semua</string>
+    <string name="network_test_scope_invert">Balik pilihan</string>
+    <string name="network_test_scope_confirm">Konfirmasi</string>
+    <string name="network_test_scope_empty_warn">Silakan pilih setidaknya satu target uji</string>
+    <string name="network_test_scope_app_api_title">API Aplikasi</string>
+    <string name="network_test_scope_app_api_desc">Pixiv resmi / proxy PxveAPI · Resolusi DNS &amp; konektivitas · Verifikasi jabat tangan &amp; rute proxy</string>
+    <string name="network_test_scope_web_api_title">Endpoint Web</string>
+    <string name="network_test_scope_web_api_desc">www.pixiv.net · DNS · Jabat tangan TLS · Pemeriksaan endpoint web ilustrasi sampel</string>
+    <string name="network_test_scope_image_title">Gambar &amp; Proxy</string>
+    <string name="network_test_scope_image_desc">Host gambar resmi / kustom · Jabat tangan · Unduhan langsung ilustrasi &amp; avatar sampel</string>
+    <string name="network_test_scope_pixshaft_title">Layanan Pixshaft</string>
+    <string name="network_test_scope_pixshaft_desc">pixshaft.com · DNS · Jabat tangan TLS · Pemeriksaan kelangsungan /health</string>
+    <string name="network_test_run_scope">Mulai uji (%1$d/%2$d)</string>
     <string name="network_test_status_running">Menguji</string>
     <string name="network_test_status_ok">Lancar</string>
     <string name="network_test_status_high">Latensi tinggi</string>

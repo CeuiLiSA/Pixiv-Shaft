@@ -114,6 +114,16 @@ class NetworkTestFragment : Fragment(R.layout.fragment_network_perf_test) {
             hideKeyboard()
             viewModel.runTests()
         }
+        btnRun.setOnLongClickListener {
+            hideKeyboard()
+            NetworkTestScopeSheet.show(
+                requireContext(),
+                viewModel.selectedModules.value ?: NetworkTestModule.entries.toSet(),
+            ) { picked ->
+                viewModel.setSelectedModules(picked)
+            }
+            true
+        }
         btnIllustTest.setOnClickListener {
             hideKeyboard()
             val id = illustInput.text?.toString()?.trim()?.toLongOrNull()
@@ -140,12 +150,15 @@ class NetworkTestFragment : Fragment(R.layout.fragment_network_perf_test) {
         viewModel.running.observe(viewLifecycleOwner) { isRunning ->
             btnRun.isEnabled = !isRunning
             btnRun.alpha = if (isRunning) 0.6f else 1f
-            btnRun.setText(if (isRunning) R.string.network_test_running else R.string.network_test_run)
+            updateRunButtonText(isRunning, viewModel.selectedModules.value)
             if (isRunning) {
                 emptyState.visibility = View.GONE
                 resultsSection.visibility = View.VISIBLE
                 renderEnvChips()
             }
+        }
+        viewModel.selectedModules.observe(viewLifecycleOwner) { modules ->
+            updateRunButtonText(viewModel.running.value == true, modules)
         }
         viewModel.targets.observe(viewLifecycleOwner) { list ->
             if (list.isEmpty()) {
@@ -414,5 +427,19 @@ class NetworkTestFragment : Fragment(R.layout.fragment_network_perf_test) {
             .setMessage(alert.message)
             .addAction(R.string.network_test_pollution_dialog_action) { d, _ -> d.dismiss() }
             .show()
+    }
+
+    private fun updateRunButtonText(isRunning: Boolean, modules: Set<NetworkTestModule>?) {
+        if (isRunning) {
+            btnRun.setText(R.string.network_test_running)
+            return
+        }
+        val current = modules ?: NetworkTestModule.entries.toSet()
+        val total = NetworkTestModule.entries.size
+        if (current.size in 1 until total) {
+            btnRun.text = getString(R.string.network_test_run_scope, current.size, total)
+        } else {
+            btnRun.setText(R.string.network_test_run)
+        }
     }
 }

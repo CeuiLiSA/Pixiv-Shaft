@@ -2384,6 +2384,30 @@
     <string name="network_test_target_sub_image_official">圖片伺服器 · Pixiv Japan</string>
     <string name="network_test_target_sub_image_proxy">圖片伺服器 · 反代 %1$s</string>
     <string name="network_test_target_sub_pixshaft">Shaft 雲服務 · 瀏覽記錄同步</string>
+
+    <!-- Pixshaft 源站存活探測 (/health) -->
+    <string name="network_test_pixshaft_health_step">源站存活 (/health)</string>
+    <string name="network_test_pixshaft_health_ok">HTTP %1$d (%2$dms) · 源站存活</string>
+    <string name="network_test_pixshaft_health_err">HTTP %1$d (%2$dms) · 源站未就緒</string>
+    <string name="network_test_pixshaft_health_fail">HTTP %1$d (%2$dms) · 源站異常</string>
+    <string name="network_test_pixshaft_health_error">請求異常: %1$s</string>
+
+    <!-- 網路測試範圍選擇 Sheet -->
+    <string name="network_test_scope_title">測試範圍</string>
+    <string name="network_test_scope_desc">長按「開始測試」可臨時自訂本次測試範圍，結束頁面後重設。</string>
+    <string name="network_test_scope_select_all">全選</string>
+    <string name="network_test_scope_invert">反選</string>
+    <string name="network_test_scope_confirm">確定</string>
+    <string name="network_test_scope_empty_warn">請至少選擇一項測試範圍</string>
+    <string name="network_test_scope_app_api_title">App API</string>
+    <string name="network_test_scope_app_api_desc">Pixiv 官方 / PxveAPI 代理 · DNS 解析與連通性 · 信號握手取樣與轉發驗證</string>
+    <string name="network_test_scope_web_api_title">Web 端點</string>
+    <string name="network_test_scope_web_api_desc">www.pixiv.net · DNS 解析 · TLS 握手 · 樣例插畫網頁端點探測</string>
+    <string name="network_test_scope_image_title">圖片與反代</string>
+    <string name="network_test_scope_image_desc">官方 / 自訂圖片網域 · 握手取樣 · 樣例插畫與頭像真實下載</string>
+    <string name="network_test_scope_pixshaft_title">Pixshaft 服務</string>
+    <string name="network_test_scope_pixshaft_desc">pixshaft.com · DNS 解析 · TLS 握手 · /health 源站存活判定</string>
+    <string name="network_test_run_scope">開始測試 (%1$d/%2$d)</string>
     <string name="network_test_status_running">測試中</string>
     <string name="network_test_status_ok">通暢</string>
     <string name="network_test_status_high">高延遲</string>
