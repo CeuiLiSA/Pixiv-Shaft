@@ -121,6 +121,14 @@ class DownloadDaoDoneCardCountTest {
         assertEquals(1, allCards["anon:broken_nested.png"]?.pageCount)
         assertEquals(1, allCards["novel:${Params.NOVEL_KEY}100"]?.pageCount)
 
+        // 存在未回填行（illustId=0）时走 legacy 搜索路径：命中未回填页仍返回完整 2 页作品与最新代表行
+        assertEquals(1, count(keyword = "legacy_100"))
+        val legacyHits = cards(keyword = "legacy_100")
+        assertEquals(1, legacyHits.size)
+        assertEquals("illust:100", legacyHits[0].cardKey)
+        assertEquals("indexed_100_p1.png", legacyHits[0].fileName)
+        assertEquals(2, legacyHits[0].pageCount)
+
         val pages = db.downloadDao().getDoneIllustPages(100L, Params.NOVEL_KEY)
         assertEquals(setOf("legacy_100_p0.png", "indexed_100_p1.png"), pages.map { it.fileName }.toSet())
 

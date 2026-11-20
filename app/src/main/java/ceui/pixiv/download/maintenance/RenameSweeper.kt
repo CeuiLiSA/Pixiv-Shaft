@@ -9,6 +9,7 @@ import android.provider.MediaStore
 import ceui.lisa.activities.Shaft
 import ceui.lisa.core.ManagerReactive
 import ceui.lisa.database.AppDatabase
+import ceui.lisa.database.DownloadDao
 import ceui.pixiv.api.model.Illust
 import ceui.pixiv.download.RecordedPageProbe
 import ceui.pixiv.download.config.DownloadItems
@@ -209,6 +210,7 @@ object RenameSweeper {
         val startedAt = System.currentTimeMillis()
         var done = 0
         var failed = 0
+        var dbModified = false
         try {
             for ((index, entry) in plan.entries.withIndex()) {
                 currentCoroutineContext().ensureActive()
@@ -240,11 +242,8 @@ object RenameSweeper {
                             entry.newFileName,
                             diskNameAfter,
                         )
-                        val restoreTarget = diskNameBefore ?: entry.oldFileName
-                        val restoredPath = runCatching { renameOnDisk(appContext, newPath, restoreTarget) }.getOrNull()
-                        val effectivePath = restoredPath ?: newPath
-                        if (effectivePath != entry.filePath) {
-                            runCatching { dao.renameDownload(entry.oldFileName, entry.oldFileName, effectivePath) }
+                        if (rollbackDiskRename(appContext, dao, entry, newPath, diskNameBefore)) {
+                            dbModified = true
                         }
                         failed++
                         emit(FetchEvent.Warning("skip ${entry.oldFileName} (target name conflict)"))
@@ -256,24 +255,44 @@ object RenameSweeper {
                 }.onFailure { Timber.tag(TAG).w(it, "写库失败 %s", entry.newFileName) }.isSuccess
                 if (!dbOk) {
                     // 文件原本已匹配时这里只是在同步 DB，不能把它改成旧主键；磁盘确实
-                    // 改过时尽力恢复原来的实际名称，而不是假设它与旧主键一致。
-                    if (!diskAlreadyMatching) {
-                        runCatching { renameOnDisk(appContext, newPath, diskNameBefore ?: entry.oldFileName) }
+                    // 改过时尽力恢复原来的实际名称，并同步可能已变更的 SAF filePath 避免死链。
+                    if (!diskAlreadyMatching &&
+                        rollbackDiskRename(appContext, dao, entry, newPath, diskNameBefore)
+                    ) {
+                        dbModified = true
                     }
                     failed++
                     emit(FetchEvent.Warning("skip ${entry.oldFileName} (db update failed)"))
                     continue
                 }
+                dbModified = true
                 done++
                 if ((index + 1) % 20 == 0 || index + 1 == total) {
                     emit(FetchEvent.PageReceived(index + 1, 1, 0L, done))
                 }
             }
         } finally {
-            if (done > 0) ManagerReactive.pokeDoneTable()
+            if (dbModified) ManagerReactive.pokeDoneTable()
         }
         emit(FetchEvent.Done(done, System.currentTimeMillis() - startedAt, done + failed))
     }.flowOn(Dispatchers.IO)
+
+    /** 尽力把已改名的磁盘文件恢复到原名；若 SAF 等 provider 令最终 URI 变化，同步更新 DB filePath 防止死链。 */
+    private fun rollbackDiskRename(
+        context: Context,
+        dao: DownloadDao,
+        entry: Entry,
+        currentPath: String,
+        diskNameBefore: String?,
+    ): Boolean {
+        val restoreTarget = diskNameBefore ?: entry.oldFileName
+        val restoredPath = runCatching { renameOnDisk(context, currentPath, restoreTarget) }.getOrNull()
+        val effectivePath = restoredPath ?: currentPath
+        if (effectivePath == entry.filePath) return false
+        return runCatching {
+            dao.renameDownload(entry.oldFileName, entry.oldFileName, effectivePath)
+        }.isSuccess
+    }
 
     private val IMAGE_EXTENSIONS = setOf("jpg", "jpeg", "png", "webp", "gif", "bmp", "avif", "heic", "heif")
 

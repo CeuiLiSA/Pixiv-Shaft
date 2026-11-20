@@ -52,6 +52,7 @@ import ceui.pixiv.witstudio.dialog.WitDialogAction
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
@@ -257,18 +258,18 @@ class DoneListV3Fragment : Fragment() {
     @OptIn(ExperimentalCoroutinesApi::class)
     private suspend fun runDoneListFlow(empty: View, list: RecyclerView) {
         try {
-            sharedVm.selectedTab.flatMapLatest { tab ->
-                if (tab != 2) {
+            sharedVm.selectedTab.map { it == 2 }.distinctUntilChanged().flatMapLatest { isDoneTab ->
+                if (!isDoneTab) {
                     pageGeneration++
                     loadNextPageJob?.cancel()
                     loadNextPageJob = null
                     hasMorePages = false
                     isRefreshingPage = false
                     if (needsOffscreenCountSync) {
-                        needsOffscreenCountSync = false
                         flow<DonePage> {
                             sharedVm.doneSearchQuery.first { it == null }
                             sharedVm.refreshDoneCardCount()
+                            needsOffscreenCountSync = false
                         }
                     } else {
                         emptyFlow()
@@ -341,7 +342,7 @@ class DoneListV3Fragment : Fragment() {
 
     private fun loadNextPage(list: RecyclerView) {
         val query = sharedVm.doneSearchQuery.value
-        if (query == "" || !hasMorePages || isRefreshingPage || loadNextPageJob?.isActive == true) return
+        if (sharedVm.selectedTab.value != 2 || query == "" || !hasMorePages || isRefreshingPage || loadNextPageJob?.isActive == true) return
         val generation = pageGeneration
         val offset = nextPageOffset
         loadNextPageJob = viewLifecycleOwner.lifecycleScope.launch {
@@ -396,31 +397,38 @@ class DoneListV3Fragment : Fragment() {
             openArtwork(ugoira)
             return
         }
+        val lifecycleOwner = view?.let { viewLifecycleOwner } ?: return
         if (context == null) return
         openDetailJob?.cancel()
-        openDetailJob = viewLifecycleOwner.lifecycleScope.launch {
-            val illustId = group.key.removePrefix("illust:").toLongOrNull()
-            val paths = if (illustId != null && group.key.startsWith("illust:")) {
-                withContext(Dispatchers.IO) {
-                    runCatching {
-                        dao.getDoneIllustPages(illustId, Params.NOVEL_KEY)
-                            .sortedWith(DownloadedPageOrder)
-                            .map { it.filePath.orEmpty() }
-                    }.getOrNull()
-                } ?: return@launch
-            } else {
-                listOf(group.latest.filePath.orEmpty())
+        openDetailJob = lifecycleOwner.lifecycleScope.launch {
+            try {
+                val illustId = group.key.removePrefix("illust:").toLongOrNull()
+                val paths = if (illustId != null && group.key.startsWith("illust:")) {
+                    withContext(Dispatchers.IO) {
+                        runCatching {
+                            dao.getDoneIllustPages(illustId, Params.NOVEL_KEY)
+                                .sortedWith(DownloadedPageOrder)
+                                .map { it.filePath.orEmpty() }
+                        }.getOrNull()
+                    } ?: return@launch
+                } else {
+                    listOf(group.latest.filePath.orEmpty())
+                }
+                if (paths.isEmpty()) return@launch
+                val activeCtx = context ?: return@launch
+                if (!isAdded || view == null || !lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
+                    return@launch
+                }
+                val intent = Intent(activeCtx, ImageDetailActivity::class.java)
+                intent.putExtra("illust", ArrayList(paths) as Serializable)
+                intent.putExtra("dataType", "下载详情")
+                intent.putExtra("index", 0)
+                startActivity(intent)
+            } finally {
+                if (openDetailJob === coroutineContext[Job]) {
+                    openDetailJob = null
+                }
             }
-            if (paths.isEmpty()) return@launch
-            val activeCtx = context ?: return@launch
-            if (!isAdded || !viewLifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
-                return@launch
-            }
-            val intent = Intent(activeCtx, ImageDetailActivity::class.java)
-            intent.putExtra("illust", ArrayList(paths) as Serializable)
-            intent.putExtra("dataType", "下载详情")
-            intent.putExtra("index", 0)
-            startActivity(intent)
         }
     }
 
@@ -641,7 +649,11 @@ private fun groupByIllust(rows: List<DownloadEntity>): List<DownloadGroup> {
         val key = if (isNovel) {
             "novel:${row.fileName.orEmpty()}"
         } else {
-            val id = if (row.illustId > 0) row.illustId else extractIllustId(row.illustGson)
+            val id = when {
+                row.illustId > 0 -> row.illustId
+                row.illustId == 0L -> extractIllustId(row.illustGson)
+                else -> -1L
+            }
             if (id > 0) "illust:$id" else "anon:${row.fileName.orEmpty()}"
         }
         buckets.getOrPut(key) { mutableListOf() }.add(row)
