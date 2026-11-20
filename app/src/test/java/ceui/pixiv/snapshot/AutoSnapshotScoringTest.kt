@@ -38,12 +38,55 @@ class AutoSnapshotScoringTest {
 
     @Test
     fun `dwell floor scales with page count`() {
-        // ratio = 1 时恰好 50 分：所需驻留 = 页数 × 6s。
-        val cases = listOf(1 to 6_000L, 3 to 18_000L, 10 to 60_000L, 30 to 180_000L, 100 to 600_000L)
+        // 3p 及以上无惩罚，ratio = 1 时恰好 50 分：所需驻留 = 页数 × 6s。
+        val cases = listOf(3 to 18_000L, 10 to 60_000L, 30 to 180_000L, 100 to 600_000L)
         for ((pages, ms) in cases) {
             val breakdown = AutoSnapshotScoring.score(record(pageCount = pages), dwellMs = ms, now = now)
             assertEquals("pages=$pages", 50, breakdown.dwell)
         }
+    }
+
+    @Test
+    fun `low page count dwell is penalized`() {
+        // 1p 打 6 折：ratio = 1（6s）时得 30 分；即使用户停了 60s（raw=90），也仅得 54 分
+        val p1Ratio1 = AutoSnapshotScoring.score(record(pageCount = 1), dwellMs = 6_000L, now = now)
+        assertEquals(30, p1Ratio1.dwell)
+        val p1Long = AutoSnapshotScoring.score(record(pageCount = 1), dwellMs = 60_000L, now = now)
+        assertEquals(54, p1Long.dwell)
+
+        // 2p 打 8 折：ratio = 1（12s）时得 40 分
+        val p2Ratio1 = AutoSnapshotScoring.score(record(pageCount = 2), dwellMs = 12_000L, now = now)
+        assertEquals(40, p2Ratio1.dwell)
+    }
+
+    @Test
+    fun `single page work with only 6s dwell does not trigger auto snapshot`() {
+        val p1 = record(pageCount = 1)
+        val breakdown = AutoSnapshotScoring.score(p1, dwellMs = 6_000L, now = now)
+        assertEquals(30, breakdown.total)
+        assertTrue(breakdown.total < AutoSnapshotScoring.SCORE_THRESHOLD)
+    }
+
+    @Test
+    fun `single page work with dwell and viewer engagement triggers via elevated secondary weight`() {
+        // 单图停留 12s（打 6 折后 core=40），若进大图细看（attention=50）且放大（zoom=10），
+        // 辅助项在 0.4 加权下 support = 44，total = 40 + 44 * 0.4 = 57 >= 50 触发
+        val p1 = record(
+            pageCount = 1,
+            pages = listOf(
+                AutoSnapshotViewerPageSample(at = now, page = 0, ms = 6_000L, zoomed = true)
+            ),
+            sessions = listOf(
+                AutoSnapshotViewerSessionSample(at = now, pageCount = 1, viewedPages = 1)
+            ),
+        )
+        val breakdown = AutoSnapshotScoring.score(p1, dwellMs = 12_000L, now = now)
+        assertEquals(40, breakdown.dwell)
+        assertEquals(50, breakdown.attention)
+        assertEquals(50, breakdown.coverage)
+        assertEquals(10, breakdown.zoom)
+        assertEquals(57, breakdown.total)
+        assertTrue(breakdown.total >= AutoSnapshotScoring.SCORE_THRESHOLD)
     }
 
     @Test
