@@ -76,6 +76,8 @@ import ceui.pixiv.utils.isHostStillResumed
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
 import ceui.pixiv.witstudio.theme.V3Palette
+import ceui.pixiv.witstudio.widget.WitLiquidGlassLayout
+import ceui.pixiv.witstudio.widget.WitLiquidGlassView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -686,6 +688,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         refreshCachedOriginalPages()
         aiHelper?.restoreAiTasksIfRunning(illustId)
         refreshAllAiPages()
+        actions?.refreshMoreMenuToggles()
     }
 
     /**
@@ -699,8 +702,13 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
 
     override fun onPause() {
         if (!isSnapshotMode) {
-            autoSnapshot.onPause(hostStillResumed = isHostStillResumed())
+            val hostStillResumed = isHostStillResumed()
+            autoSnapshot.onPause(hostStillResumed = hostStillResumed)
             artworkViewModel.pauseDownloadFab()
+            // ViewPager 横滑切到相邻页时当前页只 pause 不销毁视图，必须收起菜单以免离屏拦截返回键。
+            if (hostStillResumed) {
+                actions?.dismissMoreMenu(animated = false)
+            }
         }
         super.onPause()
     }
@@ -716,6 +724,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         autoSnapshot.onDestroyView()
         composerHost = null
         muteMask = null
+        actions?.dismissMoreMenu(animated = false)
         actions = null
         // 懒 inflate 的标志随视图销毁归零：视图重建后拿到的是新的 ViewStub，
         // 不归零的话 ensure*() 会误判为「已经建过」而跳过，那几块就再也不出现了。
@@ -1693,6 +1702,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         muteMaskActive = active
         syncTopEndPill()
         if (active) {
+            actions?.dismissMoreMenu(animated = false)
             hideFabBar(immediate = true)
         } else {
             showFabBar()
@@ -1776,7 +1786,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
                 scrim = scrim,
                 forceOriginal = { artworkViewModel.forceOriginalPreview },
                 onBack = { requireActivity().finish() },
-                onMore = { chromeBind.navMore.performClick() },
+                onMore = { showMoreMenu() },
                 onOpenReader = { openComicReader() },
                 initialPage = pendingReadingAnchor?.page?.coerceAtLeast(0) ?: 0,
             )
@@ -1871,7 +1881,17 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         // 下载 / 收藏的点击、长按与下载完成广播
         actions?.bindFabBar()
 
-        chromeBind.navMore.setOnClick { actions?.showMoreMenu() }
+        chromeBind.navMore.setOnClick { showMoreMenu() }
+    }
+
+    private fun showMoreMenu() {
+        val stage = tabletStage
+        val host = stage?.glassHost
+            ?: (chromeBind.tabletInfoColumn as? WitLiquidGlassLayout)
+            ?: (chromeBind.root as? WitLiquidGlassLayout)
+        val anchor = stage?.moreAnchor ?: chromeBind.navMore
+        val tone = if (stage != null) WitLiquidGlassView.Tone.DARK else WitLiquidGlassView.Tone.THEME
+        actions?.showMoreMenu(host, anchor, tone)
     }
 
     /**

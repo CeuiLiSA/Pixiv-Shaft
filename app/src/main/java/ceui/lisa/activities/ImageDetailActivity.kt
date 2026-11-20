@@ -77,11 +77,11 @@ import ceui.pixiv.utils.setOnClick
 import ceui.pixiv.wallpaper.WallpaperSetter
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
-import ceui.pixiv.witstudio.popup.WitMenuPopup
 import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.pixiv.witstudio.theme.pressScale
 import ceui.pixiv.witstudio.theme.setTextWithIcon
 import ceui.pixiv.witstudio.theme.v3Font
+import ceui.pixiv.witstudio.widget.WitLiquidGlassMenu
 import ceui.pixiv.witstudio.widget.WitLiquidGlassView
 import ceui.pixiv.ui.detail.OfflineUgoira
 import ceui.pixiv.ui.detail.frames.openUgoiraFrames
@@ -162,6 +162,9 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
     /** 「二级详情」的下载 + 收藏胶囊(与一级 V3 详情页共用),仅该模式下装配。 */
     private var fabBar: V3FabBarController? = null
 
+    /** 当前展开中的右上角液态玻璃菜单，用于沉浸态切换 / 退出收场与拦截下拉退出。 */
+    private var activeGlassMenu: WitLiquidGlassMenu? = null
+
     override fun initLayout(): Int {
         return R.layout.activity_image_detail
     }
@@ -220,6 +223,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         }
         viewModel.isFullscreenMode.observe(this) { isFullScreen ->
             if (isFullScreen) {
+                activeGlassMenu?.dismiss(animated = false)
                 windowInsetsController.hide(WindowInsetsCompat.Type.systemBars())
                 if (hideChromeInstantly) {
                     infoItems.forEach { it.visibility = View.INVISIBLE }
@@ -251,90 +255,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
             val btnAiMenu = findViewById<View>(R.id.btn_ai_menu)
             btnAiMenu.visibility = View.VISIBLE
             btnAiMenu.setOnClickListener { anchor ->
-                val illust = mIllust ?: return@setOnClickListener
-                // 动图只保留作品分享；画质增强、翻译和静态壁纸都需要可处理的静图原图。
-                val actions = mutableListOf<Pair<CharSequence, () -> Unit>>()
-                if (illust.isGif()) {
-                    actions += getString(R.string.ugoira_frames_menu) to { openUgoiraFrames(this, illust) }
-                }
-                actions +=
-                    getString(R.string.artwork_poster_save) to
-                        {
-                            saveArtworkPoster(illust, baseBind!!.viewPager.currentItem)
-                        }
-                if (!illust.isGif()) {
-                    actions +=
-                        getString(R.string.string_ai_upscale) to
-                            {
-                                val pageIndex = baseBind!!.viewPager.currentItem
-                                val state = ceui.pixiv.ui.upscale.IllustAiStore.get(illust.id, pageIndex)
-                                if (state?.hasUpscaleResult == true) {
-                                    openAiResult(state.upscaleResultPath, state.upscaleOriginalPath, true)
-                                    return@to
-                                }
-                                if (state?.upscaleRunning == true || state?.upscaleStatus == UpscaleStatus.Queued) {
-                                    Common.showToast(R.string.string_ai_task_already_running)
-                                    return@to
-                                }
-                                ModelPickerDialog.pickOrUseDefault(supportFragmentManager) { model
-                                    ->
-                                    performAiUpscale(
-                                        illust,
-                                        pageIndex,
-                                        model,
-                                    )
-                                }
-                            }
-                    actions +=
-                        getString(R.string.string_ai_rembg) to
-                            {
-                                val pageIndex = baseBind!!.viewPager.currentItem
-                                val state = ceui.pixiv.ui.upscale.IllustAiStore.get(illust.id, pageIndex)
-                                if (state?.hasRembgResult == true) {
-                                    openAiResult(state.rembgResultPath, state.rembgOriginalPath, false)
-                                    return@to
-                                }
-                                if (state?.rembgRunning == true || state?.rembgStatus == UpscaleStatus.Queued) {
-                                    Common.showToast(R.string.string_ai_task_already_running)
-                                    return@to
-                                }
-                                RembgModelPickerDialog.pickOrUseDefault(supportFragmentManager) {
-                                    model ->
-                                    performAiRembg(illust, pageIndex, model)
-                                }
-                            }
-                    actions +=
-                        getString(R.string.image_filter) to
-                            {
-                                openImageFilter(this, illust, baseBind!!.viewPager.currentItem)
-                            }
-                    actions +=
-                        getString(R.string.string_ai_manga_translate_inline) to
-                            {
-                                performAiMangaTranslateInline(illust, baseBind!!.viewPager.currentItem)
-                            }
-                    if (illust.page_count > 1) {
-                        actions +=
-                            getString(R.string.string_ai_manga_translate_batch) to
-                                {
-                                    performAiMangaTranslateBatch(illust)
-                                }
-                    }
-                    actions +=
-                        getString(R.string.string_ai_manga_translate_manual) to
-                            {
-                                performAiMangaTranslateManual(illust, baseBind!!.viewPager.currentItem)
-                            }
-                    actions +=
-                        getString(R.string.string_set_wallpaper) to
-                            {
-                                performSetWallpaper(illust, baseBind!!.viewPager.currentItem)
-                            }
-                }
-                WitMenuPopup.show(this, anchor, actions.map { it.first }.toTypedArray()) { index, _
-                    ->
-                    actions[index].second()
-                }
+                showAiGlassMenu(anchor, snapshotMode = false)
             }
             baseBind!!.viewPager.adapter =
                 object : FragmentPagerAdapter(supportFragmentManager) {
@@ -728,80 +649,91 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
 
     /** 快照大图保留 AI 菜单（数据源为本地快照文件），不显示下载相关动作。 */
     private fun setupSnapshotAiMenu() {
-        val illust = mIllust ?: return
+        if (mIllust == null) return
         val btnAiMenu = findViewById<View>(R.id.btn_ai_menu)
         btnAiMenu.visibility =
             if (viewModel.isFullscreenMode.value == true) View.INVISIBLE else View.VISIBLE
         btnAiMenu.setOnClickListener { anchor ->
-            val actions = mutableListOf<Pair<CharSequence, () -> Unit>>()
+            showAiGlassMenu(anchor, snapshotMode = true)
+        }
+    }
+
+    /** 右上角圆形液态玻璃按钮展开的 iOS 风格液态玻璃菜单（「二级详情」与快照大图共用）。 */
+    private fun showAiGlassMenu(anchor: View, snapshotMode: Boolean) {
+        val illust = mIllust ?: return
+        val glassStage = baseBind?.glassStage ?: return
+        var created: WitLiquidGlassMenu? = null
+        created = WitLiquidGlassMenu.show(glassStage, anchor) {
+            onDismiss = {
+                if (activeGlassMenu === created) activeGlassMenu = null
+            }
+            if (!snapshotMode && illust.isGif()) {
+                item(getString(R.string.ugoira_frames_menu), R.drawable.ic_ugoira_frames_24) {
+                    openUgoiraFrames(this@ImageDetailActivity, illust)
+                }
+            }
             if (!illust.isGif()) {
-                actions +=
-                    getString(R.string.string_ai_upscale) to
-                        {
-                            val pageIndex = baseBind!!.viewPager.currentItem
-                            val state = ceui.pixiv.ui.upscale.IllustAiStore.get(illust.id, pageIndex)
-                            if (state?.hasUpscaleResult == true) {
-                                openAiResult(state.upscaleResultPath, state.upscaleOriginalPath, true)
-                                return@to
-                            }
-                            if (state?.upscaleRunning == true || state?.upscaleStatus == UpscaleStatus.Queued) {
-                                Common.showToast(R.string.string_ai_task_already_running)
-                                return@to
-                            }
-                            ModelPickerDialog.pickOrUseDefault(supportFragmentManager) { model ->
-                                performAiUpscale(illust, pageIndex, model)
-                            }
-                        }
-                actions +=
-                    getString(R.string.string_ai_rembg) to
-                        {
-                            val pageIndex = baseBind!!.viewPager.currentItem
-                            val state = ceui.pixiv.ui.upscale.IllustAiStore.get(illust.id, pageIndex)
-                            if (state?.hasRembgResult == true) {
-                                openAiResult(state.rembgResultPath, state.rembgOriginalPath, false)
-                                return@to
-                            }
-                            if (state?.rembgRunning == true || state?.rembgStatus == UpscaleStatus.Queued) {
-                                Common.showToast(R.string.string_ai_task_already_running)
-                                return@to
-                            }
-                            RembgModelPickerDialog.pickOrUseDefault(supportFragmentManager) { model
-                                ->
-                                performAiRembg(illust, pageIndex, model)
-                            }
-                        }
-                actions +=
-                    getString(R.string.image_filter) to
-                        {
-                            openImageFilter(this, illust, baseBind!!.viewPager.currentItem)
-                        }
+                item(getString(R.string.string_ai_upscale), R.drawable.ic_upscale_add_photo) {
+                    val pageIndex = baseBind!!.viewPager.currentItem
+                    val state = ceui.pixiv.ui.upscale.IllustAiStore.get(illust.id, pageIndex)
+                    if (state?.hasUpscaleResult == true) {
+                        openAiResult(state.upscaleResultPath, state.upscaleOriginalPath, true)
+                        return@item
+                    }
+                    if (state?.upscaleRunning == true || state?.upscaleStatus == UpscaleStatus.Queued) {
+                        Common.showToast(R.string.string_ai_task_already_running)
+                        return@item
+                    }
+                    ModelPickerDialog.pickOrUseDefault(supportFragmentManager) { model ->
+                        performAiUpscale(illust, pageIndex, model)
+                    }
+                }
+                item(getString(R.string.string_ai_rembg), R.drawable.ic_baseline_filter_24) {
+                    val pageIndex = baseBind!!.viewPager.currentItem
+                    val state = ceui.pixiv.ui.upscale.IllustAiStore.get(illust.id, pageIndex)
+                    if (state?.hasRembgResult == true) {
+                        openAiResult(state.rembgResultPath, state.rembgOriginalPath, false)
+                        return@item
+                    }
+                    if (state?.rembgRunning == true || state?.rembgStatus == UpscaleStatus.Queued) {
+                        Common.showToast(R.string.string_ai_task_already_running)
+                        return@item
+                    }
+                    RembgModelPickerDialog.pickOrUseDefault(supportFragmentManager) { model ->
+                        performAiRembg(illust, pageIndex, model)
+                    }
+                }
+                item(getString(R.string.image_filter), R.drawable.ic_photo_filter_24) {
+                    openImageFilter(this@ImageDetailActivity, illust, baseBind!!.viewPager.currentItem)
+                }
             }
-            actions +=
-                getString(R.string.string_ai_manga_translate_inline) to
-                    {
-                        performAiMangaTranslateInline(illust, baseBind!!.viewPager.currentItem)
+            if (!illust.isGif() || snapshotMode) {
+                divider()
+                item(getString(R.string.string_ai_manga_translate_inline), R.drawable.ic_baseline_translate_24) {
+                    performAiMangaTranslateInline(illust, baseBind!!.viewPager.currentItem)
+                }
+                if (illust.page_count > 1) {
+                    item(getString(R.string.string_ai_manga_translate_batch), R.drawable.ic_baseline_menu_book_24) {
+                        performAiMangaTranslateBatch(illust)
                     }
-            if (illust.page_count > 1) {
-                actions +=
-                    getString(R.string.string_ai_manga_translate_batch) to
-                        {
-                            performAiMangaTranslateBatch(illust)
-                        }
+                }
+                item(getString(R.string.string_ai_manga_translate_manual), R.drawable.ic_select_all_24) {
+                    performAiMangaTranslateManual(illust, baseBind!!.viewPager.currentItem)
+                }
             }
-            actions +=
-                getString(R.string.string_ai_manga_translate_manual) to
-                    {
-                        performAiMangaTranslateManual(illust, baseBind!!.viewPager.currentItem)
-                    }
-            actions +=
-                getString(R.string.string_set_wallpaper) to
-                    {
-                        performSetWallpaper(illust, baseBind!!.viewPager.currentItem)
-                    }
-            WitMenuPopup.show(this, anchor, actions.map { it.first }.toTypedArray()) { index, _ ->
-                actions[index].second()
+            divider()
+            if (!snapshotMode) {
+                item(getString(R.string.artwork_poster_save), R.drawable.ic_setcat_photo) {
+                    saveArtworkPoster(illust, baseBind!!.viewPager.currentItem)
+                }
+            }
+            if (!illust.isGif() || snapshotMode) {
+                item(getString(R.string.string_set_wallpaper), R.drawable.ic_baseline_wallpaper_24) {
+                    performSetWallpaper(illust, baseBind!!.viewPager.currentItem)
+                }
             }
         }
+        if (created != null) activeGlassMenu = created
     }
 
     private fun setupViewerTransition(btnAi: View, fabBarView: View) {
@@ -823,7 +755,8 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         // 后续新增浮层只需再补一条判定。
         findViewById<View>(R.id.ai_overlay_root)?.let(rootLayout::addDismissBlockingOverlay)
         rootLayout.addDismissBlockingCheck {
-            currentImageFragment()?.isManualSelectionActive() == true
+            activeGlassMenu?.isShowing == true ||
+                currentImageFragment()?.isManualSelectionActive() == true
         }
         // 「上/下拖动退出」灵敏度走用户设置（设置 → 浏览设置 → 大图拖动退出控制）。
         // 默认值与 DragDismissLayout.DEFAULT_* 一致，用户没调过就是原有手感。
@@ -1143,6 +1076,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
      * 往某个方向滑；不跟随时按改前朝下滑。真的沿某个方向拖出去，降级总是跟着那个方向滑。
      */
     private fun dismissViewer(direction: DragDismissLayout.Direction? = null) {
+        activeGlassMenu?.dismiss(animated = false)
         val transition =
             viewerTransition
                 ?: run {

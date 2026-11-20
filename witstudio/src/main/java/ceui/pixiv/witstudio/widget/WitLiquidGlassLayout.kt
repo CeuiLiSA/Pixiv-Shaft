@@ -85,7 +85,7 @@ public class WitLiquidGlassLayout @JvmOverloads public constructor(
         val source = getChildAt(0)
         val hasGlass = (1 until childCount).any {
             val child = getChildAt(it)
-            child is WitLiquidGlassView && patchPixels(child) > 0
+            child is WitLiquidGlassView && patchPlan(child).pixels > 0
         }
         if (width == 0 || height == 0 || source == null ||
             source is WitLiquidGlassView || !source.isVisible || !hasGlass
@@ -115,15 +115,15 @@ public class WitLiquidGlassLayout @JvmOverloads public constructor(
         if (Build.VERSION.SDK_INT >= 31 && child is WitLiquidGlassView) {
             if (canvas.isHardwareAccelerated) {
                 val scene = drawingBackdrop
-                val pixels = if (scene != null) patchPixels(child) else 0
-                if (pixels > 0 && pixels <= remainingPixels) {
-                    remainingPixels -= pixels
-                    child.updateBackdrop(scene, scrollX, scrollY)
+                val plan = if (scene != null) patchPlan(child) else WitLiquidGlassBudget.PatchPlan(0L, 1f)
+                if (plan.pixels > 0 && plan.pixels <= remainingPixels) {
+                    remainingPixels -= plan.pixels
+                    child.updateBackdrop(scene, scrollX, scrollY, plan.scale)
                 } else {
-                    child.updateBackdrop(null, scrollX, scrollY)
+                    child.updateBackdrop(null, scrollX, scrollY, 1f)
                 }
             } else if (!isHardwareAccelerated || layerType == LAYER_TYPE_SOFTWARE) {
-                child.updateBackdrop(null, scrollX, scrollY)
+                child.updateBackdrop(null, scrollX, scrollY, 1f)
             }
         }
         return super.drawChild(canvas, child, drawingTime)
@@ -144,7 +144,7 @@ public class WitLiquidGlassLayout @JvmOverloads public constructor(
         if (child === getChildAt(0) && backdrop != null) {
             backdropDirty = true
             invalidate()
-        } else if (child === target && child is WitLiquidGlassView && (backdrop != null || patchPixels(child) > 0)) {
+        } else if (child === target && child is WitLiquidGlassView && (backdrop != null || patchPlan(child).pixels > 0)) {
             invalidate()
         }
     }
@@ -171,10 +171,10 @@ public class WitLiquidGlassLayout @JvmOverloads public constructor(
         backdropDirty = true
     }
 
-    private fun patchPixels(child: WitLiquidGlassView): Long {
-        if (!child.isVisible || child.alpha <= 0f || child.layerType == LAYER_TYPE_SOFTWARE) return 0
-        return WitLiquidGlassBudget.patchPixels(
-            child.width, child.height, child.resources.displayMetrics.density, canvasEdge,
-        )
+    private fun patchPlan(child: WitLiquidGlassView): WitLiquidGlassBudget.PatchPlan {
+        if (!child.isVisible || child.alpha <= 0f || child.layerType == LAYER_TYPE_SOFTWARE) {
+            return WitLiquidGlassBudget.PatchPlan(0L, 1f)
+        }
+        return child.planPatch(canvasEdge)
     }
 }

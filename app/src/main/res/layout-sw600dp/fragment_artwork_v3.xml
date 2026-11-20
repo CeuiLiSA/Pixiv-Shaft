@@ -27,11 +27,10 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <FrameLayout
+    <ceui.pixiv.witstudio.widget.WitLiquidGlassLayout
         android:id="@+id/tablet_stage"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:clipChildren="false"
         android:clipToPadding="false" />
 
     <ceui.pixiv.witstudio.widget.WitLiquidGlassLayout

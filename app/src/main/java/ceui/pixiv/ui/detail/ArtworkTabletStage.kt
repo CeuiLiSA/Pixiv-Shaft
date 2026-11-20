@@ -41,6 +41,7 @@ import ceui.pixiv.witstudio.theme.pressScale
 import ceui.pixiv.witstudio.theme.ripple
 import ceui.pixiv.witstudio.theme.setTextWithIcon
 import ceui.pixiv.witstudio.theme.shape
+import ceui.pixiv.witstudio.widget.WitLiquidGlassLayout
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.model.GlideUrl
 import com.bumptech.glide.request.target.CustomViewTarget
@@ -124,6 +125,10 @@ internal class ArtworkTabletStage(
     }
     private val backButton = glassButton(R.drawable.ic_v3_chevron_left_24, R.string.reader_desc_back, onBack)
     private val moreButton = glassButton(R.drawable.ic_more_vert_black_24dp, R.string.more_actions, onMore)
+
+    /** 舞台上的液态玻璃宿主与右上角「更多」锚点，供右上角液态玻璃展开菜单复用。 */
+    val glassHost: WitLiquidGlassLayout? get() = stage as? WitLiquidGlassLayout
+    val moreAnchor: View get() = moreButton
 
     /** 浮在作品上的圆形玻璃按钮（返回 / 更多）：黑 45% 底 + 白图标，任何画面上都看得清。 */
     private fun glassButton(icon: Int, description: Int, action: () -> Unit) = ImageButton(ctx).apply {

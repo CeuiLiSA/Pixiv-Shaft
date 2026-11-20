@@ -39,6 +39,7 @@ import ceui.pixiv.witstudio.theme.dpF
 import ceui.pixiv.witstudio.theme.label
 import ceui.pixiv.witstudio.theme.sectionLabel
 import ceui.pixiv.witstudio.widget.WitLiquidGlassLayout
+import ceui.pixiv.witstudio.widget.WitLiquidGlassMenu
 import ceui.pixiv.witstudio.widget.WitLiquidGlassView
 import kotlin.math.abs
 
@@ -161,7 +162,8 @@ class LiquidGlassDebugFragment : Fragment() {
             ).apply { topMargin = ctx.dp(16) },
         )
 
-        controlsCard.addOptionRow(
+        var materialRowUpdater: ((Int) -> Unit)? = null
+        materialRowUpdater = controlsCard.addOptionRow(
             title = "Material",
             options = listOf("REGULAR", "CLEAR"),
             initialIndex = 0,
@@ -171,7 +173,8 @@ class LiquidGlassDebugFragment : Fragment() {
             syncAllGlass()
         }
 
-        controlsCard.addOptionRow(
+        var toneRowUpdater: ((Int) -> Unit)? = null
+        toneRowUpdater = controlsCard.addOptionRow(
             title = "Tone",
             options = listOf("THEME", "LIGHT", "DARK"),
             initialIndex = 0,
@@ -335,28 +338,21 @@ class LiquidGlassDebugFragment : Fragment() {
             },
         )
 
-        // 2) 右上实时/轻量一键对比圆钮
-        val toggleIcon = ImageView(ctx).apply {
-            setImageResource(R.drawable.baseline_auto_awesome_24)
+        // 2) 右上角 iOS 风格液态玻璃展开菜单按钮
+        val menuIcon = ImageView(ctx).apply {
+            setImageResource(R.drawable.ic_more_vert_black_24dp)
             setPadding(ctx.dp(12), ctx.dp(12), ctx.dp(12), ctx.dp(12))
         }
         val toggleGlass = WitLiquidGlassView(ctx).apply {
             isGlassInteractive = true
             isClickable = true
             isFocusable = true
-            contentDescription = "切换实时/轻量玻璃"
-            addView(toggleIcon, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
-            setOnClickListener {
-                val nextLive = !glassLayout.isLiveBackdropEnabled
-                glassLayout.isLiveBackdropEnabled = nextLive
-                liveRowUpdater?.invoke(if (nextLive) 0 else 1)
-                updateStatusLine()
-                Common.showToast(if (nextLive) "已切换：实时液态玻璃" else "已切换：轻量玻璃")
-            }
+            contentDescription = "打开液态玻璃展开菜单"
+            addView(menuIcon, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
         }
         glassSurfaces += toggleGlass
         contentTintTargets += toggleGlass to {
-            toggleIcon.imageTintList = ColorStateList.valueOf(toggleGlass.contentColor)
+            menuIcon.imageTintList = ColorStateList.valueOf(toggleGlass.contentColor)
         }
         glassLayout.addView(
             toggleGlass,
@@ -394,6 +390,71 @@ class LiquidGlassDebugFragment : Fragment() {
                 topMargin = ctx.dp(190)
             },
         )
+
+        toggleGlass.setOnClickListener { anchor ->
+            WitLiquidGlassMenu.show(glassLayout, anchor) {
+                switchItem(
+                    label = "实时液态玻璃",
+                    icon = R.drawable.baseline_auto_awesome_24,
+                    isChecked = { glassLayout.isLiveBackdropEnabled },
+                    onToggle = { enabled ->
+                        glassLayout.isLiveBackdropEnabled = enabled
+                        liveRowUpdater?.invoke(if (enabled) 0 else 1)
+                        updateStatusLine()
+                    },
+                )
+                divider()
+                item(
+                    label = "REGULAR 常规材质",
+                    icon = R.drawable.ic_photo_filter_24,
+                    checked = selectedMaterial == WitLiquidGlassView.Material.REGULAR,
+                ) {
+                    selectedMaterial = WitLiquidGlassView.Material.REGULAR
+                    materialRowUpdater?.invoke(0)
+                    syncAllGlass()
+                }
+                item(
+                    label = "CLEAR 高透材质",
+                    icon = R.drawable.ic_remove_red_eye_black_24dp,
+                    checked = selectedMaterial == WitLiquidGlassView.Material.CLEAR,
+                ) {
+                    selectedMaterial = WitLiquidGlassView.Material.CLEAR
+                    materialRowUpdater?.invoke(1)
+                    syncAllGlass()
+                }
+                item(
+                    label = "切换极性 (THEME/LIGHT/DARK)",
+                    icon = R.drawable.ic_baseline_filter_24,
+                ) {
+                    val nextIdx = when (selectedTone) {
+                        WitLiquidGlassView.Tone.THEME -> 1
+                        WitLiquidGlassView.Tone.LIGHT -> 2
+                        WitLiquidGlassView.Tone.DARK -> 0
+                    }
+                    selectedTone = when (nextIdx) {
+                        1 -> WitLiquidGlassView.Tone.LIGHT
+                        2 -> WitLiquidGlassView.Tone.DARK
+                        else -> WitLiquidGlassView.Tone.THEME
+                    }
+                    toneRowUpdater?.invoke(nextIdx)
+                    syncAllGlass()
+                }
+                divider()
+                item("复位拖拽胶囊", R.drawable.ic_keyboard_arrow_up_black_24dp) {
+                    loupeGlass.animate().translationX(0f).translationY(0f).setDuration(240L).start()
+                }
+                item("软件快照回归测试", R.drawable.ic_setcat_photo) {
+                    val bmp = glassLayout.drawToBitmap()
+                    val info = "软件快照成功：${bmp.width}×${bmp.height}"
+                    bmp.recycle()
+                    Common.showToast(info)
+                }
+                divider()
+                item("危险操作示例", R.drawable.ic_visibility_off_black_24dp, destructive = true) {
+                    Common.showToast("点击了危险操作示例")
+                }
+            }
+        }
 
         // 4) 底部中央三段操作胶囊（对齐插画详情 fab_bar，可按住拖远测试弹性形变与回弹）
         val dockIcons = listOf(

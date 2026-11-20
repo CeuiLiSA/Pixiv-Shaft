@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.Lifecycle
@@ -44,6 +45,9 @@ import ceui.pixiv.ui.filter.openImageFilter
 import ceui.pixiv.utils.toTagsBeans
 import ceui.pixiv.wallpaper.WallpaperSetter
 import ceui.pixiv.witstudio.dialog.WitDialog
+import ceui.pixiv.witstudio.widget.WitLiquidGlassLayout
+import ceui.pixiv.witstudio.widget.WitLiquidGlassMenu
+import ceui.pixiv.witstudio.widget.WitLiquidGlassView
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -70,7 +74,18 @@ internal class ArtworkV3Actions(
     private val context: Context
         get() = fragment.requireContext()
 
+    private var activeMoreMenu: WitLiquidGlassMenu? = null
+
     private fun currentIllust(): Illust? = ObjectPool.get<Illust>(illustId).value
+
+    fun refreshMoreMenuToggles() {
+        activeMoreMenu?.refreshToggles()
+    }
+
+    fun dismissMoreMenu(animated: Boolean = false) {
+        activeMoreMenu?.dismiss(animated)
+        activeMoreMenu = null
+    }
 
     /** 下载 / 收藏按钮的单击与长按,以及下载完成广播。 */
     fun bindFabBar() {
@@ -208,13 +223,21 @@ internal class ArtworkV3Actions(
         }
     }
 
-    fun showMoreMenu() {
+    fun showMoreMenu(
+        glassHost: WitLiquidGlassLayout? = null,
+        anchor: View? = null,
+        tone: WitLiquidGlassView.Tone = WitLiquidGlassView.Tone.THEME,
+    ) {
         val illust = currentIllust() ?: return
         if (illust.isGif() && RifePrefs.isEnabled() && !RifeInterpolator.isAvailable(context)) {
             RifePrefs.setEnabled(false)
             UgoiraEngine.invalidateAll()
         }
-        fragment.showV3Menu {
+        val itemsBlock: (
+            addItem: (String, Int, () -> Unit) -> Unit,
+            addSwitch: (String, Int, () -> Boolean, (Boolean) -> Unit) -> Unit,
+            addDivider: () -> Unit,
+        ) -> Unit = { item, switchItem, divider ->
             if (illust.isGif()) {
                 item(context.getString(R.string.ugoira_frames_menu), R.drawable.ic_ugoira_frames_24) {
                     openUgoiraFrames(context, illust)
@@ -222,8 +245,8 @@ internal class ArtworkV3Actions(
                 switchItem(
                     context.getString(R.string.ugoira_rife_enable),
                     R.drawable.baseline_auto_awesome_24,
-                    isChecked = { RifePrefs.isEnabled() },
-                    onToggle = { enabled ->
+                    { RifePrefs.isEnabled() },
+                    { enabled ->
                         if (enabled && !RifeInterpolator.isAvailable(context)) {
                             requestRifeModelDownload()
                         } else {
@@ -233,11 +256,13 @@ internal class ArtworkV3Actions(
                         }
                     },
                 )
+                divider()
             }
             if (!illust.isGif() && illust.page_count == 1) {
                 item(context.getString(R.string.comic_reader_enter_illust), R.drawable.ic_baseline_menu_book_24) {
                     onOpenComicReader()
                 }
+                divider()
             }
             item(context.getString(R.string.share), R.drawable.ic_share_black_24dp) {
                 object : ShareIllust(context, illust) {
@@ -258,8 +283,33 @@ internal class ArtworkV3Actions(
             item(context.getString(R.string.snapshot_create), R.drawable.ic_snapshot_24) {
                 fragment.showSnapshotCreateDialog(illust)
             }
-            // issue #898 / #515:详情页直接设壁纸(首图),不必先进全屏看图页。动图 original 是 zip,跳过。
+            item(context.getString(R.string.artlist_add), R.drawable.ic_collections_black_24dp) {
+                ceui.pixiv.ui.artlist.ArtlistNavigation.add(context, illust)
+            }
+            if (Dev.showPlazaShareInArtwork) {
+                item(
+                    context.getString(R.string.plaza_share_illust_to_plaza),
+                    R.drawable.ic_plaza_feed_24,
+                ) {
+                    val intent = Intent(context, TemplateActivity::class.java)
+                    intent.putExtra(
+                        TemplateActivity.EXTRA_FRAGMENT,
+                        TemplateRoute.PLAZA_COMPOSE.key,
+                    )
+                    intent.putExtra(
+                        ceui.pixiv.plaza.ui.PlazaComposeFragment.ARG_PREFILL_ILLUST_ID,
+                        illust.id,
+                    )
+                    intent.putExtra(
+                        ceui.pixiv.plaza.ui.PlazaComposeFragment.ARG_OBJECT_TYPE,
+                        if (illust.type == "manga") "manga" else "illust",
+                    )
+                    fragment.startActivity(intent)
+                }
+            }
             if (!illust.isGif()) {
+                divider()
+                // issue #898 / #515:详情页直接设壁纸(首图),不必先进全屏看图页。动图 original 是 zip,跳过。
                 item(
                     context.getString(R.string.string_set_wallpaper),
                     R.drawable.ic_baseline_wallpaper_24,
@@ -268,24 +318,6 @@ internal class ArtworkV3Actions(
                         WallpaperSetter.setFromIllust(fragment.requireActivity(), illust, 0)
                     }
                 }
-            }
-            item(context.getString(R.string.string_1), R.drawable.ic_baseline_settings_24) {
-                MuteTagSheet.show(fragment.childFragmentManager, illust.tags?.toTagsBeans(), illust.user)
-            }
-            item(context.getString(R.string.string_355), R.drawable.ic_visibility_off_black_24dp) {
-                PixivOperate.muteIllust(illust)
-            }
-            item(context.getString(R.string.flag_post), R.drawable.ic_baseline_flag_24) {
-                val intent = Intent(context, TemplateActivity::class.java)
-                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.FLAG_REASON.key)
-                intent.putExtra(ceui.pixiv.ui.flag.FlagDescFragment.FlagObjectIdKey, illust.id)
-                intent.putExtra(
-                    ceui.pixiv.ui.flag.FlagDescFragment.FlagObjectTypeKey,
-                    ceui.lisa.models.ObjectSpec.POST,
-                )
-                fragment.startActivity(intent)
-            }
-            if (!illust.isGif()) {
                 item(context.getString(R.string.string_0), R.drawable.ic_remove_red_eye_black_24dp) {
                     onForceOriginal()
                 }
@@ -324,30 +356,48 @@ internal class ArtworkV3Actions(
                     openImageFilter(context, illust, currentPageIndex().coerceAtLeast(0))
                 }
             }
-            if (Dev.showPlazaShareInArtwork) {
-                item(
-                    context.getString(R.string.plaza_share_illust_to_plaza),
-                    R.drawable.ic_plaza_feed_24,
-                ) {
-                    val intent = Intent(context, TemplateActivity::class.java)
-                    intent.putExtra(
-                        TemplateActivity.EXTRA_FRAGMENT,
-                        TemplateRoute.PLAZA_COMPOSE.key,
-                    )
-                    intent.putExtra(
-                        ceui.pixiv.plaza.ui.PlazaComposeFragment.ARG_PREFILL_ILLUST_ID,
-                        illust.id,
-                    )
-                    intent.putExtra(
-                        ceui.pixiv.plaza.ui.PlazaComposeFragment.ARG_OBJECT_TYPE,
-                        if (illust.type == "manga") "manga" else "illust",
-                    )
-                    fragment.startActivity(intent)
+            divider()
+            item(context.getString(R.string.string_1), R.drawable.ic_baseline_settings_24) {
+                MuteTagSheet.show(fragment.childFragmentManager, illust.tags?.toTagsBeans(), illust.user)
+            }
+            item(context.getString(R.string.string_355), R.drawable.ic_visibility_off_black_24dp) {
+                PixivOperate.muteIllust(illust)
+            }
+            item(context.getString(R.string.flag_post), R.drawable.ic_baseline_flag_24) {
+                val intent = Intent(context, TemplateActivity::class.java)
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.FLAG_REASON.key)
+                intent.putExtra(ceui.pixiv.ui.flag.FlagDescFragment.FlagObjectIdKey, illust.id)
+                intent.putExtra(
+                    ceui.pixiv.ui.flag.FlagDescFragment.FlagObjectTypeKey,
+                    ceui.lisa.models.ObjectSpec.POST,
+                )
+                fragment.startActivity(intent)
+            }
+        }
+
+        if (glassHost != null && anchor != null) {
+            var created: WitLiquidGlassMenu? = null
+            created = WitLiquidGlassMenu.show(glassHost, anchor) {
+                this.tone = tone
+                onDismiss = {
+                    if (activeMoreMenu === created) activeMoreMenu = null
                 }
+                itemsBlock(
+                    { label, icon, onClick -> item(label, icon, onClick = onClick) },
+                    { label, icon, isChecked, onToggle -> switchItem(label, icon, isChecked, onToggle) },
+                    { divider() },
+                )
             }
-            item(context.getString(R.string.artlist_add), R.drawable.ic_collections_black_24dp) {
-                ceui.pixiv.ui.artlist.ArtlistNavigation.add(context, illust)
-            }
+            if (created != null) activeMoreMenu = created
+            return
+        }
+
+        fragment.showV3Menu {
+            itemsBlock(
+                { label, icon, onClick -> item(label, icon, onClick) },
+                { label, icon, isChecked, onToggle -> switchItem(label, icon, isChecked, onToggle) },
+                {},
+            )
         }
     }
 }

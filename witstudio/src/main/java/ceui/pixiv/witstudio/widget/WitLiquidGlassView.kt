@@ -5,6 +5,8 @@ import android.content.res.Configuration
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Outline
+import android.graphics.Path
+import android.graphics.RectF
 import android.os.Build
 import android.util.AttributeSet
 import android.view.MotionEvent
@@ -14,19 +16,23 @@ import android.widget.FrameLayout
 import androidx.annotation.ColorInt
 import androidx.annotation.RequiresApi
 import androidx.core.content.withStyledAttributes
+import androidx.core.graphics.withClip
 import androidx.core.graphics.withTranslation
 import androidx.dynamicanimation.animation.FloatValueHolder
 import androidx.dynamicanimation.animation.SpringAnimation
-import androidx.dynamicanimation.animation.SpringForce
 import ceui.pixiv.witstudio.R
 import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.pixiv.witstudio.theme.motionEnabled
 import ceui.pixiv.witstudio.widget.internal.WitLiquidGlassBackend
 import ceui.pixiv.witstudio.widget.internal.WitLiquidGlassBackdrop
+import ceui.pixiv.witstudio.widget.internal.WitLiquidGlassBudget
+import ceui.pixiv.witstudio.widget.internal.WitLiquidGlassMorphTail
 import ceui.pixiv.witstudio.widget.internal.WitLiquidGlassPaint
 import ceui.pixiv.witstudio.widget.internal.WitLiquidGlassRenderer
 import ceui.pixiv.witstudio.widget.internal.WitLiquidGlassShader
+import ceui.pixiv.witstudio.widget.internal.buildLiquidGlassMorphPath
 import kotlin.math.abs
+import kotlin.math.roundToInt
 
 /**
  * A glass surface for floating controls. Add it above the source as a direct child of
@@ -114,6 +120,25 @@ public class WitLiquidGlassView @JvmOverloads public constructor(
     private val density: Float get() = resources.displayMetrics.density
     private val radius: Float get() = (cornerRadiusDp * density).coerceAtMost(minOf(width, height) / 2f)
 
+    /** Enables larger transient panel budget and softer backdrop scattering for floating menus. */
+    internal var isLargeSurface: Boolean = false
+        set(value) {
+            if (field == value) return
+            field = value
+            invalidateOptics()
+        }
+
+    private var morphActive = false
+    private var morphLeft = 0f
+    private var morphTop = 0f
+    private var morphRight = 0f
+    private var morphBottom = 0f
+    private var morphRadius = 0f
+    private val morphTail = WitLiquidGlassMorphTail()
+    private val morphClipPath = Path()
+    private val morphScratchPath = Path()
+    private val morphArcRect = RectF()
+
     private val materialPaint = WitLiquidGlassPaint()
     private var renderer: WitLiquidGlassRenderer? = null
     private var materialDirty = true
@@ -131,7 +156,20 @@ public class WitLiquidGlassView @JvmOverloads public constructor(
         setWillNotDraw(false)
         outlineProvider = object : ViewOutlineProvider() {
             override fun getOutline(view: View, outline: Outline) {
-                outline.setRoundRect(0, 0, width, height, radius)
+                if (morphActive) {
+                    val l = morphLeft.roundToInt()
+                    val t = morphTop.roundToInt()
+                    val r = morphRight.roundToInt()
+                    val b = morphBottom.roundToInt()
+                    if (r > l && b > t) {
+                        val rad = morphRadius.coerceIn(0f, minOf(r - l, b - t) / 2f)
+                        outline.setRoundRect(l, t, r, b, rad)
+                    } else {
+                        outline.setEmpty()
+                    }
+                } else {
+                    outline.setRoundRect(0, 0, width, height, radius)
+                }
                 outline.alpha = if (isDark) 0.32f else 0.78f
             }
         }
@@ -154,8 +192,88 @@ public class WitLiquidGlassView @JvmOverloads public constructor(
         }
     }
 
+    internal fun planPatch(canvasEdge: Int): WitLiquidGlassBudget.PatchPlan =
+        WitLiquidGlassBudget.planPatch(width, height, density, canvasEdge, isLargeSurface)
+
+    /**
+     * Animates the visible glass silhouette inside this view's laid-out bounds without triggering
+     * layout passes or re-allocating the offscreen RenderNode patch.
+     */
+    internal fun setMorphFrame(
+        left: Float,
+        top: Float,
+        right: Float,
+        bottom: Float,
+        cornerRadiusPx: Float,
+        tailTipX: Float = 0f,
+        tailTipY: Float = 0f,
+        tailTipRadius: Float = 0f,
+        tailBellyX: Float = 0f,
+        tailBellyY: Float = 0f,
+        tailBellyRadius: Float = 0f,
+        tailBlendPx: Float = 0f,
+    ) {
+        if (morphActive &&
+            morphLeft == left && morphTop == top &&
+            morphRight == right && morphBottom == bottom &&
+            morphRadius == cornerRadiusPx &&
+            morphTail.tipX == tailTipX && morphTail.tipY == tailTipY &&
+            morphTail.tipRadius == tailTipRadius &&
+            morphTail.bellyX == tailBellyX && morphTail.bellyY == tailBellyY &&
+            morphTail.bellyRadius == tailBellyRadius && morphTail.blendPx == tailBlendPx
+        ) {
+            return
+        }
+        morphActive = true
+        morphLeft = left
+        morphTop = top
+        morphRight = right
+        morphBottom = bottom
+        morphRadius = cornerRadiusPx
+        morphTail.tipX = tailTipX
+        morphTail.tipY = tailTipY
+        morphTail.tipRadius = tailTipRadius
+        morphTail.bellyX = tailBellyX
+        morphTail.bellyY = tailBellyY
+        morphTail.bellyRadius = tailBellyRadius
+        morphTail.blendPx = tailBlendPx
+        invalidateOutline()
+        invalidateOptics()
+    }
+
+    internal fun setMorphTouch(x: Float, y: Float, illumination: Float) {
+        val clamped = illumination.coerceIn(0f, 1f)
+        if (touchX == x && touchY == y && press == clamped && stretch == 0f) return
+        touchX = x
+        touchY = y
+        press = clamped
+        stretch = 0f
+        invalidateOptics()
+    }
+
+    internal fun clearMorphFrame() {
+        val hadMorph = morphActive
+        val hadTouch = press != 0f || stretch != 0f
+        if (!hadMorph && !hadTouch) return
+        morphActive = false
+        morphTail.clear()
+        press = 0f
+        stretch = 0f
+        if (hadMorph) invalidateOutline()
+        invalidateOptics()
+    }
+
+    internal fun resetInteraction() {
+        resetPress()
+    }
+
     @RequiresApi(31)
-    internal fun updateBackdrop(backdrop: WitLiquidGlassBackdrop?, parentScrollX: Int, parentScrollY: Int) {
+    internal fun updateBackdrop(
+        backdrop: WitLiquidGlassBackdrop?,
+        parentScrollX: Int,
+        parentScrollY: Int,
+        renderScale: Float = 1f,
+    ) {
         if (backdrop == null || !WitLiquidGlassBackend.BACKDROP.available) {
             discardRenderer()
             return
@@ -166,11 +284,16 @@ public class WitLiquidGlassView @JvmOverloads public constructor(
             opticsDirty = true
         } ?: return
         val hasBackdrop = current.hasBackdrop
-        val prepared = WitLiquidGlassBackend.BACKDROP.attempt {
-            current.updateBackdrop(this, backdrop, parentScrollX, parentScrollY, density)
+        val opticsChanged = WitLiquidGlassBackend.BACKDROP.attempt {
+            current.updateBackdrop(this, backdrop, parentScrollX, parentScrollY, density, renderScale)
         }
-        if (prepared == null) discardRenderer()
-        else if (hasBackdrop != current.hasBackdrop) invalidate()
+        if (opticsChanged == null) {
+            discardRenderer()
+        } else if (opticsChanged) {
+            invalidateOptics()
+        } else if (hasBackdrop != current.hasBackdrop) {
+            invalidate()
+        }
     }
 
     @RequiresApi(31)
@@ -216,8 +339,19 @@ public class WitLiquidGlassView @JvmOverloads public constructor(
         val scale = density
         val dark = isDark
         val clear = material == Material.CLEAR
+        val sLeft = if (morphActive) morphLeft else 0f
+        val sTop = if (morphActive) morphTop else 0f
+        val sRight = if (morphActive) morphRight else w.toFloat()
+        val sBottom = if (morphActive) morphBottom else h.toFloat()
+        if (sRight <= sLeft || sBottom <= sTop) return
+        val activeRadius = if (morphActive) {
+            morphRadius.coerceIn(0f, minOf(sRight - sLeft, sBottom - sTop) / 2f)
+        } else {
+            radius
+        }
+        val activeTail = if (morphActive && morphTail.active) morphTail else null
         if (materialDirty) {
-            materialPaint.update(w, h, radius, scale, baseFill, tintColor, dark, clear, clearDimming)
+            materialPaint.update(w, h, scale, baseFill, tintColor, dark, clear, clearDimming)
             materialDirty = false
         }
         canvas.withTranslation(scrollX.toFloat(), scrollY.toFloat()) {
@@ -227,18 +361,44 @@ public class WitLiquidGlassView @JvmOverloads public constructor(
                     val drawn = current.backend.attempt {
                         if (opticsDirty) {
                             current.updateOptics(
-                                w, h, radius, scale, dark, clear, tintColor, clearDimming,
-                                touchX, touchY, press, stretch,
+                                sLeft, sTop, sRight, sBottom, activeRadius, scale, dark, clear,
+                                isLargeSurface, tintColor, clearDimming, touchX, touchY, press, stretch,
+                                activeTail,
                             )
                             opticsDirty = false
                         }
-                        current.draw(this, materialPaint, touchX, touchY, press, stretch)
+                        current.draw(
+                            this, materialPaint, sLeft, sTop, sRight, sBottom, activeRadius,
+                            touchX, touchY, press, stretch, activeTail,
+                        )
                     }
                     if (drawn != null) return@withTranslation
                     discardRenderer()
                 }
             }
-            materialPaint.drawFallback(this, touchX, touchY, press, stretch)
+            materialPaint.drawFallback(
+                this, sLeft, sTop, sRight, sBottom, activeRadius, touchX, touchY, press, stretch,
+                activeTail,
+            )
+        }
+    }
+
+    override fun dispatchDraw(canvas: Canvas) {
+        if (!morphActive) {
+            super.dispatchDraw(canvas)
+            return
+        }
+        val w = morphRight - morphLeft
+        val h = morphBottom - morphTop
+        if (w <= 0f || h <= 0f) return
+        val rad = morphRadius.coerceIn(0f, minOf(w, h) / 2f)
+        buildLiquidGlassMorphPath(
+            morphClipPath, morphScratchPath, morphArcRect,
+            morphLeft, morphTop, morphRight, morphBottom,
+            rad, if (morphTail.active) morphTail else null,
+        )
+        canvas.withClip(morphClipPath) {
+            super.dispatchDraw(this)
         }
     }
 
