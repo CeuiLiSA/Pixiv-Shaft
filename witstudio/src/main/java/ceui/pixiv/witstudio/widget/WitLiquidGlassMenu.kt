@@ -909,12 +909,21 @@ public class WitLiquidGlassMenu private constructor(
             private var activePointerId = MotionEvent.INVALID_POINTER_ID
             private var dragMode = DragMode.IDLE
             private var passThroughToSwitch = false
+            private var interceptedFlingOnDown = false
             private var downX = 0f
             private var downY = 0f
             private var lastY = 0f
             private var lastLocalX = 0f
             private var lastLocalY = 0f
             private var overscrollY = 0f
+
+            override fun onInterceptTouchEvent(ev: MotionEvent): Boolean {
+                val intercepted = super.onInterceptTouchEvent(ev)
+                if (ev.actionMasked == MotionEvent.ACTION_DOWN && intercepted) {
+                    interceptedFlingOnDown = true
+                }
+                return intercepted
+            }
 
             private fun mapToGlassLocal(ev: MotionEvent, ptrIndex: Int) {
                 glassPoint[0] = ev.getX(ptrIndex)
@@ -941,6 +950,7 @@ public class WitLiquidGlassMenu private constructor(
                         lastLocalX = ev.x
                         lastLocalY = ev.y
                         overscrollY = 0f
+                        interceptedFlingOnDown = false
                         dragMode = DragMode.UNDECIDED
                         passThroughToSwitch = isPointInsideAnySwitch(ev.x, ev.y)
                         if (passThroughToSwitch) {
@@ -950,7 +960,13 @@ public class WitLiquidGlassMenu private constructor(
                         if (canScroll) {
                             super.dispatchTouchEvent(ev)
                         }
-                        onMenuFingerDown(downX, downY, ev.x, ev.y)
+                        if (interceptedFlingOnDown) {
+                            // Tapping to stop an active fling must not highlight or trigger a passing row.
+                            dragMode = DragMode.VERTICAL_SCROLL
+                            onMenuFingerDown(downX, downY, ev.x, ev.y, highlightRow = false)
+                        } else {
+                            onMenuFingerDown(downX, downY, ev.x, ev.y, highlightRow = true)
+                        }
                         return true
                     }
 
@@ -1043,7 +1059,7 @@ public class WitLiquidGlassMenu private constructor(
 
                     MotionEvent.ACTION_POINTER_DOWN -> {
                         if (passThroughToSwitch) return super.dispatchTouchEvent(ev)
-                        if (maxScrollRange() > 0 && (dragMode == DragMode.UNDECIDED || (dragMode == DragMode.VERTICAL_SCROLL && overscrollY == 0f))) {
+                        if (maxScrollRange() > 0 && (dragMode == DragMode.UNDECIDED || dragMode == DragMode.VERTICAL_SCROLL)) {
                             super.dispatchTouchEvent(ev)
                         }
                         return true
@@ -1051,7 +1067,7 @@ public class WitLiquidGlassMenu private constructor(
 
                     MotionEvent.ACTION_POINTER_UP -> {
                         if (passThroughToSwitch) return super.dispatchTouchEvent(ev)
-                        if (maxScrollRange() > 0 && (dragMode == DragMode.UNDECIDED || (dragMode == DragMode.VERTICAL_SCROLL && overscrollY == 0f))) {
+                        if (maxScrollRange() > 0 && (dragMode == DragMode.UNDECIDED || dragMode == DragMode.VERTICAL_SCROLL)) {
                             super.dispatchTouchEvent(ev)
                         }
                         if (ev.getPointerId(ev.actionIndex) == activePointerId) {
@@ -1169,11 +1185,21 @@ public class WitLiquidGlassMenu private constructor(
         }
     }
 
-    private fun onMenuFingerDown(glassX: Float, glassY: Float, localX: Float, localY: Float) {
+    private fun onMenuFingerDown(
+        glassX: Float,
+        glassY: Float,
+        localX: Float,
+        localY: Float,
+        highlightRow: Boolean,
+    ) {
         dragFingerDown = true
         dragTouchX = glassX
         dragTouchY = glassY
-        updateTouchHighlight(localX, localY, playHaptic = false)
+        if (highlightRow) {
+            updateTouchHighlight(localX, localY, playHaptic = false)
+        } else {
+            clearHighlight(animated = false)
+        }
         if (!openSettled || !motionEnabled()) return
         scrollView?.clipToOutline = false
         animateDragSpring(targetX = 0f, targetY = 0f, targetPress = 1f, releasing = false)
