@@ -3693,4 +3693,9 @@
     <string name="ai_results_clear_failed">Some result images could not be removed. Try again.</string>
     <string name="ai_results_stats_failed">Could not calculate size</string>
     <string name="account_switch_web_check_failed">Cannot check Web login, tap to retry</string>
+    <string name="setting_liquid_glass_quality">Liquid glass effect</string>
+    <string name="setting_liquid_glass_quality_desc">Real-time refraction, blur, and lighting level for floating controls and menus</string>
+    <string name="liquid_glass_quality_none">None</string>
+    <string name="liquid_glass_quality_standard">Standard</string>
+    <string name="liquid_glass_quality_ultra">Ultra</string>
 </resources>

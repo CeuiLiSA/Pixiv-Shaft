@@ -3649,4 +3649,9 @@
     <string name="ai_results_clear_failed">Beberapa gambar tidak dapat dihapus. Coba lagi.</string>
     <string name="ai_results_stats_failed">Ukuran tidak dapat dihitung</string>
     <string name="account_switch_web_check_failed">Gagal memeriksa login Web, ketuk untuk mencoba lagi</string>
+    <string name="setting_liquid_glass_quality">Efek liquid glass</string>
+    <string name="setting_liquid_glass_quality_desc">Tingkat pembiasan real-time, blur, dan efek pencahayaan untuk kontrol melayang dan menu</string>
+    <string name="liquid_glass_quality_none">Tidak ada</string>
+    <string name="liquid_glass_quality_standard">Standar</string>
+    <string name="liquid_glass_quality_ultra">Ultra</string>
 </resources>

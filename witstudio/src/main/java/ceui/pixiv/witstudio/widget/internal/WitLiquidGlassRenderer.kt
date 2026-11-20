@@ -269,6 +269,7 @@ internal class WitLiquidGlassPaint {
     private var lightY = Float.NaN
     private var lightRadius = 1f
     private var rimWidth = 0f
+    private var solidFill = Color.TRANSPARENT
     private var fallbackFill = Color.TRANSPARENT
     private var blurWash = Color.TRANSPARENT
     private var rim: LinearGradient? = null
@@ -283,6 +284,7 @@ internal class WitLiquidGlassPaint {
         lightX = Float.NaN
 
         val tintedBase = ColorUtils.blendARGB(base, tint or Color.BLACK, Color.alpha(tint) / 765f)
+        solidFill = ColorUtils.setAlphaComponent(tintedBase, 255)
         val translucentFill = ColorUtils.setAlphaComponent(tintedBase, if (clear) 204 else 242)
         fallbackFill = if (clear) {
             ColorUtils.compositeColors(
@@ -370,6 +372,22 @@ internal class WitLiquidGlassPaint {
 
     internal fun drawBlurOverlay(canvas: Canvas, press: Float) {
         drawSurface(canvas, blurWash, press)
+    }
+
+    /** 绘制 100% 纯实色表面（对应等级“无”）：无半透明、无反光描边、无弹性拉伸与光晕。 */
+    internal fun drawSolid(
+        canvas: Canvas,
+        left: Float, top: Float, right: Float, bottom: Float, cornerRadius: Float,
+        tail: WitLiquidGlassMorphTail? = null,
+    ) {
+        updateDeformation(left, top, right, bottom, cornerRadius, 0f, 0f, 0f, tail)
+        if (deformedBounds.width() <= 0f || deformedBounds.height() <= 0f) return
+        paint.color = solidFill
+        if (hasMorphTail) {
+            canvas.drawPath(clip, paint)
+        } else {
+            canvas.drawRoundRect(deformedBounds, deformedRadius, deformedRadius, paint)
+        }
     }
 
     private fun drawSurface(canvas: Canvas, fill: Int, press: Float) {

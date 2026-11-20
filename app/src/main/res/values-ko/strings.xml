@@ -3680,4 +3680,9 @@
     <string name="ai_results_clear_failed">일부 이미지를 삭제하지 못했습니다. 다시 시도하세요.</string>
     <string name="ai_results_stats_failed">크기를 계산하지 못했습니다</string>
     <string name="account_switch_web_check_failed">웹 로그인을 확인할 수 없습니다. 눌러서 재시도</string>
+    <string name="setting_liquid_glass_quality">리퀴드 글래스 효과</string>
+    <string name="setting_liquid_glass_quality_desc">플로팅 컨트롤 및 메뉴의 실시간 굴절, 블러 및 조명 효과 수준</string>
+    <string name="liquid_glass_quality_none">사용 안 함</string>
+    <string name="liquid_glass_quality_standard">표준</string>
+    <string name="liquid_glass_quality_ultra">최고</string>
 </resources>

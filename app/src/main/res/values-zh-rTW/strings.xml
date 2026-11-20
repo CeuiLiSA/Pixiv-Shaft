@@ -3680,4 +3680,9 @@
     <string name="ai_results_clear_failed">部分結果圖未能清理，請重試</string>
     <string name="ai_results_stats_failed">統計失敗</string>
     <string name="account_switch_web_check_failed">無法檢測Web（網頁）登入狀態，點擊重試</string>
+    <string name="setting_liquid_glass_quality">液態玻璃效果</string>
+    <string name="setting_liquid_glass_quality_desc">懸浮操作與展開選單的即時折射、磨砂模糊與光效等級</string>
+    <string name="liquid_glass_quality_none">無</string>
+    <string name="liquid_glass_quality_standard">標準</string>
+    <string name="liquid_glass_quality_ultra">極致</string>
 </resources>

@@ -475,6 +475,7 @@ public class Shaft extends Application implements ServicesProvider {
 
         initMMKV(this);
         sSettings = Local.getSettings();
+        applyLiquidGlassQuality(sSettings.getLiquidGlassQuality());
 
         if (sSettings.isLogFileEnabled()) {
             TimberFileLog.INSTANCE.maybeStart(this);
@@ -1141,5 +1142,11 @@ public class Shaft extends Application implements ServicesProvider {
     @Override
     public @NotNull ceui.pixiv.analytics.Analytics getAnalytics() {
         return analytics;
+    }
+
+    public static void applyLiquidGlassQuality(int qualityOrdinal) {
+        ceui.pixiv.witstudio.widget.WitLiquidGlassQuality.setDefaultQuality(
+                ceui.pixiv.witstudio.widget.WitLiquidGlassQuality.fromOrdinal(qualityOrdinal)
+        );
     }
 }

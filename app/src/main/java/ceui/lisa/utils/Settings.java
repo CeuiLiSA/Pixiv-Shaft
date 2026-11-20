@@ -54,6 +54,21 @@ public class Settings {
     /** 插画列表布局，取值见 {@link ceui.pixiv.ui.common.IllustListLayout}（序号，0 = 瀑布流）。 */
     private int illustListLayout = 0;
 
+    public static final int LIQUID_GLASS_QUALITY_NONE = 0;
+    public static final int LIQUID_GLASS_QUALITY_STANDARD = 1;
+    public static final int LIQUID_GLASS_QUALITY_ULTRA = 2;
+
+    /** 液态玻璃效果等级：0 = 无（默认），1 = 标准，2 = 极致。 */
+    private int liquidGlassQuality = LIQUID_GLASS_QUALITY_NONE;
+
+    public int getLiquidGlassQuality() {
+        return liquidGlassQuality;
+    }
+
+    public void setLiquidGlassQuality(int liquidGlassQuality) {
+        this.liquidGlassQuality = liquidGlassQuality;
+    }
+
     /** 各 uid 在本设备最近一次已应用的 moonAPI 版本号。key 是 uid.toString()。 */
     private Map<String, Integer> moonAppliedVersions = new HashMap<>();
 

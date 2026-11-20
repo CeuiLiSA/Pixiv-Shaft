@@ -91,6 +91,17 @@ public class FragmentSettingsAppearance extends SettingsPageFragment<FragmentSet
         baseBind.predictiveBackSummary.setText(enabled + "/" + targets.size());
     }
 
+    private void refreshLiquidGlassQualitySummary() {
+        int quality = Shaft.sSettings.getLiquidGlassQuality();
+        if (quality == ceui.lisa.utils.Settings.LIQUID_GLASS_QUALITY_STANDARD) {
+            baseBind.liquidGlassQuality.setText(R.string.liquid_glass_quality_standard);
+        } else if (quality == ceui.lisa.utils.Settings.LIQUID_GLASS_QUALITY_ULTRA) {
+            baseBind.liquidGlassQuality.setText(R.string.liquid_glass_quality_ultra);
+        } else {
+            baseBind.liquidGlassQuality.setText(R.string.liquid_glass_quality_none);
+        }
+    }
+
     private void showPredictiveBackDialog() {
         PredictiveBackDialogBuilder builder = new PredictiveBackDialogBuilder(mActivity);
         builder.setTitle(R.string.setting_predictive_back);
@@ -285,6 +296,30 @@ public class FragmentSettingsAppearance extends SettingsPageFragment<FragmentSet
                         ceui.pixiv.i18n.AppLocales.INSTANCE.apply(tag);
                         baseBind.appLanguage.setText(labels.get(which));
                         Common.showToast(getString(R.string.string_428), 2);
+                        dialog.dismiss();
+                    })
+                    .show();
+        });
+
+        // 液态玻璃效果等级（无 / 标准 / 极致）
+        refreshLiquidGlassQualitySummary();
+        baseBind.liquidGlassQualityRela.setOnClickListener(v -> {
+            final int currentIndex = Shaft.sSettings.getLiquidGlassQuality();
+            String[] QUALITY_NAMES = new String[]{
+                    getString(R.string.liquid_glass_quality_none),
+                    getString(R.string.liquid_glass_quality_standard),
+                    getString(R.string.liquid_glass_quality_ultra)
+            };
+            new WitDialog.CheckableDialogBuilder(mActivity)
+                    .setTitle(R.string.setting_liquid_glass_quality)
+                    .setCheckedIndex(currentIndex)
+                    .addItems(QUALITY_NAMES, (dialog, which) -> {
+                        if (which != currentIndex) {
+                            Shaft.sSettings.setLiquidGlassQuality(which);
+                            Local.setSettings(Shaft.sSettings);
+                            Shaft.applyLiquidGlassQuality(which);
+                            refreshLiquidGlassQualitySummary();
+                        }
                         dialog.dismiss();
                     })
                     .show();

@@ -3680,4 +3680,9 @@
     <string name="ai_results_clear_failed">一部の画像を削除できませんでした。再度お試しください。</string>
     <string name="ai_results_stats_failed">サイズを計算できませんでした</string>
     <string name="account_switch_web_check_failed">Webログインを確認できません。タップして再試行</string>
+    <string name="setting_liquid_glass_quality">リキッドガラス効果</string>
+    <string name="setting_liquid_glass_quality_desc">フローティング操作やメニューのリアルタイム屈折・ぼかし・光沢品質</string>
+    <string name="liquid_glass_quality_none">オフ</string>
+    <string name="liquid_glass_quality_standard">標準</string>
+    <string name="liquid_glass_quality_ultra">最高</string>
 </resources>

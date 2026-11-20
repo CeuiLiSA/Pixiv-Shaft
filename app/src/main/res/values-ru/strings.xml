@@ -3722,4 +3722,9 @@
     <string name="ai_results_clear_failed">Не все изображения удалось удалить. Повторите попытку.</string>
     <string name="ai_results_stats_failed">Не удалось подсчитать размер</string>
     <string name="account_switch_web_check_failed">Не удалось проверить вход Web. Нажмите для повтора</string>
+    <string name="setting_liquid_glass_quality">Эффект жидкого стекла</string>
+    <string name="setting_liquid_glass_quality_desc">Качество преломления, размытия и бликов для плавающих элементов и меню</string>
+    <string name="liquid_glass_quality_none">Отключено</string>
+    <string name="liquid_glass_quality_standard">Стандартное</string>
+    <string name="liquid_glass_quality_ultra">Максимальное</string>
 </resources>

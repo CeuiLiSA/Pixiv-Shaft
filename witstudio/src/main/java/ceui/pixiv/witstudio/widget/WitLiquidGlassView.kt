@@ -104,6 +104,20 @@ public class WitLiquidGlassView @JvmOverloads public constructor(
             if (!value) resetPress()
         }
 
+    /** 显式指定本表面的渲染效果等级；null 时继承宿主 [WitLiquidGlassLayout.quality] 或全局默认。 */
+    public var quality: WitLiquidGlassQuality? = null
+        set(value) {
+            if (field == value) return
+            field = value
+            if (Build.VERSION.SDK_INT >= 31) {
+                discardRenderer()
+            }
+            invalidateMaterial()
+        }
+
+    public val effectiveQuality: WitLiquidGlassQuality
+        get() = quality ?: (parent as? WitLiquidGlassLayout)?.quality ?: WitLiquidGlassQuality.defaultQuality
+
     /** Foreground color for the resolved [tone]. Set it on the controls this surface contains. */
     @get:ColorInt
     public val contentColor: Int
@@ -189,11 +203,19 @@ public class WitLiquidGlassView @JvmOverloads public constructor(
             tintColor = getColor(R.styleable.WitLiquidGlassView_wit_glassTint, Color.TRANSPARENT)
             clearDimming = getFloat(R.styleable.WitLiquidGlassView_wit_glassClearDimming, 0f)
             isGlassInteractive = getBoolean(R.styleable.WitLiquidGlassView_wit_glassInteractive, false)
+            val qIdx = getInt(R.styleable.WitLiquidGlassView_wit_glassQuality, -1)
+            if (qIdx >= 0) {
+                quality = WitLiquidGlassQuality.fromOrdinal(qIdx)
+            }
         }
     }
 
     internal fun planPatch(canvasEdge: Int): WitLiquidGlassBudget.PatchPlan =
-        WitLiquidGlassBudget.planPatch(width, height, density, canvasEdge, isLargeSurface)
+        if (!effectiveQuality.isLiveEnabled) {
+            WitLiquidGlassBudget.PatchPlan(0L, 1f)
+        } else {
+            WitLiquidGlassBudget.planPatch(width, height, density, canvasEdge, isLargeSurface)
+        }
 
     /**
      * Animates the visible glass silhouette inside this view's laid-out bounds without triggering
@@ -274,11 +296,15 @@ public class WitLiquidGlassView @JvmOverloads public constructor(
         parentScrollY: Int,
         renderScale: Float = 1f,
     ) {
-        if (backdrop == null || !WitLiquidGlassBackend.BACKDROP.available) {
+        if (backdrop == null || !effectiveQuality.isLiveEnabled || !WitLiquidGlassBackend.BACKDROP.available) {
             discardRenderer()
             return
         }
         if (renderer?.backend?.available == false) discardRenderer()
+        val expectedShader = effectiveQuality == WitLiquidGlassQuality.ULTRA && Build.VERSION.SDK_INT >= 33
+        if (renderer != null && (renderer is WitLiquidGlassShader) != expectedShader) {
+            discardRenderer()
+        }
         val current = renderer ?: createRenderer()?.also {
             renderer = it
             opticsDirty = true
@@ -298,7 +324,9 @@ public class WitLiquidGlassView @JvmOverloads public constructor(
 
     @RequiresApi(31)
     private fun createRenderer(): WitLiquidGlassRenderer? {
-        if (Build.VERSION.SDK_INT >= 33) {
+        val q = effectiveQuality
+        if (!q.isLiveEnabled) return null
+        if (q == WitLiquidGlassQuality.ULTRA && Build.VERSION.SDK_INT >= 33) {
             WitLiquidGlassBackend.REFRACTION.attempt { WitLiquidGlassShader() }?.let { return it }
         }
         return WitLiquidGlassBackend.BACKDROP.attempt { WitLiquidGlassRenderer() }
@@ -355,7 +383,13 @@ public class WitLiquidGlassView @JvmOverloads public constructor(
             materialDirty = false
         }
         canvas.withTranslation(scrollX.toFloat(), scrollY.toFloat()) {
-            if (Build.VERSION.SDK_INT >= 31 && isHardwareAccelerated) {
+            if (effectiveQuality == WitLiquidGlassQuality.NONE) {
+                materialPaint.drawSolid(
+                    this, sLeft, sTop, sRight, sBottom, activeRadius, activeTail,
+                )
+                return@withTranslation
+            }
+            if (Build.VERSION.SDK_INT >= 31 && isHardwareAccelerated && effectiveQuality.isLiveEnabled) {
                 val current = renderer
                 if (current != null && current.hasBackdrop) {
                     val drawn = current.backend.attempt {
@@ -404,7 +438,7 @@ public class WitLiquidGlassView @JvmOverloads public constructor(
 
     override fun dispatchTouchEvent(event: MotionEvent): Boolean {
         val handled = super.dispatchTouchEvent(event)
-        if (!isGlassInteractive || !isEnabled) return handled
+        if (!isGlassInteractive || !isEnabled || effectiveQuality == WitLiquidGlassQuality.NONE) return handled
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> if (handled) {
                 touchPointer = event.getPointerId(0)
@@ -427,6 +461,10 @@ public class WitLiquidGlassView @JvmOverloads public constructor(
 
     override fun drawableStateChanged() {
         super.drawableStateChanged()
+        if (effectiveQuality == WitLiquidGlassQuality.NONE) {
+            resetPress()
+            return
+        }
         if (isGlassInteractive && !isEnabled) {
             resetPress()
         } else if (isGlassInteractive && touchPointer == MotionEvent.INVALID_POINTER_ID) {

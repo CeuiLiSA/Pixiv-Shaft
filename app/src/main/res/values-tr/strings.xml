@@ -3694,4 +3694,9 @@
     <string name="ai_results_clear_failed">Bazı görseller silinemedi. Tekrar deneyin.</string>
     <string name="ai_results_stats_failed">Boyut hesaplanamadı</string>
     <string name="account_switch_web_check_failed">Web girişi kontrol edilemedi, yeniden denemek için dokunun</string>
+    <string name="setting_liquid_glass_quality">Sıvı cam efekti</string>
+    <string name="setting_liquid_glass_quality_desc">Kayan kontroller ve menüler için gerçek zamanlı kırılma, bulanıklık ve ışık efekti düzeyi</string>
+    <string name="liquid_glass_quality_none">Yok</string>
+    <string name="liquid_glass_quality_standard">Standart</string>
+    <string name="liquid_glass_quality_ultra">Ultra</string>
 </resources>
