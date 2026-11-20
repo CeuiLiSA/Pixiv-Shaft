@@ -24,9 +24,6 @@ import dagger.Lazy
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
-/** 已完成列表一次加载的行数，tab 上的数字必须按同一个窗口算，否则数字和卡片数对不上。 */
-internal const val DONE_LIST_WINDOW = 600
-
 /**
  * 三个 tab 共享的 stats 数据源。
  *
@@ -118,14 +115,8 @@ class DownloadManagerSharedViewModel @Inject constructor(
     }
 
     /**
-     * 已完成 tab 标题末尾的数字 —— 由 [DoneListV3Fragment] 分组聚合完成后回填
-     * (groups.size = 实际展示的卡片数)。
-     *
-     * 历史上从 download_queue.SUCCESS 行派生,但那张表跟列表数据源
-     * illust_download_table 不是一张表。Auto Backup 部分还原 / 用户历史上
-     * 分别清理过其中一张表等场景下,两边会错位 —— 用户会看到 "已完成 1944"
-     * 但列表却是空的(issue: 卸载重装后 1944/空列表)。改为列表自己回填后,数字
-     * 永远等于实际可见卡片数,从数据源上消除不一致。
+     * 已完成标题显示可访问的作品总数；搜索时显示命中作品总数，而非已加载卡片数。
+     * 列表可见时使用同一组条件查询并回填，离屏时由 [refreshDoneCardCount] 更新。
      */
     private val _doneCardCount = MutableStateFlow(0)
     val doneCardCount: StateFlow<Int> get() = _doneCardCount
@@ -134,19 +125,15 @@ class DownloadManagerSharedViewModel @Inject constructor(
         _doneCardCount.value = count
     }
 
-    /**
-     * 已完成列表只在可见时才跑，离屏时数字由下载管理页收到脏标记后调这里重算。查询走
-     * downloadTime 索引且不解析 illustGson，比列表轻得多，下载期间高频触发也负担得起。
-     * 搜索态下数字是命中数，由列表回填，这里不覆盖。
-     */
+    /** 已完成标题按全库作品分组计数；搜索态由列表按搜索结果计数。 */
     suspend fun refreshDoneCardCount() {
-        if (doneSearchQuery.value != null) return
+        if (doneSearchQuery.value != null || selectedTab.value == 2) return
         val cards = withContext(Dispatchers.IO) {
             runCatching {
-                downloadDao.get().countDoneCardsInWindow(Params.NOVEL_KEY, DONE_LIST_WINDOW)
+                downloadDao.get().countDoneCards(Params.NOVEL_KEY, null)
             }.getOrNull()
         } ?: return
-        if (doneSearchQuery.value == null) _doneCardCount.value = cards
+        if (doneSearchQuery.value == null && selectedTab.value != 2) _doneCardCount.value = cards
     }
 
     /**

@@ -18,6 +18,21 @@ import kotlinx.coroutines.flow.Flow;
 // DefaultImpls，生成 DownloadDao.DefaultImpls.xxx(...) 调用而编译失败。抽象类里的具体方法 Room 不碰。
 @Dao
 public abstract class DownloadDao {
+    // 仅对 illustId=0 的未回填旧行从 JSON 首个 `"id":数字` 兜底；illustId=-1 是已确认
+    // 无顶层 id 的异常行，绝不能回退扫 JSON 把嵌套的 user.id 等误归成作品 id。
+    private static final String DONE_ID = "CASE WHEN illustId > 0 THEN illustId " +
+            "WHEN illustId = 0 AND instr(illustGson, '\"id\":') > 0 AND " +
+            "substr(illustGson, instr(illustGson, '\"id\":') + 5, 1) GLOB '[0-9]' " +
+            "THEN CAST(substr(illustGson, instr(illustGson, '\"id\":') + 5) AS INTEGER) " +
+            "ELSE -1 END";
+    // 已完成 illustId 回填的稳态分组键：完全不引用 illustGson，避免 SQLite 在 GROUP BY
+    // 排序器中把全表 GB 级 JSON blob 拷贝进临时 B-tree。
+    private static final String DONE_KEY_INDEXED = "CASE WHEN instr(fileName, :novelKey) > 0 " +
+            "THEN 'novel:' || fileName WHEN illustId > 0 " +
+            "THEN 'illust:' || illustId ELSE 'anon:' || fileName END";
+    private static final String DONE_KEY = "CASE WHEN instr(fileName, :novelKey) > 0 " +
+            "THEN 'novel:' || fileName WHEN (" + DONE_ID + ") > 0 " +
+            "THEN 'illust:' || (" + DONE_ID + ") ELSE 'anon:' || fileName END";
 
     /**
      * 添加一个下载记录
@@ -93,28 +108,88 @@ public abstract class DownloadDao {
     public abstract List<DownloadEntity> getAll(int limit, int offset);
 
     /**
-     * 前 [limit] 行能折成多少张卡片 —— 已完成 tab 标题上的数字，分组键与
-     * {@code DoneListV3Fragment.groupByIllust} 逐字对应：小说按 fileName 一格、插画按
-     * illustId 一格、id 未知按 fileName 兜底。走 downloadTime 索引，不解析 illustGson。
+     * 按作品分页而非按图片行截断。代表文件名属于最大 downloadTime 的行；时间并列时
+     * cardKey 保证作品分页顺序稳定。搜索命中任意页即返回整个作品及其完整记录数。
+     *
+     * <p>按是否存在未回填行（{@code illustId = 0}，走索引 O(log n)）与是否带搜索词分派：
+     * 常规路径不引用 {@code illustGson}，搜索路径先在子查询中过滤命中的 {@code cardKey}
+     * 再聚合，避免 SQLite 把全表 {@code illustGson} 大字段拷贝进 GROUP BY 排序器。
      */
-    @Query("SELECT COUNT(DISTINCT CASE " +
-            "WHEN fileName LIKE '%' || :novelKey || '%' THEN 'n:' || fileName " +
-            "WHEN illustId > 0 THEN 'i:' || illustId " +
-            "ELSE 'a:' || fileName END) " +
-            "FROM (SELECT fileName, illustId FROM illust_download_table " +
-            "ORDER BY downloadTime DESC LIMIT :limit)")
-    public abstract int countDoneCardsInWindow(String novelKey, int limit);
+    public List<DoneDownloadCard> getDoneCards(String novelKey, String keyword, int limit, int offset) {
+        boolean indexedOnly = countDownloadsNeedingIdBackfill() == 0;
+        if (keyword == null) {
+            return indexedOnly
+                    ? getDoneCardsIndexed(novelKey, limit, offset)
+                    : getDoneCardsLegacy(novelKey, limit, offset);
+        }
+        return indexedOnly
+                ? searchDoneCardsIndexed(novelKey, keyword, limit, offset)
+                : searchDoneCardsLegacy(novelKey, keyword, limit, offset);
+    }
 
-    /**
-     * 模糊搜索已下载记录。在 fileName 和 illustGson（含 title / user.name 等
-     * 反序列化前的 JSON 文本）两个字段里 LIKE 命中。LIMIT 600 与
-     * [DoneListV3Fragment.PAGE_SIZE] 一致，避免搜索后看到的卡比平时还多。
-     */
-    @Query("SELECT * FROM illust_download_table WHERE " +
-            "fileName LIKE '%' || :keyword || '%' OR " +
-            "illustGson LIKE '%' || :keyword || '%' " +
-            "ORDER BY downloadTime DESC LIMIT 600")
-    public abstract List<DownloadEntity> searchDownloads(String keyword);
+    @Query("SELECT " + DONE_KEY_INDEXED + " AS cardKey, fileName, COUNT(*) AS pageCount, " +
+            "MAX(downloadTime) AS downloadTime FROM illust_download_table GROUP BY cardKey " +
+            "ORDER BY downloadTime DESC, cardKey DESC LIMIT :limit OFFSET :offset")
+    abstract List<DoneDownloadCard> getDoneCardsIndexed(String novelKey, int limit, int offset);
+
+    @Query("SELECT " + DONE_KEY_INDEXED + " AS cardKey, fileName, COUNT(*) AS pageCount, " +
+            "MAX(downloadTime) AS downloadTime FROM illust_download_table " +
+            "WHERE (" + DONE_KEY_INDEXED + ") IN (" +
+            "SELECT " + DONE_KEY_INDEXED + " FROM illust_download_table " +
+            "WHERE fileName LIKE '%' || :keyword || '%' OR illustGson LIKE '%' || :keyword || '%') " +
+            "GROUP BY cardKey ORDER BY downloadTime DESC, cardKey DESC LIMIT :limit OFFSET :offset")
+    abstract List<DoneDownloadCard> searchDoneCardsIndexed(String novelKey, String keyword, int limit, int offset);
+
+    @Query("SELECT " + DONE_KEY + " AS cardKey, fileName, COUNT(*) AS pageCount, " +
+            "MAX(downloadTime) AS downloadTime FROM illust_download_table GROUP BY cardKey " +
+            "ORDER BY downloadTime DESC, cardKey DESC LIMIT :limit OFFSET :offset")
+    abstract List<DoneDownloadCard> getDoneCardsLegacy(String novelKey, int limit, int offset);
+
+    @Query("SELECT " + DONE_KEY + " AS cardKey, fileName, COUNT(*) AS pageCount, " +
+            "MAX(downloadTime) AS downloadTime FROM illust_download_table " +
+            "WHERE (" + DONE_KEY + ") IN (" +
+            "SELECT " + DONE_KEY + " FROM illust_download_table " +
+            "WHERE fileName LIKE '%' || :keyword || '%' OR illustGson LIKE '%' || :keyword || '%') " +
+            "GROUP BY cardKey ORDER BY downloadTime DESC, cardKey DESC LIMIT :limit OFFSET :offset")
+    abstract List<DoneDownloadCard> searchDoneCardsLegacy(String novelKey, String keyword, int limit, int offset);
+
+    /** 全库作品计数，和作品分页、搜索使用同一个分组键。 */
+    public int countDoneCards(String novelKey, String keyword) {
+        boolean indexedOnly = countDownloadsNeedingIdBackfill() == 0;
+        if (keyword == null) {
+            return indexedOnly
+                    ? countDoneCardsIndexed(novelKey)
+                    : countDoneCardsLegacy(novelKey);
+        }
+        return indexedOnly
+                ? countSearchDoneCardsIndexed(novelKey, keyword)
+                : countSearchDoneCardsLegacy(novelKey, keyword);
+    }
+
+    @Query("SELECT COUNT(DISTINCT " + DONE_KEY_INDEXED + ") FROM illust_download_table")
+    abstract int countDoneCardsIndexed(String novelKey);
+
+    @Query("SELECT COUNT(DISTINCT " + DONE_KEY_INDEXED + ") FROM illust_download_table " +
+            "WHERE fileName LIKE '%' || :keyword || '%' OR illustGson LIKE '%' || :keyword || '%'")
+    abstract int countSearchDoneCardsIndexed(String novelKey, String keyword);
+
+    @Query("SELECT COUNT(DISTINCT " + DONE_KEY + ") FROM illust_download_table")
+    abstract int countDoneCardsLegacy(String novelKey);
+
+    @Query("SELECT COUNT(DISTINCT " + DONE_KEY + ") FROM illust_download_table " +
+            "WHERE fileName LIKE '%' || :keyword || '%' OR illustGson LIKE '%' || :keyword || '%'")
+    abstract int countSearchDoneCardsLegacy(String novelKey, String keyword);
+
+    /** 只投影路径与页码，不重复读取每一页的巨大 illustGson。 */
+    @Query("SELECT fileName, filePath, page FROM illust_download_table " +
+            "WHERE instr(fileName, :novelKey) = 0 AND " +
+            "(illustId = :illustId OR (illustId = 0 AND (" + DONE_ID + ") = :illustId))")
+    public abstract List<DownloadedPage> getDoneIllustPages(long illustId, String novelKey);
+
+    /** 删除作品的全部下载记录，且不删除同 id 的小说记录或磁盘文件。 */
+    @Query("DELETE FROM illust_download_table WHERE instr(fileName, :novelKey) = 0 AND " +
+            "(illustId = :illustId OR (illustId = 0 AND (" + DONE_ID + ") = :illustId))")
+    public abstract void deleteDoneIllust(long illustId, String novelKey);
 
     /**
      * Reactive 列表：Room InvalidationTracker 在 illust_download_table 任意

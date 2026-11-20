@@ -1,12 +1,12 @@
 package ceui.pixiv.ui.download
 
-import ceui.lisa.database.DownloadEntity
+import ceui.lisa.database.DownloadedPage
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class DownloadPageOrderTest {
 
-    private fun entity(fileName: String, page: Int = -1) = DownloadEntity().apply {
+    private fun page(fileName: String, page: Int = -1) = DownloadedPage().apply {
         this.fileName = fileName
         this.page = page
     }
@@ -34,20 +34,20 @@ class DownloadPageOrderTest {
     }
 
     @Test fun `page column wins over file name`() {
-        val rows = listOf(entity("z.jpg", page = 0), entity("a.jpg", page = 1))
-        assertEquals(listOf("z.jpg", "a.jpg"), rows.sortedWith(DownloadPageOrder).map { it.fileName })
+        val rows = listOf(page("z.jpg", page = 0), page("a.jpg", page = 1))
+        assertEquals(listOf("z.jpg", "a.jpg"), rows.sortedWith(DownloadedPageOrder).map { it.fileName })
     }
 
     @Test fun `rows without page go after known pages in natural name order`() {
         val rows = listOf(
-            entity("x_p10.jpg"),
-            entity("x_p2.jpg", page = -2),
-            entity("known_p1.jpg", page = 1),
-            entity("known_p0.jpg", page = 0),
+            page("x_p10.jpg"),
+            page("x_p2.jpg", page = -2),
+            page("known_p1.jpg", page = 1),
+            page("known_p0.jpg", page = 0),
         )
         assertEquals(
             listOf("known_p0.jpg", "known_p1.jpg", "x_p2.jpg", "x_p10.jpg"),
-            rows.sortedWith(DownloadPageOrder).map { it.fileName },
+            rows.sortedWith(DownloadedPageOrder).map { it.fileName },
         )
     }
 }
