@@ -120,6 +120,19 @@ abstract class FeedFragment(
     protected open val firstScreenPrewarmItemClass: Class<out FeedItem>?
         get() = null
 
+    /**
+     * 首屏预建几张：够铺满一屏或主要视距即可（见 [prewarmFirstScreen]）。
+     * 默认 8 张；对于多列网格或需覆盖首次下滑视距的页面可自行调大。
+     */
+    protected open val firstScreenPrewarmCount: Int
+        get() = FIRST_SCREEN_PREWARM
+
+    /**
+     * 每帧预建几张：默认 2 张（约 20~30ms）。轻量布局或需更快填满池子可适度调大。
+     */
+    protected open val prewarmPerFrame: Int
+        get() = PREWARM_PER_FRAME
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         val feedRoot = requireNotNull(view.findViewById<View>(R.id.feed_root)) {
@@ -835,15 +848,16 @@ abstract class FeedFragment(
         val pool = listView.recycledViewPool
         // pool 每个 viewType 默认只留 5 个，而我们是分帧一张张塞的（单次 count 很小）——
         // 不在入口一次性把上限抬到总量，第 6 个起会被直接丢掉，那几张卡仍会在提交后现建。
-        pool.setMaxRecycledViews(viewType, FIRST_SCREEN_PREWARM)
-        var remaining = FIRST_SCREEN_PREWARM
+        val count = firstScreenPrewarmCount
+        pool.setMaxRecycledViews(viewType, count)
+        var remaining = count
         val step = object : Runnable {
             override fun run() {
                 if (remaining <= 0 || _binding == null) return
                 if (!feedViewModel.uiState.value.showFullscreenLoading) return
                 // rebuildList 换了 adapter：viewType 的含义跟着换了，旧的 viewType 不能再用
                 if (feedAdapter !== adapter) return
-                val n = minOf(PREWARM_PER_FRAME, remaining)
+                val n = minOf(prewarmPerFrame, remaining)
                 adapter.prewarm(listView, pool, viewType, n)
                 remaining -= n
                 if (remaining > 0) listView.postOnAnimation(this)
