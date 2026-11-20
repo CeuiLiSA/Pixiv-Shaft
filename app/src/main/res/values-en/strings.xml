@@ -2392,6 +2392,30 @@
     <string name="network_test_target_sub_image_official">Image server · Pixiv Japan</string>
     <string name="network_test_target_sub_image_proxy">Image server · proxy %1$s</string>
     <string name="network_test_target_sub_pixshaft">Shaft cloud · browse history sync</string>
+
+    <!-- Pixshaft origin survival probe (/health) -->
+    <string name="network_test_pixshaft_health_step">Origin survival (/health)</string>
+    <string name="network_test_pixshaft_health_ok">HTTP %1$d (%2$dms) · Origin alive</string>
+    <string name="network_test_pixshaft_health_err">HTTP %1$d (%2$dms) · Origin not ready</string>
+    <string name="network_test_pixshaft_health_fail">HTTP %1$d (%2$dms) · Origin error</string>
+    <string name="network_test_pixshaft_health_error">Request failed: %1$s</string>
+
+    <!-- Network test scope sheet -->
+    <string name="network_test_scope_title">Test Scope</string>
+    <string name="network_test_scope_desc">Long press \"Start test\" to temporarily customize test scope, reset upon exit.</string>
+    <string name="network_test_scope_select_all">Select all</string>
+    <string name="network_test_scope_invert">Invert</string>
+    <string name="network_test_scope_confirm">Confirm</string>
+    <string name="network_test_scope_empty_warn">Please select at least one test target</string>
+    <string name="network_test_scope_app_api_title">App API</string>
+    <string name="network_test_scope_app_api_desc">Pixiv official / PxveAPI proxy · DNS &amp; connectivity · Handshake &amp; proxy route verification</string>
+    <string name="network_test_scope_web_api_title">Web API</string>
+    <string name="network_test_scope_web_api_desc">www.pixiv.net · DNS · TLS handshake · Sample artwork web endpoint</string>
+    <string name="network_test_scope_image_title">Image &amp; Proxy</string>
+    <string name="network_test_scope_image_desc">Official / custom image host · Handshake · Live sample artwork &amp; avatar download</string>
+    <string name="network_test_scope_pixshaft_title">Pixshaft Service</string>
+    <string name="network_test_scope_pixshaft_desc">pixshaft.com · DNS · TLS handshake · /health origin survival check</string>
+    <string name="network_test_run_scope">Start test (%1$d/%2$d)</string>
     <string name="network_test_status_running">Testing</string>
     <string name="network_test_status_ok">OK</string>
     <string name="network_test_status_high">High latency</string>
