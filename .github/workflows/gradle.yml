@@ -25,6 +25,8 @@ on:
 env:
   ORIGINAL_PROJECT: "CeuiLiSA/Pixiv-Shaft"
   GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4g"
+  # 本仓未配置 Develocity 企业版服务，禁用其自动注入以消除后台无用的 gRPC/Netty 线程与退出报错
+  DEVELOCITY_INJECTION_ENABLED: "false"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -65,6 +67,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           cache-disabled: true
+          develocity-injection: false
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -419,6 +422,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           cache-disabled: true
+          develocity-injection: false
 
       - name: Grant execute permission for gradlew
         if: steps.check_run.outputs.should_run == 'true'
@@ -455,8 +459,8 @@ jobs:
           profile: pixel_7_pro
           script: |
             ./gradlew :app:connectedGithubDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=ceui.lisa.database.AppDatabaseMigrationTest -PSHAFT_TEST_ABI=x86_64 --stacktrace
-            ./gradlew :app:connectedGithubReleaseAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=ceui.lisa.ExampleInstrumentedTest,ceui.lisa.model.AppApiGsonR8InstrumentedTest,ceui.pixiv.shaftapi.ShaftHmacInstrumentedTest,ceui.pixiv.ui.search.SearchRiskPolicyInstrumentedTest -PSHAFT_TEST_BUILD_TYPE=release -PSHAFT_TEST_ABI=x86_64 --stacktrace
             ./gradlew :actionqueue:connectedDebugAndroidTest --stacktrace
+            ./gradlew :app:connectedGithubReleaseAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=ceui.lisa.ExampleInstrumentedTest,ceui.lisa.model.AppApiGsonR8InstrumentedTest,ceui.pixiv.shaftapi.ShaftHmacInstrumentedTest,ceui.pixiv.ui.search.SearchRiskPolicyInstrumentedTest -PSHAFT_TEST_BUILD_TYPE=release -PSHAFT_TEST_ABI=x86_64 --stacktrace
 
       - name: Upload instrumented test reports
         if: failure() && steps.check_run.outputs.should_run == 'true'
