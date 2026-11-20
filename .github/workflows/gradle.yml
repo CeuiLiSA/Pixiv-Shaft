@@ -375,24 +375,23 @@ jobs:
 
       - name: Determine if critical tests should run
         id: check_run
+        env:
+          IS_TAG: ${{ startsWith(github.ref, 'refs/tags/') }}
+          HAS_FLAG: ${{ contains(github.event.head_commit.message, '[test-all]') }}
+          IS_CRITICAL: ${{ steps.filter.outputs.critical }}
         run: |
-          if [ "${{ startsWith(github.ref, 'refs/tags/') }}" = "true" ]; then
-            echo "should_run=true" >> $GITHUB_OUTPUT
-            echo "Reason: Tag release triggers full critical tests"
-          elif echo "${{ github.event.head_commit.message }}" | grep -q '\[test-all\]'; then
-            echo "should_run=true" >> $GITHUB_OUTPUT
-            echo "Reason: Commit message contains [test-all]"
-          elif [ "${{ steps.filter.outputs.critical }}" = "true" ]; then
-            echo "should_run=true" >> $GITHUB_OUTPUT
-            echo "Reason: Critical files (db, schema, r8, native, queue, build) modified"
+          if [ "$IS_TAG" = "true" ] || [ "$HAS_FLAG" = "true" ] || [ "$IS_CRITICAL" = "true" ]; then
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+            echo "Triggering Critical androidTest (Tag: $IS_TAG, Flag: $HAS_FLAG, Critical: $IS_CRITICAL)"
           else
-            echo "should_run=false" >> $GITHUB_OUTPUT
-            echo "Reason: Non-critical change; skipping androidTest"
+            echo "should_run=false" >> "$GITHUB_OUTPUT"
+            echo "Skipping Critical androidTest: non-critical change"
           fi
 
       - name: Skip notice
         if: steps.check_run.outputs.should_run != 'true'
-        run: echo "Skipped Critical androidTest: no database, schema, r8, native or build changes detected."
+        run: |
+          echo "Skipped Critical androidTest: no database, schema, r8, native or build changes detected."
 
       - name: Set up JDK 17
         if: steps.check_run.outputs.should_run == 'true'
