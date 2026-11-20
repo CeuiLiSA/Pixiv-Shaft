@@ -51,8 +51,11 @@ import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -98,8 +101,13 @@ class DoneListV3Fragment : Fragment() {
     private val loadedGroups = ArrayList<DownloadGroup>()
     private var nextPageOffset = 0
     private var hasMorePages = false
-    private var loadingNextPage = false
+    private var hasLoadedQuery = false
+    private var loadedQuery: String? = null
+    private var isRefreshingPage = false
+    private var needsOffscreenCountSync = false
     private var pageGeneration = 0
+    private var loadNextPageJob: Job? = null
+    private var openDetailJob: Job? = null
     private var doneScrollListener: RecyclerView.OnScrollListener? = null
     private val adapter = DoneAdapterV3(
         initialMode = DoneLayoutMode.fromInt(Shaft.sSettings.doneListLayoutMode),
@@ -207,8 +215,17 @@ class DoneListV3Fragment : Fragment() {
     }
     override fun onDestroyView() {
         doneScrollListener = null
+        loadNextPageJob?.cancel()
+        loadNextPageJob = null
+        openDetailJob?.cancel()
+        openDetailJob = null
         loadedGroups.clear()
-        loadingNextPage = false
+        nextPageOffset = 0
+        hasMorePages = false
+        hasLoadedQuery = false
+        loadedQuery = null
+        isRefreshingPage = false
+        needsOffscreenCountSync = false
         pageGeneration++
         super.onDestroyView()
     }
@@ -239,45 +256,83 @@ class DoneListV3Fragment : Fragment() {
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private suspend fun runDoneListFlow(empty: View, list: RecyclerView) {
-        sharedVm.selectedTab.flatMapLatest { tab ->
-            if (tab != 2) {
-                pageGeneration++
-                hasMorePages = false
-                emptyFlow()
-            } else {
-                sharedVm.doneSearchQuery.flatMapLatest { query ->
+        try {
+            sharedVm.selectedTab.flatMapLatest { tab ->
+                if (tab != 2) {
                     pageGeneration++
-                    nextPageOffset = 0
+                    loadNextPageJob?.cancel()
+                    loadNextPageJob = null
                     hasMorePages = false
-                    if (query == "") {
-                        flowOf(DonePage(emptyList(), 0, 0))
+                    isRefreshingPage = false
+                    if (needsOffscreenCountSync) {
+                        needsOffscreenCountSync = false
+                        flow<DonePage> {
+                            sharedVm.doneSearchQuery.first { it == null }
+                            sharedVm.refreshDoneCardCount()
+                        }
                     } else {
-                        ManagerReactive.doneTableInvalidations.map {
-                            pageGeneration++
-                            val limit = maxOf(PAGE_SIZE, nextPageOffset)
-                            withContext(Dispatchers.IO) {
-                                runCatching { readDonePage(query, limit, 0) }
-                                    .getOrDefault(DonePage(emptyList(), 0, 0))
+                        emptyFlow()
+                    }
+                } else {
+                    sharedVm.doneSearchQuery.flatMapLatest { query ->
+                        pageGeneration++
+                        loadNextPageJob?.cancel()
+                        loadNextPageJob = null
+                        if (!hasLoadedQuery || loadedQuery != query) {
+                            nextPageOffset = 0
+                            hasLoadedQuery = true
+                            loadedQuery = query
+                        }
+                        hasMorePages = false
+                        if (query != null) {
+                            needsOffscreenCountSync = true
+                        }
+                        if (query == "") {
+                            isRefreshingPage = false
+                            flowOf(DonePage(emptyList(), 0, 0))
+                        } else {
+                            ManagerReactive.doneTableInvalidations.map {
+                                pageGeneration++
+                                loadNextPageJob?.cancel()
+                                loadNextPageJob = null
+                                isRefreshingPage = true
+                                needsOffscreenCountSync = true
+                                val limit = maxOf(PAGE_SIZE, nextPageOffset)
+                                withContext(Dispatchers.IO) {
+                                    runCatching { readDonePage(query, limit, 0) }
+                                        .getOrDefault(DonePage(emptyList(), 0, 0))
+                                }
                             }
                         }
                     }
                 }
+            }.collect { page ->
+                isRefreshingPage = false
+                if (sharedVm.doneSearchQuery.value == null) {
+                    needsOffscreenCountSync = false
+                }
+                loadedGroups.clear()
+                loadedGroups.addAll(page.groups)
+                nextPageOffset = page.rowsRead
+                hasMorePages = page.rowsRead >= PAGE_SIZE && page.rowsRead < page.total
+                empty.visibility = if (page.groups.isEmpty()) View.VISIBLE else View.GONE
+                sharedVm.publishDoneCardCount(page.total)
+                submitDoneGroups(list)
             }
-        }.collect { page ->
-            loadedGroups.clear()
-            loadedGroups.addAll(page.groups)
-            nextPageOffset = page.rowsRead
-            hasMorePages = page.rowsRead >= PAGE_SIZE && page.rowsRead < page.total
-            empty.visibility = if (page.total == 0) View.VISIBLE else View.GONE
-            sharedVm.publishDoneCardCount(page.total)
-            submitDoneGroups(list)
+        } finally {
+            isRefreshingPage = false
+            loadNextPageJob?.cancel()
+            loadNextPageJob = null
         }
     }
 
     private fun submitDoneGroups(list: RecyclerView) {
         adapter.submitList(loadedGroups.toList()) {
             list.post {
-                if (view != null && sharedVm.selectedTab.value == 2 && !list.canScrollVertically(1)) {
+                if (view?.findViewById<RecyclerView>(R.id.list) === list &&
+                    sharedVm.selectedTab.value == 2 &&
+                    !list.canScrollVertically(1)
+                ) {
                     loadNextPage(list)
                 }
             }
@@ -286,36 +341,25 @@ class DoneListV3Fragment : Fragment() {
 
     private fun loadNextPage(list: RecyclerView) {
         val query = sharedVm.doneSearchQuery.value
-        if (query == "" || !hasMorePages || loadingNextPage) return
-        loadingNextPage = true
+        if (query == "" || !hasMorePages || isRefreshingPage || loadNextPageJob?.isActive == true) return
         val generation = pageGeneration
         val offset = nextPageOffset
-        viewLifecycleOwner.lifecycleScope.launch {
+        loadNextPageJob = viewLifecycleOwner.lifecycleScope.launch {
             try {
                 val page = withContext(Dispatchers.IO) {
                     runCatching { readDonePage(query, PAGE_SIZE, offset) }.getOrNull()
                 }
                 if (page != null && generation == pageGeneration && query == sharedVm.doneSearchQuery.value) {
-                    loadedGroups.addAll(page.groups)
+                    val existingKeys = loadedGroups.mapTo(HashSet(loadedGroups.size)) { it.key }
+                    loadedGroups.addAll(page.groups.filter { it.key !in existingKeys })
                     nextPageOffset = offset + page.rowsRead
                     hasMorePages = nextPageOffset < page.total && page.rowsRead > 0
                     sharedVm.publishDoneCardCount(page.total)
                     submitDoneGroups(list)
                 }
             } finally {
-                loadingNextPage = false
-                // 刷新时旧请求可能占住 loadingNextPage，让新列表的自动续载错过机会。
-                // 仅在代数变化时补一次；同代查询失败不能自动重试，否则会形成循环。
-                if (generation != pageGeneration && view?.findViewById<RecyclerView>(R.id.list) === list &&
-                    sharedVm.selectedTab.value == 2 && hasMorePages && !list.canScrollVertically(1)
-                ) {
-                    list.post {
-                        if (generation != pageGeneration && view?.findViewById<RecyclerView>(R.id.list) === list &&
-                            sharedVm.selectedTab.value == 2 && hasMorePages && !list.canScrollVertically(1)
-                        ) {
-                            loadNextPage(list)
-                        }
-                    }
+                if (loadNextPageJob === coroutineContext[Job]) {
+                    loadNextPageJob = null
                 }
             }
         }
@@ -352,8 +396,9 @@ class DoneListV3Fragment : Fragment() {
             openArtwork(ugoira)
             return
         }
-        val ctx = context ?: return
-        viewLifecycleOwner.lifecycleScope.launch {
+        if (context == null) return
+        openDetailJob?.cancel()
+        openDetailJob = viewLifecycleOwner.lifecycleScope.launch {
             val illustId = group.key.removePrefix("illust:").toLongOrNull()
             val paths = if (illustId != null && group.key.startsWith("illust:")) {
                 withContext(Dispatchers.IO) {
@@ -366,7 +411,12 @@ class DoneListV3Fragment : Fragment() {
             } else {
                 listOf(group.latest.filePath.orEmpty())
             }
-            val intent = Intent(ctx, ImageDetailActivity::class.java)
+            if (paths.isEmpty()) return@launch
+            val activeCtx = context ?: return@launch
+            if (!isAdded || !viewLifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
+                return@launch
+            }
+            val intent = Intent(activeCtx, ImageDetailActivity::class.java)
             intent.putExtra("illust", ArrayList(paths) as Serializable)
             intent.putExtra("dataType", "下载详情")
             intent.putExtra("index", 0)
@@ -634,7 +684,11 @@ internal enum class DoneLayoutMode(val labelRes: Int) {
 private object DoneDiff : DiffUtil.ItemCallback<DownloadGroup>() {
     override fun areItemsTheSame(a: DownloadGroup, b: DownloadGroup): Boolean = a.key == b.key
     override fun areContentsTheSame(a: DownloadGroup, b: DownloadGroup): Boolean =
-        a.pageCount == b.pageCount && a.latest.downloadTime == b.latest.downloadTime
+        a.pageCount == b.pageCount &&
+            a.latest.downloadTime == b.latest.downloadTime &&
+            a.latest.fileName == b.latest.fileName &&
+            a.latest.filePath == b.latest.filePath &&
+            a.latest.illustGson == b.latest.illustGson
 }
 
 private class DoneAdapterV3(

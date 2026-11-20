@@ -7,6 +7,7 @@ import android.os.Build
 import android.provider.DocumentsContract
 import android.provider.MediaStore
 import ceui.lisa.activities.Shaft
+import ceui.lisa.core.ManagerReactive
 import ceui.lisa.database.AppDatabase
 import ceui.pixiv.api.model.Illust
 import ceui.pixiv.download.RecordedPageProbe
@@ -143,10 +144,10 @@ object RenameSweeper {
                     if (bean.isGif()) {
                         DownloadItems.ugoiraRelativePath(bean, ugoiraIsMp4).filename
                     } else {
-                        // extractExt 把 '#' 当作 URL 片段分隔符；只传文件后缀，避免标题里的
-                        // '#' 或 '?' 被误判成 URL 附件，导致扩展名丢失。
-                        val extension = (actualName ?: row.fileName).substringAfterLast('.', "")
-                        DownloadItems.illustRelativePath(bean, pageIndex, ".$extension").filename
+                        // extractExt 把 '#' 当作 URL 片段分隔符；只传已识别的文件后缀，避免标题里的
+                        // '#' / '?' 或无后缀标题中的点号（如 Vol.1）污染扩展名。
+                        val extension = extractImageExtension(actualName, row.fileName)
+                        DownloadItems.illustRelativePath(bean, pageIndex, extension?.let { ".$it" }).filename
                     }
                 }.getOrNull()
                 if (newName.isNullOrEmpty()) {
@@ -168,11 +169,12 @@ object RenameSweeper {
                 }
                 // fileName 是主键：新名字撞上库里另一条记录或本次计划里的另一行,
                 // 改下去必然 constraint 冲突 / 覆盖别人的文件,整行跳过。
-                if (!plannedNames.add(newName) ||
+                if (newName in plannedNames ||
                     (newName != row.fileName && dao.getDownloadByFileName(newName) != null)) {
                     nameConflicts++
                     continue
                 }
+                plannedNames.add(newName)
                 entries += Entry(row.fileName, newName, row.filePath)
             }
             onProgress(offset, entries.size)
@@ -207,45 +209,88 @@ object RenameSweeper {
         val startedAt = System.currentTimeMillis()
         var done = 0
         var failed = 0
-        for ((index, entry) in plan.entries.withIndex()) {
-            currentCoroutineContext().ensureActive()
-            val diskNameBefore = actualDisplayName(appContext, entry.filePath)
-            val diskAlreadyMatching = diskNameBefore == entry.newFileName
-            // 预览到确认之间文件可能变化，执行时再检测一次可见目标冲突。
-            val conflict = !diskAlreadyMatching &&
-                targetNameExists(appContext, entry.filePath, entry.newFileName) == true
-            val newPath = when {
-                diskAlreadyMatching -> entry.filePath
-                conflict -> null
-                else -> runCatching { renameOnDisk(appContext, entry.filePath, entry.newFileName) }
-                    .onFailure { Timber.tag(TAG).w(it, "改名失败 %s", entry.oldFileName) }
-                    .getOrNull()
-            }
-            if (newPath == null) {
-                failed++
-                emit(FetchEvent.Warning("skip ${entry.oldFileName} (rename failed)"))
-                continue
-            }
-            val dbOk = runCatching {
-                dao.renameDownload(entry.oldFileName, entry.newFileName, newPath)
-            }.onFailure { Timber.tag(TAG).w(it, "写库失败 %s", entry.newFileName) }.isSuccess
-            if (!dbOk) {
-                // 文件原本已匹配时这里只是在同步 DB，不能把它改成旧主键；磁盘确实
-                // 改过时尽力恢复原来的实际名称，而不是假设它与旧主键一致。
-                if (!diskAlreadyMatching) {
-                    runCatching { renameOnDisk(appContext, newPath, diskNameBefore ?: entry.oldFileName) }
+        try {
+            for ((index, entry) in plan.entries.withIndex()) {
+                currentCoroutineContext().ensureActive()
+                val diskNameBefore = actualDisplayName(appContext, entry.filePath)
+                val diskAlreadyMatching = diskNameBefore == entry.newFileName
+                // 预览到确认之间文件可能变化，执行时再检测一次可见目标冲突。
+                val conflict = !diskAlreadyMatching &&
+                    targetNameExists(appContext, entry.filePath, entry.newFileName) == true
+                val newPath = when {
+                    diskAlreadyMatching -> entry.filePath
+                    conflict -> null
+                    else -> runCatching { renameOnDisk(appContext, entry.filePath, entry.newFileName) }
+                        .onFailure { Timber.tag(TAG).w(it, "改名失败 %s", entry.oldFileName) }
+                        .getOrNull()
                 }
-                failed++
-                emit(FetchEvent.Warning("skip ${entry.oldFileName} (db update failed)"))
-                continue
+                if (newPath == null) {
+                    failed++
+                    emit(FetchEvent.Warning("skip ${entry.oldFileName} (rename failed)"))
+                    continue
+                }
+                if (!diskAlreadyMatching) {
+                    // SAF 与作用域存储下的 MediaStore 遇到不可见的同目录重名时不会报错，而是静默
+                    // 生成 "name (1).ext"。核对落地名不符时立即回滚，避免 DB 记成假名并在下次继续 (1)->(2)。
+                    val diskNameAfter = actualDisplayName(appContext, newPath)
+                    if (diskNameAfter != null && diskNameAfter != entry.newFileName) {
+                        Timber.tag(TAG).w(
+                            "改名落地名不符，回滚 %s -> %s (actual=%s)",
+                            entry.oldFileName,
+                            entry.newFileName,
+                            diskNameAfter,
+                        )
+                        val restoreTarget = diskNameBefore ?: entry.oldFileName
+                        val restoredPath = runCatching { renameOnDisk(appContext, newPath, restoreTarget) }.getOrNull()
+                        val effectivePath = restoredPath ?: newPath
+                        if (effectivePath != entry.filePath) {
+                            runCatching { dao.renameDownload(entry.oldFileName, entry.oldFileName, effectivePath) }
+                        }
+                        failed++
+                        emit(FetchEvent.Warning("skip ${entry.oldFileName} (target name conflict)"))
+                        continue
+                    }
+                }
+                val dbOk = runCatching {
+                    dao.renameDownload(entry.oldFileName, entry.newFileName, newPath)
+                }.onFailure { Timber.tag(TAG).w(it, "写库失败 %s", entry.newFileName) }.isSuccess
+                if (!dbOk) {
+                    // 文件原本已匹配时这里只是在同步 DB，不能把它改成旧主键；磁盘确实
+                    // 改过时尽力恢复原来的实际名称，而不是假设它与旧主键一致。
+                    if (!diskAlreadyMatching) {
+                        runCatching { renameOnDisk(appContext, newPath, diskNameBefore ?: entry.oldFileName) }
+                    }
+                    failed++
+                    emit(FetchEvent.Warning("skip ${entry.oldFileName} (db update failed)"))
+                    continue
+                }
+                done++
+                if ((index + 1) % 20 == 0 || index + 1 == total) {
+                    emit(FetchEvent.PageReceived(index + 1, 1, 0L, done))
+                }
             }
-            done++
-            if ((index + 1) % 20 == 0 || index + 1 == total) {
-                emit(FetchEvent.PageReceived(index + 1, 1, 0L, done))
-            }
+        } finally {
+            if (done > 0) ManagerReactive.pokeDoneTable()
         }
         emit(FetchEvent.Done(done, System.currentTimeMillis() - startedAt, done + failed))
     }.flowOn(Dispatchers.IO)
+
+    private val IMAGE_EXTENSIONS = setOf("jpg", "jpeg", "png", "webp", "gif", "bmp", "avif", "heic", "heif")
+
+    /**
+     * 按优先级从候选文件名提取已知图片后缀（不含点、小写）；无后缀或点号属于标题本身
+     * （如 `Vol.1`）时返回 null，让调用方回退到原图 URL 扩展名。
+     */
+    internal fun extractImageExtension(vararg names: String?): String? {
+        for (name in names) {
+            if (name.isNullOrEmpty()) continue
+            val dot = name.lastIndexOf('.')
+            if (dot <= 0 || dot == name.lastIndex) continue
+            val candidate = name.substring(dot + 1).lowercase()
+            if (candidate in IMAGE_EXTENSIONS) return candidate
+        }
+        return null
+    }
 
     /** 读取 provider 当前的真实 DISPLAY_NAME，而不是盲信数据库主键 fileName。 */
     private fun actualDisplayName(context: Context, filePath: String): String? {
