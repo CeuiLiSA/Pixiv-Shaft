@@ -55,6 +55,7 @@ dependencies {
     api libs.flexbox
 
     implementation libs.androidxCore
+    implementation libs.androidxDynamicAnimation
 
     testImplementation libs.junit4
 

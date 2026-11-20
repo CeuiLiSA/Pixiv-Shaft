@@ -152,6 +152,7 @@ enum class TemplateRoute(@JvmField val key: String) {
     IMAGE_FILTER("图片滤镜"),
     EVENT_HISTORY("操作记录"),
     DEBUG_NETWORK_TEST("网络测试"),
+    DEBUG_LIQUID_GLASS("液态玻璃调试"),
     SYNONYM_DICT("同义词词典"),
     CHAT("聊天室"),
     CHAT_GLOBAL_ROOM("聊天-全员公屏"),

@@ -567,6 +567,7 @@ object TemplateRouteFactory {
                 )
             TemplateRoute.EVENT_HISTORY -> FragmentEventHistory()
             TemplateRoute.DEBUG_NETWORK_TEST -> NetworkTestFragment()
+            TemplateRoute.DEBUG_LIQUID_GLASS -> ceui.pixiv.ui.debug.LiquidGlassDebugFragment()
             // 同义词词典管理页（issue #904 按标签收藏优化）
             TemplateRoute.SYNONYM_DICT -> SynonymDictFragment()
             // peer_uid > 0 → 与该 pixiv 用户 1v1；否则 → 会话列表（全员公屏 + 本地碰过的 1v1）。

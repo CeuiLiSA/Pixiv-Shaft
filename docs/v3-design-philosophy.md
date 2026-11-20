@@ -470,6 +470,44 @@ Hero 插图可使用两张相互遮叠的票卡。推荐计划使用后层奶油
 
 官网发现（2026-09-19）在发现页「其他分类」增加独立入口，与原「发现」候选池并列。内容页使用标准工具栏、浅底分级选择条与现有作品瀑布流；全部 / 全年龄 / R-18 支持点击及左右滑动，各页独立保留列表和滚动位置。默认分级跟随当前 R-18 过滤设置；长标签与大字体时选择条可横向滚动，触控高度至少 48dp。缺少网页会话或网页账号与 App 不一致时，空态提示使用同一账号并提供「去登录」，工具栏菜单保留网页登录以便会话过期后重登。骨架、失败重试与分页状态沿用 feeds 框架。Lite 渠道与 Web 首页一样隐藏此入口。
 
+### Android Liquid Glass
+
+悬浮导航、图片舞台操作和浮动工具条可使用 `WitLiquidGlassView`。玻璃的职责是区分悬浮操作与下方内容，普通列表和内容卡继续使用现有 V3 表面。连续操作优先放在同一片玻璃中，内层按钮沿用原生焦点、点击与读屏语义。
+
+- `REGULAR` 用于承载文字或图标的操作层。默认随主题，已知背景是深色作品或视频时可设 `Tone.DARK`，用 `contentColor` 给前景控件着色。材质在选定的明暗极性内按底图亮度调节散射。
+- `CLEAR` 让图片更多透过玻璃。用在图上少量操作，按作品亮度校验前景对比度，必要时用 `wit_glassClearDimming` 局部压暗并设置 `wit_glassTone="dark"`。
+- 默认形状取短边一半作圆角，圆形按钮和胶囊共用这一规则。面板可以设置 `wit_glassCornerRadius`。操作热区至少 48dp，长文案和放大字体按内容测量。交互表面开启 `wit_glassInteractive` 后，按住时玻璃保持圆角/胶囊轮廓做轻微均匀膨胀并朝触点克制微倾、伴随触点光晕流转；控件锚定在原位置，手指移出原控件范围后仍保持状态，松手或手势取消才回弹。关闭系统动画时只保留即时高光。
+- Android 13 及以上用 GPU 渲染实时折射、色散、散射与双向高光。Android 12 或着色器初始化、绘制遇到可恢复异常时走实时模糊。Android 7–11、系统标记为低内存的设备、默认堆上限不超过 128 MB 的设备，以及软件画布使用轻量玻璃，保留半透明底、边缘反光和弹簧形变。
+- 实时采样仅为可见控件录制带安全边距的区域。单片采样上限 512,000 像素，每个布局上限 2,000,000 像素，超出预算的控件使用轻量玻璃。底图渲染遇到可恢复异常或分配失败时，进程内改用轻量玻璃。页面也可以通过 `isLiveBackdropEnabled = false` 直接使用轻量玻璃。
+
+`WitLiquidGlassLayout` 的第一个直接子 View 是底图，可放图片、滚动列表或包含多层内容的容器。玻璃必须在同一布局中作为后绘制的直接子 View，前景控件放在玻璃里面。需要被采样的页面底色设在底图子树里。独立合成的 `SurfaceView`、其他窗口和玻璃之间的叠加层不进入采样。
+
+```xml
+<ceui.pixiv.witstudio.widget.WitLiquidGlassLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <FrameLayout
+        android:id="@+id/scene"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <ceui.pixiv.witstudio.widget.WitLiquidGlassView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center_horizontal"
+        app:wit_glassInteractive="true">
+
+        <!-- 放置现有的 V3 控件并使用玻璃的 contentColor。 -->
+
+    </ceui.pixiv.witstudio.widget.WitLiquidGlassView>
+</ceui.pixiv.witstudio.widget.WitLiquidGlassLayout>
+```
+
+光学参数以 iOS 26.5 SwiftUI 原生材质为对照，折射衰减、色散与双向反光参考开源 AGSL，MIT 许可证随库保留。[Apple 材质说明](https://developer.apple.com/videos/play/wwdc2025/219/) · [QWEA0 AGSL 源码](https://github.com/QWEA0/Liquid-Glass-Android/blob/ea79089/liquidglass/src/main/java/com/example/liquidglass/GlassLensRenderer.kt)
+
 ### 本地库筛选面板（2026-09-25，2026-09-28 重做）
 
 收藏库与关注库共用一张「筛选与排序」Sheet（`BookmarkFilterSheet`，零件在 `LibraryFilterViews`）。

@@ -400,6 +400,8 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
             BundleCompat.getParcelable(it, KEY_READING_ANCHOR, ArtworkReadingAnchor::class.java)
         }
         setUpTabletStage()
+        // 液态玻璃采样底图子树：手机与无舞台平板把 v3_bg 画在 feed_root 上，平板舞台保留透明以透出环境色。
+        feedBinding.feedRoot.setBackgroundColor(feedRootBackgroundColor)
         if (tabletStage == null) {
             // 页码浮标 / 长按预览都是「列表里的图片页」的配件；舞台自带页码条，不挂
             attachPageProgressPill()
@@ -443,7 +445,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
                 Common.showToast(getString(R.string.snapshot_unsupported_toast))
                 true
             }
-            fabBarController.applyPalette(palette)
+            fabBarController.applyGlassStyle()
             fabBarController.applyLayoutPreference(sideMargin = 20.ppppx)
             applySnapshotBookmarkState()
             chromeBind.composerRoot.isVisible = false
@@ -1644,7 +1646,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
     // ── 悬浮下载 / 收藏胶囊 ─────────────────────────────────────────────────────
 
     private fun setupFabBar() {
-        fabBarController.applyPalette(palette)
+        fabBarController.applyGlassStyle()
 
         // 一键跳转评论区(#970):默认关,设置「看图与详情」里手动打开;评论区本身被关掉时无处可跳,一并不放出。
         if (Shaft.sSettings.isArtworkV3ShowComments && Shaft.sSettings.isArtworkV3ShowCommentJumpFab) {

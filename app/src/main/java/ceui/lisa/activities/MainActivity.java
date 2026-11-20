@@ -996,6 +996,11 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                             R.id.nav_network_test,
                             R.string.nav_network_test_entry,
                             experimentalAllowed),
+                    new DrawerEntry(
+                            R.id.nav_liquid_glass_debug,
+                            R.string.nav_liquid_glass_debug,
+                            isDebugBuild,
+                            "DEBUG"),
                 });
     }
 
@@ -1152,6 +1157,9 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
         } else if (id == R.id.nav_network_test) {
             intent = new Intent(mContext, TemplateActivity.class);
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.DEBUG_NETWORK_TEST.key);
+        } else if (id == R.id.nav_liquid_glass_debug) {
+            intent = new Intent(mContext, TemplateActivity.class);
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.DEBUG_LIQUID_GLASS.key);
         } else if (id == R.id.nav_web_home) {
             intent = new Intent(mContext, TemplateActivity.class);
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.WEB_HOME.key);

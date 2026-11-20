@@ -177,6 +177,7 @@ class TemplateRouteTest {
             "IMAGE_FILTER" to "图片滤镜",
             "EVENT_HISTORY" to "操作记录",
             "DEBUG_NETWORK_TEST" to "网络测试",
+            "DEBUG_LIQUID_GLASS" to "液态玻璃调试",
             "SYNONYM_DICT" to "同义词词典",
             "CHAT" to "聊天室",
             "CHAT_GLOBAL_ROOM" to "聊天-全员公屏",

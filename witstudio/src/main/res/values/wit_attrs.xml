@@ -29,4 +29,20 @@
         <attr name="wit_isRadiusAdjustBounds" format="boolean" />
     </declare-styleable>
 
+    <declare-styleable name="WitLiquidGlassView">
+        <attr name="wit_glassMaterial">
+            <enum name="regular" value="0" />
+            <enum name="clear" value="1" />
+        </attr>
+        <attr name="wit_glassTone">
+            <enum name="theme" value="0" />
+            <enum name="light" value="1" />
+            <enum name="dark" value="2" />
+        </attr>
+        <attr name="wit_glassCornerRadius" format="dimension" />
+        <attr name="wit_glassTint" format="color" />
+        <attr name="wit_glassClearDimming" format="float" />
+        <attr name="wit_glassInteractive" format="boolean" />
+    </declare-styleable>
+
 </resources>

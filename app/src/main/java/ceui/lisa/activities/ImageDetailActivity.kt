@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.os.SystemClock
 import android.view.Gravity
 import android.view.View
+import android.view.ViewGroup
 import android.widget.CompoundButton
 import android.widget.FrameLayout
 import android.widget.ImageView
@@ -71,6 +72,7 @@ import ceui.pixiv.ui.works.ToggleToolnarViewModel
 import ceui.pixiv.utils.animateFadeInQuickly
 import ceui.pixiv.utils.animateFadeOutQuickly
 import ceui.pixiv.utils.playToggleHaptic
+import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
 import ceui.pixiv.wallpaper.WallpaperSetter
 import ceui.pixiv.witstudio.dialog.WitDialog
@@ -80,6 +82,7 @@ import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.pixiv.witstudio.theme.pressScale
 import ceui.pixiv.witstudio.theme.setTextWithIcon
 import ceui.pixiv.witstudio.theme.v3Font
+import ceui.pixiv.witstudio.widget.WitLiquidGlassView
 import ceui.pixiv.ui.detail.OfflineUgoira
 import ceui.pixiv.ui.detail.frames.openUgoiraFrames
 import com.blankj.utilcode.util.BarUtils
@@ -186,19 +189,21 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                 window.decorView,
             )
         val btnAi = findViewById<View>(R.id.btn_ai_menu)
+        val fabBarView = findViewById<View>(R.id.fab_bar)
         ViewCompat.setOnApplyWindowInsetsListener(btnAi) { v, windowInsets ->
             val statusBarHeight = windowInsets.getInsets(WindowInsetsCompat.Type.statusBars()).top
-            val lp = v.layoutParams as android.widget.RelativeLayout.LayoutParams
+            val lp = v.layoutParams as FrameLayout.LayoutParams
             lp.topMargin = statusBarHeight + 8
             v.layoutParams = lp
             windowInsets
         }
-        // btnAi 只在「二级详情」和快照大图可用；放进 infoItems 会被 animateFadeInQuickly()
+        // btnAi / fabBarView 只在「二级详情」和快照大图可用；放进 infoItems 会被 animateFadeInQuickly()
         // 顶掉 GONE 状态 (issue #872)。反过来,可用的模式必须放进来,否则进沉浸模式时
-        // 底部信息和状态栏都收了,AI 按钮还孤零零浮在图上。
+        // 底部信息和状态栏都收了,玻璃浮层还孤零零浮在图上。
         val infoItems = mutableListOf<View>()
         baseBind?.bottomRela?.let { infoItems.add(it) }
         if ("二级详情" == dataType || isSnapshotMode) {
+            infoItems.add(fabBarView)
             infoItems.add(btnAi)
         }
         windowInsetsController.systemBarsBehavior =
@@ -227,20 +232,23 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
             }
             hideChromeInstantly = false
         }
-        setupViewerTransition(btnAi)
+        setupViewerTransition(btnAi, fabBarView)
         if ("二级详情" == dataType) {
             currentPage = findViewById(R.id.current_page)
             mIllust = intent.getSerializableExtra("illust") as Illust?
             index = intent.getIntExtra("index", 0)
             if (mIllust == null) {
                 // 没有 bean 就装配不了任何点击语义,别留一个看得见点不动的胶囊
+                infoItems.remove(fabBarView)
+                infoItems.remove(btnAi)
+                fabBarView.visibility = View.GONE
                 findViewById<View>(R.id.fab_bar_row).visibility = View.GONE
                 return
             }
             // 译图仓库按作品分桶(app 级):绑定后本页各 Fragment 观察到的就是这部作品的译图,
             // 包括「翻译整部」在别的页面跑出来的
             translationViewModel.bindIllust(mIllust!!.id)
-            val btnAiMenu = findViewById<ImageView>(R.id.btn_ai_menu)
+            val btnAiMenu = findViewById<View>(R.id.btn_ai_menu)
             btnAiMenu.visibility = View.VISIBLE
             btnAiMenu.setOnClickListener { anchor ->
                 val illust = mIllust ?: return@setOnClickListener
@@ -639,11 +647,17 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
     /** 快照大图只隐藏下载按钮，收藏按钮保留但只读。 */
     private fun setupSnapshotFabBar() {
         val fabBind = ViewV3FabBarBinding.bind(findViewById(R.id.fab_bar))
+        // 异步快照缓存未命中时本方法晚于 isFullscreenMode 首次回调执行，沉浸态须保持 INVISIBLE。
+        fabBind.root.visibility =
+            if (viewModel.isFullscreenMode.value == true) View.INVISIBLE else View.VISIBLE
         val fabBar = V3FabBarController(fabBind)
         this.fabBar = fabBar
-        fabBar.applyPalette(V3Palette.from(this))
+        fabBar.applyGlassStyle(
+            material = WitLiquidGlassView.Material.REGULAR,
+            tone = WitLiquidGlassView.Tone.DARK,
+        )
         applyFabBarLayout(fabBar)
-        fabBar.attachBottomInsetMargin(findViewById(R.id.fab_bar_row))
+        attachFabBarInsets(fabBar)
         fabBind.fabDownloadContainer.visibility = View.GONE
         fabBind.fabDivider.visibility = View.GONE
         fabBind.fabBookmark.setOnClickListener { /* 快照只读，不触发收藏 */ }
@@ -652,11 +666,11 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
     }
 
     /**
-     * 胶囊位置 + 顺序偏好(#1090)。左右留白已由外层 bottom_rela 的 20dp 内边距给出,胶囊自身不加边距;
+     * 胶囊位置 + 顺序偏好(#1090)。fab_bar 是 glass_stage 直接子 View(靠边时离边 20dp,与一级详情页一致);
      * 胶囊靠右时页码让到左边,否则两者会叠在同一行的右端。
      */
     private fun applyFabBarLayout(fabBar: V3FabBarController) {
-        fabBar.applyLayoutPreference(sideMargin = 0)
+        fabBar.applyLayoutPreference(sideMargin = 20.ppppx)
         val pageLabel = findViewById<View>(R.id.current_page)
         val lp = pageLabel.layoutParams as FrameLayout.LayoutParams
         lp.gravity = if (Shaft.sSettings.artworkV3FabPosition == Settings.ARTWORK_V3_FAB_POSITION_RIGHT) {
@@ -667,6 +681,25 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         pageLabel.layoutParams = lp
         findViewById<View>(R.id.btn_ugoira_frames)?.let { entry ->
             entry.layoutParams = (entry.layoutParams as FrameLayout.LayoutParams).also { it.gravity = lp.gravity }
+        }
+    }
+
+    /** 胶囊与页码/逐帧行共享同一份「导航栏 inset + 24dp」底距,保证水平对齐。 */
+    private fun attachFabBarInsets(fabBar: V3FabBarController) {
+        fabBar.attachBottomInsetMargin()
+        val row = findViewById<View>(R.id.fab_bar_row)
+        ViewCompat.setOnApplyWindowInsetsListener(row) { v, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.navigationBars())
+            val lp = v.layoutParams as ViewGroup.MarginLayoutParams
+            val bottom = insets.bottom + 24.ppppx
+            if (lp.bottomMargin != bottom) {
+                lp.bottomMargin = bottom
+                v.layoutParams = lp
+            }
+            windowInsets
+        }
+        if (row.isAttachedToWindow) {
+            ViewCompat.requestApplyInsets(row)
         }
     }
 
@@ -696,8 +729,9 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
     /** 快照大图保留 AI 菜单（数据源为本地快照文件），不显示下载相关动作。 */
     private fun setupSnapshotAiMenu() {
         val illust = mIllust ?: return
-        val btnAiMenu = findViewById<ImageView>(R.id.btn_ai_menu)
-        btnAiMenu.visibility = View.VISIBLE
+        val btnAiMenu = findViewById<View>(R.id.btn_ai_menu)
+        btnAiMenu.visibility =
+            if (viewModel.isFullscreenMode.value == true) View.INVISIBLE else View.VISIBLE
         btnAiMenu.setOnClickListener { anchor ->
             val actions = mutableListOf<Pair<CharSequence, () -> Unit>>()
             if (!illust.isGif()) {
@@ -770,9 +804,9 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         }
     }
 
-    private fun setupViewerTransition(btnAi: View) {
+    private fun setupViewerTransition(btnAi: View, fabBarView: View) {
         val rootLayout = baseBind!!.root as DragDismissLayout
-        val chrome = listOfNotNull(baseBind?.bottomRela, btnAi)
+        val chrome = listOfNotNull(baseBind?.bottomRela, fabBarView, btnAi)
         val transition =
             ImageViewerTransition(
                 rootLayout,
@@ -837,15 +871,18 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
      */
     private fun setupFabBar() {
         val fabBind = ViewV3FabBarBinding.bind(findViewById(R.id.fab_bar))
+        fabBind.root.visibility = View.VISIBLE
         // 本页这颗按钮存的是**当前页**(译图时存译图),不是整部作品;Idle 态用「保存当前图」
         // 图标(图片框 + 箭头),别借一级 V3 详情页的整作品下载箭头,免得同一颗箭头两页含义不同(issue #1220)
         val fabBar = V3FabBarController(fabBind, saveCurrentImage = true)
         this.fabBar = fabBar
-        // 胶囊配色与一级 V3 详情页同一套规则(V3Palette 派生,日夜双模),不用 XML 里的深色默认值
-        fabBar.applyPalette(V3Palette.from(this))
+        // 全屏黑底看图舞台与一级详情页统一使用 REGULAR + DARK 液态玻璃
+        fabBar.applyGlassStyle(
+            material = WitLiquidGlassView.Material.REGULAR,
+            tone = WitLiquidGlassView.Tone.DARK,
+        )
         applyFabBarLayout(fabBar)
-        // 底距落在「胶囊 + 页码」整行上,页码跟着胶囊一起动
-        fabBar.attachBottomInsetMargin(findViewById(R.id.fab_bar_row))
+        attachFabBarInsets(fabBar)
 
         // 收藏态:先按 intent 带来的 bean 画一次,再观察 ObjectPool 里同 id 的权威 bean(若有)
         mIllust?.let { fabBar.setBookmarked(it.isBookmarked) }

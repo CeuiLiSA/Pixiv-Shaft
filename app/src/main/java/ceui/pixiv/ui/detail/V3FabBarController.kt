@@ -15,6 +15,7 @@ import ceui.lisa.activities.Shaft
 import ceui.lisa.databinding.ViewV3FabBarBinding
 import ceui.lisa.utils.Settings
 import ceui.pixiv.witstudio.theme.V3Palette
+import ceui.pixiv.witstudio.widget.WitLiquidGlassView
 import ceui.pixiv.utils.ppppx
 
 /**
@@ -37,10 +38,11 @@ class V3FabBarController(
 
     private val context get() = binding.root.context
 
-    /** 胶囊前景(图标/分隔线/进度环)当前内容色。XML 默认深色胶囊白内容,[applyPalette] 后换 palette 内容色。 */
+    /** 胶囊前景(图标/分隔线/进度环)当前内容色。XML 默认白色，[applyGlassStyle] 后随玻璃极性同步。 */
     @ColorInt
     private var contentColor: Int = context.getColor(R.color.white)
     private var lastRenderedDownloadState: DownloadFab? = null
+    private var bookmarked: Boolean = false
 
     init {
         // 种子:Idle 态图标在构造时就摆对。[renderDownload] 要等 [ImageDetailActivity.checkDownload]
@@ -48,18 +50,24 @@ class V3FabBarController(
         if (saveCurrentImage) binding.fabDownload.setImageResource(R.drawable.ic_save_image_24)
     }
 
-    /** 按 [V3Palette] 重刷胶囊背景与内容色,两页都必须调(浅色主题下 XML 默认深色值不可用)。 */
-    fun applyPalette(palette: V3Palette) {
+    /** 配置液态玻璃材质与明暗极性，并同步刷新前景图标/分隔线/进度环内容色（不覆盖玻璃背景）。 */
+    fun applyGlassStyle(
+        material: WitLiquidGlassView.Material = WitLiquidGlassView.Material.REGULAR,
+        tone: WitLiquidGlassView.Tone = WitLiquidGlassView.Tone.THEME,
+        clearDimming: Float = 0f,
+    ) {
+        binding.root.material = material
+        binding.root.tone = tone
+        binding.root.clearDimming = clearDimming
         lastRenderedDownloadState = null
-        val density = binding.root.resources.displayMetrics.density
-        binding.root.background = palette.floatingPillBg(999f * density)
-        contentColor = palette.floatingPillContent
+        contentColor = binding.root.contentColor
         binding.fabDownload.imageTintList = ColorStateList.valueOf(contentColor)
         binding.fabDivider.setBackgroundColor(V3Palette.withAlpha(contentColor, 0.20f))
         binding.fabDownloadProgress.setIndicatorColor(contentColor)
         binding.fabDownloadProgress.trackColor = V3Palette.withAlpha(contentColor, 0.20f)
         binding.fabComment.imageTintList = ColorStateList.valueOf(contentColor)
         binding.fabCommentDivider.setBackgroundColor(V3Palette.withAlpha(contentColor, 0.20f))
+        setBookmarked(bookmarked)
     }
 
     /** 跳转评论区段(#970):仅一级 V3 详情页放出(点击行为由调用方挂在 fabComment 上)。 */
@@ -109,6 +117,7 @@ class V3FabBarController(
      * 随后才被权威观察者纠回内容色——浅色主题下那一帧几乎看不见图标。
      */
     fun setBookmarked(bookmarked: Boolean) {
+        this.bookmarked = bookmarked
         binding.fabBookmark.imageTintList = ColorStateList.valueOf(
             if (bookmarked) context.getColor(R.color.has_bookmarked) else contentColor,
         )
@@ -150,8 +159,9 @@ class V3FabBarController(
                 listOf(bookmark, divider, download, commentDivider, comment)
             else -> listOf(download, divider, bookmark, commentDivider, comment)
         }
-        bar.removeAllViews()
-        ordered.forEach(bar::addView)
+        val content = binding.fabBarContent
+        content.removeAllViews()
+        ordered.forEach(content::addView)
     }
 
     private var position = Settings.ARTWORK_V3_FAB_POSITION_CENTER
@@ -183,10 +193,9 @@ class V3FabBarController(
      * 距底部 = 导航栏 inset + 24dp。一级 V3 与二级大图页都必须走这里,
      * 保证两页胶囊到屏幕底部的距离一致。同一份 inset 顺带喂给靠边时的左右边距。
      *
-     * @param target 吃这份底距的 view,默认胶囊本身;二级大图页传胶囊 + 页码所在的整行,
-     *               让页码跟着胶囊一起动。target 的父容器须能可靠响应 bottomMargin
-     *               (FrameLayout 可以;RelativeLayout 的 alignParentBottom + wrap_content
-     *               组合会吃掉 bottomMargin,别用)。
+     * @param target 吃这份底距的 view,默认胶囊本身。target 的父容器须能可靠响应 bottomMargin
+     *               (FrameLayout / WitLiquidGlassLayout 可以;RelativeLayout 的 alignParentBottom
+     *               + wrap_content 组合会吃掉 bottomMargin,别用)。
      */
     fun attachBottomInsetMargin(target: View = binding.root) {
         ViewCompat.setOnApplyWindowInsetsListener(target) { v, windowInsets ->
@@ -202,6 +211,9 @@ class V3FabBarController(
             )
             applySideMargins()
             windowInsets
+        }
+        if (target.isAttachedToWindow) {
+            ViewCompat.requestApplyInsets(target)
         }
     }
 }

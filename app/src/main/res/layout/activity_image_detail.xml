@@ -6,109 +6,126 @@
     android:layout_height="match_parent"
     android:background="@color/black">
 
-    <ceui.lisa.view.FixedViewPager
-        android:id="@+id/view_pager"
+    <ceui.pixiv.witstudio.widget.WitLiquidGlassLayout
+        android:id="@+id/glass_stage"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent">
 
-    <!-- Top-right AI menu button -->
-    <ImageView
-        android:id="@+id/btn_ai_menu"
-        android:layout_width="44dp"
-        android:layout_height="44dp"
-        android:layout_alignParentEnd="true"
-        android:layout_marginEnd="12dp"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        android:padding="10dp"
-        android:src="@drawable/baseline_auto_awesome_24"
-        android:tint="@android:color/white"
-        android:visibility="gone" />
-
-    <!-- 注意别用 RelativeLayout + alignParentBottom + bottomMargin 摆胶囊:
-         wrap_content 的 RelativeLayout 会把 alignParentBottom 子 view 的 bottomMargin 吃掉。
-         竖排:译图勾选在上,胶囊行 / 下载详情路径按钮在下(两者按模式互斥显示) -->
-    <LinearLayout
-        android:id="@+id/bottom_rela"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:orientation="vertical"
-        android:paddingHorizontal="20dp">
-
-        <!-- 「二级详情」当前页有译图时出现:勾上显示并保存译图,取消则显示并保存原图。
-             漫画页多为白底,垫一层半透明黑底保证白字/白框在亮图上也看得清 -->
-        <com.google.android.material.checkbox.MaterialCheckBox
-            android:id="@+id/show_translated"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginBottom="8dp"
-            android:background="@drawable/bg_page_count_overlay"
-            android:checked="true"
-            android:paddingEnd="12dp"
-            android:shadowColor="@android:color/black"
-            android:shadowRadius="3"
-            android:text="@string/image_detail_show_translated"
-            android:textColor="@android:color/white"
-            android:visibility="gone"
-            app:buttonTint="@android:color/white" />
-
-        <!-- 「二级详情」:下载 + 收藏胶囊(与一级 V3 详情页共用)+ 右侧页码。
-             整行吃 24dp + 导航栏 inset 的底距(V3FabBarController.attachBottomInsetMargin),
-             与一级页胶囊落点一致,页码跟随胶囊垂直居中。 -->
-        <FrameLayout
-            android:id="@+id/fab_bar_row"
+        <ceui.lisa.view.FixedViewPager
+            android:id="@+id/view_pager"
             android:layout_width="match_parent"
-            android:layout_height="48dp"
+            android:layout_height="match_parent" />
+
+        <!-- 竖排:译图勾选在上,页码/逐帧占位行(与独立直接子 View fab_bar 等高同底距)或下载详情路径按钮在下 -->
+        <LinearLayout
+            android:id="@+id/bottom_rela"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:layout_gravity="bottom"
-            android:layout_marginBottom="24dp">
+            android:orientation="vertical"
+            android:paddingHorizontal="20dp">
 
-            <include
-                layout="@layout/view_v3_fab_bar"
+            <!-- 「二级详情」当前页有译图时出现:勾上显示并保存译图,取消则显示并保存原图。
+                 漫画页多为白底,垫一层半透明黑底保证白字/白框在亮图上也看得清 -->
+            <com.google.android.material.checkbox.MaterialCheckBox
+                android:id="@+id/show_translated"
                 android:layout_width="wrap_content"
-                android:layout_height="48dp"
-                android:layout_gravity="center_horizontal" />
-
-            <TextView
-                android:id="@+id/current_page"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:layout_gravity="end"
-                android:gravity="center_vertical"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="8dp"
+                android:background="@drawable/bg_page_count_overlay"
+                android:checked="true"
+                android:paddingEnd="12dp"
                 android:shadowColor="@android:color/black"
                 android:shadowRadius="3"
-                android:textColor="@android:color/white" />
+                android:text="@string/image_detail_show_translated"
+                android:textColor="@android:color/white"
+                android:visibility="gone"
+                app:buttonTint="@android:color/white" />
 
-            <!-- 动图:页码位换成「逐帧」入口(动图只有 1P,页码本来就不显示)。
-                 样式在 ImageDetailActivity.setupUgoiraFramesEntry 里按 V3Palette 着色。 -->
-            <TextView
-                android:id="@+id/btn_ugoira_frames"
+            <!-- 页码与动图「逐帧」入口行:与 fab_bar 同步 24dp + 导航栏 inset 底距,垂直居中对齐。 -->
+            <FrameLayout
+                android:id="@+id/fab_bar_row"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_gravity="bottom"
+                android:layout_marginBottom="24dp">
+
+                <TextView
+                    android:id="@+id/current_page"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="end"
+                    android:gravity="center_vertical"
+                    android:shadowColor="@android:color/black"
+                    android:shadowRadius="3"
+                    android:textColor="@android:color/white" />
+
+                <!-- 动图:页码位换成「逐帧」入口(动图只有 1P,页码本来就不显示)。
+                     样式在 ImageDetailActivity.setupUgoiraFramesEntry 里按 V3Palette 着色。 -->
+                <TextView
+                    android:id="@+id/btn_ugoira_frames"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="end"
+                    android:gravity="center_vertical"
+                    android:text="@string/ugoira_frames_entry"
+                    android:visibility="gone" />
+
+            </FrameLayout>
+
+            <!-- 「下载详情」模式复用底部中央位置显示本地文件路径(历史行为) -->
+            <ceui.pixiv.widgets.ProgressTextButton
+                android:id="@+id/download_this_one"
+                style="@style/GreenShiningButton"
                 android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:layout_gravity="end"
-                android:gravity="center_vertical"
-                android:text="@string/ugoira_frames_entry"
-                android:visibility="gone" />
+                android:layout_height="32dp"
+                android:layout_gravity="bottom|center_horizontal"
+                android:layout_marginBottom="40dp"
+                android:ellipsize="middle"
+                android:gravity="center"
+                android:paddingHorizontal="16dp"
+                android:text="@string/string_7"
+                android:visibility="gone"
+                app:ptb_progress_stroke_width="3dp"
+                app:ptb_progress_width="14dp" />
 
-        </FrameLayout>
+        </LinearLayout>
 
-        <!-- 「下载详情」模式复用底部中央位置显示本地文件路径(历史行为) -->
-        <ceui.pixiv.widgets.ProgressTextButton
-            android:id="@+id/download_this_one"
-            style="@style/GreenShiningButton"
+        <!-- 「二级详情」/ 快照大图底部下载 + 收藏液态玻璃胶囊(作为 glass_stage 直接子 View 实时采样 view_pager)。 -->
+        <include
+            android:id="@+id/fab_bar"
+            layout="@layout/view_v3_fab_bar"
             android:layout_width="wrap_content"
-            android:layout_height="32dp"
+            android:layout_height="48dp"
             android:layout_gravity="bottom|center_horizontal"
-            android:layout_marginBottom="40dp"
-            android:ellipsize="middle"
-            android:gravity="center"
-            android:paddingHorizontal="16dp"
-            android:text="@string/string_7"
-            android:visibility="gone"
-            app:ptb_progress_stroke_width="3dp"
-            app:ptb_progress_width="14dp" />
+            android:layout_marginBottom="24dp"
+            android:visibility="gone" />
 
-    </LinearLayout>
+        <!-- Top-right AI menu button (圆形液态玻璃按钮) -->
+        <ceui.pixiv.witstudio.widget.WitLiquidGlassView
+            android:id="@+id/btn_ai_menu"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:layout_gravity="top|end"
+            android:layout_marginEnd="12dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:visibility="gone"
+            app:wit_glassInteractive="true"
+            app:wit_glassMaterial="regular"
+            app:wit_glassTone="dark">
+
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:importantForAccessibility="no"
+                android:padding="10dp"
+                android:src="@drawable/baseline_auto_awesome_24"
+                app:tint="@android:color/white" />
+        </ceui.pixiv.witstudio.widget.WitLiquidGlassView>
+
+    </ceui.pixiv.witstudio.widget.WitLiquidGlassLayout>
 
     <!-- AI 进度层(翻译漫画/圈选翻译/AI 放大/抠图共用)挂在 Activity 根布局上,全局唯一。
          若随各页 FragmentImageDetail 各带一份,同 id 会有多份,Activity 的

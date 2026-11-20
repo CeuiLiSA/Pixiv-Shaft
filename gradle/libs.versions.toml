@@ -15,6 +15,7 @@ coroutines = "1.10.2"
 cronet = "143.7445.0"
 desugarJdkLibs = "2.1.3"
 documentFile = "1.0.1"
+dynamicAnimation = "1.1.0"
 firebaseAnalytics = "22.1.2"
 firebaseCrashlytics = "19.2.1"
 flexbox = "3.0.0"
@@ -70,6 +71,7 @@ androidxCardview = { module = "androidx.cardview:cardview", version.ref = "cardv
 androidxConstraintLayout = { module = "androidx.constraintlayout:constraintlayout", version.ref = "constraintLayout" }
 androidxCore = { module = "androidx.core:core-ktx", version.ref = "core" }
 androidxDocumentFile = { module = "androidx.documentfile:documentfile", version.ref = "documentFile" }
+androidxDynamicAnimation = { module = "androidx.dynamicanimation:dynamicanimation", version.ref = "dynamicAnimation" }
 androidxFragment = { module = "androidx.fragment:fragment-ktx", version.ref = "fragment" }
 androidxInterpolator = { module = "androidx.interpolator:interpolator", version.ref = "interpolator" }
 androidxLifecycleProcess = { module = "androidx.lifecycle:lifecycle-process", version.ref = "lifecycle" }
