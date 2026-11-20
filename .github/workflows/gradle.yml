@@ -428,17 +428,9 @@ jobs:
         if: steps.check_run.outputs.should_run == 'true'
         env:
           SHAFT_EVENTS_HMAC: ci-instrumentation-only-not-a-secret
-        run: >-
-          ./gradlew
-          :app:assembleGithubDebug
-          :app:assembleGithubDebugAndroidTest
-          :app:assembleGithubRelease
-          :app:assembleGithubReleaseAndroidTest
-          :actionqueue:assembleDebug
-          :actionqueue:assembleDebugAndroidTest
-          -PSHAFT_TEST_ABI=x86_64
-          -PSHAFT_TEST_BUILD_TYPE=release
-          --stacktrace
+        run: |
+          ./gradlew :app:assembleGithubDebugAndroidTest :actionqueue:assembleDebugAndroidTest -PSHAFT_TEST_ABI=x86_64 --stacktrace
+          ./gradlew :app:assembleGithubReleaseAndroidTest -PSHAFT_TEST_BUILD_TYPE=release -PSHAFT_TEST_ABI=x86_64 --stacktrace
 
       - name: Enable KVM
         if: steps.check_run.outputs.should_run == 'true'
