@@ -224,6 +224,9 @@ public class WitLiquidGlassMenu private constructor(
     private var progress = 0f
     private var backStartProgress = 1f
     private var anchorHidden = false
+    private var isBorderlessAnchor = false
+    private val isNoneQuality: Boolean
+        get() = (host.quality ?: WitLiquidGlassQuality.defaultQuality) == WitLiquidGlassQuality.NONE
     private var menuWidth = 0
     private var menuHeight = 0
     private var anchorLocalL = 0f
@@ -319,6 +322,9 @@ public class WitLiquidGlassMenu private constructor(
         }
 
         val anchorGlass = anchor as? WitLiquidGlassView
+        val hasGlassAnchor = anchorGlass != null
+        val hasVisibleBackground = anchor.background != null && (anchor.background.alpha > 0)
+        isBorderlessAnchor = !hasGlassAnchor && !hasVisibleBackground
         val resolvedMaterial = config.material ?: anchorGlass?.material ?: WitLiquidGlassView.Material.REGULAR
         val resolvedTone = config.tone ?: anchorGlass?.tone ?: WitLiquidGlassView.Tone.THEME
         val resolvedClearDimming = (config.clearDimming ?: anchorGlass?.clearDimming ?: 0f).coerceIn(0f, 1f)
@@ -373,7 +379,8 @@ public class WitLiquidGlassMenu private constructor(
             // WitLiquidGlassView.dispatchDraw clips children to the exact live teardrop silhouette.
             clipChildren = false
             clipToPadding = false
-            elevation = context.dpF(MENU_ELEVATION_DP)
+            elevation = if (isBorderlessAnchor) 0f else context.dpF(MENU_ELEVATION_DP)
+            platterAlpha = if (isBorderlessAnchor) 0f else 1f
         }
         val contentColor = glass.contentColor
         val dangerColor = if (isDark) DARK_DANGER_COLOR else LIGHT_DANGER_COLOR
@@ -876,6 +883,11 @@ public class WitLiquidGlassMenu private constructor(
         menuGlass?.let { glass ->
             glass.translationX = 0f
             glass.translationY = 0f
+            glass.scaleX = 1f
+            glass.scaleY = 1f
+            glass.alpha = 1f
+            glass.platterAlpha = 1f
+            glass.elevation = context.dpF(MENU_ELEVATION_DP)
             glass.clearMorphFrame()
         }
         scrollView?.let { content ->
@@ -1208,7 +1220,7 @@ public class WitLiquidGlassMenu private constructor(
     private fun updateDragTargets(x: Float, y: Float, pullX: Float, pullY: Float) {
         dragTouchX = x
         dragTouchY = y
-        if (!openSettled || !motionEnabled()) return
+        if (!openSettled || !motionEnabled() || isNoneQuality) return
         scrollView?.clipToOutline = false
         animateDragSpring(targetX = pullX, targetY = pullY, targetPress = 1f, releasing = false)
         applyDragDeform()
@@ -1600,6 +1612,9 @@ public class WitLiquidGlassMenu private constructor(
         // Ramp readability tint swiftly so the droplet keeps rich glass contrast over bright artwork.
         glass.tintColor = ColorUtils.blendARGB(startTint, targetTint, smoothstep(0f, 0.25f, p))
 
+        glass.platterAlpha = computePlatterAlpha(p, isBorderlessAnchor)
+        glass.elevation = context.dpF(MENU_ELEVATION_DP) * computeElevationFraction(p, isBorderlessAnchor)
+
         // Menu content tracks Body B's live center/size and pulls from Gaussian blur into crisp focus.
         scrollView?.let { content ->
             val sx = (finalW / w).coerceIn(0.32f, 1.12f)
@@ -1915,6 +1930,12 @@ public class WitLiquidGlassMenu private constructor(
 
         private fun lerp(start: Float, end: Float, fraction: Float): Float =
             start + (end - start) * fraction
+
+        internal fun computePlatterAlpha(progress: Float, isBorderless: Boolean): Float =
+            if (isBorderless) smoothstep(0f, 0.28f, progress.coerceIn(0f, 1f)) else 1f
+
+        internal fun computeElevationFraction(progress: Float, isBorderless: Boolean): Float =
+            if (isBorderless) smoothstep(0.06f, 0.38f, progress.coerceIn(0f, 1f)) else 1f
 
         private fun smoothstep(edge0: Float, edge1: Float, value: Float): Float {
             val t = ((value - edge0) / (edge1 - edge0)).coerceIn(0f, 1f)

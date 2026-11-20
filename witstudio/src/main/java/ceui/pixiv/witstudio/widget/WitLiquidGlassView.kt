@@ -142,6 +142,18 @@ public class WitLiquidGlassView @JvmOverloads public constructor(
             invalidateOptics()
         }
 
+    /**
+     * Controls the overall opacity of the glass platter, backdrop and rim without affecting child views.
+     * Used for smooth material condensation transitions when expanding from borderless buttons.
+     */
+    internal var platterAlpha: Float = 1f
+        set(value) {
+            val clamped = value.coerceIn(0f, 1f)
+            if (field == clamped) return
+            field = clamped
+            invalidate()
+        }
+
     private var morphActive = false
     private var morphLeft = 0f
     private var morphTop = 0f
@@ -152,6 +164,7 @@ public class WitLiquidGlassView @JvmOverloads public constructor(
     private val morphClipPath = Path()
     private val morphScratchPath = Path()
     private val morphArcRect = RectF()
+    private val platterBounds = RectF()
 
     private val materialPaint = WitLiquidGlassPaint()
     private var renderer: WitLiquidGlassRenderer? = null
@@ -364,6 +377,9 @@ public class WitLiquidGlassView @JvmOverloads public constructor(
         val w = width
         val h = height
         if (w <= 0 || h <= 0) return
+        val pAlpha = platterAlpha
+        if (pAlpha <= 0.001f) return
+
         val scale = density
         val dark = isDark
         val clear = material == Material.CLEAR
@@ -382,38 +398,55 @@ public class WitLiquidGlassView @JvmOverloads public constructor(
             materialPaint.update(w, h, scale, baseFill, tintColor, dark, clear, clearDimming)
             materialDirty = false
         }
+        val needsAlphaLayer = pAlpha < 0.999f
+        platterBounds.set(sLeft, sTop, sRight, sBottom)
+        if (activeTail != null) {
+            platterBounds.union(activeTail.tipX - activeTail.tipRadius, activeTail.tipY - activeTail.tipRadius)
+            platterBounds.union(activeTail.tipX + activeTail.tipRadius, activeTail.tipY + activeTail.tipRadius)
+        }
         canvas.withTranslation(scrollX.toFloat(), scrollY.toFloat()) {
-            if (effectiveQuality == WitLiquidGlassQuality.NONE) {
-                materialPaint.drawSolid(
-                    this, sLeft, sTop, sRight, sBottom, activeRadius, activeTail,
-                )
-                return@withTranslation
+            val count = if (needsAlphaLayer) {
+                saveLayerAlpha(platterBounds, (pAlpha * 255f).roundToInt())
+            } else {
+                -1
             }
-            if (Build.VERSION.SDK_INT >= 31 && isHardwareAccelerated && effectiveQuality.isLiveEnabled) {
-                val current = renderer
-                if (current != null && current.hasBackdrop) {
-                    val drawn = current.backend.attempt {
-                        if (opticsDirty) {
-                            current.updateOptics(
-                                sLeft, sTop, sRight, sBottom, activeRadius, scale, dark, clear,
-                                isLargeSurface, tintColor, clearDimming, touchX, touchY, press, stretch,
-                                activeTail,
+            try {
+                if (effectiveQuality == WitLiquidGlassQuality.NONE) {
+                    materialPaint.drawSolid(
+                        this, sLeft, sTop, sRight, sBottom, activeRadius, activeTail,
+                    )
+                    return@withTranslation
+                }
+                if (Build.VERSION.SDK_INT >= 31 && isHardwareAccelerated && effectiveQuality.isLiveEnabled) {
+                    val current = renderer
+                    if (current != null && current.hasBackdrop) {
+                        val drawn = current.backend.attempt {
+                            if (opticsDirty) {
+                                current.updateOptics(
+                                    sLeft, sTop, sRight, sBottom, activeRadius, scale, dark, clear,
+                                    isLargeSurface, tintColor, clearDimming, touchX, touchY, press, stretch,
+                                    activeTail,
+                                )
+                                opticsDirty = false
+                            }
+                            current.draw(
+                                this, materialPaint, sLeft, sTop, sRight, sBottom, activeRadius,
+                                touchX, touchY, press, stretch, activeTail,
                             )
-                            opticsDirty = false
                         }
-                        current.draw(
-                            this, materialPaint, sLeft, sTop, sRight, sBottom, activeRadius,
-                            touchX, touchY, press, stretch, activeTail,
-                        )
+                        if (drawn != null) return@withTranslation
+                        discardRenderer()
                     }
-                    if (drawn != null) return@withTranslation
-                    discardRenderer()
+                }
+                materialPaint.drawFallback(
+                    this, sLeft, sTop, sRight, sBottom, activeRadius, touchX, touchY, press, stretch,
+                    activeTail,
+                )
+            } finally {
+                if (count >= 0) {
+                    restoreToCount(count)
                 }
             }
-            materialPaint.drawFallback(
-                this, sLeft, sTop, sRight, sBottom, activeRadius, touchX, touchY, press, stretch,
-                activeTail,
-            )
         }
     }
 
