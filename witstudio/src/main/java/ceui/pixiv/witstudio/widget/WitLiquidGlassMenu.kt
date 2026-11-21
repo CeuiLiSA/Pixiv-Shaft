@@ -1,5 +1,6 @@
 package ceui.pixiv.witstudio.widget
 
+import android.app.Activity
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.animation.ValueAnimator
@@ -14,16 +15,21 @@ import android.graphics.Paint
 import android.graphics.RenderEffect
 import android.graphics.Shader
 import android.graphics.drawable.ColorDrawable
+import android.graphics.drawable.Drawable
+import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.StateListDrawable
 import android.os.Build
+import android.util.TypedValue
 import android.view.Gravity
 import android.view.HapticFeedbackConstants
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
 import android.view.ViewGroup
+import android.view.ViewParent
 import android.view.ViewOutlineProvider
 import android.view.accessibility.AccessibilityEvent
+import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.animation.DecelerateInterpolator
 import android.view.animation.LinearInterpolator
 import android.widget.FrameLayout
@@ -35,6 +41,9 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.OnBackPressedDispatcherOwner
 import androidx.activity.findViewTreeOnBackPressedDispatcherOwner
 import androidx.annotation.ColorInt
+import androidx.appcompat.widget.Toolbar
+import com.google.android.material.appbar.AppBarLayout
+import com.google.android.material.shape.MaterialShapeDrawable
 import androidx.annotation.DrawableRes
 import androidx.appcompat.widget.SwitchCompat
 import androidx.core.graphics.ColorUtils
@@ -103,11 +112,18 @@ public class WitLiquidGlassMenu private constructor(
         @setparam:ColorInt
         public var tintColor: Int? = null
 
+        public var quality: WitLiquidGlassQuality? = null
         public var clearDimming: Float? = null
         public var cornerRadiusDp: Float = DEFAULT_CORNER_RADIUS_DP
 
         @DrawableRes
         public var anchorIconRes: Int = 0
+        public var borderless: Boolean = false
+        public var transparentBackground: Boolean = false
+        @get:ColorInt
+        @setparam:ColorInt
+        public var startPlatterColor: Int? = null
+        public var palette: V3Palette? = null
         public var onDismiss: (() -> Unit)? = null
 
         private val entries = mutableListOf<Entry>()
@@ -147,10 +163,15 @@ public class WitLiquidGlassMenu private constructor(
         internal fun buildConfig(): Config = Config(
             material = material,
             tone = tone,
+            quality = quality,
             tintColor = tintColor,
             clearDimming = clearDimming,
             cornerRadiusDp = cornerRadiusDp,
             anchorIconRes = anchorIconRes,
+            borderless = borderless,
+            transparentBackground = transparentBackground,
+            startPlatterColor = startPlatterColor,
+            palette = palette,
             onDismiss = onDismiss,
         )
     }
@@ -158,10 +179,15 @@ public class WitLiquidGlassMenu private constructor(
     internal data class Config(
         val material: WitLiquidGlassView.Material?,
         val tone: WitLiquidGlassView.Tone?,
+        val quality: WitLiquidGlassQuality?,
         @get:ColorInt val tintColor: Int?,
         val clearDimming: Float?,
         val cornerRadiusDp: Float,
         @get:DrawableRes val anchorIconRes: Int,
+        val borderless: Boolean,
+        val transparentBackground: Boolean,
+        @get:ColorInt val startPlatterColor: Int?,
+        val palette: V3Palette?,
         val onDismiss: (() -> Unit)?,
     )
 
@@ -180,7 +206,8 @@ public class WitLiquidGlassMenu private constructor(
     }
 
     private val context: Context = host.context
-    private val palette: V3Palette = V3Palette.from(context)
+    private val palette: V3Palette = config.palette
+        ?: V3Palette.from(findActivity(anchor.context) ?: findActivity(host.context) ?: host.context)
     private val toggles = mutableListOf<Pair<SwitchCompat, Entry.Toggle>>()
     private val interactiveRows = mutableListOf<RowBinding>()
     private var syncingToggles = false
@@ -225,8 +252,12 @@ public class WitLiquidGlassMenu private constructor(
     private var backStartProgress = 1f
     private var anchorHidden = false
     private var isBorderlessAnchor = false
+    private var isTransparentBackground = false
+    private var isDark = false
+    private var lastContentBlurPx = -1f
+    private var lastEchoBlurPx = -1f
     private val isNoneQuality: Boolean
-        get() = (host.quality ?: WitLiquidGlassQuality.defaultQuality) == WitLiquidGlassQuality.NONE
+        get() = (config.quality ?: host.quality ?: WitLiquidGlassQuality.defaultQuality) == WitLiquidGlassQuality.NONE
     private var menuWidth = 0
     private var menuHeight = 0
     private var anchorLocalL = 0f
@@ -242,14 +273,20 @@ public class WitLiquidGlassMenu private constructor(
     private var anchorOnRight = true
     private var expandingDown = true
 
-    private var lastContentBlurPx = -1f
-    private var lastEchoBlurPx = -1f
-
     @ColorInt
     private var startTint = Color.TRANSPARENT
 
     @ColorInt
     private var targetTint = Color.TRANSPARENT
+
+    @ColorInt
+    private var startPlatterColor = Color.TRANSPARENT
+
+    @ColorInt
+    private var derivedPlatterColor = Color.TRANSPARENT
+
+    @ColorInt
+    private var targetPlatterColor = Color.TRANSPARENT
     private var maxScrimAlpha = 0
 
     private var state = State.PENDING_LAYOUT
@@ -292,7 +329,6 @@ public class WitLiquidGlassMenu private constructor(
             finishAndCleanup()
             return
         }
-        scrollView?.clipToOutline = false
         applyProgress(progress, closing = true)
         val duration = (CLOSE_DURATION_MS * progress.coerceIn(0.25f, 1f)).toLong()
         animateProgress(target = 0f, durationMs = duration, closing = true)
@@ -322,19 +358,24 @@ public class WitLiquidGlassMenu private constructor(
         }
 
         val anchorGlass = anchor as? WitLiquidGlassView
-        val hasGlassAnchor = anchorGlass != null
-        val hasVisibleBackground = anchor.background != null && (anchor.background.alpha > 0)
-        isBorderlessAnchor = !hasGlassAnchor && !hasVisibleBackground
+        // 实心顶栏底色替换/透明底模式均由调用方显式声明；未声明时默认为 false，走标准毛玻璃浮动菜单
+        isTransparentBackground = config.transparentBackground || (config.startPlatterColor == Color.TRANSPARENT)
+        isBorderlessAnchor = config.borderless || isTransparentBackground
         val resolvedMaterial = config.material ?: anchorGlass?.material ?: WitLiquidGlassView.Material.REGULAR
         val resolvedTone = config.tone ?: anchorGlass?.tone ?: WitLiquidGlassView.Tone.THEME
+        val resolvedQuality = config.quality ?: anchorGlass?.quality ?: host.quality
         val resolvedClearDimming = (config.clearDimming ?: anchorGlass?.clearDimming ?: 0f).coerceIn(0f, 1f)
-        val isDark = when (resolvedTone) {
+        isDark = when (resolvedTone) {
             WitLiquidGlassView.Tone.THEME -> palette.isDark
             WitLiquidGlassView.Tone.LIGHT -> false
             WitLiquidGlassView.Tone.DARK -> true
         }
 
-        startTint = anchorGlass?.tintColor ?: Color.TRANSPARENT
+        startTint = when {
+            isTransparentBackground -> Color.TRANSPARENT
+            anchorGlass?.tintColor != null -> anchorGlass.tintColor
+            else -> Color.TRANSPARENT
+        }
         targetTint = when {
             config.tintColor != null -> config.tintColor
             startTint != Color.TRANSPARENT -> startTint
@@ -365,13 +406,26 @@ public class WitLiquidGlassMenu private constructor(
         val availableH = (safeBottom - safeTop).coerceAtLeast(context.dp(120))
 
         // 2) Build menu glass surface and rows.
+        val normalCardFill = if (isDark == palette.isDark) palette.cardFill else V3Palette(palette.primary, isDark).cardFill
+        targetPlatterColor = normalCardFill
+        startPlatterColor = when {
+            isTransparentBackground -> Color.TRANSPARENT
+            config.startPlatterColor != null -> config.startPlatterColor
+            isBorderlessAnchor -> palette.primary
+            else -> normalCardFill
+        }
+        // 迅速形成主题派生色在当前模式下的加权微调视觉差
+        derivedPlatterColor = computeWeightedDerivedStartColor(palette, isDark)
+
         val glass = WitLiquidGlassView(context).apply {
-            isLargeSurface = true
+            isLargeSurface = false
             material = resolvedMaterial
             tone = resolvedTone
+            quality = resolvedQuality
             clearDimming = resolvedClearDimming
             cornerRadiusDp = config.cornerRadiusDp
-            tintColor = startTint
+            tintColor = Color.TRANSPARENT
+            surfaceFillColor = if (isBorderlessAnchor && !isTransparentBackground) startPlatterColor else null
             isGlassInteractive = false
             isClickable = true
             isFocusable = false
@@ -381,8 +435,14 @@ public class WitLiquidGlassMenu private constructor(
             clipToPadding = false
             elevation = if (isBorderlessAnchor) 0f else context.dpF(MENU_ELEVATION_DP)
             platterAlpha = if (isBorderlessAnchor) 0f else 1f
+            rimAlpha = if (isBorderlessAnchor) 0f else 1f
         }
         val contentColor = glass.contentColor
+        val fallbackIconTint = when {
+            isTransparentBackground -> contentColor
+            isBorderlessAnchor && ColorUtils.calculateLuminance(startPlatterColor) < 0.5 -> Color.WHITE
+            else -> contentColor
+        }
         val dangerColor = if (isDark) DARK_DANGER_COLOR else LIGHT_DANGER_COLOR
 
         val rowsContainer = LinearLayout(context).apply {
@@ -502,8 +562,8 @@ public class WitLiquidGlassMenu private constructor(
         anchorWidthPx = anchorW.toFloat()
         anchorHeightPx = anchorH.toFloat()
         anchorLocalL = (anchorL - menuLeft).toFloat()
-        anchorLocalT = (anchorT - menuTop).toFloat()
         anchorLocalR = anchorLocalL + anchorWidthPx
+        anchorLocalT = (anchorT - menuTop).toFloat()
         anchorLocalB = anchorLocalT + anchorHeightPx
         anchorCenterX = (anchorLocalL + anchorLocalR) * 0.5f
         anchorCenterY = (anchorLocalT + anchorLocalB) * 0.5f
@@ -545,8 +605,8 @@ public class WitLiquidGlassMenu private constructor(
         )
         scrollView = scroller
 
-        // 6) Mirror anchor icon inside the anchor orb for a seamless blur-out handoff.
-        val echo = createAnchorEchoView(anchor, config.anchorIconRes, contentColor)
+        // 6) Mirror anchor icon inside the anchor orb for a seamless handoff (directly morphs icon <-> droplet).
+        val echo = createAnchorEchoView(anchor, config.anchorIconRes, fallbackIconTint)
         if (echo != null) {
             glass.addView(
                 echo,
@@ -580,6 +640,9 @@ public class WitLiquidGlassMenu private constructor(
         menuGlass = glass
 
         state = State.ATTACHED
+
+        // Pre-evaluate frame 0 so the glass surface and echo icon are 1:1 identical to the anchor before being drawn.
+        applyProgress(0f, closing = false)
 
         val initialHostW = host.width
         val initialHostH = host.height
@@ -810,25 +873,79 @@ public class WitLiquidGlassMenu private constructor(
         @DrawableRes overrideIconRes: Int,
         @ColorInt fallbackTint: Int,
     ): ImageView? {
-        if (overrideIconRes != 0) {
-            val pad = context.dp(10)
-            return ImageView(context).apply {
-                setImageResource(overrideIconRes)
-                imageTintList = ColorStateList.valueOf(fallbackTint)
-                setPadding(pad, pad, pad, pad)
-                scaleType = ImageView.ScaleType.FIT_CENTER
-                importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
-            }
-        }
-        val source = findAnchorImageView(anchor) ?: return null
-        val drawable = source.drawable?.constantState?.newDrawable(context.resources)?.mutate() ?: return null
+        val anchorIv = findAnchorImageView(anchor)
+        val extracted = if (overrideIconRes != 0) null else extractAnchorDrawable(anchor)
+        val drawable = if (overrideIconRes != 0) {
+            androidx.core.content.ContextCompat.getDrawable(context, overrideIconRes)
+        } else {
+            extracted?.first ?: androidx.core.content.ContextCompat.getDrawable(context, R.drawable.wit_ic_more_vert)
+        } ?: return null
+
+        val tintList = extracted?.second
+            ?: anchorIv?.imageTintList
+            ?: (anchor as? ImageView)?.imageTintList
+            ?: ColorStateList.valueOf(fallbackTint)
+
         return ImageView(context).apply {
             setImageDrawable(drawable)
-            imageTintList = source.imageTintList
-            scaleType = source.scaleType
-            setPadding(source.paddingLeft, source.paddingTop, source.paddingRight, source.paddingBottom)
+            imageTintList = tintList
+            // 严格以 1:1 原寸（24dp）居中呈现，绝不在 48~56dp 等大尺寸顶栏按钮中缩放放大
+            scaleType = ImageView.ScaleType.CENTER
+            setPadding(0, 0, 0, 0)
             importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
         }
+    }
+
+    private fun extractAnchorDrawable(view: View): Pair<Drawable, ColorStateList?>? {
+        // 1. 若为 ActionMenuItemView，直接获取内部关联的 MenuItemImpl 图标
+        try {
+            val method = view.javaClass.getMethod("getItemData")
+            val itemData = method.invoke(view)
+            if (itemData != null) {
+                val iconMethod = itemData.javaClass.getMethod("getIcon")
+                val icon = iconMethod.invoke(itemData) as? Drawable
+                if (icon != null) {
+                    val cloned = icon.constantState?.newDrawable(view.resources)?.mutate() ?: icon
+                    return cloned to (view as? ImageView)?.imageTintList
+                }
+            }
+        } catch (_: Throwable) {}
+
+        if (view is ImageView) {
+            val d = view.drawable
+            if (d != null) {
+                val cloned = d.constantState?.newDrawable(view.resources)?.mutate() ?: d
+                return cloned to view.imageTintList
+            }
+        }
+        if (view is android.widget.TextView) {
+            val drawables = if (Build.VERSION.SDK_INT >= 17) {
+                view.compoundDrawablesRelative
+            } else {
+                view.compoundDrawables
+            }
+            for (d in drawables) {
+                if (d != null) {
+                    val cloned = d.constantState?.newDrawable(view.resources)?.mutate() ?: d
+                    val tint = if (Build.VERSION.SDK_INT >= 23) view.compoundDrawableTintList else null
+                    return cloned to (tint ?: ColorStateList.valueOf(Color.WHITE))
+                }
+            }
+        }
+        if (view is ViewGroup) {
+            for (i in 0 until view.childCount) {
+                val found = extractAnchorDrawable(view.getChildAt(i))
+                if (found != null) return found
+            }
+        }
+        val entryName = try { view.resources.getResourceEntryName(view.id) } catch (_: Throwable) { null }
+        if (entryName == "action_more" || entryName == "more") {
+            val d = androidx.core.content.ContextCompat.getDrawable(view.context, R.drawable.wit_ic_more_vert)
+            if (d != null) {
+                return d.mutate() to ColorStateList.valueOf(Color.WHITE)
+            }
+        }
+        return null
     }
 
     private fun findAnchorImageView(view: View): ImageView? {
@@ -864,6 +981,7 @@ public class WitLiquidGlassMenu private constructor(
                 override fun onAnimationEnd(animation: Animator) {
                     if (canceled || state == State.FINISHED) return
                     if (target <= 0f) {
+                        applyProgress(0f, closing = true)
                         finishAndCleanup()
                     } else {
                         applyProgress(1f, closing = false)
@@ -880,15 +998,24 @@ public class WitLiquidGlassMenu private constructor(
         dragPullX = 0f
         dragPullY = 0f
         dragPress = 0f
+        val w = menuWidth.toFloat()
+        val h = menuHeight.toFloat()
         menuGlass?.let { glass ->
             glass.translationX = 0f
             glass.translationY = 0f
             glass.scaleX = 1f
             glass.scaleY = 1f
             glass.alpha = 1f
+            if (isBorderlessAnchor && !isTransparentBackground) {
+                glass.surfaceFillColor = targetPlatterColor
+            } else {
+                glass.surfaceFillColor = null
+            }
             glass.platterAlpha = 1f
+            glass.rimAlpha = 1f
             glass.elevation = context.dpF(MENU_ELEVATION_DP)
-            glass.clearMorphFrame()
+            glass.setMorphFrame(0f, 0f, w, h, endRadiusPx)
+            glass.setMorphTouch(0f, 0f, 0f)
         }
         scrollView?.let { content ->
             content.alpha = 1f
@@ -896,7 +1023,6 @@ public class WitLiquidGlassMenu private constructor(
             content.scaleY = 1f
             content.translationX = 0f
             content.translationY = 0f
-            content.clipToOutline = true
             setViewBlur(content, 0f, isContent = true)
         }
         echoIconView?.let { echo ->
@@ -1213,7 +1339,6 @@ public class WitLiquidGlassMenu private constructor(
             clearHighlight(animated = false)
         }
         if (!openSettled || !motionEnabled()) return
-        scrollView?.clipToOutline = false
         animateDragSpring(targetX = 0f, targetY = 0f, targetPress = 1f, releasing = false)
     }
 
@@ -1221,7 +1346,6 @@ public class WitLiquidGlassMenu private constructor(
         dragTouchX = x
         dragTouchY = y
         if (!openSettled || !motionEnabled() || isNoneQuality) return
-        scrollView?.clipToOutline = false
         animateDragSpring(targetX = pullX, targetY = pullY, targetPress = 1f, releasing = false)
         applyDragDeform()
     }
@@ -1339,17 +1463,19 @@ public class WitLiquidGlassMenu private constructor(
         dragPullX = 0f
         dragPullY = 0f
         dragPress = 0f
+        val w = menuWidth.toFloat()
+        val h = menuHeight.toFloat()
         menuGlass?.let { glass ->
             glass.translationX = 0f
             glass.translationY = 0f
-            glass.clearMorphFrame()
+            glass.setMorphFrame(0f, 0f, w, h, endRadiusPx)
+            glass.setMorphTouch(0f, 0f, 0f)
         }
         scrollView?.let { content ->
             content.scaleX = 1f
             content.scaleY = 1f
             content.translationX = 0f
             content.translationY = 0f
-            content.clipToOutline = true
         }
     }
 
@@ -1495,26 +1621,31 @@ public class WitLiquidGlassMenu private constructor(
         // Reference S-curve growth (width leads slightly so tall menus stay plump and teardrop-shaped).
         val wProg = smoothstep(0f, 0.56f, p)
         val hProg = smoothstep(0f, 0.62f, p)
-        val wOver = if (closing) 0f else maxOverW * sin(PI * ((p - 0.54f) / 0.46f).coerceIn(0f, 1f)).toFloat().pow(1.5f)
-        val hOver = if (closing) 0f else maxOverH * sin(PI * ((p - 0.52f) / 0.48f).coerceIn(0f, 1f)).toFloat().pow(1.5f)
-        val curW = lerp(anchorWidthPx, w, wProg) + wOver
-        val curH = lerp(anchorHeightPx, h, hProg) + hOver
+        val wOver = maxOverW * sin(PI * ((p - 0.54f) / 0.46f).coerceIn(0f, 1f)).toFloat().pow(1.5f)
+        val hOver = maxOverH * sin(PI * ((p - 0.52f) / 0.48f).coerceIn(0f, 1f)).toFloat().pow(1.5f)
 
-        // Horizontal: anchor edge stays pinned (tiny 1.5dp inward tuck during teardrop pull).
-        // Clamped within patch inset margin so mid-screen/constrained anchors never clip.
+        val baseW = anchorWidthPx
+        val baseH = anchorHeightPx
+        val curW = lerp(baseW, w, wProg) + wOver
+        val curH = lerp(baseH, h, hProg) + hOver
+
+        // Horizontal: anchor horizontally by geometric center (anchorCenterX) with 35-degree teardrop pull.
+        // At p=0, centered strictly at anchorCenterX; at p=1, laid out cleanly across [0, w].
         val patchMargin = context.dpF(MAX_MORPH_PATCH_OVERSHOOT_DP)
-        val edgeTuck = if (closing) 0f else context.dpF(1.5f) * sin(PI * (p / 0.65f).coerceIn(0f, 1f)).toFloat()
+        val edgeTuck = context.dpF(1.5f) * sin(PI * (p / 0.65f).coerceIn(0f, 1f)).toFloat()
+        val hProgS = computeCenterProgress(p, closing)
         val rawL = if (anchorOnRight) {
-            lerp(anchorLocalR, w, smoothstep(0f, 0.45f, p)) - edgeTuck - curW
+            lerp(anchorCenterX - curW * 0.5f, 0f, hProgS) - edgeTuck
         } else {
-            lerp(anchorLocalL, 0f, smoothstep(0f, 0.45f, p)) + edgeTuck
+            lerp(anchorCenterX - curW * 0.5f, 0f, hProgS) + edgeTuck
         }
         val curL = clampMorphStart(rawL, curW, w, patchMargin)
         val curR = curL + curW
 
         // Vertical: height-invariant sag (~34dp max, 0.78x anchor height) creates the exact 35-deg
         // diagonal teardrop without stretching down the screen on tall 14-item menus.
-        val sagScale = if (closing) 0.72f else 1f
+        // 收回与点开保持同样饱满的水滴涟漪与张力下垂，绝不生硬扁平缩成一坨。
+        val sagScale = 1.0f
         val topSag = maxTopSag * sagScale * sin(PI * (p / 0.78f).coerceIn(0f, 1f)).toFloat().pow(1.25f)
         val rawT = if (expandingDown) {
             lerp(anchorLocalT, 0f, smoothstep(0.36f, 0.84f, p)) + topSag
@@ -1552,8 +1683,10 @@ public class WitLiquidGlassMenu private constructor(
             val dT = dragDeform.top
             val dR = dragDeform.right - w
             val dB = dragDeform.bottom - h
-            val mergedW = (curR - curL + dR - dL).coerceAtLeast(anchorWidthPx)
-            val mergedH = (curB - curT + dB - dT).coerceAtLeast(anchorHeightPx)
+            val minSpanW = anchorWidthPx
+            val minSpanH = anchorHeightPx
+            val mergedW = (curR - curL + dR - dL).coerceAtLeast(minSpanW)
+            val mergedH = (curB - curT + dB - dT).coerceAtLeast(minSpanH)
             finalL = clampMorphStart(curL + dL, mergedW, w, patchMargin)
             finalR = finalL + mergedW
             finalT = clampMorphStart(curT + dT, mergedH, h, patchMargin)
@@ -1567,18 +1700,19 @@ public class WitLiquidGlassMenu private constructor(
             finalB = curB
         }
 
-        // Corner radius: stays plump full-capsule/stadium through p=0.50, then crisp-relaxes to endRadiusPx.
+        // Corner radius: smoothly relaxes from full-capsule to endRadiusPx without sharp inflection.
         val finalW = finalR - finalL
         val finalH = finalB - finalT
         val capsuleR = minOf(finalW, finalH) * 0.5f
-        val relax = smoothstep(0.50f, 0.78f, p)
-        val bodyR = lerp(capsuleR, minOf(endRadiusPx, capsuleR), relax)
+        val relax = smootherstep(0.35f, 0.85f, p)
+        val bodyR = lerp(capsuleR, minOf(endRadiusPx, capsuleR), relax).coerceAtLeast(0f)
 
         // Teardrop shoulder (uneven capsule pinned to upper belly so tail proportions stay height-invariant).
-        val tailWeight = 1f - smoothstep(0.26f, 0.54f, p)
+        // 点开与收回均保留连贯的水滴流线与融合颈部，避免收回时突变成矩形聚成一坨。
+        val tailWeight = 1f - smoothstep(0.20f, 0.60f, p)
         val bodyCx = (finalL + finalR) * 0.5f
         val bodyCy = (finalT + finalB) * 0.5f
-        if (tailWeight > 0.001f && p > 0.001f) {
+        if (tailWeight > 0.001f && p > 0.001f && finalW > 1f && finalH > 1f) {
             val bellyR = minOf(finalW, finalH) * 0.48f
             val bellyCx = bodyCx
             val bellyCy = if (expandingDown) finalT + bellyR * 1.04f else finalB - bellyR * 1.04f
@@ -1609,36 +1743,93 @@ public class WitLiquidGlassMenu private constructor(
             illumination = dragPress.coerceIn(0f, 1f) * dragCarry * DRAG_TOUCH_GLOW_STRENGTH,
         )
 
-        // Ramp readability tint swiftly so the droplet keeps rich glass contrast over bright artwork.
-        glass.tintColor = ColorUtils.blendARGB(startTint, targetTint, smoothstep(0f, 0.25f, p))
+        glass.alpha = 1f
 
-        glass.platterAlpha = computePlatterAlpha(p, isBorderlessAnchor)
-        glass.elevation = context.dpF(MENU_ELEVATION_DP) * computeElevationFraction(p, isBorderlessAnchor)
+        if (isBorderlessAnchor) {
+            if (isTransparentBackground) {
+                // 透明底（详情页 3 个点）：保持纯正毛玻璃材质，底色从透明凝聚水滴，随加权派生色自然涌出
+                glass.surfaceFillColor = null
+                val derivedTint = ColorUtils.setAlphaComponent(
+                    derivedPlatterColor,
+                    (Color.alpha(targetTint) * (if (isDark) 0.85f else 0.70f)).roundToInt().coerceIn(0, 255),
+                )
+                glass.tintColor = computeSurfaceFill(
+                    progress = p,
+                    startColor = Color.TRANSPARENT,
+                    derivedColor = derivedTint,
+                    targetColor = targetTint,
+                    isBorderless = true,
+                    closing = closing,
+                )
+                glass.platterAlpha = computeAnimAlpha(p, closing = closing, isBorderless = true)
+                glass.rimAlpha = computeRimAlpha(p, true)
+                glass.elevation = context.dpF(MENU_ELEVATION_DP) * computeElevationFraction(p, true)
+            } else {
+                glass.tintColor = Color.TRANSPARENT
+                glass.surfaceFillColor = computeSurfaceFill(
+                    progress = p,
+                    startColor = startPlatterColor,
+                    derivedColor = derivedPlatterColor,
+                    targetColor = targetPlatterColor,
+                    isBorderless = true,
+                    closing = closing,
+                )
+                glass.platterAlpha = 1f
+                glass.rimAlpha = computeRimAlpha(p, true)
+                glass.elevation = context.dpF(MENU_ELEVATION_DP) * computeElevationFraction(p, true)
+            }
+        } else {
+            // 标准/已有玻璃锚点浮动菜单模式
+            glass.surfaceFillColor = null
+            glass.tintColor = ColorUtils.blendARGB(startTint, targetTint, smoothstep(0f, 0.25f, p))
+            glass.platterAlpha = 1f
+            glass.rimAlpha = 1f
+            glass.elevation = context.dpF(MENU_ELEVATION_DP)
+        }
 
-        // Menu content tracks Body B's live center/size and pulls from Gaussian blur into crisp focus.
+        // Menu content tracks Body B's live center/size and emerges crisply.
         scrollView?.let { content ->
-            val sx = (finalW / w).coerceIn(0.32f, 1.12f)
-            val sy = (finalH / h).coerceIn(0.32f, 1.12f)
+            val minScale = if (closing) 0.16f else 0.32f
+            val sx = (finalW / w).coerceIn(minScale, 1.12f)
+            val sy = (finalH / h).coerceIn(minScale, 1.12f)
             val uni = minOf(sx, sy)
             content.scaleX = lerp(uni, sx, 0.25f)
             content.scaleY = lerp(uni, sy, 0.25f)
             content.translationX = bodyCx - w * 0.5f
             content.translationY = bodyCy - h * 0.5f
-            content.alpha = smoothstep(0.05f, 0.36f, p)
+            content.alpha = if (closing) smootherstep(0.18f, 0.55f, p) else smoothstep(0.08f, 0.35f, p)
 
-            val blurFactor = (1f - smoothstep(0.08f, 0.64f, p)).pow(1.6f)
-            setViewBlur(content, context.dpF(CONTENT_MAX_BLUR_DP) * blurFactor, isContent = true)
+            // 非无效果等级下，透明底与标准玻璃内容伴随水滴展开从高斯模糊逐渐锐化聚焦
+            if ((isTransparentBackground || !isBorderlessAnchor) && !isNoneQuality && Build.VERSION.SDK_INT >= 31) {
+                val blurFactor = (1f - smoothstep(0.08f, 0.64f, p)).pow(1.6f)
+                setViewBlur(content, context.dpF(CONTENT_MAX_BLUR_DP) * blurFactor, isContent = true)
+            } else {
+                setViewBlur(content, 0f, isContent = true)
+            }
         }
 
-        // Anchor icon dissolves with scale + Gaussian blur inside the top-right orb.
         echoIconView?.let { echo ->
-            val echoPhase = smoothstep(0f, 0.15f, p)
-            echo.alpha = 1f - echoPhase
-            val echoScale = lerp(1f, 0.62f, echoPhase)
-            echo.scaleX = echoScale
-            echo.scaleY = echoScale
-            val echoBlur = if (echoPhase in 0.01f..0.99f) context.dpF(ECHO_MAX_BLUR_DP) * echoPhase else 0f
-            setViewBlur(echo, echoBlur, isContent = false)
+            if (isBorderlessAnchor) {
+                // 实心顶栏按钮：保持 1:1 原寸不缩放畸变，变色期清晰停留拉开视觉差，拉伸时自然淡出
+                echo.scaleX = 1f
+                echo.scaleY = 1f
+                val fadeProg = if (p <= 0.12f) 0f else smoothstep(0.12f, 0.28f, p)
+                echo.alpha = (1f - fadeProg)
+                setViewBlur(echo, 0f, isContent = false)
+            } else {
+                // 详情页/玻璃模式：保持原有图标淡出与高斯模糊溶化
+                val echoPhase = smoothstep(0f, 0.15f, p)
+                echo.alpha = 1f - echoPhase
+                val echoScale = lerp(1f, 0.62f, echoPhase)
+                echo.scaleX = echoScale
+                echo.scaleY = echoScale
+                if (!isNoneQuality && Build.VERSION.SDK_INT >= 31) {
+                    val echoBlur = if (echoPhase in 0.01f..0.99f) context.dpF(ECHO_MAX_BLUR_DP) * echoPhase else 0f
+                    setViewBlur(echo, echoBlur, isContent = false)
+                } else {
+                    setViewBlur(echo, 0f, isContent = false)
+                }
+            }
         }
 
         scrimDrawable?.alpha = (maxScrimAlpha * smoothstep(0f, 0.55f, p)).roundToInt().coerceIn(0, 255)
@@ -1682,7 +1873,6 @@ public class WitLiquidGlassMenu private constructor(
                 clearHighlight(animated = false)
                 morphAnimator?.cancel()
                 backStartProgress = progress.coerceAtLeast(0.05f)
-                scrollView?.clipToOutline = false
             }
 
             override fun handleOnBackProgressed(backEvent: BackEventCompat) {
@@ -1745,12 +1935,10 @@ public class WitLiquidGlassMenu private constructor(
         hostLayoutListener?.let { host.removeOnLayoutChangeListener(it) }
         hostLayoutListener = null
 
-        scrollView?.let { setViewBlur(it, 0f, isContent = true) }
-        echoIconView?.let { setViewBlur(it, 0f, isContent = false) }
-
         val glass = menuGlass
         if (glass != null) {
             detachListener?.let { glass.removeOnAttachStateChangeListener(it) }
+            glass.visibility = View.GONE
             glass.translationX = 0f
             glass.translationY = 0f
             glass.clearMorphFrame()
@@ -1763,12 +1951,17 @@ public class WitLiquidGlassMenu private constructor(
         if (scrim != null && scrim.parent === host) {
             host.removeView(scrim)
         }
+        if (host.tag == "WitLiquidGlassOverlayHost" && host.childCount == 0) {
+            (host.parent as? ViewGroup)?.removeView(host)
+        }
         scrimView = null
         scrimDrawable = null
+        scrollView?.let { setViewBlur(it, 0f, isContent = true) }
         scrollView = null
         rowsListView = null
         highlightPill = null
         highlightedRow = null
+        echoIconView?.let { setViewBlur(it, 0f, isContent = false) }
         echoIconView = null
         firstFocusableRow = null
         toggles.clear()
@@ -1806,7 +1999,7 @@ public class WitLiquidGlassMenu private constructor(
         private const val MENU_ELEVATION_DP = 18f
 
         private const val OPEN_DURATION_MS = 400L
-        private const val CLOSE_DURATION_MS = 300L
+        private const val CLOSE_DURATION_MS = 360L
         private const val MAX_TOP_SAG_DP = 34f
         private const val MAX_WIDTH_OVERSHOOT_DP = 8f
         private const val MAX_HEIGHT_OVERSHOOT_DP = 10f
@@ -1842,6 +2035,51 @@ public class WitLiquidGlassMenu private constructor(
             val bottom: Float,
             val cornerRadius: Float,
         )
+
+        /**
+         * Opens a Liquid Glass morphing menu anchored to [anchor].
+         * Automatically locates an existing [WitLiquidGlassLayout] in ancestry or attaches a lightweight
+         * full-screen overlay host to the parent Activity's window content.
+         */
+        public fun show(
+            anchor: View,
+            block: Builder.() -> Unit,
+        ): WitLiquidGlassMenu? {
+            val host = findOrCreateHost(anchor) ?: return null
+            return show(host, anchor, block)
+        }
+
+        private fun findOrCreateHost(anchor: View): WitLiquidGlassLayout? {
+            var cur: ViewParent? = anchor.parent
+            while (cur != null) {
+                if (cur is WitLiquidGlassLayout) return cur
+                cur = cur.parent
+            }
+
+            val activity = findActivity(anchor.context) ?: return null
+            val content = activity.findViewById<ViewGroup>(android.R.id.content) ?: return null
+            var host = content.findViewWithTag<WitLiquidGlassLayout>("WitLiquidGlassOverlayHost")
+            if (host == null) {
+                host = WitLiquidGlassLayout(activity).apply {
+                    tag = "WitLiquidGlassOverlayHost"
+                }
+                content.addView(
+                    host,
+                    ViewGroup.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                    ),
+                )
+                if (content.width > 0 && content.height > 0 && host.width <= 0) {
+                    host.measure(
+                        View.MeasureSpec.makeMeasureSpec(content.width, View.MeasureSpec.EXACTLY),
+                        View.MeasureSpec.makeMeasureSpec(content.height, View.MeasureSpec.EXACTLY),
+                    )
+                    host.layout(0, 0, content.width, content.height)
+                }
+            }
+            return host
+        }
 
         /**
          * Opens a Liquid Glass morphing menu from [anchor] inside [host].
@@ -1931,15 +2169,124 @@ public class WitLiquidGlassMenu private constructor(
         private fun lerp(start: Float, end: Float, fraction: Float): Float =
             start + (end - start) * fraction
 
+        internal fun findActivity(context: Context): Activity? {
+            var ctx: Context? = context
+            while (ctx is ContextWrapper) {
+                if (ctx is Activity) return ctx
+                ctx = ctx.baseContext
+            }
+            return null
+        }
+
+        internal fun computeWeightedDerivedStartColor(
+            palette: V3Palette,
+            isDark: Boolean,
+        ): Int {
+            val derivedBase = if (isDark == palette.isDark) palette.cardFill else V3Palette(palette.primary, isDark).cardFill
+            val primary = palette.primary
+            // 主题派生色在当前日/夜模式下的加权微调：
+            // 夜间微调：融入 70% 主题色光感，形成深邃晶莹的夜色水滴质感，与顶栏拉开反差；
+            // 日间微调：融入 80% 主题色光感，形成清透水润的日间液滴质感。
+            val weight = if (isDark) 0.70f else 0.80f
+            return blendColors(derivedBase, primary, weight)
+        }
+
+        internal fun computeSurfaceFill(
+            progress: Float,
+            startColor: Int,
+            derivedColor: Int,
+            targetColor: Int,
+            isBorderless: Boolean,
+            closing: Boolean = false,
+        ): Int {
+            if (!isBorderless) return targetColor
+            val p = progress.coerceIn(0f, 1f)
+            return if (!closing) {
+                // 展开：前 12% 迅速变化为主题派生色在当前模式下的加权微调色（快速与底色拉开视觉差），随后 C² 连续过渡到目标卡片色
+                if (p <= 0.12f) {
+                    val f1 = smoothstep(0f, 0.12f, p)
+                    blendColors(startColor, derivedColor, f1)
+                } else {
+                    val f2 = smootherstep(0.12f, 0.85f, p)
+                    blendColors(derivedColor, targetColor, f2)
+                }
+            } else {
+                // 收回：从目标卡片色平滑回到主题派生色在当前模式下的加权微调色；最后一点点（0..0.22f）平缓减速缓慢消融回 Toolbar 原色
+                if (p > 0.22f) {
+                    val f2 = smootherstep(0.22f, 0.88f, p)
+                    blendColors(derivedColor, targetColor, f2)
+                } else {
+                    val u = (p / 0.22f).coerceIn(0f, 1f)
+                    val slowFactor = u * u // 缓入零点，最后一段极尽缓慢柔和
+                    blendColors(startColor, derivedColor, slowFactor)
+                }
+            }
+        }
+
+        internal fun computeSurfaceFill(
+            progress: Float,
+            startColor: Int,
+            targetColor: Int,
+            isBorderless: Boolean,
+        ): Int =
+            if (isBorderless) {
+                val factor = smootherstep(0.06f, 0.88f, progress.coerceIn(0f, 1f))
+                blendColors(startColor, targetColor, factor)
+            } else {
+                targetColor
+            }
+
+        internal fun blendColors(color1: Int, color2: Int, ratio: Float): Int {
+            val f = ratio.coerceIn(0f, 1f)
+            val inv = 1f - f
+            val a = (((color1 ushr 24) and 0xFF) * inv + ((color2 ushr 24) and 0xFF) * f).roundToInt().coerceIn(0, 255)
+            val r1 = (color1 ushr 16) and 0xFF
+            val g1 = (color1 ushr 8) and 0xFF
+            val b1 = color1 and 0xFF
+            val r2 = (color2 ushr 16) and 0xFF
+            val g2 = (color2 ushr 8) and 0xFF
+            val b2 = color2 and 0xFF
+            val r = kotlin.math.sqrt(inv * r1 * r1 + f * r2 * r2).roundToInt().coerceIn(0, 255)
+            val g = kotlin.math.sqrt(inv * g1 * g1 + f * g2 * g2).roundToInt().coerceIn(0, 255)
+            val b = kotlin.math.sqrt(inv * b1 * b1 + f * b2 * b2).roundToInt().coerceIn(0, 255)
+            return (a shl 24) or (r shl 16) or (g shl 8) or b
+        }
+
+        internal fun computeRimAlpha(progress: Float, isBorderless: Boolean): Float =
+            if (isBorderless) smootherstep(0.08f, 0.84f, progress.coerceIn(0f, 1f)) else 1f
+
         internal fun computePlatterAlpha(progress: Float, isBorderless: Boolean): Float =
-            if (isBorderless) smoothstep(0f, 0.28f, progress.coerceIn(0f, 1f)) else 1f
+            1f
 
         internal fun computeElevationFraction(progress: Float, isBorderless: Boolean): Float =
-            if (isBorderless) smoothstep(0.06f, 0.38f, progress.coerceIn(0f, 1f)) else 1f
+            if (isBorderless) smootherstep(0.12f, 0.82f, progress.coerceIn(0f, 1f)) else 1f
 
-        private fun smoothstep(edge0: Float, edge1: Float, value: Float): Float {
+        internal fun computeCloseShrink(progress: Float, closing: Boolean, isBorderless: Boolean): Float =
+            if (closing && isBorderless) smootherstep(0f, 0.16f, progress.coerceIn(0f, 1f)) else 1f
+
+        internal fun computeAnimAlpha(progress: Float, closing: Boolean, isBorderless: Boolean): Float =
+            when {
+                closing && isBorderless -> smootherstep(0f, 0.12f, progress.coerceIn(0f, 1f))
+                !closing && isBorderless -> smootherstep(0f, 0.06f, progress.coerceIn(0f, 1f))
+                else -> 1f
+            }
+
+        internal fun computeCenterProgress(progress: Float, closing: Boolean = false): Float =
+            if (closing) {
+                // 收回时保持同展开对称的斜向流体收敛轨迹，避免过早锁死在按钮下方聚成一坨
+                smootherstep(0.04f, 0.70f, progress.coerceIn(0f, 1f))
+            } else {
+                smoothstep(0f, 0.45f, progress.coerceIn(0f, 1f))
+            }
+
+        internal fun smoothstep(edge0: Float, edge1: Float, value: Float): Float {
             val t = ((value - edge0) / (edge1 - edge0)).coerceIn(0f, 1f)
             return t * t * (3f - 2f * t)
+        }
+
+        internal fun smootherstep(edge0: Float, edge1: Float, value: Float): Float {
+            val t = ((value - edge0) / (edge1 - edge0)).coerceIn(0f, 1f)
+            return t * t * t * (t * (t * 6f - 15f) + 10f)
         }
     }
 }

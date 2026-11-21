@@ -379,6 +379,9 @@ internal class ArtworkV3Actions(
             var created: WitLiquidGlassMenu? = null
             created = WitLiquidGlassMenu.show(glassHost, anchor) {
                 this.tone = tone
+                this.borderless = true
+                this.transparentBackground = true
+                this.anchorIconRes = ceui.pixiv.witstudio.R.drawable.wit_ic_more_vert
                 onDismiss = {
                     if (activeMoreMenu === created) activeMoreMenu = null
                 }

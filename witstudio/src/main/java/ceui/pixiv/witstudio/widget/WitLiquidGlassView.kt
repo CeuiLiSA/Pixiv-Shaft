@@ -154,6 +154,28 @@ public class WitLiquidGlassView @JvmOverloads public constructor(
             invalidate()
         }
 
+    /**
+     * Optional explicit surface base fill color. When non-null, overrides [V3Palette.cardFill].
+     * Used for smooth dynamic color transitions from toolbar background to floating card panel.
+     */
+    @get:ColorInt
+    @setparam:ColorInt
+    internal var surfaceFillColor: Int? = null
+        set(value) {
+            if (field == value) return
+            field = value
+            resolveBaseFill()
+        }
+
+    internal var rimAlpha: Float = 1f
+        set(value) {
+            val clamped = value.coerceIn(0f, 1f)
+            if (field == clamped) return
+            field = clamped
+            materialPaint.rimAlpha = clamped
+            invalidate()
+        }
+
     private var morphActive = false
     private var morphLeft = 0f
     private var morphTop = 0f
@@ -368,7 +390,8 @@ public class WitLiquidGlassView @JvmOverloads public constructor(
 
     private fun resolveBaseFill() {
         val dark = isDark
-        baseFill = if (dark == palette.isDark) palette.cardFill else V3Palette(palette.primary, dark).cardFill
+        val normalFill = if (dark == palette.isDark) palette.cardFill else V3Palette(palette.primary, dark).cardFill
+        baseFill = surfaceFillColor ?: normalFill
         invalidateMaterial()
     }
 
@@ -394,6 +417,7 @@ public class WitLiquidGlassView @JvmOverloads public constructor(
             radius
         }
         val activeTail = if (morphActive && morphTail.active) morphTail else null
+        materialPaint.rimAlpha = rimAlpha
         if (materialDirty) {
             materialPaint.update(w, h, scale, baseFill, tintColor, dark, clear, clearDimming)
             materialDirty = false
@@ -464,6 +488,9 @@ public class WitLiquidGlassView @JvmOverloads public constructor(
             morphLeft, morphTop, morphRight, morphBottom,
             rad, if (morphTail.active) morphTail else null,
         )
+        if (morphClipPath.isEmpty) {
+            morphClipPath.addRoundRect(morphLeft, morphTop, morphRight, morphBottom, rad, rad, Path.Direction.CW)
+        }
         canvas.withClip(morphClipPath) {
             super.dispatchDraw(this)
         }

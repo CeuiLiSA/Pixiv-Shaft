@@ -78,37 +78,51 @@ internal fun buildLiquidGlassMorphPath(
     val dist = hypot(dx, dy)
     val r1 = tail.tipRadius
     val r2 = tail.bellyRadius
-    if (dist <= 0.5f || dist <= abs(r1 - r2) + 0.5f) {
-        scratchPath.rewind()
-        scratchPath.addCircle(tail.tipX, tail.tipY, r1, Path.Direction.CW)
-        outPath.op(scratchPath, Path.Op.UNION)
-        return
-    }
-
-    val theta = atan2(dy, dx)
-    val beta = acos(((r1 - r2) / dist).coerceIn(-0.999f, 0.999f))
-    val a1Start = theta - beta
-    val a1End = theta + beta
-    val sweep1Deg = ((2.0 * PI - 2.0 * beta) * 180.0 / PI).toFloat()
-    val start1Deg = (a1End * 180.0 / PI).toFloat()
-    val sweep2Deg = (2.0 * beta * 180.0 / PI).toFloat()
-    val start2Deg = (a1Start * 180.0 / PI).toFloat()
+    if (r1 <= 0.5f && r2 <= 0.5f) return
 
     scratchPath.rewind()
-    scratchPath.moveTo(
-        tail.tipX + r1 * cos(a1End).toFloat(),
-        tail.tipY + r1 * sin(a1End).toFloat(),
-    )
-    arcRect.set(tail.tipX - r1, tail.tipY - r1, tail.tipX + r1, tail.tipY + r1)
-    scratchPath.arcTo(arcRect, start1Deg, sweep1Deg, false)
-    scratchPath.lineTo(
-        tail.bellyX + r2 * cos(a1Start).toFloat(),
-        tail.bellyY + r2 * sin(a1Start).toFloat(),
-    )
-    arcRect.set(tail.bellyX - r2, tail.bellyY - r2, tail.bellyX + r2, tail.bellyY + r2)
-    scratchPath.arcTo(arcRect, start2Deg, sweep2Deg, false)
-    scratchPath.close()
-    outPath.op(scratchPath, Path.Op.UNION)
+    if (dist <= 0.5f || dist <= abs(r1 - r2) + 0.5f) {
+        if (r1 > 0.5f) {
+            scratchPath.addCircle(tail.tipX, tail.tipY, r1, Path.Direction.CW)
+        }
+        if (r2 > 0.5f) {
+            scratchPath.addCircle(tail.bellyX, tail.bellyY, r2, Path.Direction.CW)
+        }
+    } else {
+        val theta = atan2(dy, dx)
+        val beta = acos(((r1 - r2) / dist).coerceIn(-0.999f, 0.999f))
+        val a1Start = theta - beta
+        val a1End = theta + beta
+        val sweep1Deg = ((2.0 * PI - 2.0 * beta) * 180.0 / PI).toFloat()
+        val start1Deg = (a1End * 180.0 / PI).toFloat()
+        val sweep2Deg = (2.0 * beta * 180.0 / PI).toFloat()
+        val start2Deg = (a1Start * 180.0 / PI).toFloat()
+
+        scratchPath.moveTo(
+            tail.tipX + r1 * cos(a1End).toFloat(),
+            tail.tipY + r1 * sin(a1End).toFloat(),
+        )
+        arcRect.set(tail.tipX - r1, tail.tipY - r1, tail.tipX + r1, tail.tipY + r1)
+        scratchPath.arcTo(arcRect, start1Deg, sweep1Deg, false)
+        scratchPath.lineTo(
+            tail.bellyX + r2 * cos(a1Start).toFloat(),
+            tail.bellyY + r2 * sin(a1Start).toFloat(),
+        )
+        arcRect.set(tail.bellyX - r2, tail.bellyY - r2, tail.bellyX + r2, tail.bellyY + r2)
+        scratchPath.arcTo(arcRect, start2Deg, sweep2Deg, false)
+        scratchPath.close()
+    }
+
+    val opSuccess = try {
+        outPath.op(scratchPath, Path.Op.UNION)
+    } catch (_: Throwable) {
+        false
+    }
+    if (!opSuccess || outPath.isEmpty) {
+        outPath.rewind()
+        outPath.addRoundRect(left, top, right, bottom, rad, rad, Path.Direction.CW)
+        outPath.addPath(scratchPath)
+    }
 }
 
 @RequiresApi(31)
@@ -273,6 +287,7 @@ internal class WitLiquidGlassPaint {
     private var fallbackFill = Color.TRANSPARENT
     private var blurWash = Color.TRANSPARENT
     private var rim: LinearGradient? = null
+    internal var rimAlpha: Float = 1f
 
     internal fun update(
         width: Int, height: Int, density: Float, base: Int, tint: Int,
@@ -374,7 +389,7 @@ internal class WitLiquidGlassPaint {
         drawSurface(canvas, blurWash, press)
     }
 
-    /** 绘制 100% 纯实色表面（对应等级“无”）：无半透明、无反光描边、无弹性拉伸与光晕。 */
+    /** 绘制纯实色表面：支持动态 baseFill、受控 rimAlpha 反光描边与流体形变。 */
     internal fun drawSolid(
         canvas: Canvas,
         left: Float, top: Float, right: Float, bottom: Float, cornerRadius: Float,
@@ -383,33 +398,57 @@ internal class WitLiquidGlassPaint {
         updateDeformation(left, top, right, bottom, cornerRadius, 0f, 0f, 0f, tail)
         if (deformedBounds.width() <= 0f || deformedBounds.height() <= 0f) return
         paint.color = solidFill
-        if (hasMorphTail) {
+        canvas.drawRoundRect(deformedBounds, deformedRadius, deformedRadius, paint)
+        if (hasMorphTail && !clip.isEmpty) {
             canvas.drawPath(clip, paint)
-        } else {
-            canvas.drawRoundRect(deformedBounds, deformedRadius, deformedRadius, paint)
+        }
+        val rimShader = rim
+        val effectiveRimAlpha = rimAlpha.coerceIn(0f, 1f)
+        if (rimShader != null && effectiveRimAlpha > 0.001f && deformedBounds.width() > rimWidth && deformedBounds.height() > rimWidth) {
+            paint.color = Color.WHITE
+            paint.alpha = (effectiveRimAlpha * 255f).toInt().coerceIn(0, 255)
+            paint.shader = rimShader
+            paint.style = Paint.Style.STROKE
+            paint.strokeWidth = rimWidth
+            if (hasMorphTail && !clip.isEmpty) {
+                canvas.withClip(clip) {
+                    drawPath(clip, paint)
+                }
+            } else {
+                val halfStroke = rimWidth / 2f
+                val rimRadius = (deformedRadius - halfStroke).coerceAtLeast(0f)
+                canvas.drawRoundRect(
+                    deformedBounds.left + halfStroke, deformedBounds.top + halfStroke,
+                    deformedBounds.right - halfStroke, deformedBounds.bottom - halfStroke,
+                    rimRadius, rimRadius, paint,
+                )
+            }
+            paint.style = Paint.Style.FILL
+            paint.shader = null
+            paint.alpha = 255
         }
     }
 
     private fun drawSurface(canvas: Canvas, fill: Int, press: Float) {
         if (deformedBounds.width() <= 0f || deformedBounds.height() <= 0f) return
         paint.color = fill
-        if (hasMorphTail) {
+        canvas.drawRoundRect(deformedBounds, deformedRadius, deformedRadius, paint)
+        if (hasMorphTail && !clip.isEmpty) {
             canvas.drawPath(clip, paint)
-        } else {
-            canvas.drawRoundRect(deformedBounds, deformedRadius, deformedRadius, paint)
         }
         if (press > 0f) {
             paint.shader = light
             paint.alpha = (press * 180f).toInt()
-            if (hasMorphTail) {
+            canvas.drawRoundRect(deformedBounds, deformedRadius, deformedRadius, paint)
+            if (hasMorphTail && !clip.isEmpty) {
                 canvas.drawPath(clip, paint)
-            } else {
-                canvas.drawRoundRect(deformedBounds, deformedRadius, deformedRadius, paint)
             }
         }
         val rimShader = rim
-        if (rimShader != null && deformedBounds.width() > rimWidth && deformedBounds.height() > rimWidth) {
+        val effectiveRimAlpha = rimAlpha.coerceIn(0f, 1f)
+        if (rimShader != null && effectiveRimAlpha > 0.001f && deformedBounds.width() > rimWidth && deformedBounds.height() > rimWidth) {
             paint.color = Color.WHITE
+            paint.alpha = (effectiveRimAlpha * 255f).toInt().coerceIn(0, 255)
             paint.shader = rimShader
             paint.style = Paint.Style.STROKE
             paint.strokeWidth = rimWidth
@@ -429,5 +468,6 @@ internal class WitLiquidGlassPaint {
             paint.style = Paint.Style.FILL
         }
         paint.shader = null
+        paint.alpha = 255
     }
 }
