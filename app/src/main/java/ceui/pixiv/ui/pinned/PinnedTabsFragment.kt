@@ -8,7 +8,8 @@ import ceui.lisa.R
 import ceui.lisa.databinding.ViewpagerWithTablayoutBinding
 import ceui.lisa.utils.Common
 import ceui.pixiv.ui.common.viewBinding
-import ceui.pixiv.ui.detail.showV3Menu
+import android.graphics.Color
+import ceui.pixiv.witstudio.widget.WitLiquidGlassMenu
 
 /**
  * 「侧边栏 → 我置顶的内容」入口页。
@@ -32,9 +33,13 @@ class PinnedTabsFragment : Fragment(R.layout.viewpager_with_tablayout) {
         binding.toolbarTitle.text = getString(R.string.pinned_content)
         binding.toolbar.setNavigationOnClickListener { activity?.finish() }
         binding.toolbar.inflateMenu(R.menu.pinned_content)
+        binding.toolbar.menu.findItem(R.id.action_more)?.let { item ->
+            item.icon = item.icon?.mutate()?.also { it.setTint(Color.WHITE) }
+        }
         binding.toolbar.setOnMenuItemClickListener { item ->
             if (item.itemId == R.id.action_more) {
-                showActionMenu()
+                val anchor = binding.toolbar.findViewById<View>(R.id.action_more) ?: binding.toolbar
+                showActionMenu(anchor)
                 true
             } else {
                 false
@@ -55,9 +60,13 @@ class PinnedTabsFragment : Fragment(R.layout.viewpager_with_tablayout) {
         binding.tabLayout.setupWithViewPager(binding.viewPager)
     }
 
-    private fun showActionMenu() {
+    private fun showActionMenu(anchor: View) {
         val position = binding.viewPager.currentItem
-        showV3Menu("PinnedTabsMenu") {
+        val primary = Common.resolveThemeAttribute(requireContext(), androidx.appcompat.R.attr.colorPrimary)
+        WitLiquidGlassMenu.show(anchor) {
+            borderless = true
+            startPlatterColor = primary
+            anchorIconRes = ceui.pixiv.witstudio.R.drawable.wit_ic_more_vert
             item(getString(R.string.clear), R.drawable.ic_not_interested_black_24dp) {
                 clearCurrentTab(position)
             }

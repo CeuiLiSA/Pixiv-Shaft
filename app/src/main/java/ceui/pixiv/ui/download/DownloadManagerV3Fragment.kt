@@ -34,6 +34,7 @@ import ceui.lisa.core.ManagerReactive
 import ceui.lisa.utils.Common
 import ceui.pixiv.ui.bulk.QueueDownloadManager
 import ceui.pixiv.ui.common.tintMenuIconsWhite
+import ceui.pixiv.witstudio.widget.WitLiquidGlassMenu
 import com.blankj.utilcode.util.BarUtils
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
@@ -162,7 +163,7 @@ class DownloadManagerV3Fragment : Fragment() {
         val exportItem = toolbar.menu.findItem(R.id.action_export)
         val pauseToggleItem = toolbar.menu.findItem(R.id.action_pause_toggle)
         val searchItem = toolbar.menu.findItem(R.id.action_search)
-        val importItem = toolbar.menu.findItem(R.id.action_import)
+        val moreItem = toolbar.menu.findItem(R.id.action_more)
 
         // 工具栏右侧按钮的动作 —— 图标与点击共用同一个现算值（口径 + 单测见 ActiveToolbarAction.kt /
         // ActivePauseToggle.kt）：只剩失败项时是「重试失败」，否则按 shouldResumeAll 定暂停 / 继续。
@@ -208,8 +209,17 @@ class DownloadManagerV3Fragment : Fragment() {
                 }
                 // issue #953:扫描用户授权的目录，把旧版下载但新版认不出来的图片
                 // 补成下载记录。全程只读所选目录、不改不删文件,写库也只增不覆盖。
-                R.id.action_import -> {
-                    importFlow.start { intent -> launchImportPicker(intent) }
+                R.id.action_more -> {
+                    val anchor = toolbar.findViewById<View>(R.id.action_more) ?: toolbar
+                    val primary = Common.resolveThemeAttribute(requireContext(), androidx.appcompat.R.attr.colorPrimary)
+                    WitLiquidGlassMenu.show(anchor) {
+                        borderless = true
+                        startPlatterColor = primary
+                        anchorIconRes = ceui.pixiv.witstudio.R.drawable.wit_ic_more_vert
+                        item(getString(R.string.dlmgr_import_title)) {
+                            importFlow.start { intent -> launchImportPicker(intent) }
+                        }
+                    }
                     true
                 }
 
@@ -220,7 +230,7 @@ class DownloadManagerV3Fragment : Fragment() {
             exportItem?.isVisible = pos == 0 || pos == 2
             pauseToggleItem?.isVisible = pos == 1
             searchItem?.isVisible = pos == 2
-            importItem?.isVisible = pos == 2
+            moreItem?.isVisible = pos == 2
             // tab 切走时强制收起搜索框 + 清空 query，避免被遗留的 isIconified=false
             // 在其它 tab 出现时夹带一份过滤态。
             if (pos != 2 && searchItem?.isActionViewExpanded == true) {

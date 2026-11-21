@@ -976,10 +976,18 @@ public class WitLiquidGlassMenu private constructor(
             addListener(object : AnimatorListenerAdapter() {
                 override fun onAnimationCancel(animation: Animator) {
                     canceled = true
+                    if (closing || target <= 0f) {
+                        finishAndCleanup()
+                    }
                 }
 
                 override fun onAnimationEnd(animation: Animator) {
-                    if (canceled || state == State.FINISHED) return
+                    if (canceled || state == State.FINISHED) {
+                        if (closing || target <= 0f) {
+                            finishAndCleanup()
+                        }
+                        return
+                    }
                     if (target <= 0f) {
                         applyProgress(0f, closing = true)
                         finishAndCleanup()
@@ -1054,6 +1062,14 @@ public class WitLiquidGlassMenu private constructor(
             private var lastLocalX = 0f
             private var lastLocalY = 0f
             private var overscrollY = 0f
+            private var lastDownEvent: MotionEvent? = null
+            private val scrubActivateRunnable = Runnable {
+                if (dragMode == DragMode.UNDECIDED && highlightedRow != null) {
+                    dragMode = DragMode.SCRUB
+                    performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+                    lastDownEvent?.let { sendCancelToSuper(it) }
+                }
+            }
 
             override fun onInterceptTouchEvent(ev: MotionEvent): Boolean {
                 val intercepted = super.onInterceptTouchEvent(ev)
@@ -1104,6 +1120,12 @@ public class WitLiquidGlassMenu private constructor(
                             onMenuFingerDown(downX, downY, ev.x, ev.y, highlightRow = false)
                         } else {
                             onMenuFingerDown(downX, downY, ev.x, ev.y, highlightRow = true)
+                            if (canScroll) {
+                                lastDownEvent?.recycle()
+                                lastDownEvent = MotionEvent.obtain(ev)
+                                removeCallbacks(scrubActivateRunnable)
+                                postDelayed(scrubActivateRunnable, 200L)
+                            }
                         }
                         return true
                     }
@@ -1140,6 +1162,7 @@ public class WitLiquidGlassMenu private constructor(
                         val canScroll = maxScroll > 0
 
                         if (dragMode == DragMode.UNDECIDED && hypot(dx, dy) > touchSlop) {
+                            removeCallbacks(scrubActivateRunnable)
                             if (!canScroll) {
                                 dragMode = DragMode.SCRUB
                             } else if (abs(dx) > abs(dy) * 1.15f) {
@@ -1160,6 +1183,18 @@ public class WitLiquidGlassMenu private constructor(
                             }
                             DragMode.SCRUB -> {
                                 updateTouchHighlight(lx, ly, playHaptic = true)
+                                if (canScroll) {
+                                    val edgePad = context.dpF(36f)
+                                    if (ly < edgePad && scrollY > 0) {
+                                        val speed = ((edgePad - ly) / edgePad).coerceIn(0.2f, 1f)
+                                        val step = (context.dpF(6f) * speed).toInt().coerceAtLeast(1)
+                                        scrollBy(0, -step)
+                                    } else if (ly > height - edgePad && scrollY < maxScroll) {
+                                        val speed = ((ly - (height - edgePad)) / edgePad).coerceIn(0.2f, 1f)
+                                        val step = (context.dpF(6f) * speed).toInt().coerceAtLeast(1)
+                                        scrollBy(0, step)
+                                    }
+                                }
                                 val effX = dx * 0.95f + overX * 0.65f
                                 val effY = dy * 0.42f + overY * 1.15f
                                 updateDragTargets(gx, gy, effX, effY)
@@ -1228,6 +1263,9 @@ public class WitLiquidGlassMenu private constructor(
                     }
 
                     MotionEvent.ACTION_UP -> {
+                        removeCallbacks(scrubActivateRunnable)
+                        lastDownEvent?.recycle()
+                        lastDownEvent = null
                         if (passThroughToSwitch) {
                             passThroughToSwitch = false
                             activePointerId = MotionEvent.INVALID_POINTER_ID
@@ -1261,6 +1299,9 @@ public class WitLiquidGlassMenu private constructor(
                     }
 
                     MotionEvent.ACTION_CANCEL -> {
+                        removeCallbacks(scrubActivateRunnable)
+                        lastDownEvent?.recycle()
+                        lastDownEvent = null
                         val wasSwitch = passThroughToSwitch
                         passThroughToSwitch = false
                         activePointerId = MotionEvent.INVALID_POINTER_ID

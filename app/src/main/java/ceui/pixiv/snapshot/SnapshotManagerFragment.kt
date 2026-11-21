@@ -28,6 +28,7 @@ import ceui.pixiv.ui.navigation.TemplateRoute
 import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
+import ceui.pixiv.witstudio.widget.WitLiquidGlassMenu
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -127,8 +128,17 @@ class SnapshotManagerFragment : Fragment() {
                     importLauncher.launch(arrayOf("application/zip", "application/octet-stream"))
                     true
                 }
-                R.id.action_snapshot_backfill -> {
-                    openBackfill()
+                R.id.action_more -> {
+                    val anchor = binding.toolbar.findViewById<View>(R.id.action_more) ?: binding.toolbar
+                    val primary = Common.resolveThemeAttribute(requireContext(), androidx.appcompat.R.attr.colorPrimary)
+                    WitLiquidGlassMenu.show(anchor) {
+                        borderless = true
+                        startPlatterColor = primary
+                        anchorIconRes = ceui.pixiv.witstudio.R.drawable.wit_ic_more_vert
+                        item(getString(R.string.snapshot_backfill_title)) {
+                            openBackfill()
+                        }
+                    }
                     true
                 }
                 R.id.action_batch_export -> {

@@ -1,7 +1,11 @@
 package ceui.pixiv.ui.library
 
 import android.content.Intent
+import android.graphics.Color
 import android.text.Editable
+import android.view.MenuItem
+import ceui.lisa.utils.Common
+import ceui.pixiv.witstudio.widget.WitLiquidGlassMenu
 import android.text.TextWatcher
 import android.view.View
 import android.view.ViewGroup
@@ -263,36 +267,44 @@ internal class BookmarkLibraryUi(
     }
 
     private fun setUpMenu() {
-        // 「原始收藏列表」是留给「我要看服务端原本的样子」的退路：本页展示的是本地镜像
-        //（顺序是本地重排的，内容取的是镜像时冻结的快照）。公开/私人本页已经能直接切，
-        // 所以这条退路只为「原序 + 最新」这两点存在。
-        binding.toolbar.menu.add(0, MENU_CLASSIC, 0, profile.openClassic)
-        binding.toolbar.menu.add(0, MENU_REBUILD, 1, R.string.bookmark_library_rebuild)
-        if (contentType == MirrorContentType.ILLUST) {
-            binding.toolbar.menu.add(0, MENU_ARTLISTS, 2, R.string.artlist_mine_title)
-        }
-        if (contentType == MirrorContentType.USER) {
-            binding.toolbar.menu.add(0, MENU_EXPORT, 2, R.string.following_export_menu)
-        }
+        binding.toolbar.menu.clear()
+        val moreItem = binding.toolbar.menu.add(0, R.id.action_more, 100, R.string.more_actions)
+        moreItem.setIcon(ceui.pixiv.witstudio.R.drawable.wit_ic_more_vert)
+        moreItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
+        moreItem.icon = moreItem.icon?.mutate()?.also { it.setTint(Color.WHITE) }
+
         binding.toolbar.setOnMenuItemClickListener { item ->
-            when (item.itemId) {
-                MENU_ARTLISTS -> {
+            if (item.itemId == R.id.action_more) {
+                val anchor = binding.toolbar.findViewById<View>(R.id.action_more) ?: binding.toolbar
+                showLibraryMoreMenu(anchor)
+                true
+            } else {
+                false
+            }
+        }
+    }
+
+    private fun showLibraryMoreMenu(anchor: View) {
+        val primary = Common.resolveThemeAttribute(context, androidx.appcompat.R.attr.colorPrimary)
+        WitLiquidGlassMenu.show(anchor) {
+            borderless = true
+            startPlatterColor = primary
+            anchorIconRes = ceui.pixiv.witstudio.R.drawable.wit_ic_more_vert
+            item(context.getString(profile.openClassic), R.drawable.ic_history_black_24dp) {
+                openClassicCollection()
+            }
+            item(context.getString(R.string.bookmark_library_rebuild), R.drawable.ic_fix_black_24dp) {
+                rebuildMirror()
+            }
+            if (contentType == MirrorContentType.ILLUST) {
+                item(context.getString(R.string.artlist_mine_title), R.drawable.ic_collections_black_24dp) {
                     ceui.pixiv.ui.artlist.ArtlistNavigation.mine(context)
-                    true
                 }
-                MENU_CLASSIC -> {
-                    openClassicCollection()
-                    true
-                }
-                MENU_REBUILD -> {
-                    rebuildMirror()
-                    true
-                }
-                MENU_EXPORT -> {
+            }
+            if (contentType == MirrorContentType.USER) {
+                item(context.getString(R.string.following_export_menu), R.drawable.ic_v3_export_24) {
                     FollowingExportSheet.show(fragment, viewModel)
-                    true
                 }
-                else -> false
             }
         }
     }
