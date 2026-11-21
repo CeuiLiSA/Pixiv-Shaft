@@ -1213,21 +1213,27 @@ public class WitLiquidGlassMenu private constructor(
             FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT),
         )
 
-        // 父菜单拦截层：点击退避的父菜单任意位置，收回子菜单
+        // 父菜单拦截与退避弱化层（对齐 chen08209/prism_ui 的 dim: colorScheme.surface.withValues(alpha: 0.2)）：
+        // 父菜单卡片整体不透明度保持 1.0f（绝不降低 alpha 透出底层背景），仅覆盖一层微弱的 surface 蒙层弱化内容，
+        // 同时拦截退避父菜单的任意点击，用于收回子菜单。
+        val surfaceColor = if (isDark) Color.BLACK else Color.WHITE
+        val dimColor = ColorUtils.setAlphaComponent(
+            surfaceColor,
+            (255 * 0.20f).roundToInt(),
+        )
         val recedeOverlay = View(context).apply {
             isClickable = true
             isFocusable = false
             importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+            setBackgroundColor(dimColor)
+            alpha = 0f
             setOnClickListener {
                 closeSubmenu(animated = true)
             }
         }
-        host.addView(
+        parentGlass.addView(
             recedeOverlay,
-            FrameLayout.LayoutParams(parentGlass.width, parentGlass.height, Gravity.TOP or Gravity.LEFT).apply {
-                leftMargin = parentGlass.left
-                topMargin = parentGlass.top
-            },
+            FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT),
         )
         parentRecedeOverlay = recedeOverlay
 
@@ -1258,9 +1264,14 @@ public class WitLiquidGlassMenu private constructor(
             parentGlass.pivotX = parentGlass.width * 0.5f
             parentGlass.pivotY = parentGlass.height * 0.5f
             parentGlass.animate()
-                .scaleX(0.94f)
-                .scaleY(0.94f)
-                .alpha(0.68f)
+                .scaleX(0.95f)
+                .scaleY(0.95f)
+                .setDuration(220L)
+                .setInterpolator(DecelerateInterpolator(1.8f))
+                .start()
+
+            recedeOverlay.animate()
+                .alpha(1f)
                 .setDuration(220L)
                 .setInterpolator(DecelerateInterpolator(1.8f))
                 .start()
@@ -1268,9 +1279,9 @@ public class WitLiquidGlassMenu private constructor(
             subGlass.scaleX = 1f
             subGlass.scaleY = 1f
             subGlass.alpha = 1f
-            parentGlass.scaleX = 0.94f
-            parentGlass.scaleY = 0.94f
-            parentGlass.alpha = 0.68f
+            parentGlass.scaleX = 0.95f
+            parentGlass.scaleY = 0.95f
+            recedeOverlay.alpha = 1f
         }
     }
 
@@ -1282,8 +1293,6 @@ public class WitLiquidGlassMenu private constructor(
         activeSubmenuGlass = null
         parentRecedeOverlay = null
         activeSubmenuSourceChevron = null
-
-        recedeOverlay?.let { host.removeView(it) }
 
         if (animated && motionEnabled()) {
             sourceChevron?.animate()?.rotation(0f)?.setDuration(200L)?.start()
@@ -1298,10 +1307,18 @@ public class WitLiquidGlassMenu private constructor(
                 }
                 .start()
 
+            recedeOverlay?.animate()
+                ?.alpha(0f)
+                ?.setDuration(180L)
+                ?.setInterpolator(AccelerateDecelerateInterpolator())
+                ?.withEndAction {
+                    parentGlass?.removeView(recedeOverlay)
+                }
+                ?.start()
+
             parentGlass?.animate()
                 ?.scaleX(1f)
                 ?.scaleY(1f)
-                ?.alpha(1f)
                 ?.setDuration(200L)
                 ?.setInterpolator(DecelerateInterpolator(1.8f))
                 ?.start()
@@ -1309,11 +1326,14 @@ public class WitLiquidGlassMenu private constructor(
             sourceChevron?.rotation = 0f
             subGlass.animate()?.cancel()
             host.removeView(subGlass)
+            recedeOverlay?.let {
+                it.animate()?.cancel()
+                parentGlass?.removeView(it)
+            }
             parentGlass?.let {
                 it.animate()?.cancel()
                 it.scaleX = 1f
                 it.scaleY = 1f
-                it.alpha = 1f
             }
         }
     }
