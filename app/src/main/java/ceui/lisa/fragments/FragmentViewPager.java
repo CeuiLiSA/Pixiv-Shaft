@@ -1,10 +1,13 @@
 package ceui.lisa.fragments;
 
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.view.MenuItem;
 import android.view.View;
 
 import androidx.annotation.NonNull;
@@ -38,6 +41,7 @@ import ceui.lisa.utils.MyOnTabSelectedListener;
 import ceui.lisa.utils.Params;
 import ceui.pixiv.feeds.FeedFragment;
 import ceui.pixiv.ui.common.MutedWorkStores;
+import ceui.pixiv.ui.muted.MutedHistoryMenu;
 import ceui.pixiv.ui.muted.MutedObjectsFeedFragment;
 import ceui.pixiv.ui.muted.MutedTagsFeedFragment;
 import ceui.pixiv.ui.muted.MutedUserFeedFragment;
@@ -97,6 +101,7 @@ public class FragmentViewPager extends BaseFragment<ViewpagerWithTablayoutBindin
                     new MutedObjectsFeedFragment(),
             };
             baseBind.toolbar.inflateMenu(R.menu.delete_and_add);
+            tintMoreIcon();
             setMuteMenuListener(mFragments[0]);
             baseBind.toolbarTitle.setText(R.string.muted_history);
             baseBind.viewPager.setAdapter(new FragmentPagerAdapter(getChildFragmentManager()) {
@@ -126,13 +131,19 @@ public class FragmentViewPager extends BaseFragment<ViewpagerWithTablayoutBindin
                 @Override
                 public void onPageSelected(int position) {
                     setMuteMenuListener(mFragments[position]);
+                    baseBind.toolbar.getMenu().clear();
                     if (position == 0) {
-                        baseBind.toolbar.getMenu().clear();
                         baseBind.toolbar.inflateMenu(R.menu.delete_and_add);
                     } else {
-                        baseBind.toolbar.getMenu().clear();
                         baseBind.toolbar.inflateMenu(R.menu.delete_muted_history);
+                        if (position == 2) {
+                            MenuItem deleteItem = baseBind.toolbar.getMenu().findItem(R.id.action_delete);
+                            if (deleteItem != null) {
+                                deleteItem.setVisible(false);
+                            }
+                        }
                     }
+                    tintMoreIcon();
                 }
 
                 @Override
@@ -232,15 +243,28 @@ public class FragmentViewPager extends BaseFragment<ViewpagerWithTablayoutBindin
      */
     private void setMuteMenuListener(Fragment delegate) {
         baseBind.toolbar.setOnMenuItemClickListener(item -> {
-            if (item.getItemId() == R.id.action_export_mute) {
-                exportMuteRecords();
-                return true;
-            } else if (item.getItemId() == R.id.action_import_mute) {
-                pickMuteRecordsFile();
+            if (item.getItemId() == R.id.action_more) {
+                View anchor = baseBind.toolbar.findViewById(R.id.action_more);
+                if (anchor == null) {
+                    anchor = baseBind.toolbar;
+                }
+                MutedHistoryMenu.show(anchor, this::exportMuteRecords, this::pickMuteRecordsFile);
                 return true;
             }
-            return ((Toolbar.OnMenuItemClickListener) delegate).onMenuItemClick(item);
+            if (delegate instanceof Toolbar.OnMenuItemClickListener) {
+                return ((Toolbar.OnMenuItemClickListener) delegate).onMenuItemClick(item);
+            }
+            return false;
         });
+    }
+
+    private void tintMoreIcon() {
+        MenuItem moreItem = baseBind.toolbar.getMenu().findItem(R.id.action_more);
+        if (moreItem != null && moreItem.getIcon() != null) {
+            Drawable icon = moreItem.getIcon().mutate();
+            icon.setTint(Color.WHITE);
+            moreItem.setIcon(icon);
+        }
     }
 
     private void exportMuteRecords() {
