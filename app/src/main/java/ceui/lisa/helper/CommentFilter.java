@@ -11,6 +11,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import ceui.lisa.activities.Shaft;
+import ceui.lisa.utils.StreamIo;
 import ceui.lisa.http.LegacyApiCalls;
 import ceui.lisa.models.ReplyCommentBean;
 import timber.log.Timber;
@@ -44,11 +45,10 @@ public class CommentFilter {
 
     private static void updateRulesFromLocal() {
         try {
-            InputStream inputStream = Shaft.getContext().getAssets().open("comment.filter.rule.txt");
-            byte[] buffer = new byte[inputStream.available()];
-            inputStream.read(buffer);
-            inputStream.close();
-            String content = new String(buffer, StandardCharsets.UTF_8);
+            String content;
+            try (InputStream inputStream = Shaft.getContext().getAssets().open("comment.filter.rule.txt")) {
+                content = new String(StreamIo.readAllBytes(inputStream), StandardCharsets.UTF_8);
+            }
             rules = Arrays.stream(content.split("\\r?\\n", -1))
                     .filter(string -> !TextUtils.isEmpty(string))
                     .map(CommentFilterRule::new)

@@ -61,6 +61,7 @@ import ceui.lisa.databinding.FragmentWebviewBinding;
 import ceui.lisa.http.HttpDns;
 import ceui.lisa.utils.ClipBoardUtils;
 import ceui.lisa.utils.Common;
+import ceui.lisa.utils.StreamIo;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.ReverseImage;
 import ceui.lisa.view.ContextMenuTitleView;
@@ -746,10 +747,10 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
 
     private void injectCSS() {
         try {
-            InputStream inputStream = mContext.getAssets().open("pixivision-dark.css");
-            byte[] buffer = new byte[inputStream.available()];
-            inputStream.read(buffer);
-            inputStream.close();
+            final byte[] buffer;
+            try (InputStream inputStream = mContext.getAssets().open("pixivision-dark.css")) {
+                buffer = StreamIo.readAllBytes(inputStream);
+            }
             String encoded = Base64.encodeToString(buffer, Base64.NO_WRAP);
             mWebView.loadUrl("javascript:(function() {" +
                     "var parent = document.getElementsByTagName('head').item(0);" +
