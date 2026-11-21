@@ -126,6 +126,10 @@ public class WitLiquidGlassMenu private constructor(
         public var anchorIconRes: Int = 0
         public var borderless: Boolean = false
         public var transparentBackground: Boolean = false
+        public var dimBackground: Boolean = false
+        public var scrim: Boolean
+            get() = dimBackground
+            set(value) { dimBackground = value }
         @get:ColorInt
         @setparam:ColorInt
         public var startPlatterColor: Int? = null
@@ -191,6 +195,7 @@ public class WitLiquidGlassMenu private constructor(
             startPlatterColor = startPlatterColor,
             palette = palette,
             onDismiss = onDismiss,
+            dimBackground = dimBackground,
         )
     }
 
@@ -207,6 +212,7 @@ public class WitLiquidGlassMenu private constructor(
         @get:ColorInt val startPlatterColor: Int?,
         val palette: V3Palette?,
         val onDismiss: (() -> Unit)?,
+        val dimBackground: Boolean = false,
     )
 
     private data class RowBinding(
@@ -312,7 +318,6 @@ public class WitLiquidGlassMenu private constructor(
 
     @ColorInt
     private var targetPlatterColor = Color.TRANSPARENT
-    private var maxScrimAlpha = 0
 
     private var state = State.PENDING_LAYOUT
 
@@ -409,7 +414,6 @@ public class WitLiquidGlassMenu private constructor(
             isDark -> DEFAULT_DARK_PANEL_TINT
             else -> DEFAULT_LIGHT_PANEL_TINT
         }
-        maxScrimAlpha = if (isDark) DARK_SCRIM_ALPHA else LIGHT_SCRIM_ALPHA
 
         // 1) Compute safe inset bounds inside host (handles split-screen & tablet panes accurately).
         val hostLoc = IntArray(2)
@@ -2332,7 +2336,7 @@ public class WitLiquidGlassMenu private constructor(
             }
         }
 
-        scrimDrawable?.alpha = (maxScrimAlpha * smoothstep(0f, 0.55f, p)).roundToInt().coerceIn(0, 255)
+        scrimDrawable?.alpha = computeScrimAlpha(p, isDark, config.dimBackground)
     }
 
     private fun setViewBlur(view: View, blurPx: Float, isContent: Boolean) {
@@ -2612,6 +2616,16 @@ public class WitLiquidGlassMenu private constructor(
             return WitLiquidGlassMenu(host, anchor, entries, builder.buildConfig())
                 .apply { showInternal() }
                 .takeUnless { it.state == State.FINISHED }
+        }
+
+        internal fun computeScrimAlpha(
+            progress: Float,
+            isDark: Boolean,
+            dimBackground: Boolean,
+        ): Int {
+            if (!dimBackground) return 0
+            val maxAlpha = if (isDark) DARK_SCRIM_ALPHA else LIGHT_SCRIM_ALPHA
+            return (maxAlpha * smoothstep(0f, 0.55f, progress)).roundToInt().coerceIn(0, 255)
         }
 
         internal fun clampMorphStart(start: Float, span: Float, limit: Float, margin: Float): Float {

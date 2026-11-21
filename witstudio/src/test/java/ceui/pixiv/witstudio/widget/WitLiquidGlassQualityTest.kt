@@ -194,4 +194,28 @@ class WitLiquidGlassQualityTest {
         assertEquals("Sub Action 1", (submenu.entries[0] as WitLiquidGlassMenu.Entry.Action).label)
         assertEquals("Sub Action 2", (submenu.entries[1] as WitLiquidGlassMenu.Entry.Action).label)
     }
+
+    @Test
+    fun scrimAlphaDefaultsToZeroUnlessDimBackgroundEnabled() {
+        val defaultBuilder = WitLiquidGlassMenu.Builder()
+        assertFalse(defaultBuilder.dimBackground)
+        assertFalse(defaultBuilder.scrim)
+
+        val scrimBuilder = WitLiquidGlassMenu.Builder().apply { scrim = true }
+        assertTrue(scrimBuilder.dimBackground)
+        assertTrue(scrimBuilder.scrim)
+
+        // Default behavior (dimBackground = false): alpha is always 0
+        assertEquals(0, WitLiquidGlassMenu.computeScrimAlpha(0f, isDark = true, dimBackground = false))
+        assertEquals(0, WitLiquidGlassMenu.computeScrimAlpha(0.55f, isDark = true, dimBackground = false))
+        assertEquals(0, WitLiquidGlassMenu.computeScrimAlpha(1f, isDark = true, dimBackground = false))
+        assertEquals(0, WitLiquidGlassMenu.computeScrimAlpha(1f, isDark = false, dimBackground = false))
+
+        // When dimBackground is explicitly enabled: alpha smoothly ramps up to 38 (dark) or 22 (light)
+        assertEquals(0, WitLiquidGlassMenu.computeScrimAlpha(0f, isDark = true, dimBackground = true))
+        assertEquals(38, WitLiquidGlassMenu.computeScrimAlpha(0.55f, isDark = true, dimBackground = true))
+        assertEquals(38, WitLiquidGlassMenu.computeScrimAlpha(1f, isDark = true, dimBackground = true))
+        assertEquals(22, WitLiquidGlassMenu.computeScrimAlpha(0.55f, isDark = false, dimBackground = true))
+        assertEquals(22, WitLiquidGlassMenu.computeScrimAlpha(1f, isDark = false, dimBackground = true))
+    }
 }
