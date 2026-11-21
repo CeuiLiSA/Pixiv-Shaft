@@ -246,6 +246,7 @@ public class WitLiquidGlassMenu private constructor(
     private var firstFocusableRow: View? = null
     private var activeSubmenuGlass: WitLiquidGlassView? = null
     private var activeSubmenuSourceChevron: View? = null
+    private var activeSubmenuSourceRow: View? = null
     private var parentRecedeOverlay: View? = null
     private var safeLeftPx: Int = 0
     private var safeRightPx: Int = 0
@@ -455,7 +456,7 @@ public class WitLiquidGlassMenu private constructor(
         derivedPlatterColor = computeWeightedDerivedStartColor(palette, isDark)
 
         val glass = WitLiquidGlassView(context).apply {
-            isLargeSurface = false
+            isLargeSurface = true
             material = resolvedMaterial
             tone = resolvedTone
             quality = resolvedQuality
@@ -1002,6 +1003,7 @@ public class WitLiquidGlassMenu private constructor(
         val sourceChevron = (sourceRow as? ViewGroup)?.let { vg ->
             (0 until vg.childCount).map { vg.getChildAt(it) }.filterIsInstance<ImageView>().lastOrNull()
         }
+        activeSubmenuSourceRow = sourceRow
         activeSubmenuSourceChevron = sourceChevron
         sourceChevron?.animate()?.rotation(90f)?.setDuration(220L)?.start()
 
@@ -1014,7 +1016,7 @@ public class WitLiquidGlassMenu private constructor(
         val contentColor = parentGlass.contentColor
         val dangerColor = if (isDark) DARK_DANGER_COLOR else LIGHT_DANGER_COLOR
 
-        // Header / Collapse bar: 文字稳定左对齐，右侧 > 顺时针旋转 90 度
+        // Header / Collapse bar: 文字稳定左对齐，右侧向下折叠箭头指示展开态
         val headerRow = LinearLayout(context).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
@@ -1053,8 +1055,8 @@ public class WitLiquidGlassMenu private constructor(
         )
         val chevronView = ImageView(context).apply {
             setImageResource(R.drawable.wit_ic_chevron_right)
-            imageTintList = ColorStateList.valueOf(ColorUtils.setAlphaComponent(contentColor, 150))
-            rotation = 90f // 仅 > 顺时针旋转 90 度指示展开态
+            imageTintList = ColorStateList.valueOf(ColorUtils.setAlphaComponent(contentColor, 180))
+            rotation = 90f // 顺时针旋转 90 度为向下展开状态
             importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
         }
         headerRow.addView(
@@ -1157,7 +1159,9 @@ public class WitLiquidGlassMenu private constructor(
             }
         }
 
-        val subW = menuWidth
+        // 对齐 chen08209/prism_ui 的 _levelWidthScale = 1.15：子菜单宽度扩展 16%，向左探出形成立体阶梯层次
+        val maxAvailableW = (safeRightPx - safeLeftPx).coerceAtLeast(context.dp(160))
+        val subW = minOf((menuWidth * 1.16f).roundToInt(), maxAvailableW)
         subRowsContainer.measure(
             View.MeasureSpec.makeMeasureSpec(subW, View.MeasureSpec.EXACTLY),
             View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
@@ -1168,31 +1172,33 @@ public class WitLiquidGlassMenu private constructor(
             .coerceAtLeast(context.dp(96))
         val subH = subRowsContainer.measuredHeight.coerceAtMost(maxSubH).coerceAtLeast(context.dp(56))
 
-        val subLeft = parentGlass.left
+        // 右边缘对齐（Alignment.topRight）：以父菜单原始右边界对齐，向左侧舒展探出 16%，形成卡片堆叠的纵深阶梯感
+        val parentLeft = (parentGlass.layoutParams as? FrameLayout.LayoutParams)?.leftMargin ?: parentGlass.left
+        val parentRight = parentLeft + menuWidth
+        val rawSubLeft = parentRight - subW
+        val subLeft = rawSubLeft.coerceIn(safeLeftPx, (safeRightPx - subW).coerceAtLeast(safeLeftPx))
         val idealTop = rowTopInHost
         val subTop = idealTop.coerceIn(safeTopPx, (safeBottomPx - subH).coerceAtLeast(safeTopPx))
 
-        val resolvedQuality = config.quality ?: (anchor as? WitLiquidGlassView)?.quality ?: host.quality
-        val resolvedMaterial = config.material ?: (anchor as? WitLiquidGlassView)?.material ?: when (resolvedQuality) {
-            WitLiquidGlassQuality.ULTRA -> WitLiquidGlassView.Material.CLEAR
-            else -> WitLiquidGlassView.Material.REGULAR
-        }
-        val resolvedTone = config.tone ?: (anchor as? WitLiquidGlassView)?.tone ?: WitLiquidGlassView.Tone.THEME
-        val resolvedClearDimming = (config.clearDimming ?: (anchor as? WitLiquidGlassView)?.clearDimming ?: if (resolvedMaterial == WitLiquidGlassView.Material.CLEAR) 0.18f else 0f).coerceIn(0f, 1f)
-
+        // 子菜单完全继承父菜单的原生毛玻璃底（对齐 prism_ui 的 LiquidGlassStyle.menu 统一样式）：
+        // 开启 isLargeSurface 支持面板级动态降采样与柔和光晕，保持与主菜单同质、通透、晶莹的 LiquidGlass 玻璃底
         val subGlass = WitLiquidGlassView(context).apply {
-            isLargeSurface = false
-            material = resolvedMaterial
-            tone = resolvedTone
-            quality = resolvedQuality
-            clearDimming = resolvedClearDimming
-            cornerRadiusDp = config.cornerRadiusDp
-            tintColor = targetTint
-            surfaceFillColor = targetPlatterColor
+            isLargeSurface = true
+            material = parentGlass.material
+            tone = parentGlass.tone
+            quality = parentGlass.quality
+            clearDimming = parentGlass.clearDimming
+            cornerRadiusDp = parentGlass.cornerRadiusDp
+            tintColor = parentGlass.tintColor
+            surfaceFillColor = parentGlass.surfaceFillColor
             isGlassInteractive = false
             clipChildren = false
             clipToPadding = false
-            elevation = context.dpF(MENU_ELEVATION_DP + 6f)
+            elevation = context.dpF(MENU_ELEVATION_DP + 16f)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                outlineAmbientShadowColor = if (isDark) 0x66000000.toInt() else 0x24000000
+                outlineSpotShadowColor = if (isDark) 0x88000000.toInt() else 0x3D000000
+            }
             platterAlpha = 1f
             rimAlpha = 1f
         }
@@ -1219,13 +1225,13 @@ public class WitLiquidGlassMenu private constructor(
             FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT),
         )
 
-        // 父菜单拦截与退避弱化层（对齐 chen08209/prism_ui 的 dim: colorScheme.surface.withValues(alpha: 0.2)）：
-        // 父菜单卡片整体不透明度保持 1.0f（绝不降低 alpha 透出底层背景），仅覆盖一层微弱的 surface 蒙层弱化内容，
+        // 父菜单拦截与退避弱化层（对齐 chen08209/prism_ui 的 dim: colorScheme.surface.withValues(alpha: 0.28)）：
+        // 父菜单卡片整体不透明度保持 1.0f，露出的上下选项正常可见，仅覆盖微弱蒙层弱化焦点；
         // 同时拦截退避父菜单的任意点击，用于收回子菜单。
         val surfaceColor = if (isDark) Color.BLACK else Color.WHITE
         val dimColor = ColorUtils.setAlphaComponent(
             surfaceColor,
-            (255 * 0.20f).roundToInt(),
+            (255 * 0.28f).roundToInt(),
         )
         val recedeOverlay = View(context).apply {
             isClickable = true
@@ -1243,6 +1249,9 @@ public class WitLiquidGlassMenu private constructor(
         )
         parentRecedeOverlay = recedeOverlay
 
+        // 仅隐藏父菜单中被展开的那一行（对齐 prism_ui 的 covered 机制：opacity: index == covered ? 0 : 1），避免重影
+        sourceRow.alpha = 0f
+
         subGlass.pivotX = ((rowLeftInHost + rowW * 0.5f) - subLeft).coerceIn(0f, subW.toFloat())
         subGlass.pivotY = ((rowTopInHost + rowH * 0.5f) - subTop).coerceIn(0f, subH.toFloat())
         subGlass.scaleX = 0.88f
@@ -1258,6 +1267,9 @@ public class WitLiquidGlassMenu private constructor(
         )
         activeSubmenuGlass = subGlass
 
+        val rowCenterYInParent = (rowTopInHost - parentGlass.top + rowH * 0.5f).coerceIn(0f, parentGlass.height.toFloat())
+        val targetPivotX = if (anchorOnRight) parentGlass.width.toFloat() else 0f
+
         if (motionEnabled()) {
             subGlass.animate()
                 .scaleX(1f)
@@ -1267,8 +1279,8 @@ public class WitLiquidGlassMenu private constructor(
                 .setInterpolator(DecelerateInterpolator(1.8f))
                 .start()
 
-            parentGlass.pivotX = parentGlass.width * 0.5f
-            parentGlass.pivotY = parentGlass.height * 0.5f
+            parentGlass.pivotX = targetPivotX
+            parentGlass.pivotY = rowCenterYInParent
             parentGlass.animate()
                 .scaleX(0.95f)
                 .scaleY(0.95f)
@@ -1285,6 +1297,8 @@ public class WitLiquidGlassMenu private constructor(
             subGlass.scaleX = 1f
             subGlass.scaleY = 1f
             subGlass.alpha = 1f
+            parentGlass.pivotX = targetPivotX
+            parentGlass.pivotY = rowCenterYInParent
             parentGlass.scaleX = 0.95f
             parentGlass.scaleY = 0.95f
             recedeOverlay.alpha = 1f
@@ -1296,12 +1310,18 @@ public class WitLiquidGlassMenu private constructor(
         val parentGlass = menuGlass
         val recedeOverlay = parentRecedeOverlay
         val sourceChevron = activeSubmenuSourceChevron
+        val sourceRow = activeSubmenuSourceRow
         activeSubmenuGlass = null
         parentRecedeOverlay = null
         activeSubmenuSourceChevron = null
+        activeSubmenuSourceRow = null
 
         if (animated && motionEnabled()) {
             sourceChevron?.animate()?.rotation(0f)?.setDuration(200L)?.start()
+            sourceRow?.let {
+                it.animate()?.alpha(1f)?.setDuration(180L)?.start()
+            }
+
             subGlass.animate()
                 .scaleX(0.88f)
                 .scaleY(0.88f)
@@ -1330,6 +1350,7 @@ public class WitLiquidGlassMenu private constructor(
                 ?.start()
         } else {
             sourceChevron?.rotation = 0f
+            sourceRow?.alpha = 1f
             subGlass.animate()?.cancel()
             host.removeView(subGlass)
             recedeOverlay?.let {

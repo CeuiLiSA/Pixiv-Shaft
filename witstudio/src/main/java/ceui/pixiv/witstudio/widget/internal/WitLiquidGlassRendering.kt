@@ -9,9 +9,9 @@ import kotlin.math.sqrt
  * The budget is per host and applies to shader and blur surfaces alike.
  */
 internal object WitLiquidGlassBudget {
-    internal const val HOST_PIXELS = 2_000_000L
+    internal const val HOST_PIXELS = 3_200_000L
     private const val MAX_PATCH_PIXELS = 1_000_000L
-    private const val MAX_PANEL_PATCH_PIXELS = 1_300_000L
+    private const val MAX_PANEL_PATCH_PIXELS = 1_600_000L
     private const val MAX_PATCH_EDGE = 2_048
     private const val MIN_PANEL_SCALE = 0.55f
 
