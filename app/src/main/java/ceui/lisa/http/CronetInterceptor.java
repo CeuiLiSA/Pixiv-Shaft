@@ -9,7 +9,6 @@ import org.chromium.net.ExperimentalCronetEngine;
 import org.chromium.net.UrlRequest;
 import org.chromium.net.UrlResponseInfo;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InterruptedIOException;
@@ -150,7 +149,8 @@ public class CronetInterceptor implements Interceptor {
         Log.d(TAG, "──→ " + method + " " + shortUrl);
 
         CountDownLatch latch = new CountDownLatch(1);
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        // Written only on sExecutor until the latch opens; then this thread takes ownership.
+        Buffer responseBuffer = new Buffer();
         final Throwable[] error = {null};
         final UrlResponseInfo[] responseInfo = {null};
         final long[] ttfb = {0};
@@ -174,17 +174,17 @@ public class CronetInterceptor implements Interceptor {
 
             @Override
             public void onReadCompleted(UrlRequest req, UrlResponseInfo info, ByteBuffer buf) {
-                buf.flip();
-                int remaining = buf.remaining();
-                if (bos.size() + remaining > MAX_RESPONSE_BYTES) {
-                    error[0] = new IOException("Response exceeds " + MAX_RESPONSE_BYTES + " bytes");
+                try {
+                    if (!appendResponseBytes(responseBuffer, buf, MAX_RESPONSE_BYTES)) {
+                        error[0] = new IOException("Response exceeds " + MAX_RESPONSE_BYTES + " bytes");
+                        req.cancel();
+                        return;
+                    }
+                } catch (IOException e) {
+                    error[0] = e;
                     req.cancel();
                     return;
                 }
-                byte[] tmp = new byte[remaining];
-                buf.get(tmp);
-                bos.write(tmp, 0, remaining);
-                buf.clear();
                 req.read(buf);
             }
 
@@ -220,12 +220,12 @@ public class CronetInterceptor implements Interceptor {
 
         // 设置 HTTP method 和 body
         if (request.body() != null) {
-            Buffer buf = new Buffer();
-            request.body().writeTo(buf);
-            byte[] bodyBytes = buf.readByteArray();
+            Buffer requestBuf = new Buffer();
+            request.body().writeTo(requestBuf);
+            // Cronet slices this ByteBuffer and rewinds it with position(0) on retry.
             MediaType contentType = request.body().contentType();
             builder.setUploadDataProvider(
-                    org.chromium.net.UploadDataProviders.create(bodyBytes),
+                    org.chromium.net.UploadDataProviders.create(requestBuf.readByteString().asByteBuffer()),
                     sExecutor
             );
             if (contentType != null) {
@@ -319,11 +319,10 @@ public class CronetInterceptor implements Interceptor {
             okProtocol = Protocol.HTTP_1_1;
         }
 
-        byte[] body = bos.toByteArray();
         long bodyReadTime = totalTime - ttfb[0];
         Log.d(TAG, "←── " + method + " " + shortUrl + " " + info.getHttpStatusCode()
                 + " " + protocol + " [total " + totalTime + "ms | TTFB " + ttfb[0]
-                + "ms | body " + bodyReadTime + "ms | " + body.length + " bytes]");
+                + "ms | body " + bodyReadTime + "ms | " + responseBuffer.size() + " bytes]");
 
         return new Response.Builder()
                 .request(request)
@@ -331,10 +330,37 @@ public class CronetInterceptor implements Interceptor {
                 .code(info.getHttpStatusCode())
                 .message(info.getHttpStatusText() != null ? info.getHttpStatusText() : "")
                 .headers(responseHeaders.build())
-                .body(ResponseBody.create(body, MediaType.parse(
-                        info.getAllHeaders().containsKey("content-type")
-                                ? info.getAllHeaders().get("content-type").get(0)
-                                : "application/json")))
+                .body(bodyOf(responseBuffer, contentTypeOf(info)))
                 .build();
+    }
+
+    /**
+     * Copies Cronet's filled {@link ByteBuffer} into {@code out}. Returns false without
+     * writing if {@code maxBytes} would be exceeded. The buffer is flipped and cleared
+     * only on success. {@code out} must not be read or written concurrently.
+     */
+    static boolean appendResponseBytes(Buffer out, ByteBuffer buf, int maxBytes) throws IOException {
+        buf.flip();
+        int remaining = buf.remaining();
+        if ((long) out.size() + remaining > maxBytes) {
+            return false;
+        }
+        out.write(buf);
+        buf.clear();
+        return true;
+    }
+
+    static ResponseBody bodyOf(Buffer buffer, MediaType mediaType) {
+        return ResponseBody.create(mediaType, buffer.size(), buffer);
+    }
+
+    static int maxResponseBytes() {
+        return MAX_RESPONSE_BYTES;
+    }
+
+    private static MediaType contentTypeOf(UrlResponseInfo info) {
+        List<String> values = info.getAllHeaders().get("content-type");
+        String raw = (values != null && !values.isEmpty()) ? values.get(0) : "application/json";
+        return MediaType.parse(raw);
     }
 }

@@ -46,6 +46,7 @@ import ceui.pixiv.ui.common.bindCopyChip
 import ceui.pixiv.ui.common.bindCopyLinkChip
 import ceui.pixiv.ui.common.bindOpenLinkChip
 import ceui.pixiv.ui.novel.NovelSeriesHeaderActionReceiver
+import ceui.lisa.http.fromJson
 import ceui.pixiv.api.Client
 import ceui.pixiv.utils.clearGlideOnRecycle
 import ceui.pixiv.utils.setOnClick
@@ -114,10 +115,9 @@ class IllustSeriesFeedSource(private val seriesId: Long) : FeedSource<String> {
         val resp: IllustSeriesResp = if (cursor == null) {
             Client.appApi.getIllustSeries(seriesId)
         } else {
-            // .string() 阻塞读 body + gson 解析都是重活，必须切 IO（FeedSource main-safe 约定）
+            // 阻塞读 body + gson 解析都是重活，必须切 IO（FeedSource main-safe 约定）
             withContext(Dispatchers.IO) {
-                val body = Client.appApi.generalGet(cursor).string()
-                Shaft.sGson.fromJson(body, IllustSeriesResp::class.java)
+                Client.appApi.generalGet(cursor).fromJson(Shaft.sGson, IllustSeriesResp::class.java)
             }
         }
 

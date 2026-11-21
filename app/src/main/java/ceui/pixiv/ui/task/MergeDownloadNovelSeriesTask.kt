@@ -217,8 +217,7 @@ class MergeDownloadNovelSeriesTask(context: Context) {
      * 里把 `[pixivimage:XXX]` / `[uploadedimage:XXX]` 解析成真实 URL。
      */
     private suspend fun fetchChapterWebNovel(novel: Novel): WebNovel {
-        val html = Client.appApi.getNovelText(novel.id).string()
-        return WebNovelParser.parsePixivObject(html)?.novel
+        return WebNovelParser.parsePixivObject(Client.appApi.getNovelText(novel.id))?.novel
             ?: throw RuntimeException("invalid web novel: ${novel.id}")
     }
 
