@@ -532,10 +532,7 @@ public class WitLiquidGlassMenu private constructor(
                     )
                 }
                 Entry.Divider -> {
-                    val divider = View(context).apply {
-                        setBackgroundColor(V3Palette.withAlpha(contentColor, 0.14f))
-                        importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
-                    }
+                    val divider = createDividerView(contentColor)
                     rowsContainer.addView(
                         divider,
                         LinearLayout.LayoutParams(
@@ -962,6 +959,22 @@ public class WitLiquidGlassMenu private constructor(
         return row
     }
 
+    private fun createDividerView(@ColorInt contentColor: Int): View {
+        return object : View(context) {
+            override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+                val width = if (MeasureSpec.getMode(widthMeasureSpec) == MeasureSpec.EXACTLY) {
+                    MeasureSpec.getSize(widthMeasureSpec)
+                } else {
+                    0
+                }
+                setMeasuredDimension(width, context.hairlinePx())
+            }
+        }.apply {
+            setBackgroundColor(V3Palette.withAlpha(contentColor, 0.14f))
+            importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+        }
+    }
+
     private fun openSubmenu(entry: Entry.Submenu, sourceRow: View) {
         if (state != State.OPENING_OR_OPEN) return
         val parentGlass = menuGlass ?: return
@@ -1056,10 +1069,7 @@ public class WitLiquidGlassMenu private constructor(
         )
 
         // Divider below header
-        val headerDivider = View(context).apply {
-            setBackgroundColor(V3Palette.withAlpha(contentColor, 0.14f))
-            importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
-        }
+        val headerDivider = createDividerView(contentColor)
         subRowsContainer.addView(
             headerDivider,
             LinearLayout.LayoutParams(
@@ -1121,10 +1131,7 @@ public class WitLiquidGlassMenu private constructor(
                     )
                 }
                 Entry.Divider -> {
-                    val divider = View(context).apply {
-                        setBackgroundColor(V3Palette.withAlpha(contentColor, 0.14f))
-                        importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
-                    }
+                    val divider = createDividerView(contentColor)
                     subRowsContainer.addView(
                         divider,
                         LinearLayout.LayoutParams(
