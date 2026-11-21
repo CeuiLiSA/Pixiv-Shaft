@@ -176,4 +176,22 @@ class WitLiquidGlassQualityTest {
         // At p=0, perfectly merges into toolbarColor
         assertEquals(toolbarColor, WitLiquidGlassMenu.computeSurfaceFill(0f, toolbarColor, derivedColor, cardColor, true, closing = true))
     }
+
+    @Test
+    fun submenuDslBuildsHierarchyCorrectly() {
+        val builder = WitLiquidGlassMenu.Builder()
+        builder.item("Action 1") {}
+        builder.submenu("Submenu A") {
+            item("Sub Action 1") {}
+            item("Sub Action 2") {}
+        }
+        val entries = builder.buildEntries()
+        assertEquals(2, entries.size)
+        assertTrue(entries[0] is WitLiquidGlassMenu.Entry.Action)
+        val submenu = entries[1] as WitLiquidGlassMenu.Entry.Submenu
+        assertEquals("Submenu A", submenu.label)
+        assertEquals(2, submenu.entries.size)
+        assertEquals("Sub Action 1", (submenu.entries[0] as WitLiquidGlassMenu.Entry.Action).label)
+        assertEquals("Sub Action 2", (submenu.entries[1] as WitLiquidGlassMenu.Entry.Action).label)
+    }
 }

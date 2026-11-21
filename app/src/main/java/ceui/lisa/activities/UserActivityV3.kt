@@ -745,12 +745,22 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
             transparentBackground = true
             anchorIconRes = ceui.pixiv.witstudio.R.drawable.wit_ic_more_vert
 
-            if (data.profile.total_illusts > 0) {
+            val hasIllust = data.profile.total_illusts > 0
+            val hasManga = data.profile.total_manga > 0
+            if (hasIllust && hasManga) {
+                submenu("跳转作品…") {
+                    item("跳转到插画…") {
+                        jumpTo(data.user.id, UserIllustJumpHelper.Kind.ILLUST, TemplateRoute.USER_ILLUSTS)
+                    }
+                    item("跳转到漫画…") {
+                        jumpTo(data.user.id, UserIllustJumpHelper.Kind.MANGA, TemplateRoute.USER_MANGA)
+                    }
+                }
+            } else if (hasIllust) {
                 item("跳转到插画…") {
                     jumpTo(data.user.id, UserIllustJumpHelper.Kind.ILLUST, TemplateRoute.USER_ILLUSTS)
                 }
-            }
-            if (data.profile.total_manga > 0) {
+            } else if (hasManga) {
                 item("跳转到漫画…") {
                     jumpTo(data.user.id, UserIllustJumpHelper.Kind.MANGA, TemplateRoute.USER_MANGA)
                 }

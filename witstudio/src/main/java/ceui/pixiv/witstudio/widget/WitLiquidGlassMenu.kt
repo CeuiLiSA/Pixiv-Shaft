@@ -101,6 +101,12 @@ public class WitLiquidGlassMenu private constructor(
             public val onToggle: (Boolean) -> Unit,
         ) : Entry
 
+        public data class Submenu(
+            public val label: CharSequence,
+            @get:DrawableRes public val icon: Int = 0,
+            public val entries: List<Entry>,
+        ) : Entry
+
         public data object Divider : Entry
     }
 
@@ -145,6 +151,18 @@ public class WitLiquidGlassMenu private constructor(
             onToggle: (Boolean) -> Unit,
         ) {
             entries += Entry.Toggle(label, icon, isChecked, onToggle)
+        }
+
+        public fun submenu(
+            label: CharSequence,
+            @DrawableRes icon: Int = 0,
+            block: Builder.() -> Unit,
+        ) {
+            val subBuilder = Builder().apply(block)
+            val subEntries = subBuilder.buildEntries()
+            if (subEntries.isNotEmpty()) {
+                entries += Entry.Submenu(label, icon, subEntries)
+            }
         }
 
         public fun divider() {
@@ -220,6 +238,13 @@ public class WitLiquidGlassMenu private constructor(
     private var highlightPill: HighlightPillView? = null
     private var echoIconView: ImageView? = null
     private var firstFocusableRow: View? = null
+    private var activeSubmenuGlass: WitLiquidGlassView? = null
+    private var activeSubmenuSourceChevron: View? = null
+    private var parentRecedeOverlay: View? = null
+    private var safeLeftPx: Int = 0
+    private var safeRightPx: Int = 0
+    private var safeTopPx: Int = 0
+    private var safeBottomPx: Int = 0
 
     private enum class State {
         PENDING_LAYOUT,
@@ -319,6 +344,7 @@ public class WitLiquidGlassMenu private constructor(
         state = State.DISMISSING
         openSettled = false
         dragFingerDown = false
+        closeSubmenu(animated = false)
         cancelDragSprings()
         clearHighlight(animated = false)
         backCallback?.isEnabled = false
@@ -402,6 +428,10 @@ public class WitLiquidGlassMenu private constructor(
         val safeRight = host.width - maxOf(host.paddingRight, insetRight) - context.dp(EDGE_MARGIN_DP)
         val safeTop = maxOf(host.paddingTop, insetTop) + context.dp(TOP_MARGIN_DP)
         val safeBottom = host.height - maxOf(host.paddingBottom, insetBottom) - context.dp(BOTTOM_MARGIN_DP)
+        safeLeftPx = safeLeft
+        safeRightPx = safeRight
+        safeTopPx = safeTop
+        safeBottomPx = safeBottom
         val availableW = (safeRight - safeLeft).coerceAtLeast(context.dp(160))
         val availableH = (safeBottom - safeTop).coerceAtLeast(context.dp(120))
 
@@ -473,6 +503,22 @@ public class WitLiquidGlassMenu private constructor(
                     val (row, toggle) = buildToggleRow(entry, contentColor, isDark)
                     if (firstFocusableRow == null) firstFocusableRow = row
                     interactiveRows += RowBinding(row, entry, toggle)
+                    rowsContainer.addView(
+                        row,
+                        LinearLayout.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                            ViewGroup.LayoutParams.WRAP_CONTENT,
+                        ).apply {
+                            val hMargin = context.dp(ROW_HORIZONTAL_MARGIN_DP)
+                            marginStart = hMargin
+                            marginEnd = hMargin
+                        },
+                    )
+                }
+                is Entry.Submenu -> {
+                    val row = buildSubmenuRow(entry, contentColor, isDark)
+                    if (firstFocusableRow == null) firstFocusableRow = row
+                    interactiveRows += RowBinding(row, entry)
                     rowsContainer.addView(
                         row,
                         LinearLayout.LayoutParams(
@@ -858,6 +904,407 @@ public class WitLiquidGlassMenu private constructor(
             ),
         )
         return row to toggle
+    }
+
+    private fun buildSubmenuRow(
+        entry: Entry.Submenu,
+        @ColorInt contentColor: Int,
+        isDark: Boolean,
+    ): LinearLayout {
+        val row = LinearLayout(context).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            minimumHeight = context.dp(ROW_MIN_HEIGHT_DP)
+            setPadding(context.dp(ROW_PAD_H_DP), context.dp(ROW_PAD_V_DP), context.dp(ROW_PAD_H_DP), context.dp(ROW_PAD_V_DP))
+            background = buildRowRipple(isDark)
+            isClickable = true
+            isFocusable = true
+            setOnClickListener {
+                if (state == State.DISMISSING || state == State.FINISHED || activeSubmenuGlass != null) return@setOnClickListener
+                openSubmenu(entry, this)
+            }
+        }
+        if (entry.icon != 0) {
+            val iconView = ImageView(context).apply {
+                setImageResource(entry.icon)
+                imageTintList = ColorStateList.valueOf(ColorUtils.setAlphaComponent(contentColor, 232))
+                importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+            }
+            row.addView(
+                iconView,
+                LinearLayout.LayoutParams(context.dp(ICON_SIZE_DP), context.dp(ICON_SIZE_DP)).apply {
+                    marginEnd = context.dp(ICON_GAP_DP)
+                },
+            )
+        }
+        val titleView = context.label(entry.label, size = 15.5f, weight = 500, color = contentColor).apply {
+            lineHeightRatio(1.3f)
+        }
+        row.addView(
+            titleView,
+            LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                1f,
+            ),
+        )
+        val chevronView = ImageView(context).apply {
+            setImageResource(R.drawable.wit_ic_chevron_right)
+            imageTintList = ColorStateList.valueOf(ColorUtils.setAlphaComponent(contentColor, 150))
+            importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+        }
+        row.addView(
+            chevronView,
+            LinearLayout.LayoutParams(context.dp(18), context.dp(18)).apply {
+                marginStart = context.dp(8)
+            },
+        )
+        return row
+    }
+
+    private fun openSubmenu(entry: Entry.Submenu, sourceRow: View) {
+        if (state != State.OPENING_OR_OPEN) return
+        val parentGlass = menuGlass ?: return
+        if (activeSubmenuGlass != null) return
+
+        clearHighlight(animated = true)
+        sourceRow.performHapticFeedback(HapticFeedbackConstants.CONTEXT_CLICK)
+
+        val rowLoc = IntArray(2)
+        val hostLoc = IntArray(2)
+        sourceRow.getLocationInWindow(rowLoc)
+        host.getLocationInWindow(hostLoc)
+        val rowLeftInHost = rowLoc[0] - hostLoc[0]
+        val rowTopInHost = rowLoc[1] - hostLoc[1]
+        val rowW = sourceRow.width
+        val rowH = sourceRow.height
+
+        val sourceChevron = (sourceRow as? ViewGroup)?.let { vg ->
+            (0 until vg.childCount).map { vg.getChildAt(it) }.filterIsInstance<ImageView>().lastOrNull()
+        }
+        activeSubmenuSourceChevron = sourceChevron
+        sourceChevron?.animate()?.rotation(90f)?.setDuration(220L)?.start()
+
+        val subRowsContainer = LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+            val padV = context.dp(CONTAINER_PAD_V_DP)
+            setPadding(0, padV, 0, padV)
+        }
+
+        val contentColor = parentGlass.contentColor
+        val dangerColor = if (isDark) DARK_DANGER_COLOR else LIGHT_DANGER_COLOR
+
+        // Header / Collapse bar: 文字稳定左对齐，右侧 > 顺时针旋转 90 度
+        val headerRow = LinearLayout(context).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            minimumHeight = context.dp(ROW_MIN_HEIGHT_DP)
+            setPadding(context.dp(ROW_PAD_H_DP), context.dp(ROW_PAD_V_DP), context.dp(ROW_PAD_H_DP), context.dp(ROW_PAD_V_DP))
+            background = buildRowRipple(isDark)
+            isClickable = true
+            isFocusable = true
+            setOnClickListener {
+                closeSubmenu(animated = true)
+            }
+        }
+        if (entry.icon != 0) {
+            val iconView = ImageView(context).apply {
+                setImageResource(entry.icon)
+                imageTintList = ColorStateList.valueOf(ColorUtils.setAlphaComponent(contentColor, 232))
+                importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+            }
+            headerRow.addView(
+                iconView,
+                LinearLayout.LayoutParams(context.dp(ICON_SIZE_DP), context.dp(ICON_SIZE_DP)).apply {
+                    marginEnd = context.dp(ICON_GAP_DP)
+                },
+            )
+        }
+        val headerTitle = context.label(entry.label, size = 15.5f, weight = 500, color = contentColor).apply {
+            lineHeightRatio(1.3f)
+        }
+        headerRow.addView(
+            headerTitle,
+            LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                1f,
+            ),
+        )
+        val chevronView = ImageView(context).apply {
+            setImageResource(R.drawable.wit_ic_chevron_right)
+            imageTintList = ColorStateList.valueOf(ColorUtils.setAlphaComponent(contentColor, 150))
+            rotation = 90f // 仅 > 顺时针旋转 90 度指示展开态
+            importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+        }
+        headerRow.addView(
+            chevronView,
+            LinearLayout.LayoutParams(context.dp(18), context.dp(18)).apply {
+                marginStart = context.dp(8)
+            },
+        )
+        subRowsContainer.addView(
+            headerRow,
+            LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+            ).apply {
+                val hMargin = context.dp(ROW_HORIZONTAL_MARGIN_DP)
+                marginStart = hMargin
+                marginEnd = hMargin
+            },
+        )
+
+        // Divider below header
+        val headerDivider = View(context).apply {
+            setBackgroundColor(V3Palette.withAlpha(contentColor, 0.14f))
+            importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+        }
+        subRowsContainer.addView(
+            headerDivider,
+            LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                context.hairlinePx(),
+            ).apply {
+                val hMargin = context.dp(DIVIDER_INSET_DP)
+                val vMargin = context.dp(5)
+                marginStart = hMargin
+                marginEnd = hMargin
+                topMargin = vMargin
+                bottomMargin = vMargin
+            },
+        )
+
+        // Sub items
+        entry.entries.forEach { subEntry ->
+            when (subEntry) {
+                is Entry.Action -> {
+                    val row = buildActionRow(subEntry, contentColor, dangerColor, isDark)
+                    subRowsContainer.addView(
+                        row,
+                        LinearLayout.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                            ViewGroup.LayoutParams.WRAP_CONTENT,
+                        ).apply {
+                            val hMargin = context.dp(ROW_HORIZONTAL_MARGIN_DP)
+                            marginStart = hMargin
+                            marginEnd = hMargin
+                        },
+                    )
+                }
+                is Entry.Toggle -> {
+                    val (row, _) = buildToggleRow(subEntry, contentColor, isDark)
+                    subRowsContainer.addView(
+                        row,
+                        LinearLayout.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                            ViewGroup.LayoutParams.WRAP_CONTENT,
+                        ).apply {
+                            val hMargin = context.dp(ROW_HORIZONTAL_MARGIN_DP)
+                            marginStart = hMargin
+                            marginEnd = hMargin
+                        },
+                    )
+                }
+                is Entry.Submenu -> {
+                    val row = buildSubmenuRow(subEntry, contentColor, isDark)
+                    subRowsContainer.addView(
+                        row,
+                        LinearLayout.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                            ViewGroup.LayoutParams.WRAP_CONTENT,
+                        ).apply {
+                            val hMargin = context.dp(ROW_HORIZONTAL_MARGIN_DP)
+                            marginStart = hMargin
+                            marginEnd = hMargin
+                        },
+                    )
+                }
+                Entry.Divider -> {
+                    val divider = View(context).apply {
+                        setBackgroundColor(V3Palette.withAlpha(contentColor, 0.14f))
+                        importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+                    }
+                    subRowsContainer.addView(
+                        divider,
+                        LinearLayout.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                            context.hairlinePx(),
+                        ).apply {
+                            val hMargin = context.dp(DIVIDER_INSET_DP)
+                            val vMargin = context.dp(5)
+                            marginStart = hMargin
+                            marginEnd = hMargin
+                            topMargin = vMargin
+                            bottomMargin = vMargin
+                        },
+                    )
+                }
+            }
+        }
+
+        val subW = menuWidth
+        subRowsContainer.measure(
+            View.MeasureSpec.makeMeasureSpec(subW, View.MeasureSpec.EXACTLY),
+            View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+        )
+        val availableH = (safeBottomPx - safeTopPx).coerceAtLeast(context.dp(120))
+        val maxSubH = minOf((availableH * MAX_HEIGHT_FRACTION).toInt(), context.dp(MAX_MENU_HEIGHT_DP))
+            .coerceAtMost(availableH)
+            .coerceAtLeast(context.dp(96))
+        val subH = subRowsContainer.measuredHeight.coerceAtMost(maxSubH).coerceAtLeast(context.dp(56))
+
+        val subLeft = parentGlass.left
+        val idealTop = rowTopInHost
+        val subTop = idealTop.coerceIn(safeTopPx, (safeBottomPx - subH).coerceAtLeast(safeTopPx))
+
+        val resolvedMaterial = config.material ?: (anchor as? WitLiquidGlassView)?.material ?: WitLiquidGlassView.Material.REGULAR
+        val resolvedTone = config.tone ?: (anchor as? WitLiquidGlassView)?.tone ?: WitLiquidGlassView.Tone.THEME
+        val resolvedQuality = config.quality ?: (anchor as? WitLiquidGlassView)?.quality ?: host.quality
+        val resolvedClearDimming = (config.clearDimming ?: (anchor as? WitLiquidGlassView)?.clearDimming ?: 0f).coerceIn(0f, 1f)
+
+        val subGlass = WitLiquidGlassView(context).apply {
+            isLargeSurface = false
+            material = resolvedMaterial
+            tone = resolvedTone
+            quality = resolvedQuality
+            clearDimming = resolvedClearDimming
+            cornerRadiusDp = config.cornerRadiusDp
+            tintColor = targetTint
+            surfaceFillColor = targetPlatterColor
+            isGlassInteractive = false
+            clipChildren = false
+            clipToPadding = false
+            elevation = context.dpF(MENU_ELEVATION_DP + 6f)
+            platterAlpha = 1f
+            rimAlpha = 1f
+        }
+
+        val scrollContent = FrameLayout(context).apply {
+            addView(
+                subRowsContainer,
+                FrameLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                ),
+            )
+        }
+        val scroller = ScrollView(context).apply {
+            isVerticalScrollBarEnabled = false
+            overScrollMode = View.OVER_SCROLL_IF_CONTENT_SCROLLS
+            addView(
+                scrollContent,
+                FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT),
+            )
+        }
+        subGlass.addView(
+            scroller,
+            FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT),
+        )
+
+        // 父菜单拦截层：点击退避的父菜单任意位置，收回子菜单
+        val recedeOverlay = View(context).apply {
+            isClickable = true
+            isFocusable = false
+            importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+            setOnClickListener {
+                closeSubmenu(animated = true)
+            }
+        }
+        host.addView(
+            recedeOverlay,
+            FrameLayout.LayoutParams(parentGlass.width, parentGlass.height, Gravity.TOP or Gravity.LEFT).apply {
+                leftMargin = parentGlass.left
+                topMargin = parentGlass.top
+            },
+        )
+        parentRecedeOverlay = recedeOverlay
+
+        subGlass.pivotX = ((rowLeftInHost + rowW * 0.5f) - subLeft).coerceIn(0f, subW.toFloat())
+        subGlass.pivotY = ((rowTopInHost + rowH * 0.5f) - subTop).coerceIn(0f, subH.toFloat())
+        subGlass.scaleX = 0.88f
+        subGlass.scaleY = 0.88f
+        subGlass.alpha = 0f
+
+        host.addView(
+            subGlass,
+            FrameLayout.LayoutParams(subW, subH, Gravity.TOP or Gravity.LEFT).apply {
+                leftMargin = subLeft
+                topMargin = subTop
+            },
+        )
+        activeSubmenuGlass = subGlass
+
+        if (motionEnabled()) {
+            subGlass.animate()
+                .scaleX(1f)
+                .scaleY(1f)
+                .alpha(1f)
+                .setDuration(220L)
+                .setInterpolator(DecelerateInterpolator(1.8f))
+                .start()
+
+            parentGlass.pivotX = parentGlass.width * 0.5f
+            parentGlass.pivotY = parentGlass.height * 0.5f
+            parentGlass.animate()
+                .scaleX(0.94f)
+                .scaleY(0.94f)
+                .alpha(0.68f)
+                .setDuration(220L)
+                .setInterpolator(DecelerateInterpolator(1.8f))
+                .start()
+        } else {
+            subGlass.scaleX = 1f
+            subGlass.scaleY = 1f
+            subGlass.alpha = 1f
+            parentGlass.scaleX = 0.94f
+            parentGlass.scaleY = 0.94f
+            parentGlass.alpha = 0.68f
+        }
+    }
+
+    private fun closeSubmenu(animated: Boolean = true) {
+        val subGlass = activeSubmenuGlass ?: return
+        val parentGlass = menuGlass
+        val recedeOverlay = parentRecedeOverlay
+        val sourceChevron = activeSubmenuSourceChevron
+        activeSubmenuGlass = null
+        parentRecedeOverlay = null
+        activeSubmenuSourceChevron = null
+
+        recedeOverlay?.let { host.removeView(it) }
+
+        if (animated && motionEnabled()) {
+            sourceChevron?.animate()?.rotation(0f)?.setDuration(200L)?.start()
+            subGlass.animate()
+                .scaleX(0.88f)
+                .scaleY(0.88f)
+                .alpha(0f)
+                .setDuration(180L)
+                .setInterpolator(AccelerateDecelerateInterpolator())
+                .withEndAction {
+                    host.removeView(subGlass)
+                }
+                .start()
+
+            parentGlass?.animate()
+                ?.scaleX(1f)
+                ?.scaleY(1f)
+                ?.alpha(1f)
+                ?.setDuration(200L)
+                ?.setInterpolator(DecelerateInterpolator(1.8f))
+                ?.start()
+        } else {
+            sourceChevron?.rotation = 0f
+            subGlass.animate()?.cancel()
+            host.removeView(subGlass)
+            parentGlass?.let {
+                it.animate()?.cancel()
+                it.scaleX = 1f
+                it.scaleY = 1f
+                it.alpha = 1f
+            }
+        }
     }
 
     private fun buildRowRipple(isDark: Boolean): StateListDrawable {
@@ -1404,6 +1851,11 @@ public class WitLiquidGlassMenu private constructor(
                 is Entry.Toggle -> {
                     commitRow.toggle?.performClick()
                 }
+                is Entry.Submenu -> {
+                    clearHighlight(animated = false)
+                    openSubmenu(entry, commitRow.view)
+                    return
+                }
                 Entry.Divider -> Unit
             }
         }
@@ -1937,7 +2389,11 @@ public class WitLiquidGlassMenu private constructor(
             }
 
             override fun handleOnBackPressed() {
-                dismiss(animated = true)
+                if (activeSubmenuGlass != null) {
+                    closeSubmenu(animated = true)
+                } else {
+                    dismiss(animated = true)
+                }
             }
         }
         owner.onBackPressedDispatcher.addCallback(callback)
@@ -1958,6 +2414,7 @@ public class WitLiquidGlassMenu private constructor(
         state = State.FINISHED
         openSettled = false
         dragFingerDown = false
+        closeSubmenu(animated = false)
         pendingShowRunnable?.let { host.removeCallbacks(it) }
         pendingShowRunnable = null
         cancelDragSprings()
@@ -2143,7 +2600,7 @@ public class WitLiquidGlassMenu private constructor(
 
             val builder = Builder().apply(block)
             val entries = builder.buildEntries()
-            if (entries.none { it is Entry.Action || it is Entry.Toggle }) return null
+            if (entries.none { it is Entry.Action || it is Entry.Toggle || it is Entry.Submenu }) return null
 
             return WitLiquidGlassMenu(host, anchor, entries, builder.buildConfig())
                 .apply { showInternal() }
