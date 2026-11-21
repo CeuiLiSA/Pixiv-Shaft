@@ -1,5 +1,6 @@
 package ceui.pixiv.feeds.pixiv
 
+import ceui.lisa.http.fromJson
 import ceui.pixiv.api.Client
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
@@ -16,7 +17,6 @@ import kotlinx.coroutines.withContext
  */
 suspend fun <T> replayNextUrl(gson: Gson, nextUrl: String, responseClass: Class<T>): T {
     return withContext(Dispatchers.IO) {
-        val responseJson = Client.appApi.generalGet(nextUrl).string()
-        gson.fromJson(responseJson, responseClass)
+        Client.appApi.generalGet(nextUrl).fromJson(gson, responseClass)
     }
 }

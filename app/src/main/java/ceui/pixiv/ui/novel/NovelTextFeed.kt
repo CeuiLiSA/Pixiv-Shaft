@@ -324,11 +324,11 @@ class NovelTextFeedSource(private val novelId: Long) : FeedSource<String> {
      */
     private suspend fun refreshNovelText() {
         NovelTextCache.evict(novelId)
-        withContext(Dispatchers.Default) {
-            // .string() 对 10 万字级正文做 MB 级字符集解码，和解析/分词一起留在 Default 上
-            val html = Client.appApi.getNovelText(novelId).string()
-            val web = WebNovelParser.parsePixivObject(html)?.novel
+        val web = withContext(Dispatchers.IO) {
+            WebNovelParser.parsePixivObject(Client.appApi.getNovelText(novelId))?.novel
                 ?: error(Shaft.getContext().getString(R.string.msg_parse_fail))
+        }
+        withContext(Dispatchers.Default) {
             NovelTextCache.put(novelId, NovelTextCache.Entry(web, ContentParser.tokenize(web)))
         }
     }

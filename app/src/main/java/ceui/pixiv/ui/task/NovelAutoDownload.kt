@@ -108,8 +108,7 @@ object NovelAutoDownload {
         // 详情页会在后台把正文预热进 NovelTextCache，阅读器也往里写 —— 从这两处收藏时
         // 命中缓存，一次网络请求都不用发。
         val entry = NovelTextCache.get(novel.id) ?: run {
-            val html = Client.appApi.getNovelText(novel.id).string()
-            val web = WebNovelParser.parsePixivObject(html)?.novel
+            val web = WebNovelParser.parsePixivObject(Client.appApi.getNovelText(novel.id))?.novel
                 ?: throw RuntimeException("invalid web novel")
             NovelTextCache.Entry(web, ContentParser.tokenize(web)).also {
                 NovelTextCache.put(novel.id, it)

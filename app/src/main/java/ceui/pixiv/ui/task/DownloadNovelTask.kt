@@ -70,8 +70,7 @@ class DownloadNovelTask(
                 delay(1500L)
                 webNovel
             } else {
-                val html = Client.appApi.getNovelText(novel.id).string()
-                WebNovelParser.parsePixivObject(html)?.novel
+                WebNovelParser.parsePixivObject(Client.appApi.getNovelText(novel.id))?.novel
             }
 
             if (wNovel == null) {

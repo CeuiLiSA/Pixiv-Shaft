@@ -4,6 +4,7 @@ import android.content.Context
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.fragments.WebNovelParser
+import ceui.lisa.http.fromJson
 import ceui.loxia.Novel
 import ceui.pixiv.actionqueue.ActionEvent
 import ceui.pixiv.actionqueue.ActionHandler
@@ -12,6 +13,7 @@ import ceui.pixiv.actionqueue.ActionRequest
 import ceui.pixiv.actionqueue.PendingAction
 import ceui.pixiv.api.Client
 import ceui.pixiv.api.model.NovelSeriesResp
+import ceui.pixiv.api.model.WebNovel
 import ceui.pixiv.download.config.DownloadItems
 import ceui.pixiv.download.header.HeaderConfigRepo
 import ceui.pixiv.download.header.NovelHeaderRenderer
@@ -137,8 +139,9 @@ internal class NovelDownloadHandler(private val isOnline: () -> Boolean) : Actio
             return ActionOutcome.Success
         }
 
-        val html = try {
-            Client.appApi.getNovelText(novel.id).string()
+        val wNovel = try {
+            WebNovelParser.parsePixivObject(Client.appApi.getNovelText(novel.id))?.novel
+                ?: throw RuntimeException("invalid web novel")
         } catch (ce: CancellationException) {
             throw ce
         } catch (t: Throwable) {
@@ -146,7 +149,7 @@ internal class NovelDownloadHandler(private val isOnline: () -> Boolean) : Actio
         }
 
         return try {
-            persist(ctx, payload, format, destination, html)
+            persist(ctx, payload, format, destination, wNovel)
             ActionOutcome.Success
         } catch (ce: CancellationException) {
             throw ce
@@ -161,11 +164,9 @@ internal class NovelDownloadHandler(private val isOnline: () -> Boolean) : Actio
         payload: NovelDownloadPayload,
         format: ExportFormat,
         destination: RelativePath,
-        html: String,
+        wNovel: WebNovel,
     ) {
         val novel = payload.novel
-        val wNovel = WebNovelParser.parsePixivObject(html)?.novel
-            ?: throw RuntimeException("invalid web novel")
 
         // 非 TXT 格式直接复用阅读器导出链路，避免在批量下载里再维护一套 MD/EPUB/PDF 实现。
         if (format != ExportFormat.Txt) {
@@ -248,10 +249,7 @@ internal class NovelSeriesDownloadHandler(
                 val next = page.nextPageUrl
                 if (next.isNullOrEmpty()) break
                 delay(PAGE_GAP_MS)
-                page = Shaft.sGson.fromJson(
-                    Client.appApi.generalGet(next).string(),
-                    NovelSeriesResp::class.java,
-                )
+                page = Client.appApi.generalGet(next).fromJson(Shaft.sGson, NovelSeriesResp::class.java)
                 novels += page.displayList
             }
         } catch (ce: CancellationException) {

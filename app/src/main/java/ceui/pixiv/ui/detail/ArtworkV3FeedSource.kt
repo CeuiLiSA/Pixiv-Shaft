@@ -7,6 +7,7 @@ import ceui.lisa.core.Mapper
 import ceui.lisa.database.AppDatabase
 import ceui.lisa.model.ListIllust
 import ceui.pixiv.api.model.Illust
+import ceui.lisa.http.fromJson
 import ceui.pixiv.api.Client
 import ceui.pixiv.api.model.Comment
 import ceui.pixiv.api.model.ObjectType
@@ -180,8 +181,7 @@ internal suspend fun fetchArtworkRelated(
 ): Pair<List<FeedItem>, String?> = withContext(Dispatchers.IO) {
     Timber.tag(ARTWORK_LAZY_TAG).d("API 发出: 相关作品 illustId=%d cursor=%s", illustId, cursor)
     val url = cursor ?: "https://app-api.pixiv.net/v2/illust/related?illust_id=$illustId"
-    val body = Client.appApi.generalGet(url)
-    val parsed = Shaft.sGson.fromJson(body.string(), ListIllust::class.java)
+    val parsed = Client.appApi.generalGet(url).fromJson(Shaft.sGson, ListIllust::class.java)
         ?: return@withContext emptyList<FeedItem>() to null
     if (parsed.illusts != null) {
         Mapper<ListIllust>().apply(parsed)

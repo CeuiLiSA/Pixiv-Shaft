@@ -213,9 +213,11 @@ class NovelReaderV3ViewModel(
                 val parsed = if (cached != null) {
                     cached.webNovel to cached.tokens
                 } else {
-                    val html = Client.appApi.getNovelText(novelId).string()
+                    val web = withContext(Dispatchers.IO) {
+                        WebNovelParser.parsePixivObject(Client.appApi.getNovelText(novelId))?.novel
+                            ?: error(ctx().getString(R.string.msg_parse_fail))
+                    }
                     withContext(Dispatchers.Default) {
-                        val web = WebNovelParser.parsePixivObject(html)?.novel ?: error(ctx().getString(R.string.msg_parse_fail))
                         val toks = ContentParser.tokenize(web)
                         NovelTextCache.put(novelId, NovelTextCache.Entry(web, toks))
                         web to toks
