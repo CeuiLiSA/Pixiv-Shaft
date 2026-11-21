@@ -771,7 +771,24 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
                 intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.RELATED_USERS.key)
                 startActivity(intent)
             }
-            if (data.profile.total_illusts > 0) {
+            if (hasIllust && hasManga) {
+                submenu(getString(R.string.bulk_user_menu_download_all_grouped)) {
+                    item(getString(R.string.bulk_type_illust)) {
+                        startBatchFetch(
+                            userIdLong = data.user.id,
+                            type = ceui.pixiv.db.queue.WorkType.ILLUST,
+                            authorName = data.user.name ?: "user",
+                        )
+                    }
+                    item(getString(R.string.bulk_type_manga)) {
+                        startBatchFetch(
+                            userIdLong = data.user.id,
+                            type = ceui.pixiv.db.queue.WorkType.MANGA,
+                            authorName = data.user.name ?: "user",
+                        )
+                    }
+                }
+            } else if (hasIllust) {
                 item(getString(R.string.bulk_user_menu_download_all_illust)) {
                     startBatchFetch(
                         userIdLong = data.user.id,
@@ -779,8 +796,7 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
                         authorName = data.user.name ?: "user",
                     )
                 }
-            }
-            if (data.profile.total_manga > 0) {
+            } else if (hasManga) {
                 item(getString(R.string.bulk_user_menu_download_all_manga)) {
                     startBatchFetch(
                         userIdLong = data.user.id,

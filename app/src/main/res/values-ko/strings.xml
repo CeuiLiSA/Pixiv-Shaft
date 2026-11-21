@@ -1896,6 +1896,7 @@
     <string name="bulk_user_menu_download_all_illust">모든 일러스트 다운로드 (일괄 큐 추가)</string>
     <string name="bulk_user_download_all_illust_confirm">%1$s의 일러스트 전체 %2$d개를 다운로드 큐에 추가합니다. 계속할까요?</string>
     <string name="bulk_user_menu_download_all_manga">모든 만화 다운로드 (일괄 큐 추가)</string>
+    <string name="bulk_user_menu_download_all_grouped">모두 다운로드… (일괄 큐 추가)</string>
     <string name="bulk_user_menu_open_download_manager">다운로드 관리 열기…</string>
     <string name="bulk_task_name">%1$s의 %2$s 모두 다운로드</string>
     <string name="bulk_collection_menu_download_all">모든 작품 다운로드</string>
