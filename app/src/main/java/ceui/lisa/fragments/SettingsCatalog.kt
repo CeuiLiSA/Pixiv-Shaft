@@ -102,6 +102,7 @@ object SettingsCatalog {
         add(Entry(APPEARANCE, "predictive_back_rela", R.string.setting_predictive_back, R.string.setting_predictive_back_desc, keywords = "预测返回 返回手势 侧滑 边缘返回 边缘侧滑 花屏 rom 降级 传统返回 逐页 逐项 按页 按页面 predictive back gesture"))
         add(Entry(APPEARANCE, "navigation_init_position_rela", R.string.string_426, keywords = "启动页 默认页 初始页 首页 导航 start page"))
         add(Entry(APPEARANCE, "bottom_bar_order_rela", R.string.string_342, keywords = "底部导航 tab 顺序 排序 页签 bottom bar"))
+        add(Entry(APPEARANCE, "bottom_bar_style_rela", R.string.bottom_bar_style, keywords = "底栏 底栏样式 液态玻璃 悬浮 液态玻璃悬浮 固定 旧版 bottom bar style floating liquid glass"))
         add(Entry(APPEARANCE, "bottom_bar_scroll_hide_rela", R.string.bottom_bar_scroll_hide, R.string.bottom_bar_scroll_hide_desc, keywords = "底栏 底部导航 导航栏 收起 隐藏 自动隐藏 固定 常显 滚动 滑动 bottom bar navigation hide on scroll"))
         add(Entry(APPEARANCE, "top_bar_scroll_hide_rela", R.string.top_bar_scroll_hide, R.string.top_bar_scroll_hide_desc, keywords = "顶栏 标题栏 工具栏 推荐页 收起 隐藏 自动隐藏 固定 常显 滚动 滑动 top bar toolbar hide on scroll"))
         add(Entry(APPEARANCE, "use_account_avatar_as_drawer_icon_rela", R.string.use_account_avatar_as_drawer_icon, R.string.use_account_avatar_as_drawer_icon_desc, keywords = "头像 账号头像 侧边栏 抽屉 菜单 左上角 图标 avatar profile drawer menu icon sidebar"))

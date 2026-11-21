@@ -392,10 +392,13 @@ public class WitLiquidGlassMenu private constructor(
         // 实心顶栏底色替换/透明底模式均由调用方显式声明；未声明时默认为 false，走标准毛玻璃浮动菜单
         isTransparentBackground = config.transparentBackground || (config.startPlatterColor == Color.TRANSPARENT)
         isBorderlessAnchor = config.borderless || isTransparentBackground
-        val resolvedMaterial = config.material ?: anchorGlass?.material ?: WitLiquidGlassView.Material.REGULAR
         val resolvedTone = config.tone ?: anchorGlass?.tone ?: WitLiquidGlassView.Tone.THEME
         val resolvedQuality = config.quality ?: anchorGlass?.quality ?: host.quality
-        val resolvedClearDimming = (config.clearDimming ?: anchorGlass?.clearDimming ?: 0f).coerceIn(0f, 1f)
+        val resolvedMaterial = config.material ?: anchorGlass?.material ?: when (resolvedQuality) {
+            WitLiquidGlassQuality.ULTRA -> WitLiquidGlassView.Material.CLEAR
+            else -> WitLiquidGlassView.Material.REGULAR
+        }
+        val resolvedClearDimming = (config.clearDimming ?: anchorGlass?.clearDimming ?: if (resolvedMaterial == WitLiquidGlassView.Material.CLEAR) 0.18f else 0f).coerceIn(0f, 1f)
         isDark = when (resolvedTone) {
             WitLiquidGlassView.Tone.THEME -> palette.isDark
             WitLiquidGlassView.Tone.LIGHT -> false
@@ -1169,10 +1172,13 @@ public class WitLiquidGlassMenu private constructor(
         val idealTop = rowTopInHost
         val subTop = idealTop.coerceIn(safeTopPx, (safeBottomPx - subH).coerceAtLeast(safeTopPx))
 
-        val resolvedMaterial = config.material ?: (anchor as? WitLiquidGlassView)?.material ?: WitLiquidGlassView.Material.REGULAR
-        val resolvedTone = config.tone ?: (anchor as? WitLiquidGlassView)?.tone ?: WitLiquidGlassView.Tone.THEME
         val resolvedQuality = config.quality ?: (anchor as? WitLiquidGlassView)?.quality ?: host.quality
-        val resolvedClearDimming = (config.clearDimming ?: (anchor as? WitLiquidGlassView)?.clearDimming ?: 0f).coerceIn(0f, 1f)
+        val resolvedMaterial = config.material ?: (anchor as? WitLiquidGlassView)?.material ?: when (resolvedQuality) {
+            WitLiquidGlassQuality.ULTRA -> WitLiquidGlassView.Material.CLEAR
+            else -> WitLiquidGlassView.Material.REGULAR
+        }
+        val resolvedTone = config.tone ?: (anchor as? WitLiquidGlassView)?.tone ?: WitLiquidGlassView.Tone.THEME
+        val resolvedClearDimming = (config.clearDimming ?: (anchor as? WitLiquidGlassView)?.clearDimming ?: if (resolvedMaterial == WitLiquidGlassView.Material.CLEAR) 0.18f else 0f).coerceIn(0f, 1f)
 
         val subGlass = WitLiquidGlassView(context).apply {
             isLargeSurface = false

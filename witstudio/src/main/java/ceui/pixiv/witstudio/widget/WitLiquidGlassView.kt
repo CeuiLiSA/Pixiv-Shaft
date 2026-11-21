@@ -54,12 +54,15 @@ public class WitLiquidGlassView @JvmOverloads public constructor(
 
     public enum class Tone { THEME, LIGHT, DARK }
 
-    public var material: Material = Material.REGULAR
+    public var material: Material? = null
         set(value) {
             if (field == value) return
             field = value
             invalidateMaterial()
         }
+
+    public val effectiveMaterial: Material
+        get() = material ?: if (effectiveQuality == WitLiquidGlassQuality.ULTRA) Material.CLEAR else Material.REGULAR
 
     public var tone: Tone = Tone.THEME
         set(value) {
@@ -116,7 +119,7 @@ public class WitLiquidGlassView @JvmOverloads public constructor(
         }
 
     public val effectiveQuality: WitLiquidGlassQuality
-        get() = quality ?: (parent as? WitLiquidGlassLayout)?.quality ?: WitLiquidGlassQuality.defaultQuality
+        get() = quality ?: (parent as? WitLiquidGlassHost)?.quality ?: WitLiquidGlassQuality.defaultQuality
 
     /** Foreground color for the resolved [tone]. Set it on the controls this surface contains. */
     @get:ColorInt
@@ -219,7 +222,7 @@ public class WitLiquidGlassView @JvmOverloads public constructor(
                 } else {
                     outline.setRoundRect(0, 0, width, height, radius)
                 }
-                outline.alpha = if (isDark) 0.32f else 0.78f
+                outline.alpha = if (effectiveQuality == WitLiquidGlassQuality.ULTRA) 0.08f else (if (isDark) 0.16f else 0.28f)
             }
         }
 
@@ -228,8 +231,9 @@ public class WitLiquidGlassView @JvmOverloads public constructor(
         }
 
         context.withStyledAttributes(attrs, R.styleable.WitLiquidGlassView, defStyleAttr) {
-            material = Material.entries.getOrElse(getInt(R.styleable.WitLiquidGlassView_wit_glassMaterial, 0)) {
-                Material.REGULAR
+            val matIdx = getInt(R.styleable.WitLiquidGlassView_wit_glassMaterial, -1)
+            if (matIdx >= 0) {
+                material = Material.entries.getOrNull(matIdx)
             }
             tone = Tone.entries.getOrElse(getInt(R.styleable.WitLiquidGlassView_wit_glassTone, 0)) { Tone.THEME }
             cornerRadiusDp = getDimension(
@@ -405,7 +409,8 @@ public class WitLiquidGlassView @JvmOverloads public constructor(
 
         val scale = density
         val dark = isDark
-        val clear = material == Material.CLEAR
+        val clear = effectiveMaterial == Material.CLEAR
+        val effectiveDimming = if (clear && clearDimming <= 0.001f) 0f else clearDimming
         val sLeft = if (morphActive) morphLeft else 0f
         val sTop = if (morphActive) morphTop else 0f
         val sRight = if (morphActive) morphRight else w.toFloat()
@@ -419,7 +424,7 @@ public class WitLiquidGlassView @JvmOverloads public constructor(
         val activeTail = if (morphActive && morphTail.active) morphTail else null
         materialPaint.rimAlpha = rimAlpha
         if (materialDirty) {
-            materialPaint.update(w, h, scale, baseFill, tintColor, dark, clear, clearDimming)
+            materialPaint.update(w, h, scale, baseFill, tintColor, dark, clear, effectiveDimming)
             materialDirty = false
         }
         val needsAlphaLayer = pAlpha < 0.999f
@@ -448,7 +453,7 @@ public class WitLiquidGlassView @JvmOverloads public constructor(
                             if (opticsDirty) {
                                 current.updateOptics(
                                     sLeft, sTop, sRight, sBottom, activeRadius, scale, dark, clear,
-                                    isLargeSurface, tintColor, clearDimming, touchX, touchY, press, stretch,
+                                    isLargeSurface, tintColor, effectiveDimming, touchX, touchY, press, stretch,
                                     activeTail,
                                 )
                                 opticsDirty = false

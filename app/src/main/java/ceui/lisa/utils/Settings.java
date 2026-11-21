@@ -524,8 +524,14 @@ public class Settings {
     /** 平板适配排版（侧边导航栏 / 瀑布流按宽度加列 / 作品舞台详情，#1087），见 TabletLayout。默认关闭。 */
     private boolean tabletLayout = false;
 
+    public static final int BOTTOM_BAR_STYLE_LIQUID_GLASS = 0;
+    public static final int BOTTOM_BAR_STYLE_CLASSIC = 1;
+
     /** 平板横屏作品详情左右互换：作品舞台放到结束侧、信息栏放到起始侧（#1332），见 ArtworkTabletStage.arrange。默认关闭。 */
     private boolean tabletDetailSwapSides = false;
+
+    /** 首页底栏样式：0 液态玻璃悬浮，1 固定（旧版）。默认固定（旧版）。 */
+    private int bottomBarStyle = BOTTOM_BAR_STYLE_CLASSIC;
 
     /** 首页底栏是否跟随列表滚动收起（false = 固定常显），见 BottomBarAutoHide.setEnabled。默认开启。 */
     private boolean bottomBarHideOnScroll = true;
@@ -1619,6 +1625,18 @@ public class Settings {
 
     public void setTabletDetailSwapSides(boolean swap) {
         this.tabletDetailSwapSides = swap;
+    }
+
+    public int getBottomBarStyle() {
+        return bottomBarStyle;
+    }
+
+    public void setBottomBarStyle(int bottomBarStyle) {
+        this.bottomBarStyle = bottomBarStyle;
+    }
+
+    public boolean isBottomBarFloating() {
+        return bottomBarStyle == BOTTOM_BAR_STYLE_LIQUID_GLASS;
     }
 
     public boolean isBottomBarHideOnScroll() {

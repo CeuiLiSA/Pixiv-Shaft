@@ -142,6 +142,9 @@
     <string name="v3_widget_hide_refresh_button">隐藏小组件刷新按钮</string>
     <string name="v3_widget_hide_refresh_button_desc">隐藏后只按换图间隔自动换图</string>
     <string name="tablet_layout">平板适配排版</string>
+    <string name="bottom_bar_style">底栏样式</string>
+    <string name="bottom_bar_style_liquid_glass">液态玻璃悬浮</string>
+    <string name="bottom_bar_style_classic">固定（旧版）</string>
     <string name="bottom_bar_scroll_hide">底栏跟随滚动收起</string>
     <string name="bottom_bar_scroll_hide_desc">向下滑动时收起底栏、上滑恢复显示；关闭后底栏固定在底部，始终可见</string>
     <string name="top_bar_scroll_hide">顶栏跟随滚动收起</string>

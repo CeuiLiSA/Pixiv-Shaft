@@ -133,6 +133,9 @@
     <string name="v3_widget_hide_refresh_button">隱藏小工具刷新按鈕</string>
     <string name="v3_widget_hide_refresh_button_desc">隱藏後只按換圖間隔自動換圖</string>
     <string name="tablet_layout">平板適配版面</string>
+    <string name="bottom_bar_style">底欄樣式</string>
+    <string name="bottom_bar_style_liquid_glass">液態玻璃懸浮</string>
+    <string name="bottom_bar_style_classic">固定（舊版）</string>
     <string name="bottom_bar_scroll_hide">底欄跟隨捲動收合</string>
     <string name="bottom_bar_scroll_hide_desc">向下滑動時收合底欄、上滑恢復顯示；關閉後底欄固定在底部，始終可見</string>
     <string name="top_bar_scroll_hide">頂欄跟隨捲動收合</string>

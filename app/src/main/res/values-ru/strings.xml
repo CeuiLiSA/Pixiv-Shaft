@@ -133,6 +133,9 @@
     <string name="v3_widget_hide_refresh_button">Скрыть кнопку обновления в виджете</string>
     <string name="v3_widget_hide_refresh_button_desc">После скрытия иллюстрация меняется только по интервалу обновления</string>
     <string name="tablet_layout">Макет для планшета</string>
+    <string name="bottom_bar_style">Стиль нижней панели</string>
+    <string name="bottom_bar_style_liquid_glass">Жидкое стекло (плавающая)</string>
+    <string name="bottom_bar_style_classic">Закрепленная (классическая)</string>
     <string name="bottom_bar_scroll_hide">Скрывать нижнюю панель при прокрутке</string>
     <string name="bottom_bar_scroll_hide_desc">Панель сворачивается при прокрутке вниз и возвращается при прокрутке вверх. Если выключено, панель закреплена и всегда видна</string>
     <string name="top_bar_scroll_hide">Скрывать верхнюю панель при прокрутке</string>

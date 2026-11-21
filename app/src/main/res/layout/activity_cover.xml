@@ -29,7 +29,8 @@
             android:layout_height="match_parent"
             android:visibility="gone" />
 
-        <androidx.coordinatorlayout.widget.CoordinatorLayout
+        <ceui.pixiv.witstudio.widget.WitLiquidGlassCoordinatorLayout
+            android:id="@+id/coordinator_layout"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1">
@@ -53,17 +54,24 @@
 
             </FrameLayout>
 
-            <com.google.android.material.bottomnavigation.BottomNavigationView
-                android:id="@+id/navigation_view"
+            <ceui.pixiv.witstudio.widget.WitLiquidGlassView
+                android:id="@+id/bottom_bar_frame"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="bottom"
-                android:background="?android:attr/windowBackground"
                 app:layout_behavior="com.google.android.material.behavior.HideViewOnScrollBehavior">
 
-            </com.google.android.material.bottomnavigation.BottomNavigationView>
+                <com.google.android.material.bottomnavigation.BottomNavigationView
+                    android:id="@+id/navigation_view"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@android:color/transparent">
 
-        </androidx.coordinatorlayout.widget.CoordinatorLayout>
+                </com.google.android.material.bottomnavigation.BottomNavigationView>
+
+            </ceui.pixiv.witstudio.widget.WitLiquidGlassView>
+
+        </ceui.pixiv.witstudio.widget.WitLiquidGlassCoordinatorLayout>
 
     </LinearLayout>
 

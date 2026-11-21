@@ -29,7 +29,7 @@ public class WitLiquidGlassLayout @JvmOverloads public constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0,
-) : FrameLayout(context, attrs, defStyleAttr) {
+) : FrameLayout(context, attrs, defStyleAttr), WitLiquidGlassHost {
 
     private var backdrop: WitLiquidGlassBackdrop? = null
     private var drawingBackdrop: WitLiquidGlassBackdrop? = null
@@ -42,7 +42,7 @@ public class WitLiquidGlassLayout @JvmOverloads public constructor(
         manager != null && !manager.isLowRamDevice && manager.memoryClass > 128
     }
 
-    public var quality: WitLiquidGlassQuality = WitLiquidGlassQuality.defaultQuality
+    override var quality: WitLiquidGlassQuality = WitLiquidGlassQuality.defaultQuality
         set(value) {
             if (field == value) return
             field = value
@@ -51,7 +51,7 @@ public class WitLiquidGlassLayout @JvmOverloads public constructor(
         }
 
     /** Allows callers to choose the lightweight material for a particular host. */
-    public var isLiveBackdropEnabled: Boolean
+    override var isLiveBackdropEnabled: Boolean
         get() = quality.isLiveEnabled
         set(value) {
             quality = if (value) {

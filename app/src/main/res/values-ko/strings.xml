@@ -133,6 +133,9 @@
     <string name="v3_widget_hide_refresh_button">위젯 새로고침 버튼 숨기기</string>
     <string name="v3_widget_hide_refresh_button_desc">숨기면 새로고침 간격에 따라 자동으로만 바뀝니다</string>
     <string name="tablet_layout">태블릿 레이아웃</string>
+    <string name="bottom_bar_style">하단 바 스타일</string>
+    <string name="bottom_bar_style_liquid_glass">리퀴드 글래스 플로팅</string>
+    <string name="bottom_bar_style_classic">고정 (클래식)</string>
     <string name="bottom_bar_scroll_hide">스크롤 시 하단 바 숨기기</string>
     <string name="bottom_bar_scroll_hide_desc">아래로 스크롤하면 하단 바를 숨기고 위로 스크롤하면 다시 표시합니다. 끄면 항상 고정되어 표시됩니다</string>
     <string name="top_bar_scroll_hide">스크롤 시 상단 바 숨기기</string>
