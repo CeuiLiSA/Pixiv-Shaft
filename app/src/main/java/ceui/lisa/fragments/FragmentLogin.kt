@@ -4,6 +4,7 @@ import android.content.ActivityNotFoundException
 import android.content.ComponentName
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Color
 import android.net.Uri
 import android.os.Build
 import android.text.InputType
@@ -53,6 +54,7 @@ import ceui.pixiv.session.SessionManager
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialog.MenuDialogBuilder
 import ceui.pixiv.witstudio.dialog.WitDialog.MessageDialogBuilder
+import ceui.pixiv.witstudio.widget.WitLiquidGlassMenu
 import com.hjq.toast.Toaster
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -269,37 +271,9 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
         inflateToolbarMenu()
         baseBind.toolbar.setOnMenuItemClickListener { item ->
             when (item.itemId) {
-                R.id.action_settings -> {
-                    startActivity(Intent(mContext, TemplateActivity::class.java).apply {
-                        putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.SETTINGS.key)
-                    })
-                    true
-                }
-
-                R.id.action_import -> {
-                    val json = ClipBoardUtils.getClipboardContent(mContext)
-                    if (!json.isNullOrEmpty() && json.contains(Params.USER_KEY)) {
-                        performLogin(json)
-                    } else {
-                        Common.showToast("剪贴板无用户信息", 3)
-                    }
-                    true
-                }
-
-                R.id.action_refresh_token_login -> {
-                    showRefreshTokenDialog()
-                    true
-                }
-
-                R.id.action_browser_login -> {
-                    trackLoginBegin(Analytics.LoginMethod.OAUTH)
-                    showBrowserPicker(PixivLogin.startLoginUrl())
-                    true
-                }
-
-                R.id.action_browser_signup -> {
-                    trackLoginBegin(Analytics.LoginMethod.SIGNUP)
-                    showBrowserPicker(PixivLogin.startSignUrl())
+                R.id.action_more -> {
+                    val anchor = baseBind.toolbar.findViewById<View>(R.id.action_more) ?: baseBind.toolbar
+                    showLoginMoreMenu(anchor)
                     true
                 }
 
@@ -309,14 +283,48 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
     }
 
     /**
-     * inflate overflow 菜单并按渠道剔项。两个 inflate 点（初始化 / 切语言后重建）都必须走这里，
-     * 否则 lite 渠道切一次语言就会把隐藏掉的项重新放出来。
+     * inflate overflow 更多菜单图标并着色。两个 inflate 点（初始化 / 切语言后重建）都必须走这里。
      */
     private fun inflateToolbarMenu() {
         baseBind.toolbar.inflateMenu(R.menu.login_menu)
-        // 与「从邮箱恢复」同样在 lite 渠道隐藏,理由见 setupLoginPage 里那段注释。
-        baseBind.toolbar.menu.findItem(R.id.action_refresh_token_login)?.isVisible =
-            !BuildConfig.IS_LITE
+        baseBind.toolbar.menu.findItem(R.id.action_more)?.let { item ->
+            item.icon = item.icon?.mutate()?.also { it.setTint(Color.WHITE) }
+        }
+    }
+
+    private fun showLoginMoreMenu(anchor: View) {
+        val primary = Common.resolveThemeAttribute(requireContext(), androidx.appcompat.R.attr.colorPrimary)
+        WitLiquidGlassMenu.show(anchor) {
+            borderless = true
+            startPlatterColor = primary
+            anchorIconRes = ceui.pixiv.witstudio.R.drawable.wit_ic_more_vert
+            item(getString(R.string.action_settings)) {
+                startActivity(Intent(mContext, TemplateActivity::class.java).apply {
+                    putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.SETTINGS.key)
+                })
+            }
+            item(getString(R.string.action_import)) {
+                val json = ClipBoardUtils.getClipboardContent(mContext)
+                if (!json.isNullOrEmpty() && json.contains(Params.USER_KEY)) {
+                    performLogin(json)
+                } else {
+                    Common.showToast("剪贴板无用户信息", 3)
+                }
+            }
+            if (!BuildConfig.IS_LITE) {
+                item(getString(R.string.refresh_token_login_entry)) {
+                    showRefreshTokenDialog()
+                }
+            }
+            item(getString(R.string.action_browser_login)) {
+                trackLoginBegin(Analytics.LoginMethod.OAUTH)
+                showBrowserPicker(PixivLogin.startLoginUrl())
+            }
+            item(getString(R.string.action_browser_signup)) {
+                trackLoginBegin(Analytics.LoginMethod.SIGNUP)
+                showBrowserPicker(PixivLogin.startSignUrl())
+            }
+        }
     }
 
     // ── Browser picker ──
