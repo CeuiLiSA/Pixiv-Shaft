@@ -236,8 +236,9 @@ internal class ArtworkV3Actions(
         val itemsBlock: (
             addItem: (String, Int, () -> Unit) -> Unit,
             addSwitch: (String, Int, () -> Boolean, (Boolean) -> Unit) -> Unit,
+            addSubmenu: (String, Int, ((String, Int, () -> Unit) -> Unit) -> Unit) -> Unit,
             addDivider: () -> Unit,
-        ) -> Unit = { item, switchItem, divider ->
+        ) -> Unit = { item, switchItem, submenu, divider ->
             if (illust.isGif()) {
                 item(context.getString(R.string.ugoira_frames_menu), R.drawable.ic_ugoira_frames_24) {
                     openUgoiraFrames(context, illust)
@@ -264,21 +265,22 @@ internal class ArtworkV3Actions(
                 }
                 divider()
             }
-            item(context.getString(R.string.share), R.drawable.ic_share_black_24dp) {
-                object : ShareIllust(context, illust) {
+            submenu("${context.getString(R.string.share)}…", R.drawable.ic_share_black_24dp) { subItem ->
+                subItem(context.getString(R.string.webview_handler_share), 0) {
+                    object : ShareIllust(context, illust) {
                         override fun onPrepare() {}
-                    }
-                    .execute()
-            }
-            item(context.getString(R.string.string_454), R.drawable.ic_share_black_24dp) {
-                fragment.shareFirstImage(illust)
+                    }.execute()
+                }
+                subItem(context.getString(R.string.menu_copy_link), 0) {
+                    Common.copy(context, ShareIllust.URL_Head + illust.id)
+                }
+                subItem(context.getString(R.string.string_454), 0) {
+                    fragment.shareFirstImage(illust)
+                }
             }
             item(context.getString(R.string.artwork_poster_save), R.drawable.ic_setcat_photo) {
                 // 多图作品按右上角页码浮标当前指向的那一页生成；已经滑进简介区时回退首图。
                 fragment.saveArtworkPoster(illust, currentPageIndex().coerceAtLeast(0))
-            }
-            item(context.getString(R.string.string_355_2), R.drawable.ic_baseline_launch_24) {
-                Common.copy(context, ShareIllust.URL_Head + illust.id)
             }
             item(context.getString(R.string.snapshot_create), R.drawable.ic_snapshot_24) {
                 fragment.showSnapshotCreateDialog(illust)
@@ -379,12 +381,22 @@ internal class ArtworkV3Actions(
             var created: WitLiquidGlassMenu? = null
             created = WitLiquidGlassMenu.show(glassHost, anchor) {
                 this.tone = tone
+                this.borderless = true
+                this.transparentBackground = true
+                this.anchorIconRes = ceui.pixiv.witstudio.R.drawable.wit_ic_more_vert
                 onDismiss = {
                     if (activeMoreMenu === created) activeMoreMenu = null
                 }
                 itemsBlock(
                     { label, icon, onClick -> item(label, icon, onClick = onClick) },
                     { label, icon, isChecked, onToggle -> switchItem(label, icon, isChecked, onToggle) },
+                    { label, icon, subBlock ->
+                        submenu(label, icon) {
+                            subBlock { subLabel, subIcon, subOnClick ->
+                                item(subLabel, subIcon, onClick = subOnClick)
+                            }
+                        }
+                    },
                     { divider() },
                 )
             }
@@ -396,6 +408,11 @@ internal class ArtworkV3Actions(
             itemsBlock(
                 { label, icon, onClick -> item(label, icon, onClick) },
                 { label, icon, isChecked, onToggle -> switchItem(label, icon, isChecked, onToggle) },
+                { _, _, subBlock ->
+                    subBlock { subLabel, subIcon, subOnClick ->
+                        item(subLabel, subIcon, subOnClick)
+                    }
+                },
                 {},
             )
         }

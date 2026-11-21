@@ -133,6 +133,9 @@
     <string name="v3_widget_hide_refresh_button">Hide widget refresh button</string>
     <string name="v3_widget_hide_refresh_button_desc">Once hidden, the artwork only changes on the refresh interval</string>
     <string name="tablet_layout">Tablet layout</string>
+    <string name="bottom_bar_style">Bottom bar style</string>
+    <string name="bottom_bar_style_liquid_glass">Liquid Glass Floating</string>
+    <string name="bottom_bar_style_classic">Pinned (Classic)</string>
     <string name="bottom_bar_scroll_hide">Hide bottom bar on scroll</string>
     <string name="bottom_bar_scroll_hide_desc">Collapse the bottom bar when you scroll down and bring it back when you scroll up. Turn off to keep it pinned and always visible</string>
     <string name="top_bar_scroll_hide">Hide top bar on scroll</string>
@@ -1902,6 +1905,7 @@
     <string name="bulk_user_menu_download_all_illust">Download all illustrations (queue all)</string>
     <string name="bulk_user_download_all_illust_confirm">Queue all %2$d illustrations by %1$s for download. Continue?</string>
     <string name="bulk_user_menu_download_all_manga">Download all manga (queue all)</string>
+    <string name="bulk_user_menu_download_all_grouped">Download all… (queue all)</string>
     <string name="bulk_user_menu_open_download_manager">Open download manager…</string>
     <string name="bulk_task_name">Download all %2$s by %1$s</string>
     <string name="bulk_collection_menu_download_all">Download all works</string>
@@ -3693,4 +3697,9 @@
     <string name="ai_results_clear_failed">Some result images could not be removed. Try again.</string>
     <string name="ai_results_stats_failed">Could not calculate size</string>
     <string name="account_switch_web_check_failed">Cannot check Web login, tap to retry</string>
+    <string name="setting_liquid_glass_quality">Liquid glass effect</string>
+    <string name="setting_liquid_glass_quality_desc">Real-time refraction, blur, and lighting level for floating controls and menus</string>
+    <string name="liquid_glass_quality_none">None</string>
+    <string name="liquid_glass_quality_standard">Standard</string>
+    <string name="liquid_glass_quality_ultra">Ultra</string>
 </resources>

@@ -38,6 +38,7 @@ import ceui.pixiv.ui.history.BrowseHistoryBackup
 import timber.log.Timber
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
+import ceui.pixiv.witstudio.widget.WitLiquidGlassMenu
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -148,12 +149,17 @@ class FragmentHistoryTabs : Fragment(R.layout.viewpager_with_tablayout) {
      */
     private fun setupSearchMenu() {
         binding.toolbar.inflateMenu(R.menu.history_v3)
+        binding.toolbar.menu.findItem(R.id.action_more)?.let { item ->
+            item.icon = item.icon?.mutate()?.also { it.setTint(Color.WHITE) }
+        }
         binding.toolbar.setOnMenuItemClickListener { item ->
             when (item.itemId) {
                 R.id.action_delete -> { showClearAllDialog(); true }
-                R.id.action_export_history -> { exportHistory(); true }
-                R.id.action_import_history -> { pickImportFile(); true }
-                R.id.action_multi_select -> { enterSelectionMode(); true }
+                R.id.action_more -> {
+                    val anchor = binding.toolbar.findViewById<View>(R.id.action_more) ?: binding.toolbar
+                    showHistoryMoreMenu(anchor)
+                    true
+                }
                 R.id.action_select_all_toggle -> { activeSelectionTab?.toggleSelectAll(); refreshSelectionToolbar(); true }
                 R.id.action_delete_selected -> { confirmDeleteSelected(); true }
                 else -> false
@@ -220,6 +226,24 @@ class FragmentHistoryTabs : Fragment(R.layout.viewpager_with_tablayout) {
         val pos = binding.viewPager.currentItem
         val tag = "android:switcher:${binding.viewPager.id}:$pos"
         return childFragmentManager.findFragmentByTag(tag) as? SelectableHistoryTab
+    }
+
+    private fun showHistoryMoreMenu(anchor: View) {
+        val primary = Common.resolveThemeAttribute(requireContext(), androidx.appcompat.R.attr.colorPrimary)
+        WitLiquidGlassMenu.show(anchor) {
+            borderless = true
+            startPlatterColor = primary
+            anchorIconRes = ceui.pixiv.witstudio.R.drawable.wit_ic_more_vert
+            item(getString(R.string.history_multi_select), R.drawable.ic_select_all_24) {
+                enterSelectionMode()
+            }
+            item(getString(R.string.view_history_export), R.drawable.ic_v3_export_24) {
+                exportHistory()
+            }
+            item(getString(R.string.view_history_import), R.drawable.ic_file_download_black_24dp) {
+                pickImportFile()
+            }
+        }
     }
 
     /** 进选择态:让当前 tab 显示勾选框,toolbar 换成 ✕/已选 N 项/全选/删除。 */

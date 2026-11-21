@@ -18,14 +18,6 @@
         android:title="@string/dlmgr_done_action_export"
         app:showAsAction="always" />
     <!--
-      import 只在「已完成」(pos==2) tab 显示，且收进溢出菜单 —— 它是"我升级/换机后
-      记录丢了"这种一次性场景的入口，不该跟导出/搜索抢标题栏位置。issue #953。
-    -->
-    <item
-        android:id="@+id/action_import"
-        android:title="@string/dlmgr_import_title"
-        app:showAsAction="never" />
-    <!--
       search 只在「已完成」(pos==2) tab 显示。host 把 SearchView 输入透传到
       DownloadManagerSharedViewModel.doneSearchQuery，DoneListV3Fragment collect
       后沿用已完成刷新信号，以关键词查询按作品分页的下载记录。
@@ -36,4 +28,13 @@
         android:title="@string/search"
         app:actionViewClass="androidx.appcompat.widget.SearchView"
         app:showAsAction="always|collapseActionView" />
+    <!--
+      import 只在「已完成」(pos==2) tab 显示，且收进溢出菜单 —— 它是"我升级/换机后
+      记录丢了"这种一次性场景的入口，不该跟导出/搜索抢标题栏位置。issue #953。
+    -->
+    <item
+        android:id="@+id/action_more"
+        android:icon="@drawable/ic_more_vert_black_24dp"
+        android:title="@string/more_actions"
+        app:showAsAction="always" />
 </menu>

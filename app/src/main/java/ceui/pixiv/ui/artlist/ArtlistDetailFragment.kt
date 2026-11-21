@@ -19,7 +19,9 @@ import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.common.IllustFeedFragment
 import ceui.pixiv.ui.common.IllustFeedItem
 import ceui.pixiv.ui.common.IllustMuteStore
-import ceui.pixiv.ui.detail.showV3Menu
+import android.graphics.Color
+import android.view.MenuItem
+import ceui.pixiv.witstudio.widget.WitLiquidGlassMenu
 import ceui.pixiv.ui.navigation.TemplateRoute
 import ceui.pixiv.ui.v3.setupV3Toolbar
 import ceui.pixiv.witstudio.dialog.WitDialog
@@ -61,8 +63,20 @@ class ArtlistDetailFragment : IllustFeedFragment(R.layout.fragment_artlist_detai
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         val toolbar = setupV3Toolbar(view, getString(R.string.artlist_title), feedBinding.feedListView)
-        toolbar.menu.add(R.string.artlist_share).setOnMenuItemClickListener { share(); true }
-        toolbar.menu.add(R.string.more_actions).setOnMenuItemClickListener { more(); true }
+        val moreItem = toolbar.menu.add(0, R.id.action_more, 100, R.string.more_actions)
+        moreItem.setIcon(ceui.pixiv.witstudio.R.drawable.wit_ic_more_vert)
+        moreItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
+        moreItem.icon = moreItem.icon?.mutate()?.also { it.setTint(Color.WHITE) }
+
+        toolbar.setOnMenuItemClickListener { item ->
+            if (item.itemId == R.id.action_more) {
+                val anchor = toolbar.findViewById<View>(R.id.action_more) ?: toolbar
+                more(anchor)
+                true
+            } else {
+                false
+            }
+        }
         feedBinding.feedListView.itemAnimator = null
         IllustMuteStore.revisionLive.observe(viewLifecycleOwner) { rebindHeader() }
         SessionManager.loggedInAccount.observe(viewLifecycleOwner) {
@@ -110,9 +124,13 @@ class ArtlistDetailFragment : IllustFeedFragment(R.layout.fragment_artlist_detai
         }, getString(R.string.artlist_share)))
     }
 
-    private fun more() {
+    private fun more(anchor: View) {
         val list = currentList ?: return
-        showV3Menu("ArtlistMenu") {
+        val primary = Common.resolveThemeAttribute(requireContext(), androidx.appcompat.R.attr.colorPrimary)
+        WitLiquidGlassMenu.show(anchor) {
+            borderless = true
+            startPlatterColor = primary
+            anchorIconRes = ceui.pixiv.witstudio.R.drawable.wit_ic_more_vert
             item(getString(R.string.artlist_share), R.drawable.ic_share_black_24dp) { share() }
             item(getString(R.string.artlist_more_add), R.drawable.ic_add_black_24dp) {
                 startActivity(Intent(requireContext(), TemplateActivity::class.java)

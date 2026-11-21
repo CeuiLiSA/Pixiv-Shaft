@@ -97,6 +97,17 @@ import ceui.pixiv.utils.buildPinnedTagPreviewJson
 import ceui.pixiv.utils.isHostStillResumed
 import ceui.pixiv.utils.setOnClick
 import ceui.pixiv.utils.singleLineTitle
+import ceui.pixiv.ui.common.tintMenuIconsWhite
+import ceui.pixiv.witstudio.widget.WitLiquidGlassMenu
+import ceui.pixiv.ui.bulk.UgoiraEngine
+import ceui.pixiv.ui.detail.frames.openUgoiraFrames
+import ceui.pixiv.ui.interpolate.RifeInterpolator
+import ceui.pixiv.ui.interpolate.RifePrefs
+import ceui.pixiv.ui.interpolate.RifeModel
+import ceui.pixiv.ui.upscale.UpscaleStatus
+import ceui.pixiv.ui.filter.openImageFilter
+import ceui.pixiv.wallpaper.WallpaperSetter
+import ceui.lisa.utils.Dev
 
 import com.bumptech.glide.Glide
 import com.google.android.material.bottomsheet.BottomSheetBehavior
@@ -212,6 +223,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
      * 每次 `updateIllust` 都会刷新它，所以菜单不必为了「换 bean」而重建。
      */
     private var menuIllust: Illust? = null
+    private var activeMoreMenu: WitLiquidGlassMenu? = null
 
     /** 菜单「形状」（快照 / 动图 / 页数）。没变就不重建 —— 11 项菜单的 inflate 不便宜。 */
     private var renderedMenuShape: String? = null
@@ -685,120 +697,182 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
     }
 
     private fun setupToolbarMenu(illust: Illust) {
-        // 菜单回调读这个字段，而不是让闭包捕获 illust —— 见 [handleMenuItem]。
         menuIllust = illust
         baseBind.toolbar.setNavigationOnClickListener { mActivity.finish() }
 
-        // 菜单「形状」（快照 / 动图 / 页数）没变就不重建。
-        // 菜单有 11 项，而 updateIllust 每次 ObjectPool 发射都会重跑（收藏回流最常见）。
-        val shape = "${isSnapshotMode}|${illust.isGif()}|${illust.page_count}"
+        val shape = "${isSnapshotMode}"
         if (shape == renderedMenuShape) return
         renderedMenuShape = shape
 
         baseBind.toolbar.menu?.clear()
         baseBind.toolbar.inflateMenu(R.menu.share)
-        if (!isSnapshotMode && !illust.isGif() && illust.page_count == 1) {
-            baseBind.toolbar.menu.add(R.string.comic_reader_enter_illust).setOnMenuItemClickListener {
-                startActivity(Intent(requireContext(), TemplateActivity::class.java).apply {
-                    putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.COMIC_READER.key)
-                    putExtra(Params.ILLUST_ID, illust.id)
-                })
-                true
-            }
-        }
+        baseBind.toolbar.tintMenuIconsWhite()
         if (isSnapshotMode) {
-            // 快照只读：溢出菜单只保留复制链接 / 分享首图 / 画质增强 / 智能抠图。
-            intArrayOf(
-                R.id.action_share,
-                R.id.action_dislike,
-                R.id.action_mute_illust,
-                R.id.action_flag_illust,
-                R.id.action_show_original,
-                R.id.action_snapshot,
-            ).forEach { id -> baseBind.toolbar.menu?.findItem(id)?.isVisible = false }
-        }
-        // 动图(ugoira)的 original 是 zip,加载原图/画质增强/抠图都没法处理,隐藏这几项(对齐 V3 详情页)。
-        if (illust.isGif()) {
-            baseBind.toolbar.menu?.findItem(R.id.action_ai_upscale)?.isVisible = false
-            baseBind.toolbar.menu?.findItem(R.id.action_ai_rembg)?.isVisible = false
-            baseBind.toolbar.menu?.findItem(R.id.action_show_original)?.isVisible = false
+            baseBind.toolbar.menu?.findItem(R.id.action_share)?.isVisible = false
         }
         baseBind.toolbar.setOnMenuItemClickListener { menuItem ->
-            // 读字段而不是闭包捕获的 illust —— 菜单只按「形状」建一次，回调永远拿最新 bean。
-            menuIllust?.let { handleMenuItem(menuItem.itemId, it) } ?: false
+            when (menuItem.itemId) {
+                R.id.action_share -> {
+                    menuIllust?.let {
+                        object : ShareIllust(mContext, it) {
+                            override fun onPrepare() {}
+                        }.execute()
+                    }
+                    true
+                }
+                R.id.action_more -> {
+                    val anchor = baseBind.toolbar.findViewById<View>(R.id.action_more) ?: baseBind.toolbar
+                    showMoreMenu(anchor)
+                    true
+                }
+                else -> false
+            }
         }
     }
 
-    /**
-     * 溢出菜单的点击处理。
-     *
-     * 单独拆出来，是为了让 [setupToolbarMenu] 不必为了「换 bean」而重建整个菜单 —— 菜单有
-     * 11 项，`inflateMenu` 不便宜，而 `updateIllust` 在**每次 ObjectPool 发射**时都会重跑
-     * （收藏回流最常见）。这也正是 [setupTags] 里那句「收藏回流只更新菜单闭包」想要的形态。
-     */
-    private fun handleMenuItem(itemId: Int, illust: Illust): Boolean = when (itemId) {
-        R.id.action_share -> {
-            object : ShareIllust(mContext, illust) {
-                override fun onPrepare() {}
-            }.execute()
-            true
+    private fun showMoreMenu(anchor: View) {
+        val illust = menuIllust ?: return
+        if (illust.isGif() && RifePrefs.isEnabled() && !RifeInterpolator.isAvailable(requireContext())) {
+            RifePrefs.setEnabled(false)
+            UgoiraEngine.invalidateAll()
         }
-        R.id.action_share_image -> {
-            shareFirstImage(illust)
-            false
-        }
-        R.id.action_save_poster -> {
-            // 与页码浮标同源：多图作品保存当前看到的页；图片区不在视口时回退首图。
-            saveArtworkPoster(illust, pageProgressIndex.coerceAtLeast(0))
-            true
-        }
-        R.id.action_snapshot -> {
-            showSnapshotCreateDialog(illust)
-            true
-        }
-        R.id.action_dislike -> {
-            MuteTagSheet.show(childFragmentManager, illust.tags?.toTagsBeans(), illust.user)
-            true
-        }
-        R.id.action_copy_link -> {
-            Common.copy(mContext, ShareIllust.URL_Head + illust.id)
-            true
-        }
-        R.id.action_show_original -> {
-            val adapter = IllustAdapter(
-                mActivity, this@FragmentIllust, illust, recyHeight, true
-            )
-            baseBind.recyclerView.adapter = adapter
-            vm.pageDimensions.value?.let { adapter.seedPageDimensions(it) }
-            true
-        }
-        R.id.action_mute_illust -> {
-            PixivOperate.muteIllust(illust)
-            true
-        }
-        R.id.action_flag_illust -> {
-            val intent = Intent(mContext, TemplateActivity::class.java)
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.FLAG_REASON.key)
-            // TemplateActivity 读这个 extra 走 getLongExtra,Illust.id 本身就是 Long,
-            // 别收窄成 Int,否则 Int/Long extra 类型不匹配,读回来静默变 0。
-            intent.putExtra(FlagDescFragment.FlagObjectIdKey, illust.id)
-            intent.putExtra(FlagDescFragment.FlagObjectTypeKey, ObjectSpec.POST)
-            startActivity(intent)
-            true
-        }
-        R.id.action_ai_upscale -> {
-            ceui.pixiv.ui.upscale.ModelPickerDialog.pickOrUseDefault(childFragmentManager) { model ->
-                aiHelper?.performUpscale(illust, model)
+        var created: WitLiquidGlassMenu? = null
+        created = WitLiquidGlassMenu.show(anchor) {
+            borderless = true
+            transparentBackground = true
+            anchorIconRes = ceui.pixiv.witstudio.R.drawable.wit_ic_more_vert
+            onDismiss = {
+                if (activeMoreMenu === created) activeMoreMenu = null
             }
-            true
-        }
-        R.id.action_ai_rembg -> {
-            ceui.pixiv.ui.upscale.RembgModelPickerDialog.pickOrUseDefault(childFragmentManager) { model ->
-                aiHelper?.performRembg(illust, model)
+            if (illust.isGif()) {
+                item(getString(R.string.ugoira_frames_menu), R.drawable.ic_ugoira_frames_24) {
+                    openUgoiraFrames(requireContext(), illust)
+                }
+                switchItem(
+                    getString(R.string.ugoira_rife_enable),
+                    R.drawable.baseline_auto_awesome_24,
+                    { RifePrefs.isEnabled() },
+                    { enabled ->
+                        if (enabled && !RifeInterpolator.isAvailable(requireContext())) {
+                            startActivity(Intent(requireContext(), TemplateActivity::class.java).apply {
+                                putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.RIFE_MODEL_DOWNLOAD.key)
+                                putExtra("rife_model_name", RifeModel.RIFE_V4_6.name)
+                            })
+                        } else {
+                            RifePrefs.setEnabled(enabled)
+                            UgoiraEngine.invalidateAll()
+                            Common.showToast(getString(R.string.string_428))
+                        }
+                    },
+                )
+                divider()
             }
-            true
+            if (!isSnapshotMode && !illust.isGif() && illust.page_count == 1) {
+                item(getString(R.string.comic_reader_enter_illust), R.drawable.ic_baseline_menu_book_24) {
+                    startActivity(Intent(requireContext(), TemplateActivity::class.java).apply {
+                        putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.COMIC_READER.key)
+                        putExtra(Params.ILLUST_ID, illust.id)
+                    })
+                }
+                divider()
+            }
+            submenu("${getString(R.string.share)}…", R.drawable.ic_share_black_24dp) {
+                item(getString(R.string.menu_copy_link)) {
+                    Common.copy(mContext, ShareIllust.URL_Head + illust.id)
+                }
+                item(getString(R.string.string_454)) {
+                    shareFirstImage(illust)
+                }
+            }
+            item(getString(R.string.artwork_poster_save), R.drawable.ic_setcat_photo) {
+                saveArtworkPoster(illust, pageProgressIndex.coerceAtLeast(0))
+            }
+            item(getString(R.string.snapshot_create), R.drawable.ic_snapshot_24) {
+                showSnapshotCreateDialog(illust)
+            }
+            item(getString(R.string.artlist_add), R.drawable.ic_collections_black_24dp) {
+                ceui.pixiv.ui.artlist.ArtlistNavigation.add(requireContext(), illust)
+            }
+            if (Dev.showPlazaShareInArtwork) {
+                item(getString(R.string.plaza_share_illust_to_plaza), R.drawable.ic_plaza_feed_24) {
+                    val intent = Intent(requireContext(), TemplateActivity::class.java).apply {
+                        putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.PLAZA_COMPOSE.key)
+                        putExtra(ceui.pixiv.plaza.ui.PlazaComposeFragment.ARG_PREFILL_ILLUST_ID, illust.id)
+                        putExtra(
+                            ceui.pixiv.plaza.ui.PlazaComposeFragment.ARG_OBJECT_TYPE,
+                            if (illust.type == "manga") "manga" else "illust",
+                        )
+                    }
+                    startActivity(intent)
+                }
+            }
+            if (!illust.isGif()) {
+                divider()
+                if (!isSnapshotMode) {
+                    item(getString(R.string.string_set_wallpaper), R.drawable.ic_baseline_wallpaper_24) {
+                        viewLifecycleOwner.lifecycleScope.launch {
+                            WallpaperSetter.setFromIllust(requireActivity(), illust, pageProgressIndex.coerceAtLeast(0))
+                        }
+                    }
+                    item(getString(R.string.string_0), R.drawable.ic_remove_red_eye_black_24dp) {
+                        val adapter = IllustAdapter(mActivity, this@FragmentIllust, illust, recyHeight, true)
+                        baseBind.recyclerView.adapter = adapter
+                        vm.pageDimensions.value?.let { adapter.seedPageDimensions(it) }
+                    }
+                }
+                item(getString(R.string.string_ai_upscale), R.drawable.ic_upscale_add_photo) {
+                    val pageIndex = pageProgressIndex.coerceAtLeast(0)
+                    val state = ceui.pixiv.ui.upscale.IllustAiStore.get(illust.id, pageIndex)
+                    if (state?.hasUpscaleResult == true) {
+                        Common.showToast(R.string.string_ai_upscale_already_completed)
+                        return@item
+                    }
+                    if (state?.upscaleRunning == true || state?.upscaleStatus == UpscaleStatus.Queued) {
+                        Common.showToast(R.string.string_ai_task_already_running)
+                        return@item
+                    }
+                    ceui.pixiv.ui.upscale.ModelPickerDialog.pickOrUseDefault(childFragmentManager) { model ->
+                        aiHelper?.performUpscale(illust, model, pageIndex)
+                    }
+                }
+                item(getString(R.string.string_ai_rembg), R.drawable.ic_baseline_filter_24) {
+                    val pageIndex = pageProgressIndex.coerceAtLeast(0)
+                    val state = ceui.pixiv.ui.upscale.IllustAiStore.get(illust.id, pageIndex)
+                    if (state?.hasRembgResult == true) {
+                        Common.showToast(R.string.string_ai_rembg_already_completed)
+                        return@item
+                    }
+                    if (state?.rembgRunning == true || state?.rembgStatus == UpscaleStatus.Queued) {
+                        Common.showToast(R.string.string_ai_task_already_running)
+                        return@item
+                    }
+                    ceui.pixiv.ui.upscale.RembgModelPickerDialog.pickOrUseDefault(childFragmentManager) { model ->
+                        aiHelper?.performRembg(illust, model, pageIndex)
+                    }
+                }
+                item(getString(R.string.image_filter), R.drawable.ic_photo_filter_24) {
+                    openImageFilter(requireContext(), illust, pageProgressIndex.coerceAtLeast(0))
+                }
+            }
+            if (!isSnapshotMode) {
+                divider()
+                item(getString(R.string.string_1), R.drawable.ic_baseline_settings_24) {
+                    MuteTagSheet.show(childFragmentManager, illust.tags?.toTagsBeans(), illust.user)
+                }
+                item(getString(R.string.string_355), R.drawable.ic_visibility_off_black_24dp) {
+                    PixivOperate.muteIllust(illust)
+                }
+                item(getString(R.string.flag_post), R.drawable.ic_baseline_flag_24) {
+                    val intent = Intent(mContext, TemplateActivity::class.java).apply {
+                        putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.FLAG_REASON.key)
+                        putExtra(FlagDescFragment.FlagObjectIdKey, illust.id)
+                        putExtra(FlagDescFragment.FlagObjectTypeKey, ObjectSpec.POST)
+                    }
+                    startActivity(intent)
+                }
+            }
         }
-        else -> false
+        if (created != null) activeMoreMenu = created
     }
 
     private fun setupLikeButton(illust: Illust) {
@@ -1404,6 +1478,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
 
     override fun onResume() {
         super.onResume()
+        activeMoreMenu?.refreshToggles()
         autoSnapshotDemoted = false
         // 大图会话已结束（退出动画播完才 finish、这里才 resume）：联动状态归零。否则
         // viewerSyncedPage 会一直 ≥ 0，让 publishViewportRect 在之后每一次排版空跑。
@@ -1431,6 +1506,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
     }
 
     override fun onPause() {
+        activeMoreMenu?.dismiss(animated = false)
         if (!isSnapshotMode) {
             // 宿主还 RESUMED ⇒ 是「本页被降级」（横滑到相邻作品），宿主还在、随时会滑回来：
             // 挂起表，不结算也不评估。被自家半透明层（二级大图页及更上层）盖住、或切后台时
@@ -1521,6 +1597,8 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
         renderedSynonymTags = null
         bottomSheetCallbackAttached = false
         bottomSheetPeekApplied = false
+        activeMoreMenu?.dismiss(animated = false)
+        activeMoreMenu = null
         menuIllust = null
         renderedMenuShape = null
         sheetDeltaY = 0

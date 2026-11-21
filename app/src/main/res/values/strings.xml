@@ -142,6 +142,9 @@
     <string name="v3_widget_hide_refresh_button">隐藏小组件刷新按钮</string>
     <string name="v3_widget_hide_refresh_button_desc">隐藏后只按换图间隔自动换图</string>
     <string name="tablet_layout">平板适配排版</string>
+    <string name="bottom_bar_style">底栏样式</string>
+    <string name="bottom_bar_style_liquid_glass">液态玻璃悬浮</string>
+    <string name="bottom_bar_style_classic">固定（旧版）</string>
     <string name="bottom_bar_scroll_hide">底栏跟随滚动收起</string>
     <string name="bottom_bar_scroll_hide_desc">向下滑动时收起底栏、上滑恢复显示；关闭后底栏固定在底部，始终可见</string>
     <string name="top_bar_scroll_hide">顶栏跟随滚动收起</string>
@@ -2062,6 +2065,7 @@
     <string name="bulk_user_menu_download_all_illust">下载全部插画 (批量入队)</string>
     <string name="bulk_user_download_all_illust_confirm">将下载 %1$s 创作的全部 %2$d 件插画，是否继续？</string>
     <string name="bulk_user_menu_download_all_manga">下载全部漫画 (批量入队)</string>
+    <string name="bulk_user_menu_download_all_grouped">下载全部… (批量入队)</string>
     <string name="bulk_user_menu_open_download_manager">打开下载管理…</string>
     <string name="bulk_task_name">下载 %1$s 的全部%2$s</string>
     <string name="bulk_collection_menu_download_all">下载全部作品</string>
@@ -3984,4 +3988,9 @@
     <string name="ai_results_clear_failed">部分结果图未能清理，请重试</string>
     <string name="ai_results_stats_failed">统计失败</string>
     <string name="account_switch_web_check_failed">无法检测Web（网页）登录状态，点击重试</string>
+    <string name="setting_liquid_glass_quality">液态玻璃效果</string>
+    <string name="setting_liquid_glass_quality_desc">悬浮操作与展开菜单的实时折射、磨砂模糊与光效等级</string>
+    <string name="liquid_glass_quality_none">无</string>
+    <string name="liquid_glass_quality_standard">标准</string>
+    <string name="liquid_glass_quality_ultra">极致</string>
 </resources>

@@ -1,6 +1,8 @@
 package ceui.lisa.fragments;
 
 import android.content.Intent;
+import android.graphics.Color;
+import ceui.pixiv.ui.collection.CollectionMoreMenuKt;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -226,6 +228,11 @@ public class FragmentCollection extends BaseFragment<ViewpagerWithTablayoutBindi
                     .setIcon(R.drawable.ic_more_vert_black_24dp)
                     .setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
         }
+        MenuItem moreItem = baseBind.toolbar.getMenu().findItem(R.id.action_more);
+        if (moreItem != null && moreItem.getIcon() != null) {
+            moreItem.setIcon(moreItem.getIcon().mutate());
+            moreItem.getIcon().setTint(Color.WHITE);
+        }
     }
 
     /**
@@ -260,41 +267,10 @@ public class FragmentCollection extends BaseFragment<ViewpagerWithTablayoutBindi
      */
     private void showMoreActionsDialog(String restrict) {
         if (mActivity == null || mActivity.isFinishing()) return;
-        // 「下载全部作品」只有插画侧有（批量下载管线吃的是 illust）；小说 / 关注只出本地库这一项。
-        String[] items = type == 0
-                ? new String[]{
-                        getString(R.string.bookmark_library_menu_entry),
-                        getString(R.string.bulk_collection_menu_download_all),
-                        getString(R.string.artlist_mine_title)
-                }
-                : new String[]{
-                        getString(type == 2
-                                ? R.string.following_library_menu_entry
-                                : R.string.bookmark_library_menu_entry)
-                };
-        new WitDialog.MenuDialogBuilder(mActivity)
-                .addItems(items, (dialog, which) -> {
-                    dialog.dismiss();
-                    if (which == 0) {
-                        Intent intent = new Intent(mContext, TemplateActivity.class);
-                        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.BOOKMARK_LIBRARY.key);
-                        intent.putExtra(Params.STAR_TYPE, restrict);
-                        intent.putExtra(
-                                ceui.pixiv.ui.library.BookmarkLibraryUi.ARG_CONTENT_TYPE,
-                                libraryContentType().getCode());
-                        startActivity(intent);
-                    } else if (which == 2) {
-                        ceui.pixiv.ui.artlist.ArtlistNavigation.mine(requireContext());
-                    } else if (which == 1) {
-                        long uid = SessionManager.INSTANCE.getLoggedInUid();
-                        String restrictLabel = getString(restrict.equals(Params.TYPE_PUBLIC)
-                                ? R.string.public_like_illust
-                                : R.string.private_like_illust);
-                        String taskName = getString(R.string.bulk_collection_task_name, restrictLabel);
-                        BulkActions.startBookmarkIllustBulkDownload(
-                                requireActivity(), uid, restrict, taskName);
-                    }
-                })
-                .show();
+        View anchor = baseBind.toolbar.findViewById(R.id.action_more);
+        if (anchor == null) {
+            anchor = baseBind.toolbar;
+        }
+        CollectionMoreMenuKt.showCollectionMoreMenu(this, anchor, restrict, type, libraryContentType());
     }
 }

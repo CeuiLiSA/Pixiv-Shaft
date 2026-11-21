@@ -43,6 +43,15 @@
         <attr name="wit_glassTint" format="color" />
         <attr name="wit_glassClearDimming" format="float" />
         <attr name="wit_glassInteractive" format="boolean" />
+        <attr name="wit_glassQuality">
+            <enum name="none" value="0" />
+            <enum name="standard" value="1" />
+            <enum name="ultra" value="2" />
+        </attr>
+    </declare-styleable>
+
+    <declare-styleable name="WitLiquidGlassLayout">
+        <attr name="wit_glassQuality" />
     </declare-styleable>
 
 </resources>
