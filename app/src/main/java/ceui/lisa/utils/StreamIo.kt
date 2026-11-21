@@ -4,35 +4,28 @@ import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
+import kotlin.io.DEFAULT_BUFFER_SIZE
 
 /**
- * Stream helpers that are safe on this project's [minSdk] 24.
+ * Stream helpers for minSdk 24.
  *
- * Do **not** call [InputStream.readAllBytes], [InputStream.readNBytes], or
- * [InputStream.transferTo] here. Those methods were added to the Android
- * platform in API 33. Language level (Java 17) and `coreLibraryDesugaring`
- * do not automatically make them available: this module uses
- * `com.android.tools:desugar_jdk_libs:2.1.3` (not `desugar_jdk_libs_nio`),
- * and that configuration does not retarget these `InputStream` methods.
- * A `compileSdk 36` build would still throw [NoSuchMethodError] on API
- * 24–32 — the same class of bug documented for lint `NewApi` in
- * `app/build.gradle` (issue #953). [ceui.pixiv.ui.common.ModelArchiveInstaller]
- * already avoided `readNBytes` for this reason.
+ * Do not call [InputStream.readAllBytes], [InputStream.readNBytes], or
+ * [InputStream.transferTo]: they are API 33 and are not retargeted by this
+ * project's `desugar_jdk_libs` 2.1.3, so they would throw [NoSuchMethodError]
+ * on API 24–32.
  *
- * These helpers never consult [InputStream.available] (it is not a length
- * and may be 0 while more data remains). The caller owns closing the stream.
+ * These helpers never use [InputStream.available] as a length. The caller
+ * owns closing the stream.
  */
 object StreamIo {
 
     const val DEFAULT_MAX_BYTES: Int = 8 * 1024 * 1024
 
-    private const val BUFFER_SIZE = 8192
-
     /**
      * Reads the remainder of [input] into a new array.
      *
-     * @param maxBytes reject the read if the stream is larger than this; the
-     *   default is for small assets / text, not multi-megabyte downloads.
+     * @param maxBytes abort if the stream is larger; default is for small
+     *   assets, not multi-megabyte downloads.
      */
     @JvmStatic
     @JvmOverloads
@@ -44,11 +37,7 @@ object StreamIo {
         return out.toByteArray()
     }
 
-    /**
-     * Reads up to [count] bytes, returning a shorter array if EOF is reached
-     * first. Same contract as the API 33 [InputStream.readNBytes] overload
-     * that takes a length, implemented with a short-read-safe loop.
-     */
+    /** Reads up to [count] bytes, or fewer if EOF is reached first. */
     @JvmStatic
     @Throws(IOException::class)
     fun readNBytes(input: InputStream, count: Int): ByteArray {
@@ -70,7 +59,7 @@ object StreamIo {
     @Throws(IOException::class)
     fun copy(input: InputStream, output: OutputStream, maxBytes: Long = Long.MAX_VALUE): Long {
         require(maxBytes >= 0) { "maxBytes must be >= 0" }
-        val buf = ByteArray(BUFFER_SIZE)
+        val buf = ByteArray(DEFAULT_BUFFER_SIZE)
         var total = 0L
         while (true) {
             val n = input.read(buf)
