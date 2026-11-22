@@ -18,6 +18,9 @@ public class DrawerLayoutHelper {
             }
             leftDraggerField.setAccessible(true);
             ViewDragHelper leftDragger = (ViewDragHelper) leftDraggerField.get(drawerLayout);
+            if (leftDragger == null) {
+                return;
+            }
             // find edgesize and set is accessible
             Field edgeSizeField = leftDragger.getClass().getDeclaredField("mEdgeSize");
             edgeSizeField.setAccessible(true);
@@ -25,6 +28,13 @@ public class DrawerLayoutHelper {
             // set new edgesize
             int widthPixels = ScreenUtils.getScreenWidth();
             edgeSizeField.setInt(leftDragger, Math.max(edgeSize, (int) (widthPixels * displayWidthPercentage)));
+
+            try {
+                Field touchSlopField = leftDragger.getClass().getDeclaredField("mTouchSlop");
+                touchSlopField.setAccessible(true);
+                touchSlopField.setInt(leftDragger, android.view.ViewConfiguration.get(drawerLayout.getContext()).getScaledTouchSlop());
+            } catch (Exception ignored) {
+            }
 
             //获取 Layout 的 ViewDragCallBack 实例mLeftCallback
             //更改其属性 mPeekRunnable

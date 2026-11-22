@@ -148,6 +148,8 @@
     <string name="top_bar_scroll_hide_desc">推荐页顶部的标题栏向下滑动时收起、上滑恢复显示；关闭后固定在顶部，始终可见</string>
     <string name="use_account_avatar_as_drawer_icon">侧边栏图标显示为账号头像</string>
     <string name="use_account_avatar_as_drawer_icon_desc">在首页左上角显示当前登录账号的圆形头像；未登录时显示访客头像</string>
+    <string name="drawer_negative_screen_title">负一屏打开侧边栏</string>
+    <string name="drawer_negative_screen_desc">在主页滑动到最左侧边界后，继续向右滑动可拉出侧边栏</string>
     <string name="tablet_layout_desc">在平板等大屏设备上使用侧边导航栏、按屏幕宽度自动加列的瀑布流和左右排布的作品详情；关闭后与手机排版一致，仅平板生效</string>
     <string name="tablet_detail_swap_sides">平板详情左右互换</string>
     <string name="tablet_detail_swap_sides_desc">平板横屏查看作品详情时，作品与信息栏左右对调，作品放到右侧，方便右手单手翻页；仅平板适配排版开启时生效</string>

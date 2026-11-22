@@ -139,6 +139,8 @@
     <string name="top_bar_scroll_hide_desc">Öneriler sayfasının üstündeki başlık çubuğu aşağı kaydırınca gizlenir, yukarı kaydırınca geri gelir. Kapalıyken çubuk sabit kalır ve her zaman görünür</string>
     <string name="use_account_avatar_as_drawer_icon">Kenar çubuğu simgesi olarak hesap profilini göster</string>
     <string name="use_account_avatar_as_drawer_icon_desc">Ana sayfanın sol üstündeki kenar çubuğu simgesinde giriş yapılmış hesabın dairesel profil resmini gösterir; giriş yapılmadığında misafir resmi gösterilir</string>
+    <string name="drawer_negative_screen_title">Kenar çubuğunu eksi birinci ekran gibi aç</string>
+    <string name="drawer_negative_screen_desc">Ana sayfada en sol sınıra ulaştıktan sonra kenar çubuğunu açmak için sağa kaydırın</string>
     <string name="tablet_layout_desc">Tablet gibi büyük ekranlarda yan gezinme çubuğu, ekran genişliğine göre sütun ekleyen akış ve yan yana eser ayrıntısı kullanılır. Kapalıyken telefon düzeni kullanılır. Yalnızca tablette geçerlidir</string>
     <string name="tablet_detail_swap_sides">Tablet ayrıntısında tarafları değiştir</string>
     <string name="tablet_detail_swap_sides_desc">Tablette yatay eser ayrıntısında eser ile bilgi panelinin yerini değiştirir; eser sağda olur, sağ elle tek elle sayfa çevirmek kolaylaşır. Yalnızca Tablet düzeni açıkken geçerlidir</string>

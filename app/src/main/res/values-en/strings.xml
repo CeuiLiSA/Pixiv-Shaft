@@ -139,6 +139,8 @@
     <string name="top_bar_scroll_hide_desc">The title bar at the top of the Recommend page collapses when you scroll down and comes back when you scroll up. Turn off to keep it pinned and always visible</string>
     <string name="use_account_avatar_as_drawer_icon">Show account avatar as sidebar icon</string>
     <string name="use_account_avatar_as_drawer_icon_desc">Show the signed-in account\'s round avatar as the top-left sidebar icon on the home page; a guest avatar is shown when signed out</string>
+    <string name="drawer_negative_screen_title">Open sidebar like negative screen</string>
+    <string name="drawer_negative_screen_desc">Swipe right from the leftmost page boundary on the home screen to open sidebar</string>
     <string name="tablet_layout_desc">On tablets and other large screens, use a side navigation rail, a feed that adds columns to fit the screen width, and a side-by-side artwork detail page. When off, tablets use the phone layout. Tablets only</string>
     <string name="tablet_detail_swap_sides">Swap sides on tablet details</string>
     <string name="tablet_detail_swap_sides_desc">In landscape artwork details on tablets, swap the artwork and the info panel so the artwork sits on the right for one-handed paging with your right hand. Requires Tablet layout</string>

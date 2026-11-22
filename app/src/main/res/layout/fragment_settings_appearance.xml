@@ -281,6 +281,29 @@
                     style="@style/M3SetSwitch" />
 
             </RelativeLayout>
+            <RelativeLayout
+                android:id="@+id/drawer_negative_screen_rela"
+                style="@style/M3SetRow"
+                android:background="@drawable/wit_row_mid">
+
+                <LinearLayout style="@style/M3SetTexts">
+
+                    <TextView
+                        style="@style/M3SetTitle"
+                        android:text="@string/drawer_negative_screen_title" />
+
+                    <TextView
+                        style="@style/M3SetDesc"
+                        android:text="@string/drawer_negative_screen_desc" />
+
+                </LinearLayout>
+
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/drawer_negative_screen"
+                    style="@style/M3SetSwitch" />
+
+            </RelativeLayout>
+
 
             <RelativeLayout
                 android:id="@+id/recommend_page_order_rela"

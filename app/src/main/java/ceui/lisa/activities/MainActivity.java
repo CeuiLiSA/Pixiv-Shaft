@@ -369,6 +369,11 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                     public void forwardTouchEvent(MotionEvent ev) {
                         getDrawer().onTouchEvent(ev);
                     }
+
+                    @Override
+                    public void onOpenDrawer() {
+                        getDrawer().openDrawer(androidx.core.view.GravityCompat.START, true);
+                    }
                 });
         DrawerLayoutHelper.setCustomLeftEdgeSize(getDrawer(), 1.0f);
 
