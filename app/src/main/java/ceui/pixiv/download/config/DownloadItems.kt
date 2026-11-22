@@ -410,6 +410,49 @@ object DownloadItems {
     )
 
     /**
+     * 单图/增强图落盘路径（AI增强保存、AI抠图保存、详情页单图保存）：
+     * 属于 [Bucket.Illust]，目标相对路径动态跟随用户当前配置的插画模板与存储位置：
+     *
+     * 1. 从当前 Illust 模板提取静态目录前缀（遇到变量 { 或条件 [ 之前的纯目录段）；
+     * 2. SAF 模式：自选文件夹本身即为用户指定的保存根目录，若模板无静态目录（如平铺模板），
+     *    则直接落在自选文件夹根目录下，不再强行新建 ShaftImages 子目录；若模板有静态目录则跟随；
+     * 3. MediaStore 模式：若静态目录为空，回退到 "ShaftImages"，防止文件散落在公共 Pictures/ 根目录；
+     */
+    @JvmStatic
+    @JvmOverloads
+    fun illustGalleryDestination(
+        displayName: String,
+        config: DownloadConfig = DownloadsRegistry.store.loadOrFallback(),
+    ): RelativePath {
+        val resolved = config.resolve(Bucket.Illust)
+        val staticDir = extractStaticDirectory(resolved.template)
+        val directory = when {
+            resolved.storage is StorageChoice.Saf -> staticDir
+            staticDir.isEmpty() -> listOf("ShaftImages")
+            else -> staticDir
+        }
+        val sanitizedName = FsSanitizer.cleanSegment(displayName, preserveExtension = true)
+        return RelativePath(directory + sanitizedName)
+    }
+
+    private fun extractStaticDirectory(template: String): List<String> {
+        val lastSlash = template.lastIndexOf('/')
+        if (lastSlash == -1) return emptyList()
+        val dirPart = template.take(lastSlash)
+        val segments = dirPart.split('/')
+        val result = mutableListOf<String>()
+        for (rawSeg in segments) {
+            val seg = rawSeg.trim()
+            if (seg.isEmpty()) continue
+            if ('{' in seg || '[' in seg) {
+                break
+            }
+            result.add(FsSanitizer.cleanSegment(seg, preserveExtension = false))
+        }
+        return result
+    }
+
+    /**
      * 合并下载的兜底：模板里把后缀写死成 `.txt`（或干脆不写后缀）时，导出 EPUB /
      * PDF 会得到一个打不开的假文件。只在结尾是**已知导出后缀**时替换、没有后缀时
      * 追加——不能无脑按最后一个点切，系列名里带点（`Vol.1 合集`）会被腰斩。

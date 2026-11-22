@@ -37,9 +37,10 @@ private fun mimeFromName(name: String): String {
 
 fun saveImageToGallery(context: Context, imageFile: File, displayName: String) {
     runCatching {
+        val destination = ceui.pixiv.download.config.DownloadItems.illustGalleryDestination(displayName)
         val handle = ceui.pixiv.download.DownloadsRegistry.downloads.openRaw(
             ceui.pixiv.download.model.Bucket.Illust,
-            ceui.pixiv.download.model.RelativePath.parse("ShaftImages/$displayName"),
+            destination,
             // MediaStore.MIME_TYPE rejects wildcards on Q+, so resolve a concrete
             // type from the extension. Falls back to image/jpeg for unknown ones.
             mimeFromName(displayName),
