@@ -139,6 +139,8 @@
     <string name="top_bar_scroll_hide_desc">おすすめページ上部のタイトルバーを下スクロールで隠し、上スクロールで戻します。オフにすると常に表示されます</string>
     <string name="use_account_avatar_as_drawer_icon">サイドバーアイコンにアカウントアバターを表示</string>
     <string name="use_account_avatar_as_drawer_icon_desc">ホーム左上のサイドバーアイコンに、ログイン中のアカウントの丸型アバターを表示します。未ログイン時はゲストアバターを表示</string>
+    <string name="drawer_negative_screen_title">マイナスワン画面風にサイドバーを開く</string>
+    <string name="drawer_negative_screen_desc">ホームで一番左のページまでスクロールした後、さらに右にスワイプしてサイドバーを引き出します</string>
     <string name="tablet_layout_desc">タブレットなどの大画面で、サイドナビゲーション、画面幅に合わせて列数が増えるフィード、左右に並ぶ作品詳細を使います。オフにするとスマートフォンと同じレイアウトになります。タブレットのみ有効</string>
     <string name="tablet_detail_swap_sides">タブレット詳細の左右を入れ替え</string>
     <string name="tablet_detail_swap_sides_desc">タブレットの横向き作品詳細で作品と情報パネルの左右を入れ替え、作品を右側に置いて右手だけでページをめくれるようにします。タブレット向けレイアウトがオンのときのみ有効</string>

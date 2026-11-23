@@ -178,6 +178,9 @@ public class Settings {
     //自带的关闭动画。默认 true（= 维持现状）。
     private boolean drawerPredictiveBackEnabled = true;
 
+    //负一屏式打开侧边栏开关。开启后在首页最左侧边界继续向右滑动可拉出抽屉。默认关闭。
+    private boolean drawerNegativeScreenEnabled = false;
+
     //[实验] 尝试抑制「进入任意页后返回」时的闪烁,默认关。
     //打开后 PredictiveBackSuppressor 会把所有 Activity 纳入,侧边栏行点击后紧接着创建的
     //那个 Activity 整条生命周期保持回调 enabled,系统便不播预测动画(闪烁随动画出现)。
@@ -787,6 +790,14 @@ public class Settings {
 
     public void setDrawerPredictiveBackEnabled(boolean drawerPredictiveBackEnabled) {
         this.drawerPredictiveBackEnabled = drawerPredictiveBackEnabled;
+    }
+
+    public boolean isDrawerNegativeScreenEnabled() {
+        return drawerNegativeScreenEnabled;
+    }
+
+    public void setDrawerNegativeScreenEnabled(boolean drawerNegativeScreenEnabled) {
+        this.drawerNegativeScreenEnabled = drawerNegativeScreenEnabled;
     }
 
     public boolean isSuppressBackFlickerAnyPage() {

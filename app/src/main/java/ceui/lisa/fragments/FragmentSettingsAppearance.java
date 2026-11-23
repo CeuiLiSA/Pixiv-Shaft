@@ -512,6 +512,14 @@ public class FragmentSettingsAppearance extends SettingsPageFragment<FragmentSet
         baseBind.useAccountAvatarAsDrawerIconRela.setOnClickListener(
                 v -> baseBind.useAccountAvatarAsDrawerIcon.performClick());
 
+        // 负一屏手势打开侧边栏
+        baseBind.drawerNegativeScreen.setChecked(Shaft.sSettings.isDrawerNegativeScreenEnabled());
+        baseBind.drawerNegativeScreen.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            Shaft.sSettings.setDrawerNegativeScreenEnabled(isChecked);
+            Local.setSettings(Shaft.sSettings);
+        });
+        baseBind.drawerNegativeScreenRela.setOnClickListener(
+                v -> baseBind.drawerNegativeScreen.performClick());
         // Muzei 动态壁纸来源设置（issue #548）；同一个 Activity 也是 Muzei 侧「来源设置」的落点
         baseBind.muzeiSettingsRela.setOnClickListener(v ->
                 startActivity(new Intent(mContext, ceui.pixiv.muzei.MuzeiSettingsActivity.class)));

@@ -18,6 +18,9 @@ public class DrawerLayoutHelper {
             }
             leftDraggerField.setAccessible(true);
             ViewDragHelper leftDragger = (ViewDragHelper) leftDraggerField.get(drawerLayout);
+            if (leftDragger == null) {
+                return;
+            }
             // find edgesize and set is accessible
             Field edgeSizeField = leftDragger.getClass().getDeclaredField("mEdgeSize");
             edgeSizeField.setAccessible(true);
