@@ -100,4 +100,144 @@ class WitLiquidGlassBudgetTest {
         assertTrue(extreme.top >= -margin - 0.01f)
         assertTrue(extreme.bottom <= h + margin + 0.01f)
     }
+
+    @Test
+    fun calibratedOpenMorphMatchesReferenceMilestonesAndStaysWithinPatchMargin() {
+        val d = 3f
+        val w = 250f * d
+        val h = 237.67f * d
+        val aw = 44f * d
+        val ah = 44f * d
+        val al = w - aw
+        val at = 2f * d
+        val endR = 32f * d
+        val margin = 26f * d
+
+        assertEquals(520L, WitLiquidGlassMenu.OPEN_DURATION_MS)
+        assertEquals(500L, WitLiquidGlassMenu.CLOSE_DURATION_MS)
+
+        // Frame 0 (0ms): exact anchor orb, content hidden, echo dots at 100% centered on anchor.
+        val f0 = WitLiquidGlassMenu.evaluateOpenMorph(0f, w, h, al, at, aw, ah, endR, d, true, true, margin)
+        assertEquals(al, f0.bodyLeft, 0.5f)
+        assertEquals(at, f0.bodyTop, 0.5f)
+        assertEquals(w, f0.bodyRight, 0.5f)
+        assertEquals(at + ah, f0.bodyBottom, 0.5f)
+        assertEquals(0f, f0.contentAlpha, 0.001f)
+        assertEquals(1f, f0.echoAlpha, 0.001f)
+        assertEquals(al + aw * 0.5f, f0.echoCenterX, 0.5f)
+        assertEquals(at + ah * 0.5f, f0.echoCenterY, 0.5f)
+
+        // ~40ms (p = 40/520): diagonal teardrop launch pulls right edge inward (~10..15dp) with orb bridge active.
+        val f40 = WitLiquidGlassMenu.evaluateOpenMorph(40f / 520f, w, h, al, at, aw, ah, endR, d, true, true, margin)
+        val rightPullDp = (w - f40.bodyRight) / d
+        assertTrue("Expected right-edge inward pull 8..18dp at 40ms, got $rightPullDp", rightPullDp in 8f..18f)
+        assertTrue("Expected teardrop metaball orb active at 40ms", f40.orbRadius > 5f * d && f40.orbBlendPx > 1f)
+        assertEquals(0f, f40.contentAlpha, 0.001f)
+
+        // ~100ms (p = 100/520): peak downward top sag (~38..50dp) while body holds full capsule roundness.
+        val f100 = WitLiquidGlassMenu.evaluateOpenMorph(100f / 520f, w, h, al, at, aw, ah, endR, d, true, true, margin)
+        val topSagDp = f100.bodyTop / d
+        assertTrue("Expected peak top sag 36..52dp at 100ms, got $topSagDp", topSagDp in 36f..52f)
+        assertTrue("Expected echo dots completely dissolved by 100ms", f100.echoAlpha <= 0.001f)
+
+        // ~184ms: bottom overshoots below settled h (~10..22dp) while staying strictly within patchMargin.
+        val f184 = WitLiquidGlassMenu.evaluateOpenMorph(184f / 520f, w, h, al, at, aw, ah, endR, d, true, true, margin)
+        val bottomOverDp = (f184.bodyBottom - h) / d
+        assertTrue("Expected bottom overshoot 10..22dp at 184ms, got $bottomOverDp", bottomOverDp in 10f..22f)
+        assertTrue("Expected bevel refraction active around 184ms", f184.contentRefract > 0.25f)
+
+        // ~250ms: width/height overshoot (~1.5..4.5%), content 100% alpha and razor sharp (0dp blur).
+        val f250 = WitLiquidGlassMenu.evaluateOpenMorph(250f / 520f, w, h, al, at, aw, ah, endR, d, true, true, margin)
+        assertTrue("Expected width overshoot at 250ms", (f250.bodyRight - f250.bodyLeft) > w * 1.015f)
+        assertTrue("Expected height overshoot at 250ms", (f250.bodyBottom - f250.bodyTop) > h * 1.01f)
+        assertEquals(1f, f250.contentAlpha, 0.001f)
+        assertEquals(0f, f250.contentBlurDp, 0.01f)
+
+        // Frame 1 (520ms): settled exactly at [0, 0, w, h] with endR, sharp content, zero orb.
+        val fEnd = WitLiquidGlassMenu.evaluateOpenMorph(1f, w, h, al, at, aw, ah, endR, d, true, true, margin)
+        assertEquals(0f, fEnd.bodyLeft, 0.5f)
+        assertEquals(0f, fEnd.bodyTop, 0.5f)
+        assertEquals(w, fEnd.bodyRight, 0.5f)
+        assertEquals(h, fEnd.bodyBottom, 0.5f)
+        assertEquals(endR, fEnd.bodyRadius, 0.5f)
+        assertEquals(1f, fEnd.contentAlpha, 0.001f)
+        assertEquals(0f, fEnd.contentBlurDp, 0.001f)
+        assertEquals(0f, fEnd.contentRefract, 0.001f)
+        assertEquals(0f, fEnd.orbBlendPx, 0.001f)
+
+        // Verify patchMargin safety across tall (480dp) and tiny (72dp) menus in all 4 directions.
+        for (testH in listOf(72f * d, 238f * d, 480f * d)) {
+            for (onRight in listOf(true, false)) {
+                for (down in listOf(true, false)) {
+                    val aL = if (onRight) w - aw else 0f
+                    val aT = if (down) 2f * d else testH - ah - 2f * d
+                    for (step in 0..50) {
+                        val p = step / 50f
+                        val of = WitLiquidGlassMenu.evaluateOpenMorph(p, w, testH, aL, aT, aw, ah, endR, d, onRight, down, margin)
+                        assertTrue(of.bodyLeft >= -margin - 0.5f)
+                        assertTrue(of.bodyRight <= w + margin + 0.5f)
+                        assertTrue(of.bodyTop >= -margin - 0.5f)
+                        assertTrue(of.bodyBottom <= testH + margin + 0.5f)
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
+    fun calibratedCloseMorphDissolvesContentFastFormsConcaveMetaballAndRecoilsOrb() {
+        val d = 3f
+        val w = 250f * d
+        val h = 237.67f * d
+        val aw = 44f * d
+        val ah = 44f * d
+        val al = w - aw
+        val at = 2f * d
+        val acy = at + ah * 0.5f
+        val endR = 32f * d
+        val margin = 26f * d
+
+        // 0ms: exact settled menu.
+        val c0 = WitLiquidGlassMenu.evaluateCloseMorph(0f, w, h, al, at, aw, ah, endR, d, true, true, margin)
+        assertEquals(0f, c0.bodyLeft, 0.5f)
+        assertEquals(0f, c0.bodyTop, 0.5f)
+        assertEquals(w, c0.bodyRight, 0.5f)
+        assertEquals(h, c0.bodyBottom, 0.5f)
+        assertEquals(1f, c0.contentAlpha, 0.001f)
+        assertEquals(0f, c0.echoAlpha, 0.001f)
+
+        // ~50ms: menu dips downward while content rapidly blurs & dissolves.
+        val c50 = WitLiquidGlassMenu.evaluateCloseMorph(50f / 500f, w, h, al, at, aw, ah, endR, d, true, true, margin)
+        assertTrue("Expected downward top drop at 50ms, got ${c50.bodyTop / d}dp", c50.bodyTop / d > 25f)
+        assertTrue("Expected content nearly gone by 50ms, got ${c50.contentAlpha}", c50.contentAlpha < 0.20f)
+
+        // ~67ms: content 100% dissolved into pure empty glass bubble.
+        val c67 = WitLiquidGlassMenu.evaluateCloseMorph(67f / 500f, w, h, al, at, aw, ah, endR, d, true, true, margin)
+        assertEquals(0f, c67.contentAlpha, 0.001f)
+
+        // ~185ms: classic concave gourd/peanut metaball bridge active, echo dots re-emerging inside moving orb!
+        val c185 = WitLiquidGlassMenu.evaluateCloseMorph(185f / 500f, w, h, al, at, aw, ah, endR, d, true, true, margin)
+        assertTrue("Expected metaball orb active at 185ms", c185.orbRadius > 12f * d && c185.orbBlendPx > 15f * d)
+        assertTrue("Expected echo dots emerging at 185ms, got ${c185.echoAlpha}", c185.echoAlpha in 0.10f..0.60f)
+        assertEquals(c185.orbX, c185.echoCenterX, 0.5f)
+        assertEquals(c185.orbY, c185.echoCenterY, 0.5f)
+
+        // ~320ms: belly fully absorbed into promoted circular orb, overshot upward past anchor rest (-3..-8dp).
+        val c320 = WitLiquidGlassMenu.evaluateCloseMorph(320f / 500f, w, h, al, at, aw, ah, endR, d, true, true, margin)
+        assertEquals(0f, c320.orbBlendPx, 0.001f)
+        assertEquals(1f, c320.echoAlpha, 0.001f)
+        val orbCy = (c320.bodyTop + c320.bodyBottom) * 0.5f
+        val upwardRecoilDp = (acy - orbCy) / d
+        assertTrue("Expected upward orb recoil 2..9dp at 320ms, got $upwardRecoilDp", upwardRecoilDp in 2f..9f)
+
+        // 500ms: settled cleanly back at exact anchor rest.
+        val cEnd = WitLiquidGlassMenu.evaluateCloseMorph(1f, w, h, al, at, aw, ah, endR, d, true, true, margin)
+        assertEquals(al, cEnd.bodyLeft, 0.5f)
+        assertEquals(at, cEnd.bodyTop, 0.5f)
+        assertEquals(w, cEnd.bodyRight, 0.5f)
+        assertEquals(at + ah, cEnd.bodyBottom, 0.5f)
+        assertEquals(1f, cEnd.echoAlpha, 0.001f)
+        assertEquals(al + aw * 0.5f, cEnd.echoCenterX, 0.5f)
+        assertEquals(acy, cEnd.echoCenterY, 0.5f)
+    }
 }

@@ -13,6 +13,7 @@ import android.graphics.Color
 import android.graphics.Outline
 import android.graphics.Paint
 import android.graphics.RenderEffect
+import android.graphics.RuntimeShader
 import android.graphics.Shader
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
@@ -41,6 +42,7 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.OnBackPressedDispatcherOwner
 import androidx.activity.findViewTreeOnBackPressedDispatcherOwner
 import androidx.annotation.ColorInt
+import androidx.annotation.RequiresApi
 import androidx.appcompat.widget.Toolbar
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.shape.MaterialShapeDrawable
@@ -61,12 +63,16 @@ import ceui.pixiv.witstudio.theme.label
 import ceui.pixiv.witstudio.theme.lineHeightRatio
 import ceui.pixiv.witstudio.theme.motionEnabled
 import ceui.pixiv.witstudio.theme.shape
+import ceui.pixiv.witstudio.widget.internal.WitLiquidGlassBackend
 import kotlin.math.PI
 import kotlin.math.abs
+import kotlin.math.cos
+import kotlin.math.exp
 import kotlin.math.hypot
 import kotlin.math.pow
 import kotlin.math.roundToInt
 import kotlin.math.sin
+import kotlin.math.sqrt
 
 /**
  * Liquid Glass expanding menu anchored inside a [WitLiquidGlassLayout].
@@ -290,6 +296,12 @@ public class WitLiquidGlassMenu private constructor(
 
     private var progress = 0f
     private var backStartProgress = 1f
+    private var lastEvaluatedClosing = false
+    private var lastMorphFrame: MorphFrame? = null
+    private var closeInterruptStart: MorphFrame? = null
+    private var closeStartProgress = 0f
+    private var contentLensShader: RuntimeShader? = null
+    private var lastContentEffectKey = Long.MIN_VALUE
     private var anchorHidden = false
     private var isBorderlessAnchor = false
     private var isTransparentBackground = false
@@ -371,8 +383,30 @@ public class WitLiquidGlassMenu private constructor(
             finishAndCleanup()
             return
         }
-        applyProgress(progress, closing = true)
-        val duration = (CLOSE_DURATION_MS * progress.coerceIn(0.25f, 1f)).toLong()
+        val wasOpenSettled = openSettled || progress >= 0.99f
+        val startCloseP = when {
+            wasOpenSettled -> {
+                closeInterruptStart = null
+                0f
+            }
+            lastEvaluatedClosing -> {
+                // Continuing seamlessly from a predictive-back preview along the close curve.
+                closeInterruptStart = null
+                (1f - progress).coerceIn(0f, 0.95f)
+            }
+            else -> {
+                closeInterruptStart = lastMorphFrame
+                // Map current mid-open progress smoothly onto the matching close phase so
+                // interrupting early never jumps back to 100% size before retracting.
+                val sizeRatio = (progress / 0.42f).coerceIn(0f, 1f)
+                ((1f - sizeRatio) * 0.56f).coerceIn(0f, 0.56f)
+            }
+        }
+        closeStartProgress = startCloseP
+        val startP = (1f - startCloseP).coerceIn(0.01f, 1f)
+        progress = startP
+        applyProgress(startP, closing = true)
+        val duration = (CLOSE_DURATION_MS * (1f - startCloseP).coerceIn(0.32f, 1f)).toLong()
         animateProgress(target = 0f, durationMs = duration, closing = true)
     }
 
@@ -1583,11 +1617,33 @@ public class WitLiquidGlassMenu private constructor(
 
     private fun settleOpen(focus: Boolean = true) {
         openSettled = true
+        lastEvaluatedClosing = false
+        closeInterruptStart = null
+        closeStartProgress = 0f
         dragPullX = 0f
         dragPullY = 0f
         dragPress = 0f
         val w = menuWidth.toFloat()
         val h = menuHeight.toFloat()
+        lastMorphFrame = MorphFrame(
+            bodyLeft = 0f,
+            bodyTop = 0f,
+            bodyRight = w,
+            bodyBottom = h,
+            bodyRadius = endRadiusPx,
+            orbX = 0f,
+            orbY = 0f,
+            orbRadius = 0f,
+            orbBlendPx = 0f,
+            contentAlpha = 1f,
+            contentBlurDp = 0f,
+            contentRefract = 0f,
+            echoAlpha = 0f,
+            echoBlurDp = 0f,
+            echoScale = 1f,
+            echoCenterX = anchorCenterX,
+            echoCenterY = anchorCenterY,
+        )
         menuGlass?.let { glass ->
             glass.translationX = 0f
             glass.translationY = 0f
@@ -1611,10 +1667,14 @@ public class WitLiquidGlassMenu private constructor(
             content.scaleY = 1f
             content.translationX = 0f
             content.translationY = 0f
-            setViewBlur(content, 0f, isContent = true)
+            clearContentEffect(content)
         }
         echoIconView?.let { echo ->
             echo.alpha = 0f
+            echo.scaleX = 1f
+            echo.scaleY = 1f
+            echo.translationX = 0f
+            echo.translationY = 0f
             setViewBlur(echo, 0f, isContent = false)
         }
         if (focus) focusFirstRow()
@@ -2223,68 +2283,84 @@ public class WitLiquidGlassMenu private constructor(
     }
 
     /**
-     * Evaluates the liquid teardrop morph at normalized progress [rawP] in `0..1` (calibrated 1:1
-     * against frame-by-frame reference telemetry):
-     * - `0.00..0.44`: anchor orb pours down-left into a diagonal teardrop (S-curve width/height
-     *   expansion + height-invariant `~34dp` top sag + AGSL uneven-capsule smooth-union `smin`);
-     *   menu content emerges Gaussian-blurred inside the growing droplet.
-     * - `0.44..0.78`: plump full-capsule stadium holds roundness through `p=0.55` before smoothly
-     *   relaxing its corners to `30dp`, rising cleanly into place with a `~3%` elastic overshoot
-     *   while Gaussian blur melts to `0dp` (razor sharp).
-     * - `0.78..1.00`: crisp elastic settle into final resting bounds.
+     * Evaluates the 1:1 iOS 26 calibrated Liquid Glass morph at normalized progress [rawP] in `0..1`:
+     *
+     * Open (`closing = false`, `520ms`):
+     * - `0..75ms`: anchor orb launches diagonally down-left as a liquid teardrop (`smin` trailing
+     *   shoulder + right-edge inward pull `-13dp`); anchor dots drift with the droplet and dissolve
+     *   in `~45ms`.
+     * - `75..250ms`: spring-driven inflation (`omega ≈ 18.2, zeta ≈ 0.71`) with height-invariant
+     *   downward gravity momentum (`+46dp` peak top sag at `100ms`, `+17dp` peak bottom overshoot
+     *   at `184ms`); menu content fades in (`70..215ms`), clears Gaussian blur (`16dp -> 0dp`), and
+     *   subtly refracts around the curved bubble bevel (API 33+).
+     * - `250..520ms`: width/height overshoot (`~+2.9%`) and corner relaxation (`capsule -> 32dp`
+     *   by `330ms`) settle smoothly with a delicate `-2dp` top recoil.
+     *
+     * Close (`closing = true`, `500ms`, `closeP = 1 - p`):
+     * - `0..67ms`: downward release dip (`+48dp` top drop, `+18dp` bottom dip) while menu content
+     *   blurs and dissolves completely to `0%`, leaving pure empty liquid glass.
+     * - `118..305ms`: anchor orb buds at the upper-right shoulder and fuses with the shrinking
+     *   droplet belly via an `smin` concave metaball bridge (spout -> gourd -> peanut), while the
+     *   anchor dots emerge inside the orb and ride it past rest (`-7dp` upward recoil).
+     * - `305..500ms`: belly is fully absorbed into the circular orb, which elastically bounces back
+     *   to exact anchor rest with zero handoff pop.
      */
     private fun applyProgress(rawP: Float, closing: Boolean) {
         val glass = menuGlass ?: return
         val p = rawP.coerceIn(0f, 1f)
         progress = p
+        lastEvaluatedClosing = closing
 
         val w = menuWidth.toFloat()
         val h = menuHeight.toFloat()
-        val maxOverW = minOf(w * 0.030f, context.dpF(MAX_WIDTH_OVERSHOOT_DP))
-        val maxOverH = minOf(h * 0.030f, context.dpF(MAX_HEIGHT_OVERSHOOT_DP))
-        val maxTopSag = minOf(anchorHeightPx * 0.78f, context.dpF(MAX_TOP_SAG_DP))
-
-        // Reference S-curve growth (width leads slightly so tall menus stay plump and teardrop-shaped).
-        val wProg = smoothstep(0f, 0.56f, p)
-        val hProg = smoothstep(0f, 0.62f, p)
-        val wOver = maxOverW * sin(PI * ((p - 0.54f) / 0.46f).coerceIn(0f, 1f)).toFloat().pow(1.5f)
-        val hOver = maxOverH * sin(PI * ((p - 0.52f) / 0.48f).coerceIn(0f, 1f)).toFloat().pow(1.5f)
-
-        val baseW = anchorWidthPx
-        val baseH = anchorHeightPx
-        val curW = lerp(baseW, w, wProg) + wOver
-        val curH = lerp(baseH, h, hProg) + hOver
-
-        // Horizontal: anchor horizontally by geometric center (anchorCenterX) with 35-degree teardrop pull.
-        // At p=0, centered strictly at anchorCenterX; at p=1, laid out cleanly across [0, w].
+        val density = context.resources.displayMetrics.density
         val patchMargin = context.dpF(MAX_MORPH_PATCH_OVERSHOOT_DP)
-        val edgeTuck = context.dpF(1.5f) * sin(PI * (p / 0.65f).coerceIn(0f, 1f)).toFloat()
-        val hProgS = computeCenterProgress(p, closing)
-        val rawL = if (anchorOnRight) {
-            lerp(anchorCenterX - curW * 0.5f, 0f, hProgS) - edgeTuck
-        } else {
-            lerp(anchorCenterX - curW * 0.5f, 0f, hProgS) + edgeTuck
-        }
-        val curL = clampMorphStart(rawL, curW, w, patchMargin)
-        val curR = curL + curW
 
-        // Vertical: height-invariant sag (~34dp max, 0.78x anchor height) creates the exact 35-deg
-        // diagonal teardrop without stretching down the screen on tall 14-item menus.
-        // 收回与点开保持同样饱满的水滴涟漪与张力下垂，绝不生硬扁平缩成一坨。
-        val sagScale = 1.0f
-        val topSag = maxTopSag * sagScale * sin(PI * (p / 0.78f).coerceIn(0f, 1f)).toFloat().pow(1.25f)
-        val rawT = if (expandingDown) {
-            lerp(anchorLocalT, 0f, smoothstep(0.36f, 0.84f, p)) + topSag
+        val baseFrame = if (!closing) {
+            evaluateOpenMorph(
+                progress = p,
+                menuW = w,
+                menuH = h,
+                anchorL = anchorLocalL,
+                anchorT = anchorLocalT,
+                anchorW = anchorWidthPx,
+                anchorH = anchorHeightPx,
+                endRadiusPx = endRadiusPx,
+                density = density,
+                anchorOnRight = anchorOnRight,
+                expandingDown = expandingDown,
+                patchMargin = patchMargin,
+            )
         } else {
-            lerp(anchorLocalB, h, smoothstep(0.36f, 0.84f, p)) - topSag - curH
+            val closeP = (1f - p).coerceIn(0f, 1f)
+            val targetFrame = evaluateCloseMorph(
+                closeProgress = closeP,
+                menuW = w,
+                menuH = h,
+                anchorL = anchorLocalL,
+                anchorT = anchorLocalT,
+                anchorW = anchorWidthPx,
+                anchorH = anchorHeightPx,
+                endRadiusPx = endRadiusPx,
+                density = density,
+                anchorOnRight = anchorOnRight,
+                expandingDown = expandingDown,
+                patchMargin = patchMargin,
+            )
+            val startSnap = closeInterruptStart
+            if (startSnap != null) {
+                val blendSpan = (0.18f * (1f - closeStartProgress)).coerceAtLeast(0.06f)
+                val blend = smoothstep(closeStartProgress, (closeStartProgress + blendSpan).coerceAtMost(1f), closeP)
+                if (blend < 0.999f) lerpMorphFrame(startSnap, targetFrame, blend) else targetFrame
+            } else {
+                targetFrame
+            }
         }
-        val curT = clampMorphStart(rawT, curH, h, patchMargin)
-        val curB = curT + curH
 
         // When dismissing straight from an active drag/press, blend the residual elastic offset
         // smoothly to zero over the opening phase of the close morph so there is zero frame snap.
         val dragCarry = if (closing && (abs(dragPullX) > 0.5f || abs(dragPullY) > 0.5f || dragPress > 0.01f)) {
-            smoothstep(0.65f, 1f, p)
+            smoothstep(0.82f, 1f, p)
         } else {
             0f
         }
@@ -2297,7 +2373,7 @@ public class WitLiquidGlassMenu private constructor(
                 width = w,
                 height = h,
                 endRadius = endRadiusPx,
-                density = context.resources.displayMetrics.density,
+                density = density,
                 pullX = dragPullX * dragCarry,
                 pullY = dragPullY * dragCarry,
                 pressPresence = dragPress * dragCarry,
@@ -2309,56 +2385,44 @@ public class WitLiquidGlassMenu private constructor(
             val dT = dragDeform.top
             val dR = dragDeform.right - w
             val dB = dragDeform.bottom - h
-            val minSpanW = anchorWidthPx
-            val minSpanH = anchorHeightPx
-            val mergedW = (curR - curL + dR - dL).coerceAtLeast(minSpanW)
-            val mergedH = (curB - curT + dB - dT).coerceAtLeast(minSpanH)
-            finalL = clampMorphStart(curL + dL, mergedW, w, patchMargin)
+            val mergedW = (baseFrame.bodyRight - baseFrame.bodyLeft + dR - dL).coerceAtLeast(0f)
+            val mergedH = (baseFrame.bodyBottom - baseFrame.bodyTop + dB - dT).coerceAtLeast(0f)
+            finalL = clampMorphStart(baseFrame.bodyLeft + dL, mergedW, w, patchMargin)
             finalR = finalL + mergedW
-            finalT = clampMorphStart(curT + dT, mergedH, h, patchMargin)
+            finalT = clampMorphStart(baseFrame.bodyTop + dT, mergedH, h, patchMargin)
             finalB = finalT + mergedH
         } else {
             glass.translationX = 0f
             glass.translationY = 0f
-            finalL = curL
-            finalT = curT
-            finalR = curR
-            finalB = curB
+            finalL = baseFrame.bodyLeft
+            finalT = baseFrame.bodyTop
+            finalR = baseFrame.bodyRight
+            finalB = baseFrame.bodyBottom
         }
 
-        // Corner radius: smoothly relaxes from full-capsule to endRadiusPx without sharp inflection.
-        val finalW = finalR - finalL
-        val finalH = finalB - finalT
-        val capsuleR = minOf(finalW, finalH) * 0.5f
-        val relax = smootherstep(0.35f, 0.85f, p)
-        val bodyR = lerp(capsuleR, minOf(endRadiusPx, capsuleR), relax).coerceAtLeast(0f)
-
-        // Teardrop shoulder (uneven capsule pinned to upper belly so tail proportions stay height-invariant).
-        // 点开与收回均保留连贯的水滴流线与融合颈部，避免收回时突变成矩形聚成一坨。
-        val tailWeight = 1f - smoothstep(0.20f, 0.60f, p)
+        val finalW = (finalR - finalL).coerceAtLeast(0f)
+        val finalH = (finalB - finalT).coerceAtLeast(0f)
+        val bodyR = baseFrame.bodyRadius.coerceIn(0f, minOf(finalW, finalH) * 0.5f)
         val bodyCx = (finalL + finalR) * 0.5f
         val bodyCy = (finalT + finalB) * 0.5f
-        if (tailWeight > 0.001f && p > 0.001f && finalW > 1f && finalH > 1f) {
-            val bellyR = minOf(finalW, finalH) * 0.48f
-            val bellyCx = bodyCx
-            val bellyCy = if (expandingDown) finalT + bellyR * 1.04f else finalB - bellyR * 1.04f
-            val pull = smoothstep(0.22f, 0.54f, p)
-            val targetTipX = if (anchorOnRight) finalR - bodyR else finalL + bodyR
-            val targetTipY = if (expandingDown) finalT + bodyR else finalB - bodyR
-            val tipX = lerp(anchorCenterX, targetTipX, pull)
-            val tipY = lerp(anchorCenterY, targetTipY, pull)
-            val taper = lerp(1f, 0.72f, sin(PI * (p / 0.52f).coerceIn(0f, 1f)).toFloat())
-            val tipR = lerp(anchorRadiusPx * 0.90f, bodyR * 0.82f, pull) * taper
-            val blendK = context.dpF(TEARDROP_BLEND_DP) * smoothstep(0f, 0.12f, p) * tailWeight
+
+        lastMorphFrame = if (dragCarry > 0.001f) {
+            baseFrame.copy(bodyLeft = finalL, bodyTop = finalT, bodyRight = finalR, bodyBottom = finalB, bodyRadius = bodyR)
+        } else {
+            baseFrame
+        }
+
+        if (baseFrame.orbRadius > 0.5f && baseFrame.orbBlendPx > 0.01f) {
             glass.setMorphFrame(
-                finalL, finalT, finalR, finalB, bodyR,
-                tailTipX = tipX,
-                tailTipY = tipY,
-                tailTipRadius = tipR,
-                tailBellyX = bellyCx,
-                tailBellyY = bellyCy,
-                tailBellyRadius = bellyR,
-                tailBlendPx = blendK,
+                left = finalL,
+                top = finalT,
+                right = finalR,
+                bottom = finalB,
+                cornerRadiusPx = bodyR,
+                orbX = baseFrame.orbX,
+                orbY = baseFrame.orbY,
+                orbRadius = baseFrame.orbRadius,
+                orbBlendPx = baseFrame.orbBlendPx,
             )
         } else {
             glass.setMorphFrame(finalL, finalT, finalR, finalB, bodyR)
@@ -2413,45 +2477,53 @@ public class WitLiquidGlassMenu private constructor(
             glass.elevation = context.dpF(MENU_ELEVATION_DP)
         }
 
-        // Menu content tracks Body B's live center/size and emerges crisply.
+        // Menu content tracks Body B's live center/size, clears Gaussian blur, and gently refracts
+        // near the curved liquid bubble bevel during inflation/release (API 33+).
         scrollView?.let { content ->
-            val minScale = if (closing) 0.16f else 0.32f
-            val sx = (finalW / w).coerceIn(minScale, 1.12f)
-            val sy = (finalH / h).coerceIn(minScale, 1.12f)
+            val minScale = if (closing) 0.42f else 0.48f
+            val sx = (finalW / w).coerceIn(minScale, 1.08f)
+            val sy = (finalH / h).coerceIn(minScale, 1.08f)
             val uni = minOf(sx, sy)
-            content.scaleX = lerp(uni, sx, 0.25f)
-            content.scaleY = lerp(uni, sy, 0.25f)
+            val appliedSx = lerp(uni, sx, 0.38f)
+            val appliedSy = lerp(uni, sy, 0.38f)
+            content.scaleX = appliedSx
+            content.scaleY = appliedSy
             content.translationX = bodyCx - w * 0.5f
             content.translationY = bodyCy - h * 0.5f
-            content.alpha = if (closing) smootherstep(0.18f, 0.55f, p) else smoothstep(0.08f, 0.35f, p)
+            content.alpha = baseFrame.contentAlpha
 
-            // 非无效果等级下，透明底与标准玻璃内容伴随水滴展开从高斯模糊逐渐锐化聚焦
-            if ((isTransparentBackground || !isBorderlessAnchor) && !isNoneQuality && Build.VERSION.SDK_INT >= 31) {
-                val blurFactor = (1f - smoothstep(0.08f, 0.64f, p)).pow(1.6f)
-                setViewBlur(content, context.dpF(CONTENT_MAX_BLUR_DP) * blurFactor, isContent = true)
+            val useOptics = (isTransparentBackground || !isBorderlessAnchor) && !isNoneQuality &&
+                baseFrame.contentAlpha > 0.005f
+            if (useOptics && Build.VERSION.SDK_INT >= 31) {
+                val blurPx = baseFrame.contentBlurDp * density
+                val localR = (bodyR / minOf(appliedSx, appliedSy).coerceAtLeast(0.4f))
+                    .coerceIn(0f, minOf(w, h) * 0.5f)
+                val refract = if (resolvedQuality == WitLiquidGlassQuality.ULTRA) baseFrame.contentRefract else 0f
+                applyContentEffect(content, blurPx, refract, w, h, localR, density)
             } else {
-                setViewBlur(content, 0f, isContent = true)
+                clearContentEffect(content)
             }
         }
 
         echoIconView?.let { echo ->
-            if (isBorderlessAnchor) {
+            echo.translationX = baseFrame.echoCenterX - anchorCenterX
+            echo.translationY = baseFrame.echoCenterY - anchorCenterY
+            if (isBorderlessAnchor && !isTransparentBackground) {
                 // 实心顶栏按钮：保持 1:1 原寸不缩放畸变，变色期清晰停留拉开视觉差，拉伸时自然淡出
                 echo.scaleX = 1f
                 echo.scaleY = 1f
-                val fadeProg = if (p <= 0.12f) 0f else smoothstep(0.12f, 0.28f, p)
-                echo.alpha = (1f - fadeProg)
+                echo.alpha = if (!closing) {
+                    1f - smoothstep(0.08f, 0.24f, p)
+                } else {
+                    baseFrame.echoAlpha
+                }
                 setViewBlur(echo, 0f, isContent = false)
             } else {
-                // 详情页/玻璃模式：保持原有图标淡出与高斯模糊溶化
-                val echoPhase = smoothstep(0f, 0.15f, p)
-                echo.alpha = 1f - echoPhase
-                val echoScale = lerp(1f, 0.62f, echoPhase)
-                echo.scaleX = echoScale
-                echo.scaleY = echoScale
-                if (!isNoneQuality && Build.VERSION.SDK_INT >= 31) {
-                    val echoBlur = if (echoPhase in 0.01f..0.99f) context.dpF(ECHO_MAX_BLUR_DP) * echoPhase else 0f
-                    setViewBlur(echo, echoBlur, isContent = false)
+                echo.alpha = baseFrame.echoAlpha
+                echo.scaleX = baseFrame.echoScale
+                echo.scaleY = baseFrame.echoScale
+                if (!isNoneQuality && Build.VERSION.SDK_INT >= 31 && baseFrame.echoAlpha > 0.005f) {
+                    setViewBlur(echo, baseFrame.echoBlurDp * density, isContent = false)
                 } else {
                     setViewBlur(echo, 0f, isContent = false)
                 }
@@ -2459,6 +2531,78 @@ public class WitLiquidGlassMenu private constructor(
         }
 
         scrimDrawable?.alpha = computeScrimAlpha(p, isDark, config.dimBackground)
+    }
+
+    private fun clearContentEffect(view: View) {
+        if (Build.VERSION.SDK_INT < 31) return
+        if (lastContentBlurPx == 0f && lastContentEffectKey == 0L) return
+        lastContentBlurPx = 0f
+        lastContentEffectKey = 0L
+        view.setRenderEffect(null)
+    }
+
+    private fun applyContentEffect(
+        view: View,
+        blurPx: Float,
+        refractStrength: Float,
+        localW: Float,
+        localH: Float,
+        localCornerRadiusPx: Float,
+        density: Float,
+    ) {
+        if (Build.VERSION.SDK_INT < 31) return
+        val qBlur = if (blurPx < 0.5f) 0f else (blurPx * 2f).roundToInt() * 0.5f
+        val qRefract = if (Build.VERSION.SDK_INT >= 33 && refractStrength >= 0.015f) {
+            (refractStrength * 50f).roundToInt() / 50f
+        } else {
+            0f
+        }
+        val qRad = (localCornerRadiusPx * 0.5f).roundToInt() * 2f
+        val key = (qBlur.roundToInt().toLong() shl 32) xor
+            (((qRefract * 100f).roundToInt().toLong() and 0xFFFFL) shl 16) xor
+            (qRad.roundToInt().toLong() and 0xFFFFL)
+        if (key == lastContentEffectKey) return
+        lastContentEffectKey = key
+        lastContentBlurPx = qBlur
+
+        if (qBlur <= 0f && qRefract <= 0f) {
+            view.setRenderEffect(null)
+            return
+        }
+        val blurEffect = if (qBlur > 0f) {
+            RenderEffect.createBlurEffect(qBlur, qBlur, Shader.TileMode.CLAMP)
+        } else {
+            null
+        }
+        if (qRefract > 0f && Build.VERSION.SDK_INT >= 33 && WitLiquidGlassBackend.REFRACTION.available) {
+            val lensEffect = createContentLensEffect(localW, localH, qRad, qRefract, density)
+            if (lensEffect != null) {
+                view.setRenderEffect(
+                    if (blurEffect != null) RenderEffect.createChainEffect(lensEffect, blurEffect) else lensEffect,
+                )
+                return
+            }
+        }
+        view.setRenderEffect(blurEffect)
+    }
+
+    @RequiresApi(33)
+    private fun createContentLensEffect(
+        localW: Float,
+        localH: Float,
+        cornerRadiusPx: Float,
+        strength: Float,
+        density: Float,
+    ): RenderEffect? = WitLiquidGlassBackend.REFRACTION.attempt {
+        val shader = contentLensShader ?: RuntimeShader(CONTENT_LENS_SHADER_SOURCE).also {
+            contentLensShader = it
+        }
+        val hw = (localW * 0.5f).coerceAtLeast(1f)
+        val hh = (localH * 0.5f).coerceAtLeast(1f)
+        val bevelPx = (24f * density).coerceAtMost(minOf(hw, hh) * 0.45f)
+        shader.setFloatUniform("bounds", hw, hh, hw, hh)
+        shader.setFloatUniform("lens", cornerRadiusPx.coerceIn(0f, minOf(hw, hh)), bevelPx, strength)
+        RenderEffect.createRuntimeShaderEffect(shader, "content")
     }
 
     private fun setViewBlur(view: View, blurPx: Float, isContent: Boolean) {
@@ -2500,6 +2644,8 @@ public class WitLiquidGlassMenu private constructor(
                 }
                 backGestureOnSubmenu = false
                 openSettled = false
+                closeInterruptStart = null
+                closeStartProgress = 0f
                 dragFingerDown = false
                 cancelDragSprings()
                 clearHighlight(animated = false)
@@ -2520,7 +2666,7 @@ public class WitLiquidGlassMenu private constructor(
                     }
                     return
                 }
-                applyProgress((backStartProgress * (1f - eased * 0.42f)).coerceAtLeast(0f), closing = true)
+                applyProgress((backStartProgress * (1f - eased * 0.24f)).coerceAtLeast(0f), closing = true)
             }
 
             override fun handleOnBackCancelled() {
@@ -2624,8 +2770,12 @@ public class WitLiquidGlassMenu private constructor(
         }
         scrimView = null
         scrimDrawable = null
-        scrollView?.let { setViewBlur(it, 0f, isContent = true) }
+        scrollView?.let { clearContentEffect(it) }
         scrollView = null
+        contentLensShader = null
+        lastMorphFrame = null
+        closeInterruptStart = null
+        closeStartProgress = 0f
         rowsListView = null
         highlightPill = null
         highlightedRow = null
@@ -2646,7 +2796,7 @@ public class WitLiquidGlassMenu private constructor(
     }
 
     public companion object {
-        private const val DEFAULT_CORNER_RADIUS_DP = 30f
+        private const val DEFAULT_CORNER_RADIUS_DP = 32f
         private const val MIN_MENU_WIDTH_DP = 212
         private const val MAX_MENU_WIDTH_DP = 272
         private const val MAX_MENU_HEIGHT_DP = 480
@@ -2654,7 +2804,7 @@ public class WitLiquidGlassMenu private constructor(
         private const val EDGE_MARGIN_DP = 12
         private const val TOP_MARGIN_DP = 6
         private const val BOTTOM_MARGIN_DP = 16
-        private const val TOP_RISE_OVER_ANCHOR_DP = 6
+        private const val TOP_RISE_OVER_ANCHOR_DP = 2
         private const val CONTAINER_PAD_V_DP = 10
         private const val ROW_HORIZONTAL_MARGIN_DP = 8
         private const val ROW_PAD_H_DP = 14
@@ -2666,16 +2816,60 @@ public class WitLiquidGlassMenu private constructor(
         private const val SCRIM_ELEVATION_DP = 16f
         private const val MENU_ELEVATION_DP = 18f
 
-        private const val OPEN_DURATION_MS = 400L
-        private const val CLOSE_DURATION_MS = 360L
-        private const val MAX_TOP_SAG_DP = 34f
-        private const val MAX_WIDTH_OVERSHOOT_DP = 8f
-        private const val MAX_HEIGHT_OVERSHOOT_DP = 10f
+        internal const val OPEN_DURATION_MS = 520L
+        internal const val CLOSE_DURATION_MS = 500L
+        private const val OPEN_DURATION_SEC = OPEN_DURATION_MS / 1000f
+        private const val CLOSE_DURATION_SEC = CLOSE_DURATION_MS / 1000f
         /** Strictly inside [WitLiquidGlassBudget.inset] (30dp) minus the 3dp large-surface scatter blur. */
         private const val MAX_MORPH_PATCH_OVERSHOOT_DP = 26f
-        private const val TEARDROP_BLEND_DP = 10f
-        private const val CONTENT_MAX_BLUR_DP = 18f
-        private const val ECHO_MAX_BLUR_DP = 10f
+        private const val CONTENT_OPEN_MAX_BLUR_DP = 16f
+        private const val CONTENT_CLOSE_MAX_BLUR_DP = 14f
+        private const val ECHO_OPEN_MAX_BLUR_DP = 11f
+        private const val ECHO_CLOSE_MAX_BLUR_DP = 8.5f
+
+        private const val CONTENT_LENS_SHADER_SOURCE = """
+            uniform shader content;
+            uniform float4 bounds; // cx, cy, halfW, halfH in scrollView-local px
+            uniform float3 lens;   // cornerRadiusPx, bevelPx, strength (0..1)
+
+            half4 main(float2 coord) {
+                float2 centered = coord - bounds.xy;
+                float2 halfSize = bounds.zw;
+                float radius = min(lens.x, min(halfSize.x, halfSize.y));
+                float2 q = abs(centered) - halfSize + radius;
+                float2 corner = max(q, 0.0);
+                float dist = length(corner) + min(max(q.x, q.y), 0.0) - radius;
+                float depth = max(-dist, 0.0);
+                float bevel = max(lens.y, 1.0);
+                float t = clamp(depth / bevel, 0.0, 1.0);
+                float slope = (pow(1.0 + 3.5 * t, -1.35) - 0.1312) / 0.8688;
+                float2 axis = q.x > q.y ? float2(1.0, 0.0) : float2(0.0, 1.0);
+                float2 normal = (length(corner) > 0.001 ? normalize(corner) : axis) * sign(centered);
+                normal /= max(length(normal), 0.001);
+                float2 sampleCoord = coord - normal * (lens.z * bevel * 0.46 * slope);
+                return content.eval(sampleCoord);
+            }
+        """
+
+        internal data class MorphFrame(
+            val bodyLeft: Float,
+            val bodyTop: Float,
+            val bodyRight: Float,
+            val bodyBottom: Float,
+            val bodyRadius: Float,
+            val orbX: Float,
+            val orbY: Float,
+            val orbRadius: Float,
+            val orbBlendPx: Float,
+            val contentAlpha: Float,
+            val contentBlurDp: Float,
+            val contentRefract: Float,
+            val echoAlpha: Float,
+            val echoBlurDp: Float,
+            val echoScale: Float,
+            val echoCenterX: Float,
+            val echoCenterY: Float,
+        )
 
         private const val DARK_SCRIM_ALPHA = 38
         private const val LIGHT_SCRIM_ALPHA = 22
@@ -2882,6 +3076,346 @@ public class WitLiquidGlassMenu private constructor(
             val radius = (endRadius + (ax + ay) * 2.2f * density).coerceIn(0f, minOf(curW, curH) * 0.5f)
             return DragDeform(translateX, translateY, left, top, left + curW, top + curH, radius)
         }
+
+        private fun springStep(t: Float, omega: Float, zeta: Float, v0: Float = 0f): Float {
+            if (t <= 0f) return 0f
+            val td = t.toDouble()
+            val om = omega.toDouble()
+            val z = zeta.toDouble()
+            val v = v0.toDouble()
+            val value = when {
+                z < 0.999 -> {
+                    val wd = om * sqrt(1.0 - z * z)
+                    val e = exp(-z * om * td)
+                    1.0 + e * (-cos(wd * td) + ((v - z * om) / wd) * sin(wd * td))
+                }
+                z > 1.001 -> {
+                    val sq = sqrt(z * z - 1.0)
+                    val r1 = -om * (z - sq)
+                    val r2 = -om * (z + sq)
+                    val c1 = (v + r2) / (r1 - r2)
+                    val c2 = -1.0 - c1
+                    1.0 + c1 * exp(r1 * td) + c2 * exp(r2 * td)
+                }
+                else -> {
+                    val e = exp(-om * td)
+                    1.0 - e * (1.0 + (om - v) * td)
+                }
+            }
+            return value.toFloat()
+        }
+
+        internal fun evaluateOpenMorph(
+            progress: Float,
+            menuW: Float,
+            menuH: Float,
+            anchorL: Float,
+            anchorT: Float,
+            anchorW: Float,
+            anchorH: Float,
+            endRadiusPx: Float,
+            density: Float,
+            anchorOnRight: Boolean,
+            expandingDown: Boolean,
+            patchMargin: Float,
+        ): MorphFrame {
+            val p = progress.coerceIn(0f, 1f)
+            val t = p * OPEN_DURATION_SEC
+            val acx = anchorL + anchorW * 0.5f
+            val acy = anchorT + anchorH * 0.5f
+            val mcx = menuW * 0.5f
+            val mcy = menuH * 0.5f
+            val anchorR = minOf(anchorW, anchorH) * 0.5f
+            val dirX = if (anchorOnRight) -1f else 1f
+            val dirY = if (expandingDown) 1f else -1f
+
+            val endSnap = smootherstep(0.46f, OPEN_DURATION_SEC, t)
+
+            // Size growth: Apple iOS 26 spring (response ~0.34s, damping ~0.70-0.71) with gentle
+            // launch inertia -> peaks ~+2.9% width / +2.4% height overshoot around 250ms.
+            val wProg = lerp(springStep(t, 18.4f, 0.70f, -2.6f), 1f, endSnap)
+            val hProg = lerp(springStep(t, 18.2f, 0.71f, -1.2f), 1f, endSnap)
+            val maxOverW = minOf(menuW * 0.036f, 10f * density)
+            val maxOverH = minOf(menuH * 0.032f, 10f * density)
+            val curW = lerp(anchorW, menuW, wProg).coerceIn(anchorW * 0.90f, menuW + maxOverW)
+            val curH = lerp(anchorH, menuH, hProg).coerceIn(anchorH * 0.90f, menuH + maxOverH)
+
+            // Center X: launches ahead of width growth -> pulls anchor edge inward ~13dp at 50ms
+            // and delivers the crisp -6.7dp far-edge overshoot at 250ms.
+            val cxProg = lerp(springStep(t, 17.5f, 0.71f, 3.2f), 1f, endSnap)
+            val rawCx = lerp(acx, mcx, cxProg)
+
+            // Center Y: fast gravity momentum pour peaking ~+37dp around 112ms (+46dp top sag at
+            // 100ms, +17dp bottom overshoot at 184ms), then gently overshooting -2dp top at 335ms.
+            // Height-invariant cap keeps short (1-item) and tall (12-item) menus safely inside patchMargin.
+            val cyBaseProg = lerp(springStep(t, 18.8f, 0.78f, 4.5f), 1f, endSnap)
+            val uSag = t / 0.112f
+            val sagEnv = if (uSag > 0f) {
+                (uSag.pow(1.55f) * exp(1.55f * (1f - uSag)) * cos(minOf(PI.toFloat() * 0.56f, t * 5.2f)))
+            } else {
+                0f
+            }
+            val heightHeadroom = (menuH - anchorH * 0.35f).coerceAtLeast(16f * density)
+            val sagAmp = minOf(anchorH * 0.86f, 38f * density, heightHeadroom * 0.35f)
+            val rawCy = lerp(acy, mcy, cyBaseProg) + dirY * sagAmp * sagEnv * (1f - endSnap)
+
+            val curL = clampMorphStart(rawCx - curW * 0.5f, curW, menuW, patchMargin)
+            val curR = curL + curW
+            val curT = clampMorphStart(rawCy - curH * 0.5f, curH, menuH, patchMargin)
+            val curB = curT + curH
+            val clampedCx = (curL + curR) * 0.5f
+            val clampedCy = (curT + curB) * 0.5f
+
+            // Corner radius holds full plump capsule through ~105ms, then relaxes smoothly to 32dp by 330ms.
+            val capR = minOf(curW, curH) * 0.5f
+            val relax = smootherstep(0.095f, 0.330f, t)
+            val bodyR = lerp(capR, minOf(endRadiusPx, capR), relax).coerceAtLeast(0f)
+
+            // Initial diagonal teardrop shoulder (active during 5..75ms launch).
+            val tailIn = smoothstep(0.003f, 0.016f, t)
+            val tailOut = 1f - smootherstep(0.038f, 0.075f, t)
+            val tailW = tailIn * tailOut
+            val orbX: Float
+            val orbY: Float
+            val orbR: Float
+            val orbBlendPx: Float
+            if (tailW > 0.001f) {
+                val lag = smoothstep(0f, 0.070f, t)
+                orbX = lerp(acx + dirX * (3.5f * density), clampedCx - dirX * (curW * 0.16f), lag)
+                orbY = lerp(acy + dirY * (0.5f * density), clampedCy - dirY * (curH * 0.18f), lag)
+                orbR = lerp(anchorR * 0.68f, minOf(curW, curH) * 0.22f, lag) * (0.70f + 0.30f * tailOut)
+                orbBlendPx = 16f * density * tailW
+            } else {
+                orbX = 0f
+                orbY = 0f
+                orbR = 0f
+                orbBlendPx = 0f
+            }
+
+            // Menu content stays hidden inside empty liquid droplet through 70ms, emerges blurred
+            // through 70..215ms, sharpens to 0dp blur by 245ms, and refracts around curved bubble bevel.
+            val contentAlpha = smoothstep(0.070f, 0.215f, t)
+            val contentBlurDp = CONTENT_OPEN_MAX_BLUR_DP * (1f - smoothstep(0.080f, 0.245f, t)).pow(1.45f)
+            val refractIn = smoothstep(0.085f, 0.155f, t)
+            val refractOut = 1f - smootherstep(0.185f, 0.255f, t)
+            val contentRefract = (refractIn * refractOut * 0.85f).coerceIn(0f, 1f)
+
+            // Anchor dots travel with the launching droplet and blur/dissolve rapidly in ~48ms.
+            val echoFade = smoothstep(0.004f, 0.048f, t)
+            val echoAlpha = 1f - echoFade
+            val echoScale = lerp(1f, 0.72f, echoFade)
+            val echoBlurDp = if (echoFade in 0.01f..0.99f) ECHO_OPEN_MAX_BLUR_DP * echoFade else 0f
+            val echoDrift = smoothstep(0f, 0.048f, t)
+            val echoCx = lerp(acx, acx + dirX * (15f * density), echoDrift)
+            val echoCy = lerp(acy, acy + dirY * (7f * density), echoDrift)
+
+            return MorphFrame(
+                bodyLeft = curL,
+                bodyTop = curT,
+                bodyRight = curR,
+                bodyBottom = curB,
+                bodyRadius = bodyR,
+                orbX = orbX,
+                orbY = orbY,
+                orbRadius = orbR,
+                orbBlendPx = orbBlendPx,
+                contentAlpha = contentAlpha,
+                contentBlurDp = contentBlurDp,
+                contentRefract = contentRefract,
+                echoAlpha = echoAlpha,
+                echoBlurDp = echoBlurDp,
+                echoScale = echoScale,
+                echoCenterX = echoCx,
+                echoCenterY = echoCy,
+            )
+        }
+
+        internal fun evaluateCloseMorph(
+            closeProgress: Float,
+            menuW: Float,
+            menuH: Float,
+            anchorL: Float,
+            anchorT: Float,
+            anchorW: Float,
+            anchorH: Float,
+            endRadiusPx: Float,
+            density: Float,
+            anchorOnRight: Boolean,
+            expandingDown: Boolean,
+            patchMargin: Float,
+        ): MorphFrame {
+            val cp = closeProgress.coerceIn(0f, 1f)
+            val t = cp * CLOSE_DURATION_SEC
+            val acx = anchorL + anchorW * 0.5f
+            val acy = anchorT + anchorH * 0.5f
+            val mcx = menuW * 0.5f
+            val mcy = menuH * 0.5f
+            val anchorR = minOf(anchorW, anchorH) * 0.5f
+            val dirX = if (anchorOnRight) -1f else 1f
+            val dirY = if (expandingDown) 1f else -1f
+
+            // Menu content blurs and dissolves rapidly within the first ~62ms, leaving pure glass.
+            val contentAlpha = 1f - smoothstep(0.005f, 0.062f, t)
+            val contentBlurDp = if (contentAlpha > 0.005f) {
+                CONTENT_CLOSE_MAX_BLUR_DP * smoothstep(0f, 0.055f, t)
+            } else {
+                0f
+            }
+            val contentRefract = if (contentAlpha > 0.005f) {
+                smoothstep(0.004f, 0.045f, t) * 0.70f
+            } else {
+                0f
+            }
+
+            // Phase B: Anchor orb emerges from body's upper-anchor shoulder at t=118ms, pulls into
+            // the concave gourd/peanut metaball bridge, overshoots -7.4dp past anchor rest at 230ms,
+            // and elastically springs back to exact rest at 500ms.
+            val hasOrbPhase = t >= 0.118f
+            val orbX: Float
+            val orbY: Float
+            val orbR: Float
+            val orbBlendPx: Float
+            if (hasOrbPhase) {
+                val ot = t - 0.118f
+                val orbGrow = lerp(
+                    1f - exp(-(ot / 0.052f)),
+                    1f,
+                    smootherstep(0.22f, 0.34f, ot),
+                )
+                val orbSwell = 1f + 0.015f * sin(PI.toFloat() * ((t - 0.33f) / 0.17f).coerceIn(0f, 1f))
+                orbR = anchorR * orbGrow * orbSwell
+
+                val oxOffset = 18f * density * exp(-(ot / 0.082f)) * (1f - smoothstep(0.22f, 0.30f, ot))
+                orbX = acx + dirX * oxOffset
+
+                val uRec = ot / 0.115f
+                val overshootBump = if (uRec > 0f) {
+                    7.6f * density * (uRec.pow(1.28f) * exp(1.28f * (1f - uRec))) *
+                        (1f - smootherstep(0.32f, CLOSE_DURATION_SEC - 0.118f, ot))
+                } else {
+                    0f
+                }
+                val startDrop = 26f * density * exp(-(ot / 0.023f))
+                val recoilOffset = (startDrop - overshootBump).coerceIn(-patchMargin * 0.5f, patchMargin * 1.4f)
+                orbY = acy + dirY * recoilOffset
+
+                val kIn = smoothstep(0.118f, 0.145f, t)
+                val kMid = lerp(38f * density, 20f * density, smoothstep(0.155f, 0.235f, t))
+                val kOut = 1f - smootherstep(0.260f, 0.305f, t)
+                orbBlendPx = kMid * kIn * kOut
+            } else {
+                orbX = acx
+                orbY = acy
+                orbR = 0f
+                orbBlendPx = 0f
+            }
+
+            // Anchor dots emerge right inside the moving top-right orb during 140..285ms and ride
+            // the orb's elastic recoil back to exact resting anchor center at 500ms.
+            val echoIn = smoothstep(0.140f, 0.285f, t)
+            val echoAlpha = echoIn
+            val echoScale = if (hasOrbPhase) (orbR / anchorR.coerceAtLeast(1f)).coerceIn(0.65f, 1.02f) else 0.65f
+            val echoBlurDp = if (t in 0.140f..0.255f) {
+                ECHO_CLOSE_MAX_BLUR_DP * (1f - smoothstep(0.140f, 0.255f, t))
+            } else {
+                0f
+            }
+            val echoCx = if (hasOrbPhase) orbX else acx
+            val echoCy = if (hasOrbPhase) orbY else acy
+
+            // After t >= 0.305s, the shrinking body is 100% absorbed into the anchor orb: promote
+            // orb to the primary morph circle (zero metaball tail) for the final recoil settle.
+            if (t >= 0.305f) {
+                val orbDia = orbR * 2f
+                val oL = clampMorphStart(orbX - orbR, orbDia, menuW, patchMargin)
+                val oT = clampMorphStart(orbY - orbR, orbDia, menuH, patchMargin)
+                return MorphFrame(
+                    bodyLeft = oL,
+                    bodyTop = oT,
+                    bodyRight = oL + orbDia,
+                    bodyBottom = oT + orbDia,
+                    bodyRadius = orbR,
+                    orbX = 0f,
+                    orbY = 0f,
+                    orbRadius = 0f,
+                    orbBlendPx = 0f,
+                    contentAlpha = 0f,
+                    contentBlurDp = 0f,
+                    contentRefract = 0f,
+                    echoAlpha = echoAlpha,
+                    echoBlurDp = echoBlurDp,
+                    echoScale = echoScale,
+                    echoCenterX = oL + orbR,
+                    echoCenterY = oT + orbR,
+                )
+            }
+
+            // Phase A: Body shrinks smoothly into the orb over 0..305ms with initial gravity dip.
+            val absorbOut = 1f - smootherstep(0.255f, 0.305f, t)
+            val shrinkW = exp(-(t / 0.170f).pow(1.66f)) * absorbOut
+            val shrinkH = exp(-(t / 0.178f).pow(1.72f)) * absorbOut
+            val bodyW = (menuW * shrinkW).coerceAtLeast(0f)
+            val bodyH = (menuH * shrinkH).coerceAtLeast(0f)
+
+            val cxT = lerp(1f - exp(-(t / 0.158f).pow(1.70f)), 1f, smoothstep(0.25f, 0.31f, t))
+            val bodyCx = lerp(mcx, acx + dirX * (3.5f * density), cxT)
+
+            val cyUp = lerp(1f - exp(-(t / 0.185f).pow(2.10f)), 1f, smoothstep(0.26f, 0.31f, t))
+            val uDip = t / 0.060f
+            val dipEnv = if (uDip > 0f) uDip.pow(1.15f) * exp(1.15f * (1f - uDip)) else 0f
+            val dipHeadroom = (menuH - anchorH * 0.35f).coerceAtLeast(16f * density)
+            val dipAmp = minOf(anchorH * 0.80f, 35.5f * density, dipHeadroom * 0.32f)
+            val bodyCy = lerp(mcy, acy + dirY * (5f * density), cyUp) + dirY * dipAmp * dipEnv
+
+            val curL = clampMorphStart(bodyCx - bodyW * 0.5f, bodyW, menuW, patchMargin)
+            val curR = curL + bodyW
+            val curT = clampMorphStart(bodyCy - bodyH * 0.5f, bodyH, menuH, patchMargin)
+            val curB = curT + bodyH
+
+            val capR = minOf(bodyW, bodyH) * 0.5f
+            val inflate = smoothstep(0f, 0.145f, t)
+            val bodyR = lerp(minOf(endRadiusPx, capR), capR, inflate).coerceAtLeast(0f)
+
+            return MorphFrame(
+                bodyLeft = curL,
+                bodyTop = curT,
+                bodyRight = curR,
+                bodyBottom = curB,
+                bodyRadius = bodyR,
+                orbX = orbX,
+                orbY = orbY,
+                orbRadius = orbR,
+                orbBlendPx = orbBlendPx,
+                contentAlpha = contentAlpha,
+                contentBlurDp = contentBlurDp,
+                contentRefract = contentRefract,
+                echoAlpha = echoAlpha,
+                echoBlurDp = echoBlurDp,
+                echoScale = echoScale,
+                echoCenterX = echoCx,
+                echoCenterY = echoCy,
+            )
+        }
+
+        private fun lerpMorphFrame(a: MorphFrame, b: MorphFrame, f: Float): MorphFrame = MorphFrame(
+            bodyLeft = lerp(a.bodyLeft, b.bodyLeft, f),
+            bodyTop = lerp(a.bodyTop, b.bodyTop, f),
+            bodyRight = lerp(a.bodyRight, b.bodyRight, f),
+            bodyBottom = lerp(a.bodyBottom, b.bodyBottom, f),
+            bodyRadius = lerp(a.bodyRadius, b.bodyRadius, f),
+            orbX = if (a.orbRadius <= 0.5f) b.orbX else if (b.orbRadius <= 0.5f) a.orbX else lerp(a.orbX, b.orbX, f),
+            orbY = if (a.orbRadius <= 0.5f) b.orbY else if (b.orbRadius <= 0.5f) a.orbY else lerp(a.orbY, b.orbY, f),
+            orbRadius = lerp(a.orbRadius, b.orbRadius, f),
+            orbBlendPx = lerp(a.orbBlendPx, b.orbBlendPx, f),
+            contentAlpha = lerp(a.contentAlpha, b.contentAlpha, f),
+            contentBlurDp = lerp(a.contentBlurDp, b.contentBlurDp, f),
+            contentRefract = lerp(a.contentRefract, b.contentRefract, f),
+            echoAlpha = lerp(a.echoAlpha, b.echoAlpha, f),
+            echoBlurDp = lerp(a.echoBlurDp, b.echoBlurDp, f),
+            echoScale = lerp(a.echoScale, b.echoScale, f),
+            echoCenterX = lerp(a.echoCenterX, b.echoCenterX, f),
+            echoCenterY = lerp(a.echoCenterY, b.echoCenterY, f),
+        )
 
         private fun lerp(start: Float, end: Float, fraction: Float): Float =
             start + (end - start) * fraction

@@ -213,15 +213,31 @@ public class WitLiquidGlassView @JvmOverloads public constructor(
         outlineProvider = object : ViewOutlineProvider() {
             override fun getOutline(view: View, outline: Outline) {
                 if (morphActive) {
-                    val l = morphLeft.roundToInt()
-                    val t = morphTop.roundToInt()
-                    val r = morphRight.roundToInt()
-                    val b = morphBottom.roundToInt()
-                    if (r > l && b > t) {
-                        val rad = morphRadius.coerceIn(0f, minOf(r - l, b - t) / 2f)
-                        outline.setRoundRect(l, t, r, b, rad)
+                    val hasOrb = morphTail.active
+                    val bodyW = (morphRight - morphLeft).coerceAtLeast(0f)
+                    val bodyH = (morphBottom - morphTop).coerceAtLeast(0f)
+                    val orbDia = morphTail.orbRadius * 2f
+                    if (hasOrb && minOf(bodyW, bodyH) < orbDia * 0.85f) {
+                        val l = (morphTail.orbX - morphTail.orbRadius).roundToInt()
+                        val t = (morphTail.orbY - morphTail.orbRadius).roundToInt()
+                        val r = (morphTail.orbX + morphTail.orbRadius).roundToInt()
+                        val b = (morphTail.orbY + morphTail.orbRadius).roundToInt()
+                        if (r > l && b > t) {
+                            outline.setRoundRect(l, t, r, b, minOf(r - l, b - t) * 0.5f)
+                        } else {
+                            outline.setEmpty()
+                        }
                     } else {
-                        outline.setEmpty()
+                        val l = morphLeft.roundToInt()
+                        val t = morphTop.roundToInt()
+                        val r = morphRight.roundToInt()
+                        val b = morphBottom.roundToInt()
+                        if (r > l && b > t) {
+                            val rad = morphRadius.coerceIn(0f, minOf(r - l, b - t) / 2f)
+                            outline.setRoundRect(l, t, r, b, rad)
+                        } else {
+                            outline.setEmpty()
+                        }
                     }
                 } else {
                     outline.setRoundRect(0, 0, width, height, radius)
@@ -270,22 +286,17 @@ public class WitLiquidGlassView @JvmOverloads public constructor(
         right: Float,
         bottom: Float,
         cornerRadiusPx: Float,
-        tailTipX: Float = 0f,
-        tailTipY: Float = 0f,
-        tailTipRadius: Float = 0f,
-        tailBellyX: Float = 0f,
-        tailBellyY: Float = 0f,
-        tailBellyRadius: Float = 0f,
-        tailBlendPx: Float = 0f,
+        orbX: Float = 0f,
+        orbY: Float = 0f,
+        orbRadius: Float = 0f,
+        orbBlendPx: Float = 0f,
     ) {
         if (morphActive &&
             morphLeft == left && morphTop == top &&
             morphRight == right && morphBottom == bottom &&
             morphRadius == cornerRadiusPx &&
-            morphTail.tipX == tailTipX && morphTail.tipY == tailTipY &&
-            morphTail.tipRadius == tailTipRadius &&
-            morphTail.bellyX == tailBellyX && morphTail.bellyY == tailBellyY &&
-            morphTail.bellyRadius == tailBellyRadius && morphTail.blendPx == tailBlendPx
+            morphTail.orbX == orbX && morphTail.orbY == orbY &&
+            morphTail.orbRadius == orbRadius && morphTail.blendPx == orbBlendPx
         ) {
             return
         }
@@ -295,13 +306,10 @@ public class WitLiquidGlassView @JvmOverloads public constructor(
         morphRight = right
         morphBottom = bottom
         morphRadius = cornerRadiusPx
-        morphTail.tipX = tailTipX
-        morphTail.tipY = tailTipY
-        morphTail.tipRadius = tailTipRadius
-        morphTail.bellyX = tailBellyX
-        morphTail.bellyY = tailBellyY
-        morphTail.bellyRadius = tailBellyRadius
-        morphTail.blendPx = tailBlendPx
+        morphTail.orbX = orbX
+        morphTail.orbY = orbY
+        morphTail.orbRadius = orbRadius
+        morphTail.blendPx = orbBlendPx
         invalidateOutline()
         invalidateOptics()
     }
@@ -430,25 +438,33 @@ public class WitLiquidGlassView @JvmOverloads public constructor(
         val sTop = if (morphActive) morphTop else 0f
         val sRight = if (morphActive) morphRight else w.toFloat()
         val sBottom = if (morphActive) morphBottom else h.toFloat()
-        if (sRight <= sLeft || sBottom <= sTop) return
+        val activeTail = if (morphActive && morphTail.active) morphTail else null
+        if ((sRight <= sLeft || sBottom <= sTop) && activeTail == null) return
         val activeRadius = if (morphActive) {
-            morphRadius.coerceIn(0f, minOf(sRight - sLeft, sBottom - sTop) / 2f)
+            morphRadius.coerceIn(0f, minOf((sRight - sLeft).coerceAtLeast(0f), (sBottom - sTop).coerceAtLeast(0f)) / 2f)
         } else {
             radius
         }
-        val activeTail = if (morphActive && morphTail.active) morphTail else null
         materialPaint.rimAlpha = rimAlpha
         if (materialDirty) {
             materialPaint.update(w, h, scale, baseFill, tintColor, dark, clear, effectiveDimming)
             materialDirty = false
         }
         val needsAlphaLayer = pAlpha < 0.999f
-        platterBounds.set(sLeft, sTop, sRight, sBottom)
+        if (sRight > sLeft && sBottom > sTop) {
+            platterBounds.set(sLeft, sTop, sRight, sBottom)
+        } else if (activeTail != null) {
+            platterBounds.set(
+                activeTail.orbX - activeTail.orbRadius,
+                activeTail.orbY - activeTail.orbRadius,
+                activeTail.orbX + activeTail.orbRadius,
+                activeTail.orbY + activeTail.orbRadius,
+            )
+        }
         if (activeTail != null) {
-            platterBounds.union(activeTail.tipX - activeTail.tipRadius, activeTail.tipY - activeTail.tipRadius)
-            platterBounds.union(activeTail.tipX + activeTail.tipRadius, activeTail.tipY + activeTail.tipRadius)
-            platterBounds.union(activeTail.bellyX - activeTail.bellyRadius, activeTail.bellyY - activeTail.bellyRadius)
-            platterBounds.union(activeTail.bellyX + activeTail.bellyRadius, activeTail.bellyY + activeTail.bellyRadius)
+            val pad = activeTail.orbRadius + activeTail.blendPx
+            platterBounds.union(activeTail.orbX - pad, activeTail.orbY - pad)
+            platterBounds.union(activeTail.orbX + pad, activeTail.orbY + pad)
         }
         if (needsAlphaLayer) {
             val layerPad = maxOf(2f, scale)
@@ -505,18 +521,20 @@ public class WitLiquidGlassView @JvmOverloads public constructor(
             super.dispatchDraw(canvas)
             return
         }
-        val w = morphRight - morphLeft
-        val h = morphBottom - morphTop
-        if (w <= 0f || h <= 0f) return
+        val w = (morphRight - morphLeft).coerceAtLeast(0f)
+        val h = (morphBottom - morphTop).coerceAtLeast(0f)
+        val activeTail = if (morphTail.active) morphTail else null
+        if ((w <= 0f || h <= 0f) && activeTail == null) return
         val rad = morphRadius.coerceIn(0f, minOf(w, h) / 2f)
         buildLiquidGlassMorphPath(
             morphClipPath, morphScratchPath, morphArcRect,
             morphLeft, morphTop, morphRight, morphBottom,
-            rad, if (morphTail.active) morphTail else null,
+            rad, activeTail,
         )
-        if (morphClipPath.isEmpty) {
+        if (morphClipPath.isEmpty && w > 0f && h > 0f) {
             morphClipPath.addRoundRect(morphLeft, morphTop, morphRight, morphBottom, rad, rad, Path.Direction.CW)
         }
+        if (morphClipPath.isEmpty) return
         canvas.withClip(morphClipPath) {
             super.dispatchDraw(this)
         }

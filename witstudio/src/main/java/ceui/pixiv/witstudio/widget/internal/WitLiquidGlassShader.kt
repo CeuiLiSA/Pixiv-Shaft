@@ -37,19 +37,17 @@ internal class WitLiquidGlassShader : WitLiquidGlassRenderer() {
         }
         val cx = (left + right) * 0.5f * s
         val cy = (top + bottom) * 0.5f * s
-        val hw = ((right - left) * 0.5f).coerceAtLeast(0.5f) * s
-        val hh = ((bottom - top) * 0.5f).coerceAtLeast(0.5f) * s
+        val hw = ((right - left) * 0.5f).coerceAtLeast(0f) * s
+        val hh = ((bottom - top) * 0.5f).coerceAtLeast(0f) * s
         val maxRadius = minOf(hw, hh)
         shader.setFloatUniform("bounds", cx, cy, hw, hh)
         shader.setFloatUniform("geometry", inset.toFloat(), (radius * s).coerceIn(0f, maxRadius), scaledDensity)
         shader.setFloatUniform("material", if (clear) 1f else 0f, if (dark) 1f else 0f, clearDimming)
         shader.setFloatUniform("touch", touchX * s, touchY * s, press, stretch)
         if (tail != null && tail.active) {
-            shader.setFloatUniform("tailTip", tail.tipX * s, tail.tipY * s, tail.tipRadius * s, tail.blendPx * s)
-            shader.setFloatUniform("tailBelly", tail.bellyX * s, tail.bellyY * s, tail.bellyRadius * s, 0f)
+            shader.setFloatUniform("morphOrb", tail.orbX * s, tail.orbY * s, tail.orbRadius * s, tail.blendPx * s)
         } else {
-            shader.setFloatUniform("tailTip", 0f, 0f, 0f, 0f)
-            shader.setFloatUniform("tailBelly", 0f, 0f, 0f, 0f)
+            shader.setFloatUniform("morphOrb", 0f, 0f, 0f, 0f)
         }
         shader.setColorUniform("tint", tint)
         // A RuntimeShader effect snapshots its current uniforms. Rebuild only on a material,
@@ -78,8 +76,7 @@ internal class WitLiquidGlassShader : WitLiquidGlassRenderer() {
             uniform float3 geometry;  // patch inset, corner radius, scaled display density
             uniform float3 material;  // clear, dark, clear dimming
             uniform float4 touch;     // local position, illumination, spring displacement
-            uniform float4 tailTip;   // teardrop tipX, tipY, tipRadius, smin blendK (<=0 disables)
-            uniform float4 tailBelly; // teardrop bellyX, bellyY, bellyRadius, unused
+            uniform float4 morphOrb;  // metaball orbX, orbY, orbRadius, smin blendK (<=0 disables)
             layout(color) uniform half4 tint;
 
             const float3 LUMA = float3(0.2126, 0.7152, 0.0722);
@@ -95,35 +92,16 @@ internal class WitLiquidGlassShader : WitLiquidGlassRenderer() {
                 return length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - radius;
             }
 
-            float sdUnevenCapsule(float2 p, float2 pa, float2 pb, float ra, float rb) {
-                float2 rel = p - pa;
-                float2 seg = pb - pa;
-                float h2 = dot(seg, seg);
-                if (h2 < 0.01) return length(rel) - max(ra, rb);
-                float h = sqrt(h2);
-                float2 u = seg / h;
-                float lx = abs(rel.x * u.y - rel.y * u.x);
-                float ly = dot(rel, u);
-                float b = (ra - rb) / h;
-                if (abs(b) >= 0.999) {
-                    return min(length(rel) - ra, length(p - pb) - rb);
-                }
-                float a = sqrt(max(0.0, 1.0 - b * b));
-                float k = -lx * b + ly * a;
-                if (k < 0.0) return length(float2(lx, ly)) - ra;
-                if (k > a * h) return length(float2(lx, ly - h)) - rb;
-                return lx * a + ly * b - ra;
-            }
-
             float smin(float a, float b, float k) {
                 float h = clamp(0.5 + 0.5 * (b - a) / max(k, 0.001), 0.0, 1.0);
                 return mix(b, a, h) - k * h * (1.0 - h);
             }
 
-            float evalTeardropSdf(float2 p, float2 bodyCenter, float2 halfSize, float radius) {
+            float evalMorphSdf(float2 p, float2 bodyCenter, float2 halfSize, float radius) {
+                float dOrb = length(p - morphOrb.xy) - morphOrb.z;
+                if (halfSize.x <= 0.5 || halfSize.y <= 0.5) return dOrb;
                 float dBody = sdRoundRect(p - bodyCenter, halfSize, radius);
-                float dTail = sdUnevenCapsule(p, tailTip.xy, tailBelly.xy, tailTip.z, tailBelly.z);
-                return smin(dTail, dBody, tailTip.w);
+                return smin(dOrb, dBody, morphOrb.w);
             }
 
             half4 main(float2 coord) {
@@ -131,17 +109,19 @@ internal class WitLiquidGlassShader : WitLiquidGlassRenderer() {
                 float dp = geometry.z;
                 float2 halfSize = bounds.zw;
                 float2 centered = p - bounds.xy;
-                bool hasTail = tailTip.w > 0.001;
-                if (!hasTail && (abs(centered.x) > halfSize.x + dp * 17.0 ||
+                bool hasOrb = morphOrb.w > 0.001 && morphOrb.z > 0.5;
+                if (!hasOrb && (halfSize.x <= 0.25 || halfSize.y <= 0.25 ||
+                    abs(centered.x) > halfSize.x + dp * 17.0 ||
                     abs(centered.y) > halfSize.y + dp * 17.0)) return half4(0.0);
 
-                float shortSidePx = min(halfSize.x, halfSize.y) * 2.0;
+                float bodyShortPx = min(halfSize.x, halfSize.y) * 2.0;
+                float shortSidePx = hasOrb ? max(bodyShortPx, morphOrb.z * 2.0) : bodyShortPx;
                 float shortSide = shortSidePx / dp;
                 float2 fromTouch = p - touch.xy;
                 float pressRadius = max(1.0, shortSidePx * 0.82);
                 float contact = 0.0;
                 float radius = geometry.y;
-                if (!hasTail && (touch.z > 0.001 || abs(touch.w) > 0.001)) {
+                if (!hasOrb && (touch.z > 0.001 || abs(touch.w) > 0.001)) {
                     contact = exp(-dot(fromTouch, fromTouch) / (pressRadius * pressRadius));
                     float2 grip = clamp((touch.xy - bounds.xy) / max(halfSize, 1.0), -1.0, 1.0);
                     float elastic = touch.w * dp * min(1.0, shortSide / 48.0);
@@ -156,15 +136,15 @@ internal class WitLiquidGlassShader : WitLiquidGlassRenderer() {
                 // move with the shape. The foreground View and the hit box do not move.
                 float distance;
                 float2 normal;
-                if (hasTail) {
-                    distance = evalTeardropSdf(p, bounds.xy, halfSize, radius);
+                if (hasOrb) {
+                    distance = evalMorphSdf(p, bounds.xy, halfSize, radius);
                     float coverageCheck = clamp(0.5 - distance / 1.35, 0.0, 1.0);
                     if (coverageCheck <= 0.0) return half4(0.0);
                     float eps = max(0.75, dp * 0.35);
-                    float gx = evalTeardropSdf(p + float2(eps, 0.0), bounds.xy, halfSize, radius) -
-                               evalTeardropSdf(p - float2(eps, 0.0), bounds.xy, halfSize, radius);
-                    float gy = evalTeardropSdf(p + float2(0.0, eps), bounds.xy, halfSize, radius) -
-                               evalTeardropSdf(p - float2(0.0, eps), bounds.xy, halfSize, radius);
+                    float gx = evalMorphSdf(p + float2(eps, 0.0), bounds.xy, halfSize, radius) -
+                               evalMorphSdf(p - float2(eps, 0.0), bounds.xy, halfSize, radius);
+                    float gy = evalMorphSdf(p + float2(0.0, eps), bounds.xy, halfSize, radius) -
+                               evalMorphSdf(p - float2(0.0, eps), bounds.xy, halfSize, radius);
                     normal = float2(gx, gy);
                     normal /= max(length(normal), 0.001);
                 } else {
