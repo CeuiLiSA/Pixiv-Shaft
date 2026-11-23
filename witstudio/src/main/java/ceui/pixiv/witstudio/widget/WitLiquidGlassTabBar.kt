@@ -1,0 +1,1207 @@
+package ceui.pixiv.witstudio.widget
+
+import android.content.res.ColorStateList
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.LinearGradient
+import android.graphics.Matrix
+import android.graphics.Paint
+import android.graphics.Path
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffColorFilter
+import android.graphics.RectF
+import android.graphics.Region
+import android.graphics.Shader
+import android.os.Build
+import android.os.SystemClock
+import android.view.HapticFeedbackConstants
+import android.view.MotionEvent
+import android.view.View
+import android.view.ViewConfiguration
+import android.view.ViewGroup
+import androidx.annotation.ColorInt
+import androidx.core.graphics.ColorUtils
+import androidx.core.graphics.withClip
+import androidx.core.graphics.withScale
+import androidx.core.view.get
+import androidx.core.view.isNotEmpty
+import androidx.core.view.size
+import com.google.android.material.bottomnavigation.BottomNavigationView
+import ceui.pixiv.witstudio.theme.motionEnabled
+import ceui.pixiv.witstudio.widget.internal.WitLiquidGlassBackend
+import ceui.pixiv.witstudio.widget.internal.WitLiquidGlassLoupeShader
+import ceui.pixiv.witstudio.widget.internal.WitLiquidGlassPhysics
+import kotlin.math.abs
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.sign
+
+/**
+ * Internal hook allowing [WitLiquidGlassTabBar] to coordinate custom drawing and touch routing
+ * inside [WitLiquidGlassView] without exposing internal rendering details in the public API.
+ */
+internal interface WitLiquidGlassOverlay {
+    val isActive: Boolean
+    fun onDispatchTouchEvent(event: MotionEvent): Boolean
+    fun dispatchDraw(canvas: Canvas, drawChildren: (Canvas) -> Unit)
+    fun onDetachedFromWindow()
+}
+
+/**
+ * Pixel-calibrated iOS 26 Liquid Glass interactive bottom navigation bar controller.
+ *
+ * Built directly on the shared [WitLiquidGlassPhysics] spring calibration used across all
+ * `witstudio` liquid-glass surfaces:
+ * - **Press expansion**: The entire outer glass bar swells elastically (`1.000 -> 1.0372`,
+ *   `k=310, ζ=0.65`, `+6.8%` peak overshoot at `~225ms`), while the inner resting selection pill
+ *   dissolves and inflates into a crystal-clear refractive liquid-glass droplet loupe protruding
+ *   beyond the outer bar (`~1.245x` bar height, `1.15x` crisp foreground magnification -> `~1.19x`
+ *   total icon zoom).
+ * - **Interactive horizontal scrubbing**: Dragging across tabs glides the droplet smoothly with
+ *   transform-invariant touch tracking, live pixel-exact accent/unselected color masking,
+ *   monotonic curved meniscus bevel refraction & RGB prism dispersion (API 33+ ULTRA),
+ *   area-conserving velocity squash-and-stretch (`+16.5%` W / `-18%` H at high speed), subtle
+ *   tab-crossing haptics, and elastic rubber-band edge over-drag with wall bulge & outer-bar pull.
+ * - **Release settle-back**: Commits the target tab immediately, snaps the droplet smoothly onto
+ *   the tab center (`k=164, ζ=0.89`, `~350ms`), contracts the loupe back into the resting pill
+ *   (`k=310, ζ=0.79`, `~290ms`), and rebounds the outer bar with its signature `-8.9%` undershoot
+ *   (`0.9967`) settling cleanly back to `1.000` (`k=269, ζ=0.61`, `~350ms`).
+ */
+public class WitLiquidGlassTabBar private constructor(
+    private val glassBar: WitLiquidGlassView,
+    private val navigationView: BottomNavigationView,
+) : WitLiquidGlassOverlay {
+
+    public companion object {
+        @JvmStatic
+        public fun attach(
+            glassBar: WitLiquidGlassView,
+            navigationView: BottomNavigationView,
+        ): WitLiquidGlassTabBar {
+            (glassBar.overlay as? WitLiquidGlassTabBar)?.detach()
+            return WitLiquidGlassTabBar(glassBar, navigationView).also { controller ->
+                glassBar.overlay = controller
+            }
+        }
+
+        // ── Shared calibrated physics constants (delegating to WitLiquidGlassPhysics) ──
+        internal const val BAR_PRESS_SCALE: Float = WitLiquidGlassPhysics.WIDE_BAR_PRESS_SCALE
+        internal const val BAR_PRESS_SCALE_Y: Float = WitLiquidGlassPhysics.WIDE_BAR_PRESS_SCALE_Y
+        internal const val BAR_PRESS_STIFFNESS: Float = WitLiquidGlassPhysics.PRESS_STIFFNESS
+        internal const val BAR_PRESS_DAMPING: Float = WitLiquidGlassPhysics.PRESS_DAMPING
+        internal const val BAR_RELEASE_STIFFNESS: Float = WitLiquidGlassPhysics.RELEASE_STIFFNESS
+        internal const val BAR_RELEASE_DAMPING: Float = WitLiquidGlassPhysics.RELEASE_DAMPING
+
+        internal const val LIFT_PRESS_STIFFNESS: Float = WitLiquidGlassPhysics.LIFT_PRESS_STIFFNESS
+        internal const val LIFT_PRESS_DAMPING: Float = WitLiquidGlassPhysics.LIFT_PRESS_DAMPING
+        internal const val LIFT_RELEASE_STIFFNESS: Float = WitLiquidGlassPhysics.LIFT_RELEASE_STIFFNESS
+        internal const val LIFT_RELEASE_DAMPING: Float = WitLiquidGlassPhysics.LIFT_RELEASE_DAMPING
+
+        internal const val TRACK_DRAG_STIFFNESS: Float = WitLiquidGlassPhysics.TRACK_DRAG_STIFFNESS
+        internal const val TRACK_DRAG_DAMPING: Float = WitLiquidGlassPhysics.TRACK_DRAG_DAMPING
+        internal const val TRACK_TAP_STIFFNESS: Float = WitLiquidGlassPhysics.TRACK_TAP_STIFFNESS
+        internal const val TRACK_TAP_DAMPING: Float = WitLiquidGlassPhysics.TRACK_TAP_DAMPING
+        internal const val TRACK_RELEASE_STIFFNESS: Float = WitLiquidGlassPhysics.TRACK_RELEASE_STIFFNESS
+        internal const val TRACK_RELEASE_DAMPING: Float = WitLiquidGlassPhysics.TRACK_RELEASE_DAMPING
+
+        internal const val VEL_STRETCH_STIFFNESS: Float = WitLiquidGlassPhysics.VEL_STRETCH_STIFFNESS
+        internal const val VEL_STRETCH_DAMPING: Float = WitLiquidGlassPhysics.VEL_STRETCH_DAMPING
+        internal const val VEL_NORM_DP_PER_SEC: Float = WitLiquidGlassPhysics.VEL_NORM_DP_PER_SEC
+        internal const val VEL_STRETCH_X_MAX: Float = WitLiquidGlassPhysics.VEL_STRETCH_X_MAX
+        internal const val VEL_SQUASH_Y_MAX: Float = WitLiquidGlassPhysics.VEL_SQUASH_Y_MAX
+
+        internal const val WALL_SQUISH_STIFFNESS: Float = WitLiquidGlassPhysics.WALL_SQUISH_STIFFNESS
+        internal const val WALL_SQUISH_DAMPING: Float = WitLiquidGlassPhysics.WALL_SQUISH_DAMPING
+        internal const val MAX_OVER_TRAVEL_DP: Float = WitLiquidGlassPhysics.MAX_OVER_TRAVEL_DP
+        internal const val OVER_DRAG_SCALE_DP: Float = WitLiquidGlassPhysics.OVER_DRAG_SCALE_DP
+        internal const val WALL_SQUASH_X_MAX: Float = WitLiquidGlassPhysics.WALL_SQUASH_X_MAX
+        internal const val WALL_BULGE_Y_MAX: Float = WitLiquidGlassPhysics.WALL_BULGE_Y_MAX
+        internal const val BAR_PULL_SHIFT_MAX_DP: Float = WitLiquidGlassPhysics.PULL_MAX_SHIFT_DP
+        internal const val BAR_PULL_STRETCH_X_MAX: Float = WitLiquidGlassPhysics.BAR_PULL_STRETCH_X_MAX
+
+        /**
+         * Held droplet height ratio in bar-local coordinates. Combined with [BAR_PRESS_SCALE_Y] (1.040),
+         * screen height = 1.28 * 1.040 = 1.331x resting bar height (~82.5dp on 62dp bar, protruding
+         * ~9dp transparently above and below the pressed bar so the outer bar's top/bottom specular
+         * rim and protruding glass crescents ("上下漏边") match the reference capture).
+         */
+        internal const val HELD_HEIGHT_LOCAL_RATIO: Float = 1.28f
+
+        /**
+         * Held droplet width multiplier over resting pill width in bar-local coordinates.
+         * Combined with [BAR_PRESS_SCALE] (1.040), screen width = 1.15 * 1.040 = 1.196x resting pill
+         * (~122dp matching the reference video's 122.7dp).
+         */
+        internal const val HELD_WIDTH_LOCAL_MULT: Float = 1.15f
+
+        internal const val MIN_TAP_BLOOM_MS: Long = WitLiquidGlassPhysics.MIN_TAB_TAP_BLOOM_MS
+        internal const val LOUPE_MAGNIFICATION_MAX: Float = 0.16f
+        internal const val MAX_PHYSICS_SUBSTEP_SEC: Float = WitLiquidGlassPhysics.MAX_PHYSICS_SUBSTEP_SEC
+        internal const val MAX_FRAME_DT_SEC: Float = WitLiquidGlassPhysics.MAX_FRAME_DT_SEC
+
+        /** Computes resting pill & held loupe baseline metrics for any bar geometry and tab centers. */
+        internal fun computeMetrics(
+            barW: Float,
+            barH: Float,
+            tabCenters: FloatArray,
+            density: Float,
+        ): BarMetrics {
+            if (barW <= 0f || barH <= 0f || tabCenters.isEmpty()) {
+                return BarMetrics(0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f)
+            }
+            var minCx = Float.POSITIVE_INFINITY
+            var maxCx = Float.NEGATIVE_INFINITY
+            for (cx in tabCenters) {
+                if (cx < minCx) minCx = cx
+                if (cx > maxCx) maxCx = cx
+            }
+            val n = tabCenters.size
+            val slotW = if (n > 1) (maxCx - minCx) / (n - 1) else barW
+            val insetV = (barH * 0.075f).coerceIn(3.5f * density, 5.0f * density)
+            val restH = (barH - 2f * insetV).coerceAtLeast(min(barH, 32f * density))
+            val minEndRoom = min(minCx - insetV, barW - insetV - maxCx).coerceAtLeast(restH * 0.62f)
+            val maxRestWByEnd = minEndRoom * 2f
+            val preferredRestW = min(max(slotW * 1.08f, restH * 1.62f), restH * 2.05f)
+            val restW = preferredRestW.coerceIn(
+                min(restH * 1.25f, maxRestWByEnd),
+                max(restH * 1.25f, maxRestWByEnd),
+            )
+
+            val heldH = barH * HELD_HEIGHT_LOCAL_RATIO
+            val rawHeldW = max(restW * HELD_WIDTH_LOCAL_MULT, heldH * 1.46f)
+            val maxHeldW = max(restW * HELD_WIDTH_LOCAL_MULT, min(barW * 0.45f, restW * 1.34f))
+            val heldW = rawHeldW.coerceAtMost(maxHeldW)
+
+            return BarMetrics(
+                barW = barW,
+                barH = barH,
+                minCx = minCx,
+                maxCx = maxCx,
+                restW = restW,
+                restH = restH,
+                heldW = heldW,
+                heldH = heldH,
+            )
+        }
+
+        /** Computes hyperbolic rubber-band over-drag shift and normalized wall pressure `[0..1]`. */
+        internal fun computeEdgeOverDrag(
+            fingerX: Float,
+            minCx: Float,
+            maxCx: Float,
+            density: Float,
+        ): EdgeOverDrag {
+            val clamped = fingerX.coerceIn(minCx, maxCx)
+            val excess = fingerX - clamped
+            if (abs(excess) <= 0.001f) {
+                return EdgeOverDrag(clamped, 0f, 0f)
+            }
+            val maxTravel = MAX_OVER_TRAVEL_DP * density
+            val scale = OVER_DRAG_SCALE_DP * density
+            val unit = WitLiquidGlassPhysics.rubberBandUnit(excess, scale)
+            val shift = unit * maxTravel
+            val squish = abs(unit).coerceIn(0f, 1f)
+            return EdgeOverDrag(clamped + shift, shift, squish)
+        }
+    }
+
+    internal data class BarMetrics(
+        val barW: Float,
+        val barH: Float,
+        val minCx: Float,
+        val maxCx: Float,
+        val restW: Float,
+        val restH: Float,
+        val heldW: Float,
+        val heldH: Float,
+    ) {
+        val valid: Boolean get() = barW > 0f && barH > 0f && restW > 0f && restH > 0f
+    }
+
+    internal data class EdgeOverDrag(
+        val targetCx: Float,
+        val overShiftPx: Float,
+        val wallSquish: Float,
+    )
+
+    /**
+     * Pure deterministic coupled spring physics engine for the liquid-glass tab bar.
+     * Independently unit-testable at any frame rate without Android framework dependencies.
+     */
+    internal class TabLoupePhysics {
+        val barScale = WitLiquidGlassPhysics.SpringState(1f, 0f)
+        val barShiftX = WitLiquidGlassPhysics.SpringState(0f, 0f)
+        val barPullStretchX = WitLiquidGlassPhysics.SpringState(0f, 0f)
+        val lift = WitLiquidGlassPhysics.SpringState(0f, 0f)
+        val dropCx = WitLiquidGlassPhysics.SpringState(0f, 0f)
+        val velocityStretch = WitLiquidGlassPhysics.SpringState(0f, 0f)
+        val wallSquish = WitLiquidGlassPhysics.SpringState(0f, 0f)
+
+        var pressed: Boolean = false
+        var dragging: Boolean = false
+        var targetCx: Float = 0f
+        var targetBarShiftX: Float = 0f
+        var targetBarPullStretchX: Float = 0f
+        var targetWallSquish: Float = 0f
+        var initialized: Boolean = false
+
+        fun snapToRest(cx: Float) {
+            barScale.snap(1f)
+            barShiftX.snap(0f)
+            barPullStretchX.snap(0f)
+            lift.snap(0f)
+            dropCx.snap(cx)
+            velocityStretch.snap(0f)
+            wallSquish.snap(0f)
+            targetCx = cx
+            targetBarShiftX = 0f
+            targetBarPullStretchX = 0f
+            targetWallSquish = 0f
+            pressed = false
+            dragging = false
+            initialized = true
+        }
+
+        fun step(dtSec: Float, density: Float): Boolean {
+            val totalDt = dtSec.coerceIn(0f, MAX_FRAME_DT_SEC)
+            if (totalDt <= 0f) return !isSettled()
+
+            val steps = max(1, (totalDt / MAX_PHYSICS_SUBSTEP_SEC).toInt() + 1)
+            val subDt = totalDt / steps
+            val safeDensity = density.coerceAtLeast(0.5f)
+
+            val barTargetScale = if (pressed) BAR_PRESS_SCALE else 1f
+            val barStiff = if (pressed) BAR_PRESS_STIFFNESS else BAR_RELEASE_STIFFNESS
+            val barDamp = if (pressed) BAR_PRESS_DAMPING else BAR_RELEASE_DAMPING
+
+            val liftTarget = if (pressed) 1f else 0f
+            val liftStiff = if (pressed) LIFT_PRESS_STIFFNESS else LIFT_RELEASE_STIFFNESS
+            val liftDamp = if (pressed) LIFT_PRESS_DAMPING else LIFT_RELEASE_DAMPING
+
+            val cxStiff = when {
+                dragging -> TRACK_DRAG_STIFFNESS
+                pressed -> TRACK_TAP_STIFFNESS
+                else -> TRACK_RELEASE_STIFFNESS
+            }
+            val cxDamp = when {
+                dragging -> TRACK_DRAG_DAMPING
+                pressed -> TRACK_TAP_DAMPING
+                else -> TRACK_RELEASE_DAMPING
+            }
+
+            val pullStiff = if (pressed) WitLiquidGlassPhysics.PULL_ACTIVE_STIFFNESS else BAR_RELEASE_STIFFNESS
+            val pullDamp = if (pressed) WitLiquidGlassPhysics.PULL_ACTIVE_DAMPING else BAR_RELEASE_DAMPING
+
+            repeat(steps) {
+                barScale.step(barTargetScale, barStiff, barDamp, subDt)
+                barShiftX.step(targetBarShiftX, pullStiff, pullDamp, subDt)
+                barPullStretchX.step(targetBarPullStretchX, pullStiff, pullDamp, subDt)
+                lift.step(liftTarget, liftStiff, liftDamp, subDt)
+                dropCx.step(targetCx, cxStiff, cxDamp, subDt)
+
+                val vxDpPerSec = abs(dropCx.velocity) / safeDensity
+                val velTarget = if (lift.value > 0.08f) {
+                    (vxDpPerSec / VEL_NORM_DP_PER_SEC).coerceIn(0f, 1f)
+                } else {
+                    0f
+                }
+                velocityStretch.step(velTarget, VEL_STRETCH_STIFFNESS, VEL_STRETCH_DAMPING, subDt)
+                wallSquish.step(targetWallSquish, WALL_SQUISH_STIFFNESS, WALL_SQUISH_DAMPING, subDt)
+            }
+
+            if (isSettled()) {
+                if (!pressed) {
+                    barScale.snap(1f)
+                    barShiftX.snap(0f)
+                    barPullStretchX.snap(0f)
+                    lift.snap(0f)
+                    dropCx.snap(targetCx)
+                    velocityStretch.snap(0f)
+                    wallSquish.snap(0f)
+                }
+                return false
+            }
+            return true
+        }
+
+        fun isSettled(): Boolean {
+            if (pressed) return false
+            return barScale.isSettled(1f, 0.0009f, 0.012f) &&
+                barShiftX.isSettled(0f, 0.25f, 2.5f) &&
+                barPullStretchX.isSettled(0f, 0.0006f, 0.006f) &&
+                lift.isSettled(0f, 0.004f, 0.035f) &&
+                dropCx.isSettled(targetCx, 0.35f, 4.0f) &&
+                velocityStretch.isSettled(0f, 0.005f, 0.04f) &&
+                wallSquish.isSettled(0f, 0.005f, 0.04f)
+        }
+
+        fun evaluateGeometry(metrics: BarMetrics): DropletGeometry {
+            val l = lift.value
+            val lPos = l.coerceIn(0f, 1.15f)
+            val activeW = l.coerceIn(0f, 1f)
+            val vStretch = velocityStretch.value.coerceIn(0f, 1.15f)
+            val wSquish = wallSquish.value.coerceIn(0f, 1.15f)
+
+            val baseW = (metrics.restW + (metrics.heldW - metrics.restW) * lPos)
+                .coerceAtLeast(metrics.restH)
+            val baseH = (metrics.restH + (metrics.heldH - metrics.restH) * lPos)
+                .coerceAtLeast(metrics.restH * 0.85f)
+
+            val velScaleX = 1f + VEL_STRETCH_X_MAX * vStretch
+            val velScaleY = 1f - VEL_SQUASH_Y_MAX * vStretch
+            val wallScaleX = 1f - WALL_SQUASH_X_MAX * wSquish
+            val wallScaleY = 1f + WALL_BULGE_Y_MAX * wSquish
+
+            val curW = baseW * (1f + (velScaleX * wallScaleX - 1f) * activeW)
+            val curH = baseH * (1f + (velScaleY * wallScaleY - 1f) * activeW)
+            val clampedW = max(curW, curH * 1.10f)
+
+            val barDeltaX = barScale.value - 1f
+            val yRatio = (BAR_PRESS_SCALE_Y - 1f) / (BAR_PRESS_SCALE - 1f)
+            val barScaleYVal = 1f + barDeltaX * yRatio
+
+            return DropletGeometry(
+                cx = dropCx.value,
+                cy = metrics.barH * 0.5f,
+                width = clampedW,
+                height = curH,
+                lift = activeW,
+                barScaleX = barScale.value + barPullStretchX.value,
+                barScaleY = barScaleYVal,
+                barShiftX = barShiftX.value,
+            )
+        }
+    }
+
+    internal data class DropletGeometry(
+        val cx: Float,
+        val cy: Float,
+        val width: Float,
+        val height: Float,
+        val lift: Float,
+        val barScaleX: Float,
+        val barScaleY: Float,
+        val barShiftX: Float,
+    )
+
+    private val physics = TabLoupePhysics()
+    private val density: Float get() = glassBar.resources.displayMetrics.density
+    private val touchSlop: Float = ViewConfiguration.get(glassBar.context).scaledTouchSlop.toFloat()
+
+    private var enabledFlag = false
+    private var isDarkTheme = false
+    @ColorInt private var selectedColor: Int = Color.BLUE
+    @ColorInt private var unselectedColor: Int = Color.WHITE
+    @ColorInt private var restingPillColor: Int = 0xD8101828.toInt()
+
+    private var tabCenters = FloatArray(0)
+    private var tabMenuIds = IntArray(0)
+    private var lastKnownSelectedIndex = -1
+    private var metrics = BarMetrics(0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f)
+
+    // Active pointer tracking in transform-invariant bar coordinates
+    private var activePointerId = MotionEvent.INVALID_POINTER_ID
+    private var downX = 0f
+    private var downY = 0f
+    private var downTimeMs = 0L
+    private var dragGrabOffsetX = 0f
+    private var initialSelectedIndex = -1
+    private var touchedTabIndex = -1
+    private var currentHoverIndex = -1
+    private var didDrag = false
+    private var crossedOtherTab = false
+    private var pendingReleaseAtMs = 0L
+    private var appliedBarShiftX = 0f
+
+    private var frameLoopRunning = false
+    private var lastFrameUptimeMs = 0L
+
+    // Drawing caches (zero per-frame allocations)
+    private val restingPillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
+    private val restingSheenPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
+    private val restingRimPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE }
+    private val unselectedLayerPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val selectedLayerPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val fallbackGlassFillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
+    private val fallbackRimPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE }
+    private val dropletRect = RectF()
+    private val dropletPath = Path()
+    private val layerBounds = RectF()
+    private val sceneBoundsLocal = RectF()
+    private val restingShaderMatrix = Matrix()
+    private var restingSheenShader: LinearGradient? = null
+    private var restingRimShader: LinearGradient? = null
+    private var restingShaderDark: Boolean? = null
+    private val fallbackRimMatrix = Matrix()
+    private var fallbackRimShader: LinearGradient? = null
+    private var fallbackRimDark: Boolean? = null
+    private var savedItemRippleColor: ColorStateList? = null
+    private var rippleSaved = false
+    private var loupeShader: WitLiquidGlassLoupeShader? = null
+
+    private val layoutListener = View.OnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
+        if (enabledFlag) {
+            refreshTabGeometry(snapIfUninitialized = true)
+            glassBar.invalidate()
+        }
+    }
+
+    private val frameRunnable = object : Runnable {
+        override fun run() {
+            frameLoopRunning = false
+            if (!enabledFlag || !glassBar.isAttachedToWindow) {
+                resetVisualState()
+                return
+            }
+            val now = SystemClock.uptimeMillis()
+            if (pendingReleaseAtMs > 0L && now >= pendingReleaseAtMs) {
+                pendingReleaseAtMs = 0L
+                beginReleaseSettle()
+            }
+            val dtSec = if (lastFrameUptimeMs > 0L) {
+                ((now - lastFrameUptimeMs).coerceAtLeast(1L)) / 1000f
+            } else {
+                1f / 60f
+            }
+            lastFrameUptimeMs = now
+
+            val keepRunning = physics.step(dtSec, density) || pendingReleaseAtMs > 0L
+            applyOuterBarTransform()
+            glassBar.invalidate()
+
+            if (keepRunning) {
+                scheduleNextFrame()
+            } else {
+                lastFrameUptimeMs = 0L
+                if (Build.VERSION.SDK_INT >= 33) {
+                    loupeShader?.clear()
+                }
+            }
+        }
+    }
+
+    init {
+        navigationView.addOnLayoutChangeListener(layoutListener)
+        glassBar.addOnLayoutChangeListener(layoutListener)
+    }
+
+    override val isActive: Boolean
+        get() = enabledFlag
+
+    /** Enables or disables the floating liquid-glass tab loupe behavior cleanly. */
+    public var isEnabled: Boolean
+        get() = enabledFlag
+        set(value) {
+            if (enabledFlag == value) return
+            enabledFlag = value
+            if (value) {
+                glassBar.isGlassInteractive = false
+                glassBar.clipChildren = false
+                glassBar.clipToPadding = false
+                configureNavigationViewForLoupe()
+                refreshTabGeometry(snapIfUninitialized = true)
+                glassBar.invalidate()
+            } else {
+                cancelAndReset()
+            }
+        }
+
+    /** Updates theme-derived colors for selected icons/text, unselected icons/text, and resting pill. */
+    public fun applyThemeColors(
+        @ColorInt selectedColor: Int,
+        @ColorInt unselectedColor: Int,
+        @ColorInt restingPillColor: Int,
+        isDark: Boolean,
+    ) {
+        this.selectedColor = selectedColor
+        this.unselectedColor = unselectedColor
+        this.restingPillColor = restingPillColor
+        this.isDarkTheme = isDark
+
+        val opaqueSelected = ColorUtils.setAlphaComponent(selectedColor, 255)
+        selectedLayerPaint.colorFilter = PorterDuffColorFilter(opaqueSelected, PorterDuff.Mode.SRC_IN)
+        selectedLayerPaint.alpha = Color.alpha(selectedColor)
+
+        val opaqueUnselected = ColorUtils.setAlphaComponent(unselectedColor, 255)
+        unselectedLayerPaint.colorFilter = PorterDuffColorFilter(opaqueUnselected, PorterDuff.Mode.SRC_IN)
+        unselectedLayerPaint.alpha = Color.alpha(unselectedColor)
+
+        restingPillPaint.color = restingPillColor
+
+        if (enabledFlag) {
+            configureNavigationViewForLoupe()
+            glassBar.invalidate()
+        }
+    }
+
+    /** Synchronizes the selection pill position after external tab selection (e.g., ViewPager swipe). */
+    @JvmOverloads
+    public fun syncSelection(animated: Boolean = true) {
+        if (!enabledFlag) return
+        refreshTabGeometry(snapIfUninitialized = false)
+        val checkedIdx = resolveCheckedMenuIndex()
+        if (checkedIdx < 0 || checkedIdx >= tabCenters.size) return
+        lastKnownSelectedIndex = checkedIdx
+        if (activePointerId != MotionEvent.INVALID_POINTER_ID) return
+
+        val targetX = tabCenters[checkedIdx]
+        if (!physics.initialized || !animated || !motionEnabled()) {
+            physics.snapToRest(targetX)
+            applyOuterBarTransform()
+            glassBar.invalidate()
+            return
+        }
+        if (abs(physics.targetCx - targetX) > 0.5f || abs(physics.dropCx.value - targetX) > 0.5f) {
+            physics.targetCx = targetX
+            physics.pressed = false
+            physics.dragging = false
+            startFrameLoop()
+        }
+    }
+
+    /** Detaches listeners, cancels running physics, and releases offscreen GPU nodes. */
+    public fun detach() {
+        cancelAndReset()
+        navigationView.removeOnLayoutChangeListener(layoutListener)
+        glassBar.removeOnLayoutChangeListener(layoutListener)
+        if (glassBar.overlay === this) {
+            glassBar.overlay = null
+        }
+    }
+
+    override fun onDetachedFromWindow() {
+        cancelAndReset()
+    }
+
+    /**
+     * Converts view-local touch coordinates back into unscaled bar layout space so scaling or
+     * shifting [glassBar] during press/over-drag never creates feedback drift on a stationary finger.
+     */
+    private fun toUnscaledBarX(localX: Float): Float =
+        glassBar.pivotX + (localX - glassBar.pivotX) * glassBar.scaleX + appliedBarShiftX
+
+    private fun toUnscaledBarY(localY: Float): Float =
+        glassBar.pivotY + (localY - glassBar.pivotY) * glassBar.scaleY
+
+    override fun onDispatchTouchEvent(event: MotionEvent): Boolean {
+        if (!enabledFlag || !glassBar.isEnabled) return false
+        refreshTabGeometry(snapIfUninitialized = true)
+        if (tabCenters.isEmpty() || !metrics.valid) return false
+
+        when (event.actionMasked) {
+            MotionEvent.ACTION_DOWN -> {
+                activePointerId = event.getPointerId(0)
+                pendingReleaseAtMs = 0L
+                downX = toUnscaledBarX(event.x)
+                downY = toUnscaledBarY(event.y)
+                downTimeMs = SystemClock.uptimeMillis()
+                didDrag = false
+                crossedOtherTab = false
+
+                initialSelectedIndex = resolveCheckedMenuIndex().coerceIn(0, tabCenters.lastIndex)
+                lastKnownSelectedIndex = initialSelectedIndex
+                touchedTabIndex = nearestTabIndex(downX)
+                currentHoverIndex = touchedTabIndex
+
+                // Keep DrawerLayout / ViewPager from hijacking horizontal scrubbing across the tab bar.
+                glassBar.parent?.requestDisallowInterceptTouchEvent(true)
+
+                if (!physics.initialized) {
+                    physics.snapToRest(tabCenters[initialSelectedIndex])
+                }
+
+                if (!motionEnabled()) {
+                    return true
+                }
+
+                physics.pressed = true
+                physics.dragging = false
+                physics.targetBarShiftX = 0f
+                physics.targetBarPullStretchX = 0f
+                physics.targetWallSquish = 0f
+
+                if (touchedTabIndex == initialSelectedIndex) {
+                    // Preserve resting center on stationary press; smoothly blend off-center grab when dragging.
+                    dragGrabOffsetX = physics.dropCx.value - downX
+                    physics.targetCx = tabCenters[initialSelectedIndex]
+                } else {
+                    // Pressing another tab launches the liquid glass droplet smoothly toward it immediately.
+                    dragGrabOffsetX = 0f
+                    physics.targetCx = tabCenters[touchedTabIndex]
+                }
+                startFrameLoop()
+                return true
+            }
+
+            MotionEvent.ACTION_MOVE -> {
+                val idx = event.findPointerIndex(activePointerId)
+                if (idx < 0) return true
+                val x = toUnscaledBarX(event.getX(idx))
+                val y = toUnscaledBarY(event.getY(idx))
+                val dx = x - downX
+                val dy = y - downY
+
+                if (!didDrag && (abs(dx) > touchSlop * 0.55f || abs(dy) > touchSlop)) {
+                    didDrag = true
+                }
+
+                if (didDrag && motionEnabled()) {
+                    physics.dragging = true
+                    val travelNorm = (abs(dx) / (44f * density)).coerceIn(0f, 1f)
+                    val desiredFingerX = x + dragGrabOffsetX * (1f - travelNorm)
+                    val edge = computeEdgeOverDrag(desiredFingerX, metrics.minCx, metrics.maxCx, density)
+
+                    physics.targetCx = edge.targetCx
+                    physics.targetWallSquish = edge.wallSquish
+                    val pullSign = sign(edge.overShiftPx)
+                    physics.targetBarShiftX = pullSign * BAR_PULL_SHIFT_MAX_DP * density * edge.wallSquish
+                    physics.targetBarPullStretchX = BAR_PULL_STRETCH_X_MAX * edge.wallSquish
+
+                    val hover = nearestTabIndex(edge.targetCx)
+                    if (hover != currentHoverIndex) {
+                        currentHoverIndex = hover
+                        if (hover != initialSelectedIndex) {
+                            crossedOtherTab = true
+                        }
+                        performTabBoundaryHaptic()
+                    }
+                    startFrameLoop()
+                }
+                return true
+            }
+
+            MotionEvent.ACTION_POINTER_UP -> {
+                val pointerId = event.getPointerId(event.actionIndex)
+                if (pointerId == activePointerId) {
+                    finishGesture(event, cancelled = false)
+                }
+                return true
+            }
+
+            MotionEvent.ACTION_UP -> {
+                finishGesture(event, cancelled = false)
+                return true
+            }
+
+            MotionEvent.ACTION_CANCEL -> {
+                finishGesture(event, cancelled = true)
+                return true
+            }
+        }
+        return activePointerId != MotionEvent.INVALID_POINTER_ID
+    }
+
+    private fun finishGesture(event: MotionEvent, cancelled: Boolean) {
+        glassBar.parent?.requestDisallowInterceptTouchEvent(false)
+        val idx = event.findPointerIndex(activePointerId)
+        val upX = if (idx >= 0) toUnscaledBarX(event.getX(idx)) else downX
+        val upY = if (idx >= 0) toUnscaledBarY(event.getY(idx)) else downY
+        activePointerId = MotionEvent.INVALID_POINTER_ID
+
+        val farVerticalCancel = !didDrag && abs(upY - metrics.barH * 0.5f) > metrics.barH * 2.4f
+        val targetIndex = when {
+            cancelled || farVerticalCancel -> initialSelectedIndex.coerceIn(0, tabCenters.lastIndex)
+            didDrag -> nearestTabIndex(physics.targetCx)
+            else -> nearestTabIndex(upX)
+        }
+
+        // Commit tab selection immediately on ACTION_UP with zero navigation delay.
+        if (!cancelled && !farVerticalCancel && targetIndex in tabMenuIds.indices) {
+            val targetMenuId = tabMenuIds[targetIndex]
+            val shouldReselectSameTab =
+                targetIndex == initialSelectedIndex && !didDrag && !crossedOtherTab
+            if (targetIndex != initialSelectedIndex || shouldReselectSameTab) {
+                navigationView.selectedItemId = targetMenuId
+            }
+        }
+
+        val finalCx = tabCenters[targetIndex.coerceIn(0, tabCenters.lastIndex)]
+        lastKnownSelectedIndex = targetIndex
+
+        if (!motionEnabled()) {
+            physics.snapToRest(finalCx)
+            applyOuterBarTransform()
+            glassBar.invalidate()
+            return
+        }
+
+        physics.dragging = false
+        physics.targetCx = finalCx
+        physics.targetBarShiftX = 0f
+        physics.targetBarPullStretchX = 0f
+        physics.targetWallSquish = 0f
+
+        val elapsedMs = SystemClock.uptimeMillis() - downTimeMs
+        if (!cancelled && elapsedMs < MIN_TAP_BLOOM_MS && physics.lift.value < 0.65f) {
+            physics.pressed = true
+            pendingReleaseAtMs = downTimeMs + MIN_TAP_BLOOM_MS
+        } else {
+            beginReleaseSettle()
+        }
+        startFrameLoop()
+    }
+
+    private fun beginReleaseSettle() {
+        physics.pressed = false
+        physics.dragging = false
+        physics.targetBarShiftX = 0f
+        physics.targetBarPullStretchX = 0f
+        physics.targetWallSquish = 0f
+    }
+
+    override fun dispatchDraw(canvas: Canvas, drawChildren: (Canvas) -> Unit) {
+        refreshTabGeometry(snapIfUninitialized = true)
+        if (!metrics.valid || tabCenters.isEmpty()) {
+            drawChildren(canvas)
+            return
+        }
+
+        // Catch any external tab switch (e.g., ViewPager swipe) even if caller didn't invoke syncSelection().
+        if (activePointerId == MotionEvent.INVALID_POINTER_ID) {
+            val checkedIdx = resolveCheckedMenuIndex()
+            if (checkedIdx in tabCenters.indices && checkedIdx != lastKnownSelectedIndex) {
+                lastKnownSelectedIndex = checkedIdx
+                val targetX = tabCenters[checkedIdx]
+                if (!physics.initialized || !motionEnabled()) {
+                    physics.snapToRest(targetX)
+                } else {
+                    physics.targetCx = targetX
+                    startFrameLoop()
+                }
+            }
+        }
+
+        val geom = physics.evaluateGeometry(metrics)
+        val halfW = geom.width * 0.5f
+        val halfH = geom.height * 0.5f
+        dropletRect.set(geom.cx - halfW, geom.cy - halfH, geom.cx + halfW, geom.cy + halfH)
+        val cornerRadius = min(halfW, halfH)
+        dropletPath.rewind()
+        dropletPath.addRoundRect(dropletRect, cornerRadius, cornerRadius, Path.Direction.CW)
+
+        val w = glassBar.width.toFloat()
+        val h = glassBar.height.toFloat()
+        layerBounds.set(0f, 0f, w, h)
+
+        val lift = geom.lift
+        val restWeight = (1f - smoothstep(0f, 0.48f, lift)).coerceIn(0f, 1f)
+
+        // 1. Resting state: translucent liquid-glass selection pill + crisp clipped accent tab.
+        if (lift <= 0.002f) {
+            drawRestingGlassPill(canvas, cornerRadius, 1f)
+            drawUnselectedOutsideDroplet(canvas, drawChildren)
+            canvas.withClip(dropletPath) {
+                val selSave = saveLayer(dropletRect, selectedLayerPaint)
+                try {
+                    drawChildren(this)
+                } finally {
+                    restoreToCount(selSave)
+                }
+            }
+            return
+        }
+
+        // 2. Elevated Liquid Glass Droplet Loupe active (press / drag / release transition):
+        val glass = smoothstep(0.05f, 0.72f, lift)
+        val mag = 1f + LOUPE_MAGNIFICATION_MAX * glass
+
+        val useAgslLoupe = Build.VERSION.SDK_INT >= 33 &&
+            canvas.isHardwareAccelerated &&
+            glassBar.effectiveQuality == WitLiquidGlassQuality.ULTRA &&
+            WitLiquidGlassBackend.REFRACTION.available
+
+        if (useAgslLoupe) {
+            // Clip unselected tabs cleanly outside the droplet so unmagnified icons never ghost at the AA rim.
+            drawUnselectedOutsideDroplet(canvas, drawChildren)
+            val drawn = WitLiquidGlassBackend.REFRACTION.attempt {
+                val shader = loupeShader ?: WitLiquidGlassLoupeShader().also { loupeShader = it }
+                val hasSceneBounds = glassBar.getLiveBackdropBoundsInLocal(sceneBoundsLocal)
+                shader.draw(
+                    canvas = canvas,
+                    barWidth = glassBar.width,
+                    barHeight = glassBar.height,
+                    density = density,
+                    dropCx = geom.cx,
+                    dropCy = geom.cy,
+                    dropW = geom.width,
+                    dropH = geom.height,
+                    lift = lift,
+                    isDark = isDarkTheme,
+                    sceneBoundsLocal = if (hasSceneBounds) sceneBoundsLocal else null,
+                ) { contentCanvas ->
+                    // Plane 1 (1.0x un-zoomed): live backdrop behind bar + outer glass platter + fading resting pill.
+                    glassBar.drawLiveBackdropInLocal(contentCanvas)
+                    glassBar.drawGlassPlatter(contentCanvas)
+                    if (restWeight > 0.004f) {
+                        drawRestingGlassPill(contentCanvas, cornerRadius, restWeight)
+                    }
+                    // Plane 2 (1.16x crisp vector-magnified): selected accent tab icons & labels.
+                    contentCanvas.withScale(mag, mag, geom.cx, geom.cy) {
+                        val selSave = saveLayer(layerBounds, selectedLayerPaint)
+                        try {
+                            drawChildren(this)
+                        } finally {
+                            restoreToCount(selSave)
+                        }
+                    }
+                }
+            }
+            if (drawn == true) return
+        }
+
+        // 3. Translucent live-backdrop fallback loupe (STANDARD quality / API 24-32 / software snapshots):
+        drawUnselectedOutsideDroplet(canvas, drawChildren)
+        drawFallbackLoupe(canvas, geom, cornerRadius, glass, mag, restWeight, drawChildren)
+    }
+
+    /**
+     * Draws a sleek, translucent nested liquid-glass capsule for the IDLE selected tab:
+     * subtle translucent tint + soft vertical glass sheen + whisper-thin directional specular rim
+     * so live blurred backdrop flows cleanly through instead of an opaque solid patch.
+     */
+    private fun drawRestingGlassPill(canvas: Canvas, cornerRadius: Float, weight: Float) {
+        val w = weight.coerceIn(0f, 1f)
+        if (w <= 0.004f) return
+        val baseAlpha = Color.alpha(restingPillColor)
+        if (baseAlpha > 0) {
+            restingPillPaint.color = ColorUtils.setAlphaComponent(
+                restingPillColor,
+                (baseAlpha * w).toInt().coerceIn(0, 255),
+            )
+            canvas.drawRoundRect(dropletRect, cornerRadius, cornerRadius, restingPillPaint)
+        }
+        if (restingSheenShader == null || restingRimShader == null || restingShaderDark != isDarkTheme) {
+            restingShaderDark = isDarkTheme
+            restingSheenShader = LinearGradient(
+                0f, 0f, 0f, 1f,
+                if (isDarkTheme) {
+                    intArrayOf(0x26FFFFFF, 0x0CFFFFFF, 0x06FFFFFF, 0x12FFFFFF)
+                } else {
+                    intArrayOf(0x66FFFFFF, 0x22FFFFFF, 0x10FFFFFF, 0x2EFFFFFF)
+                },
+                floatArrayOf(0f, 0.32f, 0.72f, 1f),
+                Shader.TileMode.CLAMP,
+            )
+            restingRimShader = LinearGradient(
+                0f, 0f, 0f, 1f,
+                if (isDarkTheme) {
+                    intArrayOf(0x3DFFFFFF, 0x0EFFFFFF, 0x0AFFFFFF, 0x28FFFFFF)
+                } else {
+                    intArrayOf(0xCCFFFFFF.toInt(), 0x2EFFFFFF, 0x1EFFFFFF, 0x88FFFFFF.toInt())
+                },
+                floatArrayOf(0f, 0.30f, 0.70f, 1f),
+                Shader.TileMode.CLAMP,
+            )
+        }
+        val rw = dropletRect.width().coerceAtLeast(1f)
+        val rh = dropletRect.height().coerceAtLeast(1f)
+        restingShaderMatrix.setScale(rw, rh)
+        restingShaderMatrix.postTranslate(dropletRect.left, dropletRect.top)
+        restingSheenShader?.let { sheen ->
+            sheen.setLocalMatrix(restingShaderMatrix)
+            restingSheenPaint.shader = sheen
+            restingSheenPaint.alpha = (w * 255f).toInt().coerceIn(0, 255)
+            canvas.drawRoundRect(dropletRect, cornerRadius, cornerRadius, restingSheenPaint)
+        }
+        restingRimShader?.let { rim ->
+            rim.setLocalMatrix(restingShaderMatrix)
+            val strokeW = max(1f, 0.75f * density)
+            val halfStroke = strokeW * 0.5f
+            restingRimPaint.shader = rim
+            restingRimPaint.strokeWidth = strokeW
+            restingRimPaint.alpha = (w * 255f).toInt().coerceIn(0, 255)
+            val rimR = (cornerRadius - halfStroke).coerceAtLeast(0f)
+            canvas.drawRoundRect(
+                dropletRect.left + halfStroke,
+                dropletRect.top + halfStroke,
+                dropletRect.right - halfStroke,
+                dropletRect.bottom - halfStroke,
+                rimR,
+                rimR,
+                restingRimPaint,
+            )
+        }
+    }
+
+    @Suppress("DEPRECATION")
+    private fun drawUnselectedOutsideDroplet(canvas: Canvas, drawChildren: (Canvas) -> Unit) {
+        val clipSave = canvas.save()
+        try {
+            if (Build.VERSION.SDK_INT >= 26) {
+                canvas.clipOutPath(dropletPath)
+            } else {
+                canvas.clipPath(dropletPath, Region.Op.DIFFERENCE)
+            }
+            val unselSave = canvas.saveLayer(layerBounds, unselectedLayerPaint)
+            try {
+                drawChildren(canvas)
+            } finally {
+                canvas.restoreToCount(unselSave)
+            }
+        } finally {
+            canvas.restoreToCount(clipSave)
+        }
+    }
+
+    private fun drawFallbackLoupe(
+        canvas: Canvas,
+        geom: DropletGeometry,
+        cornerRadius: Float,
+        glass: Float,
+        mag: Float,
+        restWeight: Float,
+        drawChildren: (Canvas) -> Unit,
+    ) {
+        canvas.withClip(dropletPath) {
+            // Preserve transparent crystal look in STANDARD mode by compositing live backdrop + outer platter
+            // inside the protruding droplet rather than an opaque gray oval.
+            val drewBackdrop = glassBar.drawLiveBackdropInLocal(this)
+            if (drewBackdrop) {
+                glassBar.drawGlassPlatter(this)
+                fallbackGlassFillPaint.color = if (isDarkTheme) {
+                    ColorUtils.setAlphaComponent(Color.WHITE, (glass * 16f).toInt().coerceIn(0, 255))
+                } else {
+                    ColorUtils.setAlphaComponent(Color.WHITE, (glass * 54f).toInt().coerceIn(0, 255))
+                }
+            } else {
+                fallbackGlassFillPaint.color = if (isDarkTheme) {
+                    ColorUtils.setAlphaComponent(0xFF282B33.toInt(), (glass * 150f).toInt().coerceIn(0, 255))
+                } else {
+                    ColorUtils.setAlphaComponent(Color.WHITE, (glass * 175f).toInt().coerceIn(0, 255))
+                }
+            }
+            drawRoundRect(dropletRect, cornerRadius, cornerRadius, fallbackGlassFillPaint)
+
+            if (restWeight > 0.004f) {
+                drawRestingGlassPill(this, cornerRadius, restWeight)
+            }
+
+            withScale(mag, mag, geom.cx, geom.cy) {
+                val selSave = saveLayer(layerBounds, selectedLayerPaint)
+                try {
+                    drawChildren(this)
+                } finally {
+                    restoreToCount(selSave)
+                }
+            }
+        }
+
+        // Delicate directional specular glass rim matching ULTRA aesthetics
+        if (glass > 0.01f) {
+            if (fallbackRimShader == null || fallbackRimDark != isDarkTheme) {
+                fallbackRimDark = isDarkTheme
+                fallbackRimShader = LinearGradient(
+                    0f, 0f, 0f, 1f,
+                    intArrayOf(
+                        if (isDarkTheme) 0x6EFFFFFF else 0xCCFFFFFF.toInt(),
+                        if (isDarkTheme) 0x16FFFFFF else 0x26FFFFFF,
+                        if (isDarkTheme) 0x16FFFFFF else 0x26FFFFFF,
+                        if (isDarkTheme) 0x5EFFFFFF else 0xAAFFFFFF.toInt(),
+                    ),
+                    floatArrayOf(0f, 0.30f, 0.70f, 1f),
+                    Shader.TileMode.CLAMP,
+                )
+            }
+            val strokeW = max(1f, 0.95f * density)
+            val halfStroke = strokeW * 0.5f
+            val rimShader = fallbackRimShader
+            if (rimShader != null) {
+                fallbackRimMatrix.setScale(
+                    dropletRect.width().coerceAtLeast(1f),
+                    dropletRect.height().coerceAtLeast(1f),
+                )
+                fallbackRimMatrix.postTranslate(dropletRect.left, dropletRect.top)
+                rimShader.setLocalMatrix(fallbackRimMatrix)
+                fallbackRimPaint.shader = rimShader
+                fallbackRimPaint.strokeWidth = strokeW
+                fallbackRimPaint.alpha = (glass * 255f).toInt().coerceIn(0, 255)
+                val rimR = (cornerRadius - halfStroke).coerceAtLeast(0f)
+                canvas.drawRoundRect(
+                    dropletRect.left + halfStroke,
+                    dropletRect.top + halfStroke,
+                    dropletRect.right - halfStroke,
+                    dropletRect.bottom - halfStroke,
+                    rimR,
+                    rimR,
+                    fallbackRimPaint,
+                )
+            }
+        }
+    }
+
+    private fun configureNavigationViewForLoupe() {
+        if (!rippleSaved) {
+            savedItemRippleColor = navigationView.itemRippleColor
+            rippleSaved = true
+        }
+        val opaqueWhite = ColorStateList.valueOf(Color.WHITE)
+        navigationView.itemIconTintList = opaqueWhite
+        navigationView.itemTextColor = opaqueWhite
+        navigationView.itemBackground = null
+        navigationView.itemRippleColor = ColorStateList.valueOf(Color.TRANSPARENT)
+        navigationView.isItemActiveIndicatorEnabled = false
+        navigationView.clipChildren = false
+        navigationView.clipToPadding = false
+        for (i in 0 until navigationView.childCount) {
+            val child = navigationView.getChildAt(i)
+            if (child is ViewGroup) {
+                child.clipChildren = false
+                child.clipToPadding = false
+            }
+        }
+    }
+
+    private fun refreshTabGeometry(snapIfUninitialized: Boolean) {
+        val barW = glassBar.width.toFloat()
+        val barH = glassBar.height.toFloat()
+        if (barW <= 0f || barH <= 0f) return
+
+        val menu = navigationView.menu
+        val menuCount = menu.size
+        if (menuCount <= 0) {
+            tabCenters = FloatArray(0)
+            tabMenuIds = IntArray(0)
+            metrics = BarMetrics(0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f)
+            return
+        }
+
+        val menuView = navigationView.getChildAt(0) as? ViewGroup
+        val itemViews = mutableListOf<View>()
+        if (menuView != null) {
+            for (i in 0 until menuView.childCount) {
+                val child = menuView.getChildAt(i)
+                if (child.visibility != View.GONE && child.width > 0) {
+                    itemViews += child
+                }
+            }
+        }
+
+        val centers = FloatArray(menuCount)
+        val ids = IntArray(menuCount)
+        val navOffsetX = navigationView.left.toFloat() + (menuView?.left?.toFloat() ?: 0f)
+
+        if (itemViews.size == menuCount) {
+            for (i in 0 until menuCount) {
+                ids[i] = menu[i].itemId
+                val itemView = itemViews[i]
+                centers[i] = navOffsetX + (itemView.left + itemView.right) * 0.5f
+            }
+        } else {
+            val isRtl = navigationView.layoutDirection == View.LAYOUT_DIRECTION_RTL
+            val slot = barW / menuCount
+            for (i in 0 until menuCount) {
+                ids[i] = menu[i].itemId
+                val visualSlot = if (isRtl) (menuCount - 1 - i) else i
+                centers[i] = slot * (visualSlot + 0.5f)
+            }
+        }
+
+        tabCenters = centers
+        tabMenuIds = ids
+        metrics = computeMetrics(barW, barH, centers, density)
+
+        val checkedIdx = resolveCheckedMenuIndex().coerceIn(0, centers.lastIndex)
+        if (snapIfUninitialized && !physics.initialized) {
+            lastKnownSelectedIndex = checkedIdx
+            physics.snapToRest(centers[checkedIdx])
+            applyOuterBarTransform()
+        } else if (activePointerId == MotionEvent.INVALID_POINTER_ID && !physics.pressed && !frameLoopRunning) {
+            val anchorIdx = checkedIdx.coerceIn(0, centers.lastIndex)
+            lastKnownSelectedIndex = anchorIdx
+            physics.snapToRest(centers[anchorIdx])
+        }
+    }
+
+    private fun resolveCheckedMenuIndex(): Int {
+        val menu = navigationView.menu
+        for (i in 0 until menu.size) {
+            if (menu[i].isChecked) return i
+        }
+        return if (menu.isNotEmpty()) 0 else -1
+    }
+
+    private fun nearestTabIndex(x: Float): Int {
+        if (tabCenters.isEmpty()) return 0
+        var bestIdx = 0
+        var bestDist = Float.POSITIVE_INFINITY
+        for (i in tabCenters.indices) {
+            val d = abs(x - tabCenters[i])
+            if (d < bestDist) {
+                bestDist = d
+                bestIdx = i
+            }
+        }
+        return bestIdx
+    }
+
+    private fun applyOuterBarTransform() {
+        val w = glassBar.width.toFloat()
+        val h = glassBar.height.toFloat()
+        if (w <= 0f || h <= 0f) return
+        val yRatio = (BAR_PRESS_SCALE_Y - 1f) / (BAR_PRESS_SCALE - 1f)
+        val sx = (physics.barScale.value + physics.barPullStretchX.value).coerceIn(0.93f, 1.12f)
+        val sy = (1f + (physics.barScale.value - 1f) * yRatio).coerceIn(0.93f, 1.14f)
+        val tx = physics.barShiftX.value
+        if (glassBar.pivotX != w * 0.5f) glassBar.pivotX = w * 0.5f
+        if (glassBar.pivotY != h * 0.5f) glassBar.pivotY = h * 0.5f
+        if (glassBar.scaleX != sx) glassBar.scaleX = sx
+        if (glassBar.scaleY != sy) glassBar.scaleY = sy
+        if (tx != appliedBarShiftX) {
+            glassBar.translationX = (glassBar.translationX - appliedBarShiftX) + tx
+            appliedBarShiftX = tx
+        }
+    }
+
+    private fun startFrameLoop() {
+        if (!frameLoopRunning) {
+            lastFrameUptimeMs = SystemClock.uptimeMillis()
+            scheduleNextFrame()
+        }
+    }
+
+    private fun scheduleNextFrame() {
+        if (frameLoopRunning) return
+        frameLoopRunning = true
+        glassBar.postOnAnimation(frameRunnable)
+    }
+
+    private fun cancelAndReset() {
+        glassBar.removeCallbacks(frameRunnable)
+        frameLoopRunning = false
+        lastFrameUptimeMs = 0L
+        activePointerId = MotionEvent.INVALID_POINTER_ID
+        pendingReleaseAtMs = 0L
+        physics.initialized = false
+        if (rippleSaved) {
+            navigationView.itemRippleColor = savedItemRippleColor
+        }
+        resetVisualState()
+        if (Build.VERSION.SDK_INT >= 33) {
+            loupeShader?.clear()
+        }
+    }
+
+    private fun resetVisualState() {
+        glassBar.scaleX = 1f
+        glassBar.scaleY = 1f
+        if (appliedBarShiftX != 0f) {
+            glassBar.translationX -= appliedBarShiftX
+            appliedBarShiftX = 0f
+        }
+        glassBar.invalidate()
+    }
+
+    private fun performTabBoundaryHaptic() {
+        val flag = if (Build.VERSION.SDK_INT >= 34) {
+            HapticFeedbackConstants.SEGMENT_FREQUENT_TICK
+        } else {
+            HapticFeedbackConstants.CLOCK_TICK
+        }
+        glassBar.performHapticFeedback(flag)
+    }
+
+    private fun smoothstep(edge0: Float, edge1: Float, x: Float): Float {
+        val t = ((x - edge0) / (edge1 - edge0)).coerceIn(0f, 1f)
+        return t * t * (3f - 2f * t)
+    }
+}

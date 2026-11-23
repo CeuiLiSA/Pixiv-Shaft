@@ -249,6 +249,29 @@ internal open class WitLiquidGlassRenderer {
 
     internal val hasBackdrop: Boolean get() = previousBackdrop != null && patch.hasDisplayList()
 
+    /** Draws the raw live scene backdrop aligned to this glass view's local coordinate space. */
+    internal fun drawBackdropInLocal(canvas: Canvas): Boolean {
+        val scene = previousBackdrop ?: return false
+        if (!scene.hasDisplayList) return false
+        val save = canvas.save()
+        try {
+            canvas.concat(backdropToLocal)
+            canvas.drawRenderNode(scene.node)
+        } finally {
+            canvas.restoreToCount(save)
+        }
+        return true
+    }
+
+    /** Maps the recorded live scene backdrop bounds into this glass view's local coordinate space. */
+    internal fun getBackdropBoundsInLocal(outRect: RectF): Boolean {
+        val scene = previousBackdrop ?: return false
+        if (!scene.hasDisplayList) return false
+        outRect.set(0f, 0f, scene.node.width.toFloat(), scene.node.height.toFloat())
+        backdropToLocal.mapRect(outRect)
+        return outRect.width() > 1f && outRect.height() > 1f
+    }
+
     internal fun updateBackdrop(
         view: View,
         backdrop: WitLiquidGlassBackdrop,
@@ -422,12 +445,12 @@ internal class WitLiquidGlassPaint {
             val elastic = stretch * minOf(density, minOf(width, height) / 48f)
             val gripX = ((touchX - left) / maxOf(1f, width) * 2f - 1f).coerceIn(-1f, 1f)
             val gripY = ((touchY - top) / maxOf(1f, height) * 2f - 1f).coerceIn(-1f, 1f)
-            val expandX = elastic * (1.6f + abs(gripX) * 0.55f)
-            val expandY = elastic * (1.6f + abs(gripY) * 0.55f)
+            val expandX = elastic * (0.55f + abs(gripX) * 0.35f)
+            val expandY = elastic * (0.55f + abs(gripY) * 0.35f)
             deformedBounds.set(left - expandX, top - expandY, right + expandX, bottom + expandY)
-            deformedBounds.offset(gripX * elastic * 1.8f, gripY * elastic * 1.4f)
+            deformedBounds.offset(gripX * elastic * 1.1f, gripY * elastic * 0.85f)
             val maxRadius = (minOf(deformedBounds.width(), deformedBounds.height()) / 2f).coerceAtLeast(0f)
-            deformedRadius = (cornerRadius + elastic * 1.6f).coerceIn(0f, maxRadius)
+            deformedRadius = (cornerRadius + elastic * 0.55f).coerceIn(0f, maxRadius)
         } else {
             deformedBounds.set(left, top, right, bottom)
             val maxRadius = (minOf(width, height) / 2f).coerceAtLeast(0f)
@@ -552,7 +575,7 @@ internal class WitLiquidGlassPaint {
         }
         if (press > 0f) {
             paint.shader = light
-            paint.alpha = (press * 180f).toInt()
+            paint.alpha = (press * 72f).toInt().coerceIn(0, 255)
             if (hasMorphTail && !clip.isEmpty) {
                 canvas.drawPath(clip, paint)
             } else {
@@ -560,7 +583,7 @@ internal class WitLiquidGlassPaint {
             }
         }
         val rimShader = rim
-        val effectiveRimAlpha = rimAlpha.coerceIn(0f, 1f)
+        val effectiveRimAlpha = (rimAlpha + press * 0.28f).coerceIn(0f, 1f)
         val canStrokeRim = if (hasMorphTail) !clip.isEmpty else (deformedBounds.width() > rimWidth && deformedBounds.height() > rimWidth)
         if (rimShader != null && effectiveRimAlpha > 0.001f && canStrokeRim) {
             paint.color = Color.WHITE

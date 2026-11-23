@@ -8,6 +8,7 @@ import android.graphics.Outline
 import android.graphics.Path
 import android.graphics.RectF
 import android.os.Build
+import android.os.SystemClock
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
@@ -18,8 +19,6 @@ import androidx.annotation.RequiresApi
 import androidx.core.content.withStyledAttributes
 import androidx.core.graphics.withClip
 import androidx.core.graphics.withTranslation
-import androidx.dynamicanimation.animation.FloatValueHolder
-import androidx.dynamicanimation.animation.SpringAnimation
 import ceui.pixiv.witstudio.R
 import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.pixiv.witstudio.theme.motionEnabled
@@ -28,10 +27,12 @@ import ceui.pixiv.witstudio.widget.internal.WitLiquidGlassBackdrop
 import ceui.pixiv.witstudio.widget.internal.WitLiquidGlassBudget
 import ceui.pixiv.witstudio.widget.internal.WitLiquidGlassMorphTail
 import ceui.pixiv.witstudio.widget.internal.WitLiquidGlassPaint
+import ceui.pixiv.witstudio.widget.internal.WitLiquidGlassPhysics
 import ceui.pixiv.witstudio.widget.internal.WitLiquidGlassRenderer
 import ceui.pixiv.witstudio.widget.internal.WitLiquidGlassShader
 import ceui.pixiv.witstudio.widget.internal.buildLiquidGlassMorphPath
 import kotlin.math.abs
+import kotlin.math.hypot
 import kotlin.math.roundToInt
 
 /**
@@ -200,13 +201,73 @@ public class WitLiquidGlassView @JvmOverloads public constructor(
     private var materialDirty = true
     private var opticsDirty = true
 
+    internal var overlay: WitLiquidGlassOverlay? = null
+        set(value) {
+            if (field === value) return
+            field = value
+            if (value != null) resetPress()
+            invalidate()
+        }
+
     private var touchPointer = MotionEvent.INVALID_POINTER_ID
     private var touchX = 0f
     private var touchY = 0f
+    private var pressDownUnscaledX = 0f
+    private var pressDownUnscaledY = 0f
     private var press = 0f
     private var stretch = 0f
     private var pressTarget = 0f
-    private var pressSpring: SpringAnimation? = null
+    private var pressDownAtMs = 0L
+    private var pendingReleaseAtMs = 0L
+    private var interactiveTransformApplied = false
+    private var appliedPullTx = 0f
+    private var appliedPullTy = 0f
+    private var pressLoopRunning = false
+    private var lastPressFrameMs = 0L
+    private val pressPhysics = WitLiquidGlassPhysics.ControlPressPhysics()
+    private val pressFrameRunnable = object : Runnable {
+        override fun run() {
+            pressLoopRunning = false
+            if (!isAttachedToWindow || !isGlassInteractive || overlay?.isActive == true || morphActive) {
+                resetPress()
+                return
+            }
+            val now = SystemClock.uptimeMillis()
+            if (pendingReleaseAtMs > 0L && now >= pendingReleaseAtMs) {
+                pendingReleaseAtMs = 0L
+                pressTarget = 0f
+                pressPhysics.pressed = false
+                pressPhysics.targetPullX = 0f
+                pressPhysics.targetPullY = 0f
+            }
+            val dtSec = if (lastPressFrameMs > 0L) {
+                ((now - lastPressFrameMs).coerceAtLeast(1L)) / 1000f
+            } else {
+                1f / 60f
+            }
+            lastPressFrameMs = now
+
+            val keepRunning = pressPhysics.step(dtSec) || pendingReleaseAtMs > 0L
+            applyInteractivePhysicsState()
+
+            if (keepRunning) {
+                schedulePressFrame()
+            } else {
+                lastPressFrameMs = 0L
+            }
+        }
+    }
+
+    internal companion object {
+        internal const val PRESS_STIFFNESS: Float = WitLiquidGlassPhysics.PRESS_STIFFNESS
+        internal const val PRESS_DAMPING: Float = WitLiquidGlassPhysics.PRESS_DAMPING
+        internal const val RELEASE_STIFFNESS: Float = WitLiquidGlassPhysics.RELEASE_STIFFNESS
+        internal const val RELEASE_DAMPING: Float = WitLiquidGlassPhysics.RELEASE_DAMPING
+        private const val MIN_TAP_BLOOM_MS: Long = WitLiquidGlassPhysics.MIN_CONTROL_TAP_BLOOM_MS
+
+        internal fun computePressScaleTarget(widthPx: Int, heightPx: Int, density: Float): Float =
+            WitLiquidGlassPhysics.computePressScaleTarget(widthPx, heightPx, density)
+    }
 
     init {
         setWillNotDraw(false)
@@ -340,6 +401,23 @@ public class WitLiquidGlassView @JvmOverloads public constructor(
         resetPress()
     }
 
+    /** Draws the live backdrop behind this view into [canvas] in view-local coordinates (API 31+). */
+    internal fun drawLiveBackdropInLocal(canvas: Canvas): Boolean {
+        if (Build.VERSION.SDK_INT < 31 || !canvas.isHardwareAccelerated) return false
+        return renderer?.drawBackdropInLocal(canvas) == true
+    }
+
+    /** Returns the recorded live scene backdrop bounds in view-local coordinates (API 31+). */
+    internal fun getLiveBackdropBoundsInLocal(outRect: RectF): Boolean {
+        if (Build.VERSION.SDK_INT < 31) return false
+        return renderer?.getBackdropBoundsInLocal(outRect) == true
+    }
+
+    /** Draws only this view's outer glass platter into [canvas] (used by loupe overlays for seamless refraction). */
+    internal fun drawGlassPlatter(canvas: Canvas) {
+        drawPlatterInternal(canvas)
+    }
+
     internal fun onHostQualityChanged() {
         if (quality != null) return
         if (!effectiveQuality.isLiveEnabled) {
@@ -424,6 +502,10 @@ public class WitLiquidGlassView @JvmOverloads public constructor(
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
+        drawPlatterInternal(canvas)
+    }
+
+    private fun drawPlatterInternal(canvas: Canvas) {
         val w = width
         val h = height
         if (w <= 0 || h <= 0) return
@@ -483,7 +565,7 @@ public class WitLiquidGlassView @JvmOverloads public constructor(
                     )
                     return@withTranslation
                 }
-                if (Build.VERSION.SDK_INT >= 31 && isHardwareAccelerated && effectiveQuality.isLiveEnabled) {
+                if (Build.VERSION.SDK_INT >= 31 && isHardwareAccelerated && canvas.isHardwareAccelerated && effectiveQuality.isLiveEnabled) {
                     val current = renderer
                     if (current != null && current.hasBackdrop) {
                         val drawn = current.backend.attempt {
@@ -517,6 +599,11 @@ public class WitLiquidGlassView @JvmOverloads public constructor(
     }
 
     override fun dispatchDraw(canvas: Canvas) {
+        val activeOverlay = overlay
+        if (activeOverlay != null && activeOverlay.isActive) {
+            activeOverlay.dispatchDraw(canvas) { super.dispatchDraw(it) }
+            return
+        }
         if (!morphActive) {
             super.dispatchDraw(canvas)
             return
@@ -541,24 +628,38 @@ public class WitLiquidGlassView @JvmOverloads public constructor(
     }
 
     override fun dispatchTouchEvent(event: MotionEvent): Boolean {
+        val activeOverlay = overlay
+        if (activeOverlay != null && activeOverlay.isActive && activeOverlay.onDispatchTouchEvent(event)) {
+            return true
+        }
         val handled = super.dispatchTouchEvent(event)
         if (!isGlassInteractive || !isEnabled || effectiveQuality == WitLiquidGlassQuality.NONE) return handled
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> if (handled) {
+                pendingReleaseAtMs = 0L
                 touchPointer = event.getPointerId(0)
-                updateTouch(event.x, event.y)
+                pressDownAtMs = SystemClock.uptimeMillis()
+                pressDownUnscaledX = toUnscaledLocalX(event.x)
+                pressDownUnscaledY = toUnscaledLocalY(event.y)
+                pressPhysics.targetPullX = 0f
+                pressPhysics.targetPullY = 0f
+                updateTouch(pressDownUnscaledX, pressDownUnscaledY)
                 animatePress(true)
             }
             MotionEvent.ACTION_MOVE -> {
                 val index = event.findPointerIndex(touchPointer)
                 if (index >= 0) {
-                    updateTouch(event.getX(index), event.getY(index))
+                    val ux = toUnscaledLocalX(event.getX(index))
+                    val uy = toUnscaledLocalY(event.getY(index))
+                    updateTouch(ux, uy)
+                    updateDirectionalPull(ux, uy)
                 }
             }
             MotionEvent.ACTION_POINTER_UP -> {
-                if (event.getPointerId(event.actionIndex) == touchPointer) releaseTouch()
+                if (event.getPointerId(event.actionIndex) == touchPointer) releaseTouch(cancelled = false)
             }
-            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> releaseTouch()
+            MotionEvent.ACTION_UP -> releaseTouch(cancelled = false)
+            MotionEvent.ACTION_CANCEL -> releaseTouch(cancelled = true)
         }
         return handled
     }
@@ -571,8 +672,12 @@ public class WitLiquidGlassView @JvmOverloads public constructor(
         }
         if (isGlassInteractive && !isEnabled) {
             resetPress()
-        } else if (isGlassInteractive && touchPointer == MotionEvent.INVALID_POINTER_ID) {
-            if (isPressed) updateTouch(width / 2f, height / 2f)
+        } else if (isGlassInteractive && touchPointer == MotionEvent.INVALID_POINTER_ID && pendingReleaseAtMs == 0L) {
+            if (isPressed) {
+                pressPhysics.targetPullX = 0f
+                pressPhysics.targetPullY = 0f
+                updateTouch(width / 2f, height / 2f)
+            }
             animatePress(isPressed)
         }
     }
@@ -587,6 +692,9 @@ public class WitLiquidGlassView @JvmOverloads public constructor(
     }
 
     override fun onDetachedFromWindow() {
+        removeCallbacks(pressFrameRunnable)
+        pressLoopRunning = false
+        overlay?.onDetachedFromWindow()
         resetPress()
         if (Build.VERSION.SDK_INT >= 31) discardRenderer()
         super.onDetachedFromWindow()
@@ -602,6 +710,12 @@ public class WitLiquidGlassView @JvmOverloads public constructor(
         opticsDirty = true
         invalidate()
     }
+
+    private fun toUnscaledLocalX(localX: Float): Float =
+        pivotX + (localX - pivotX) * scaleX + appliedPullTx
+
+    private fun toUnscaledLocalY(localY: Float): Float =
+        pivotY + (localY - pivotY) * scaleY + appliedPullTy
 
     private fun updateTouch(x: Float, y: Float) {
         // Project a distant pointer to the rim along the pull direction. The primary pointer
@@ -619,43 +733,129 @@ public class WitLiquidGlassView @JvmOverloads public constructor(
         invalidateOptics()
     }
 
-    private fun releaseTouch() {
+    private fun updateDirectionalPull(unscaledX: Float, unscaledY: Float) {
+        if (width <= 0 || height <= 0 || !motionEnabled()) return
+        val dx = unscaledX - pressDownUnscaledX
+        val dy = unscaledY - pressDownUnscaledY
+        // Small deadzone keeps stationary taps centered while larger pulls create tactile liquid lean.
+        val deadzone = 4f * density
+        val dist = hypot(dx, dy)
+        if (dist <= deadzone) {
+            pressPhysics.targetPullX = 0f
+            pressPhysics.targetPullY = 0f
+            return
+        }
+        val activeScale = (dist - deadzone) / dist
+        val pullScale = maxOf(36f * density, minOf(width, height) * 0.75f)
+        pressPhysics.targetPullX = WitLiquidGlassPhysics.rubberBandUnit(dx * activeScale, pullScale)
+        pressPhysics.targetPullY = WitLiquidGlassPhysics.rubberBandUnit(dy * activeScale, pullScale)
+        startPressLoop()
+    }
+
+    private fun releaseTouch(cancelled: Boolean) {
         touchPointer = MotionEvent.INVALID_POINTER_ID
+        val elapsed = SystemClock.uptimeMillis() - pressDownAtMs
+        if (!cancelled && motionEnabled() && pressTarget > 0f && elapsed < MIN_TAP_BLOOM_MS && stretch < 0.62f) {
+            pendingReleaseAtMs = pressDownAtMs + MIN_TAP_BLOOM_MS
+            startPressLoop()
+            return
+        }
+        pendingReleaseAtMs = 0L
         animatePress(false)
     }
 
     private fun resetPress() {
-        pressSpring?.cancel()
+        removeCallbacks(pressFrameRunnable)
+        pressLoopRunning = false
+        lastPressFrameMs = 0L
+        pendingReleaseAtMs = 0L
         touchPointer = MotionEvent.INVALID_POINTER_ID
         pressTarget = 0f
-        setPressure(0f, 0f)
+        pressPhysics.reset()
+        setOpticalPressure(0f, 0f)
+        clearInteractiveTransform()
     }
 
     private fun animatePress(pressed: Boolean) {
         val target = if (pressed) 1f else 0f
-        if (pressTarget == target) return
+        if (pressTarget == target && pendingReleaseAtMs == 0L) return
         pressTarget = target
+        pendingReleaseAtMs = 0L
         if (!motionEnabled()) {
-            pressSpring?.cancel()
-            setPressure(target, 0f)
+            removeCallbacks(pressFrameRunnable)
+            pressLoopRunning = false
+            lastPressFrameMs = 0L
+            pressPhysics.reset()
+            setOpticalPressure(target, 0f)
+            clearInteractiveTransform()
             return
         }
-        val spring = pressSpring ?: SpringAnimation(FloatValueHolder(), 0f).apply {
-            this.spring.stiffness = 620f
-            setMinimumVisibleChange(0.005f)
-            addUpdateListener { _, value, _ ->
-                setPressure(value.coerceIn(0f, 1f), value)
-            }
-        }.also { pressSpring = it }
-        if (!spring.isRunning) {
-            if (pressed && stretch == 0f) setPressure(0.12f, 0.12f)
-            spring.setStartValue(stretch)
+        pressPhysics.pressed = pressed
+        if (!pressed) {
+            pressPhysics.targetPullX = 0f
+            pressPhysics.targetPullY = 0f
+        } else if (!pressLoopRunning && pressPhysics.swell.value == 0f) {
+            pressPhysics.swell.value = 0.08f
+            applyInteractivePhysicsState()
         }
-        spring.spring.dampingRatio = if (pressed) 0.84f else 0.62f
-        spring.animateToFinalPosition(target)
+        startPressLoop()
     }
 
-    private fun setPressure(press: Float, stretch: Float) {
+    private fun startPressLoop() {
+        if (!pressLoopRunning) {
+            lastPressFrameMs = SystemClock.uptimeMillis()
+            schedulePressFrame()
+        }
+    }
+
+    private fun schedulePressFrame() {
+        if (pressLoopRunning) return
+        pressLoopRunning = true
+        postOnAnimation(pressFrameRunnable)
+    }
+
+    private fun applyInteractivePhysicsState() {
+        val w = width
+        val h = height
+        if (w <= 0 || h <= 0 || !isGlassInteractive || overlay?.isActive == true || morphActive) {
+            return
+        }
+        val xf = pressPhysics.evaluate(w, h, density)
+        setOpticalPressure(xf.press, xf.stretch)
+        if (pivotX != w * 0.5f) pivotX = w * 0.5f
+        if (pivotY != h * 0.5f) pivotY = h * 0.5f
+        if (scaleX != xf.scaleX) scaleX = xf.scaleX
+        if (scaleY != xf.scaleY) scaleY = xf.scaleY
+        if (xf.shiftX != appliedPullTx) {
+            translationX = (translationX - appliedPullTx) + xf.shiftX
+            appliedPullTx = xf.shiftX
+        }
+        if (xf.shiftY != appliedPullTy) {
+            translationY = (translationY - appliedPullTy) + xf.shiftY
+            appliedPullTy = xf.shiftY
+        }
+        interactiveTransformApplied = abs(xf.scaleX - 1f) > 0.0005f ||
+            abs(xf.scaleY - 1f) > 0.0005f ||
+            abs(appliedPullTx) > 0.05f ||
+            abs(appliedPullTy) > 0.05f
+    }
+
+    private fun clearInteractiveTransform() {
+        if (!interactiveTransformApplied && appliedPullTx == 0f && appliedPullTy == 0f) return
+        interactiveTransformApplied = false
+        scaleX = 1f
+        scaleY = 1f
+        if (appliedPullTx != 0f) {
+            translationX -= appliedPullTx
+            appliedPullTx = 0f
+        }
+        if (appliedPullTy != 0f) {
+            translationY -= appliedPullTy
+            appliedPullTy = 0f
+        }
+    }
+
+    private fun setOpticalPressure(press: Float, stretch: Float) {
         if (this.press == press && this.stretch == stretch) return
         this.press = press
         this.stretch = stretch

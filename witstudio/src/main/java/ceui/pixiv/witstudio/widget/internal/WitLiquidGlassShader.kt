@@ -125,11 +125,11 @@ internal class WitLiquidGlassShader : WitLiquidGlassRenderer() {
                     contact = exp(-dot(fromTouch, fromTouch) / (pressRadius * pressRadius));
                     float2 grip = clamp((touch.xy - bounds.xy) / max(halfSize, 1.0), -1.0, 1.0);
                     float elastic = touch.w * dp * min(1.0, shortSide / 48.0);
-                    // Preserve a clean capsule silhouette: gentle uniform jelly swell with a
-                    // restrained pull lean, avoiding lopsided contour bulges.
-                    centered -= grip * float2(1.8, 1.4) * elastic;
-                    halfSize += (1.6 + abs(grip) * 0.55) * elastic;
-                    radius = clamp(radius + elastic * 1.6, 0.0, min(halfSize.x, halfSize.y));
+                    // Whole-view spring scaling handles primary swell; keep a restrained directional
+                    // grip lean & micro bevel swell so glass + foreground stay optically unified.
+                    centered -= grip * float2(1.1, 0.85) * elastic;
+                    halfSize += (0.55 + abs(grip) * 0.35) * elastic;
+                    radius = clamp(radius + elastic * 0.55, 0.0, min(halfSize.x, halfSize.y));
                 }
 
                 // Deform the surface before calculating normals, so the lens and its highlights
@@ -164,11 +164,12 @@ internal class WitLiquidGlassShader : WitLiquidGlassRenderer() {
                 float t = clamp(depth / bevel, 0.0, 1.0);
                 float slope = (pow(1.0 + 4.0 * t, -1.25) - 0.133748) / 0.866252;
                 float refraction = min(shortSide * 0.34, mix(20.0, 24.0, material.x));
-                float response = contact * touch.z;
-                float2 bend = -normal * dp * refraction * slope * (1.0 + contact * touch.w * 0.12);
-                bend -= fromTouch * contact * touch.w * 0.032;
+                float pressAmt = clamp(touch.z, 0.0, 1.0);
+                float response = contact * pressAmt;
+                float2 bend = -normal * dp * refraction * slope * (1.0 + touch.w * (0.14 + 0.08 * contact));
+                bend -= fromTouch * contact * touch.w * 0.024;
 
-                float spread = slope * mix(0.055, 0.085, material.x);
+                float spread = slope * mix(0.055, 0.085, material.x) * (1.0 + pressAmt * 0.85 + response * 0.40);
                 float3 scene = sampleScene(coord + bend);
                 if (spread > 0.001) {
                     scene.r = sampleScene(coord + bend * (1.0 - spread)).r;
@@ -176,7 +177,7 @@ internal class WitLiquidGlassShader : WitLiquidGlassRenderer() {
                 }
 
                 float luma = dot(scene, LUMA);
-                float saturation = mix(mix(1.22, 1.16, material.y), 1.18, material.x);
+                float saturation = mix(mix(1.22, 1.16, material.y), 1.18, material.x) + pressAmt * 0.08;
                 float3 vibrant = mix(float3(luma), scene, saturation);
                 vibrant = mix(vibrant, float3(tint.rgb), tint.a);
                 float3 color;
@@ -194,14 +195,23 @@ internal class WitLiquidGlassShader : WitLiquidGlassRenderer() {
 
                 // Crisp paired specular rim and lit-face sheen sit on the outer glass surface,
                 // so clearDimming dims transmitted light without dulling surface reflections.
-                float2 light = normalize(mix(float2(-0.84, -0.54), -fromTouch / pressRadius, response * 0.42));
+                // During press, heighten curved-rim crystal gleam & prism glints instead of washing the center white.
+                float2 light = normalize(mix(float2(-0.84, -0.54), -fromTouch / pressRadius, response * 0.45));
                 float facing = dot(normal, light);
-                float key = pow(max(facing, 0.0), 5.0);
-                float bounce = pow(max(-facing, 0.0), 5.0);
+                float key = pow(max(facing, 0.0), 4.6);
+                float bounce = pow(max(-facing, 0.0), 4.6);
                 float line = 1.0 - smoothstep(0.0, 1.05, abs(depth - 0.45));
-                float sheen = exp(-depth * 0.34) * smoothstep(0.7, 2.0, depth);
-                float gleam = line * (0.085 + 0.44 * (key + bounce)) + sheen * key * 0.24;
-                color += gleam * mix(1.0, 0.72, material.y * (1.0 - material.x)) + response * 0.16;
+                float sheen = exp(-depth * 0.36) * smoothstep(0.6, 2.0, depth);
+                float pressRimBoost = 1.0 + pressAmt * 0.48;
+                float gleam = (line * (0.085 + 0.44 * (key + bounce)) + sheen * (0.05 * pressAmt + key * 0.24)) * pressRimBoost;
+                float cornerMask = clamp(abs(normal.x * normal.y) * 2.2, 0.0, 1.0);
+                float3 prismTint = mix(
+                    float3(1.0),
+                    mix(float3(1.10, 1.02, 0.90), float3(0.88, 1.04, 1.14), step(0.0, normal.y)),
+                    cornerMask * pressAmt * 0.45
+                );
+                float contactGlow = response * mix(0.048, 0.062, material.y);
+                color += prismTint * (gleam * mix(1.0, 0.76, material.y * (1.0 - material.x))) + contactGlow;
 
                 return half4(half3(clamp(color, 0.0, 1.0) * coverage), half(coverage));
             }
