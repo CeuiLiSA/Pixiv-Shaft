@@ -25,8 +25,6 @@ on:
 env:
   ORIGINAL_PROJECT: "CeuiLiSA/Pixiv-Shaft"
   GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4g"
-  # 本仓未配置 Develocity 企业版服务，禁用其自动注入以消除后台无用的 gRPC/Netty 线程与退出报错
-  DEVELOCITY_INJECTION_ENABLED: "false"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -50,24 +48,33 @@ jobs:
           java-version: '17'
           distribution: 'adopt'
 
-      - name: Cache Gradle dependencies and build-cache
-        uses: actions/cache@v4
+      - name: Cache Gradle dependencies
+        uses: actions/cache@v5
         with:
-          path: |
+          path: &gradle_dependency_paths |
             ~/.gradle/wrapper/dists
             ~/.gradle/caches/modules-2/files-2.1
-            ~/.gradle/caches/transforms-4
-            ~/.gradle/caches/jars-9
-            ~/.gradle/caches/build-cache-1
-          key: ${{ runner.os }}-gradle-deps-${{ hashFiles('**/libs.versions.toml', '**/*.gradle*', 'gradle/wrapper/gradle-wrapper.properties') }}
+            ~/.gradle/caches/modules-2/metadata-*/descriptors
+            ~/.gradle/caches/modules-2/metadata-*/*.bin
+          key: ${{ runner.os }}-${{ runner.arch }}-gradle-deps-v2-build-${{ hashFiles('**/libs.versions.toml', '**/*.gradle*', '**/gradle.properties', 'gradle/wrapper/gradle-wrapper.properties') }}
           restore-keys: |
-            ${{ runner.os }}-gradle-deps-
+            ${{ runner.os }}-${{ runner.arch }}-gradle-deps-v2-build-
 
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v5
         with:
           cache-disabled: true
-          develocity-injection: false
+          develocity-injection-enabled: false
+
+      # 任务产物随源码提交演进，GitHub Cache 的同名条目不可更新。
+      - name: Restore Gradle task outputs
+        id: task_cache
+        uses: actions/cache/restore@v5
+        with:
+          path: &gradle_task_cache_path ~/.gradle/caches/build-cache-1
+          key: &gradle_task_cache_key ${{ runner.os }}-${{ runner.arch }}-gradle-tasks-v2-${{ github.sha }}
+          restore-keys: &gradle_task_cache_restore_keys |
+            ${{ runner.os }}-${{ runner.arch }}-gradle-tasks-v2-
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -135,8 +142,6 @@ jobs:
       # 单测跑在打包之前，红了就不出产物。只跑 debug 变体：release 变体的
       # 测试代码相同，多跑一遍只是白费 R8 前的编译时间。
       - name: Run unit tests
-        env:
-          SHAFT_EVENTS_HMAC: ${{ secrets.SHAFT_EVENTS_HMAC }}
         run: >-
           ./gradlew
           :app:testGithubDebugUnitTest
@@ -206,6 +211,14 @@ jobs:
             fi
           done
           exit "$failed"
+
+      # 签名打包会注入生产 HMAC 密钥，供 PR 读取的任务缓存只在此之前保存。
+      - name: Save Gradle task outputs
+        if: steps.task_cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v5
+        with:
+          path: *gradle_task_cache_path
+          key: *gradle_task_cache_key
 
       - name: Upload lint reports
         if: failure()
@@ -346,17 +359,27 @@ jobs:
     runs-on: ubuntu-24.04
     needs: build
     timeout-minutes: 45
+    permissions:
+      contents: read
+      pull-requests: read
+    env:
+      DEBUG_TEST_CLASS: ceui.lisa.database.AppDatabaseMigrationTest
+      RELEASE_TEST_CLASSES: ceui.lisa.ExampleInstrumentedTest,ceui.lisa.model.AppApiGsonR8InstrumentedTest,ceui.pixiv.shaftapi.ShaftHmacInstrumentedTest,ceui.pixiv.ui.search.SearchRiskPolicyInstrumentedTest
 
     steps:
       - name: Clone repo
         uses: actions/checkout@v4
         with:
           submodules: 'true'
+          # PR 默认检出合并提交，保留第二个 parent 才能读取 PR head 的提交消息。
+          fetch-depth: 2
 
       - name: Check critical paths
+        if: github.event_name != 'workflow_dispatch' && github.ref_type != 'tag'
         id: filter
-        uses: dorny/paths-filter@v3
+        uses: dorny/paths-filter@v4
         with:
+          base: ${{ github.event_name == 'push' && github.ref_name || '' }}
           filters: |
             critical:
               - 'app/schemas/**'
@@ -364,31 +387,45 @@ jobs:
               - '**/dao/**'
               - '**/entity/**'
               - 'app/src/main/cpp/**'
-              - 'CMakeLists.txt'
-              - 'app/proguard-rules.pro'
+              - 'app/libs/**'
+              - '**/CMakeLists.txt'
+              - '**/proguard*.pro'
+              - '**/consumer-rules.pro'
               - 'actionqueue/**'
               - 'models/**'
+              - 'app/src/main/java/ceui/lisa/core/DownloadItem.java'
+              - 'app/src/main/java/ceui/lisa/model/**'
+              - 'app/src/main/java/ceui/pixiv/api/**'
+              - 'app/src/main/java/ceui/pixiv/cache/ObjectPool.kt'
+              - 'app/src/main/java/ceui/pixiv/plaza/PlazaApi.kt'
+              - 'app/src/main/java/ceui/pixiv/shaftapi/ShaftHmac.kt'
+              - 'app/src/main/java/ceui/pixiv/snapshot/AutoSnapshotBehaviorStore.kt'
+              - 'app/src/main/java/ceui/pixiv/snapshot/SnapshotModels.kt'
+              - 'app/src/main/java/ceui/pixiv/sticker/StickerCatalog.kt'
+              - 'app/src/main/java/ceui/pixiv/ui/user/RequestPlanModels.kt'
               - 'app/src/main/java/ceui/pixiv/ui/search/SearchRiskPolicy.kt'
               - 'app/src/androidTest/**'
-              - 'actionqueue/src/androidTest/**'
               - 'gradle/**'
               - '**/*.gradle*'
-              - 'libs.versions.toml'
+              - '**/gradle.properties'
+              - '**/libs.versions.toml'
               - '.github/workflows/**'
 
       - name: Determine if critical tests should run
         id: check_run
         env:
-          IS_TAG: ${{ startsWith(github.ref, 'refs/tags/') }}
-          HAS_FLAG: ${{ contains(github.event.head_commit.message, '[test-all]') }}
+          RUN_FULL_SUITE: ${{ github.event_name == 'workflow_dispatch' || github.ref_type == 'tag' }}
+          COMMIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
           IS_CRITICAL: ${{ steps.filter.outputs.critical }}
         run: |
-          if [ "$IS_TAG" = "true" ] || [ "$HAS_FLAG" = "true" ] || [ "$IS_CRITICAL" = "true" ]; then
+          if [[ "$RUN_FULL_SUITE" == true || "$IS_CRITICAL" == true ]]; then
             echo "should_run=true" >> "$GITHUB_OUTPUT"
-            echo "Triggering Critical androidTest (Tag: $IS_TAG, Flag: $HAS_FLAG, Critical: $IS_CRITICAL)"
-          else
-            echo "should_run=false" >> "$GITHUB_OUTPUT"
-            echo "Skipping Critical androidTest: non-critical change"
+            exit 0
+          fi
+          commit_message=$(git log -1 --format=%B "$COMMIT_SHA" --)
+          shopt -s nocasematch
+          if [[ "$commit_message" == *'[test-all]'* ]]; then
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Skip notice
@@ -403,26 +440,30 @@ jobs:
           java-version: '17'
           distribution: 'adopt'
 
-      - name: Restore Gradle dependencies and build-cache
+      - name: Cache instrumented test dependencies
         if: steps.check_run.outputs.should_run == 'true'
-        uses: actions/cache/restore@v4
+        uses: actions/cache@v5
         with:
-          path: |
-            ~/.gradle/wrapper/dists
-            ~/.gradle/caches/modules-2/files-2.1
-            ~/.gradle/caches/transforms-4
-            ~/.gradle/caches/jars-9
-            ~/.gradle/caches/build-cache-1
-          key: ${{ runner.os }}-gradle-deps-${{ hashFiles('**/libs.versions.toml', '**/*.gradle*', 'gradle/wrapper/gradle-wrapper.properties') }}
+          path: *gradle_dependency_paths
+          key: ${{ runner.os }}-${{ runner.arch }}-gradle-deps-v2-instrumentation-${{ hashFiles('**/libs.versions.toml', '**/*.gradle*', '**/gradle.properties', 'gradle/wrapper/gradle-wrapper.properties') }}
           restore-keys: |
-            ${{ runner.os }}-gradle-deps-
+            ${{ runner.os }}-${{ runner.arch }}-gradle-deps-v2-instrumentation-
+            ${{ runner.os }}-${{ runner.arch }}-gradle-deps-v2-build-
+
+      - name: Restore Gradle task outputs
+        if: steps.check_run.outputs.should_run == 'true'
+        uses: actions/cache/restore@v5
+        with:
+          path: *gradle_task_cache_path
+          key: *gradle_task_cache_key
+          restore-keys: *gradle_task_cache_restore_keys
 
       - name: Set up Gradle
         if: steps.check_run.outputs.should_run == 'true'
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v5
         with:
           cache-disabled: true
-          develocity-injection: false
+          develocity-injection-enabled: false
 
       - name: Grant execute permission for gradlew
         if: steps.check_run.outputs.should_run == 'true'
@@ -433,8 +474,10 @@ jobs:
         env:
           SHAFT_EVENTS_HMAC: ci-instrumentation-only-not-a-secret
         run: |
-          ./gradlew :app:assembleGithubDebugAndroidTest :actionqueue:assembleDebugAndroidTest -PSHAFT_TEST_ABI=x86_64 --stacktrace
-          ./gradlew :app:assembleGithubReleaseAndroidTest -PSHAFT_TEST_BUILD_TYPE=release -PSHAFT_TEST_ABI=x86_64 --stacktrace
+          ./gradlew :app:assembleGithubDebug :app:assembleGithubDebugAndroidTest :actionqueue:assembleDebugAndroidTest \
+            -Pandroid.testInstrumentationRunnerArguments.class="$DEBUG_TEST_CLASS" -PSHAFT_TEST_ABI=x86_64 --stacktrace
+          ./gradlew :app:assembleGithubRelease :app:assembleGithubReleaseAndroidTest \
+            -Pandroid.testInstrumentationRunnerArguments.class="$RELEASE_TEST_CLASSES" -PSHAFT_TEST_BUILD_TYPE=release -PSHAFT_TEST_ABI=x86_64 --stacktrace
 
       - name: Enable KVM
         if: steps.check_run.outputs.should_run == 'true'
@@ -457,10 +500,11 @@ jobs:
           target: google_apis
           arch: x86_64
           profile: pixel_7_pro
+          # 直接使用预构建的 APK。仍由 AGP 安装并生成报告，排除打包任务及其编译依赖。
           script: |
-            ./gradlew :app:connectedGithubDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=ceui.lisa.database.AppDatabaseMigrationTest -PSHAFT_TEST_ABI=x86_64 --stacktrace
-            ./gradlew :actionqueue:connectedDebugAndroidTest --stacktrace
-            ./gradlew :app:connectedGithubReleaseAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=ceui.lisa.ExampleInstrumentedTest,ceui.lisa.model.AppApiGsonR8InstrumentedTest,ceui.pixiv.shaftapi.ShaftHmacInstrumentedTest,ceui.pixiv.ui.search.SearchRiskPolicyInstrumentedTest -PSHAFT_TEST_BUILD_TYPE=release -PSHAFT_TEST_ABI=x86_64 --stacktrace
+            ./gradlew :app:connectedGithubDebugAndroidTest -x :app:packageGithubDebug -x :app:packageGithubDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class="$DEBUG_TEST_CLASS" -PSHAFT_TEST_ABI=x86_64 --stacktrace
+            ./gradlew :actionqueue:connectedDebugAndroidTest -x :actionqueue:packageDebugAndroidTest --stacktrace
+            ./gradlew :app:connectedGithubReleaseAndroidTest -x :app:packageGithubRelease -x :app:packageGithubReleaseAndroidTest -Pandroid.testInstrumentationRunnerArguments.class="$RELEASE_TEST_CLASSES" -PSHAFT_TEST_BUILD_TYPE=release -PSHAFT_TEST_ABI=x86_64 --stacktrace
 
       - name: Upload instrumented test reports
         if: failure() && steps.check_run.outputs.should_run == 'true'
