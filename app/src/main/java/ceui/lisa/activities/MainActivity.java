@@ -565,6 +565,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
     }
 
     private int lastNavBarsBottom = 0;
+    @Nullable private String lastBottomBarStyleKey = null;
 
     /**
      * 根据设置动态应用首页底栏样式：
@@ -588,6 +589,22 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
 
         WitLiquidGlassQuality targetQuality =
                 WitLiquidGlassQuality.fromOrdinal(Shaft.sSettings.getLiquidGlassQuality());
+        V3Palette palette = V3Palette.from(this);
+        String styleKey =
+                isFloating
+                        + "|"
+                        + targetQuality.ordinal()
+                        + "|"
+                        + lastNavBarsBottom
+                        + "|"
+                        + palette.isDark()
+                        + "|"
+                        + palette.getPrimary();
+        if (styleKey.equals(lastBottomBarStyleKey)) {
+            return;
+        }
+        lastBottomBarStyleKey = styleKey;
+
         boolean isGlassActive = isFloating && targetQuality.isLiveEnabled();
 
         if (isFloating) {
@@ -620,21 +637,25 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
             baseBind.coordinatorLayout.setQuality(WitLiquidGlassQuality.NONE);
             baseBind.bottomBarFrame.setQuality(WitLiquidGlassQuality.NONE);
             baseBind.bottomBarFrame.setCornerRadiusDp(0f);
-            baseBind.bottomBarFrame.setElevation(0f);
+            baseBind.bottomBarFrame.setElevation(dp(8));
             baseBind.bottomBarFrame.setGlassInteractive(false);
             baseBind.bottomBarFrame.setBackground(null);
 
             TypedValue typedValue = new TypedValue();
-            getTheme().resolveAttribute(android.R.attr.windowBackground, typedValue, true);
-            int windowBg = typedValue.data;
+            boolean resolved = getTheme().resolveAttribute(android.R.attr.windowBackground, typedValue, true);
+            int windowBg =
+                    resolved
+                                    && typedValue.type >= TypedValue.TYPE_FIRST_COLOR_INT
+                                    && typedValue.type <= TypedValue.TYPE_LAST_COLOR_INT
+                            ? typedValue.data
+                            : ContextCompat.getColor(this, R.color.v3_bg);
             baseBind.navigationView.setBackgroundColor(windowBg);
-            baseBind.navigationView.setElevation(dp(8));
+            baseBind.navigationView.setElevation(0f);
             baseBind.navigationView.setPadding(0, 0, 0, lastNavBarsBottom);
             baseBind.navigationView.setItemActiveIndicatorEnabled(false);
         }
 
         if (isGlassActive) {
-            V3Palette palette = V3Palette.from(this);
             boolean isDark = palette.isDark();
 
             // 文本和图标的选中颜色：恢复为主题色
@@ -774,9 +795,10 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                 return;
             }
             float h = Math.max(0f, bounds.height() - marginV * 2f);
-            // 宽高比与图片 1.6:1 完全一致，基于高度乘以 1.58，同时兼容可用宽度
-            float targetW = Math.max(bounds.width() - marginV * 2f, h * 1.58f);
-            float w = Math.min(targetW, maxW);
+            // 宽高比 1.58:1、上限 maxW，同时受单项可用宽度约束，避免窄屏 5 Tab 时胶囊冲出父圆角边界
+            float availableW = Math.max(0f, bounds.width() - marginV * 2f);
+            float preferredW = Math.min(h * 1.58f, maxW);
+            float w = Math.min(availableW, preferredW);
             float cx = bounds.exactCenterX();
             float cy = bounds.exactCenterY();
             rect.set(cx - w / 2f, cy - h / 2f, cx + w / 2f, cy + h / 2f);
@@ -846,6 +868,20 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                                     WindowInsetsCompat.Type.navigationBars(),
                                     Insets.of(navBars.left, navBars.top, navBars.right, bottom))
                             .build();
+                });
+        // 覆盖 Material BottomNavigationView 默认的 WindowInsets 监听：
+        // 悬浮模式由外层 bottomBarFrame.bottomMargin 避让手势条，navigationView 自身必须保持 paddingBottom=0，
+        // 否则每次窗口重发 insets（键盘收放、旋转、分屏）都会把 navBars.bottom 再写回 paddingBottom 导致双倍底距。
+        ViewCompat.setOnApplyWindowInsetsListener(
+                baseBind.navigationView,
+                (v, windowInsets) -> {
+                    Insets navBars =
+                            windowInsets.getInsets(WindowInsetsCompat.Type.navigationBars());
+                    int targetBottom = Shaft.sSettings.isBottomBarFloating() ? 0 : navBars.bottom;
+                    if (v.getPaddingBottom() != targetBottom) {
+                        v.setPadding(v.getPaddingLeft(), v.getPaddingTop(), v.getPaddingRight(), targetBottom);
+                    }
+                    return windowInsets;
                 });
         baseBind.bottomBarFrame.addOnLayoutChangeListener(
                 (v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {
@@ -964,6 +1000,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
         // 落在第 0 页时 setCurrentItem 不回调 onPageSelected，侧栏选中态要自己补上
         baseBind.navigationRail.setSelectedItemId(tabMenuIds[navigationInitPosition]);
         Manager.get().restore();
+        lastBottomBarStyleKey = null;
         applyBottomBarStyle();
 
         // Show rate dialog after a short delay to avoid disrupting app startup.

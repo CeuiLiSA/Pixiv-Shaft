@@ -1937,6 +1937,7 @@
     <string name="bulk_user_download_all_illust_confirm">Akan mengunduh semua %2$d ilustrasi karya %1$s. Lanjutkan?</string>
     <string name="bulk_user_menu_download_all_manga">Unduh semua manga (antrean massal)</string>
     <string name="bulk_user_menu_download_all_grouped">Unduh semua… (antrean massal)</string>
+    <string name="user_menu_jump_works">Lompat ke karya…</string>
     <string name="bulk_user_menu_open_download_manager">Buka pengelola unduhan…</string>
     <string name="bulk_task_name">Unduh semua %2$s dari %1$s</string>
     <string name="bulk_collection_menu_download_all">Unduh semua karya</string>

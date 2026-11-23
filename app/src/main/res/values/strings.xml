@@ -2066,6 +2066,7 @@
     <string name="bulk_user_download_all_illust_confirm">将下载 %1$s 创作的全部 %2$d 件插画，是否继续？</string>
     <string name="bulk_user_menu_download_all_manga">下载全部漫画 (批量入队)</string>
     <string name="bulk_user_menu_download_all_grouped">下载全部… (批量入队)</string>
+    <string name="user_menu_jump_works">跳转作品…</string>
     <string name="bulk_user_menu_open_download_manager">打开下载管理…</string>
     <string name="bulk_task_name">下载 %1$s 的全部%2$s</string>
     <string name="bulk_collection_menu_download_all">下载全部作品</string>

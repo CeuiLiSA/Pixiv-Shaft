@@ -30,21 +30,24 @@ class WitLiquidGlassBudgetTest {
         // 232dp x 400dp on a 2.625x display fits at full native resolution.
         val nativePlan = WitLiquidGlassBudget.planPatch(609, 1050, 2.625f, 4096, largeSurface = true)
         assertEquals(1f, nativePlan.scale, 0.0001f)
-        assertTrue(nativePlan.pixels in 512_001L..1_300_000L)
+        assertTrue(nativePlan.pixels in 512_001L..WitLiquidGlassBudget.MAX_PANEL_PATCH_PIXELS)
 
         // 232dp x 440dp on a 3.5x QHD display downscales cleanly instead of dropping live refraction.
         val scaledPlan = WitLiquidGlassBudget.planPatch(812, 1540, 3.5f, 4096, largeSurface = true)
         assertTrue(scaledPlan.scale in 0.55f..0.99f)
-        assertTrue(scaledPlan.pixels in 1L..1_300_000L)
+        assertTrue(scaledPlan.pixels in 1L..WitLiquidGlassBudget.MAX_PANEL_PATCH_PIXELS)
 
         // Small canvasEdge still forces downscaling or rejection on largeSurface.
         val tightCanvasPlan = WitLiquidGlassBudget.planPatch(700, 1200, 2f, 1024, largeSurface = true)
         assertTrue(tightCanvasPlan.scale in 0.55f..0.99f)
-        assertTrue(tightCanvasPlan.pixels in 1L..1_300_000L)
+        assertTrue(tightCanvasPlan.pixels in 1L..WitLiquidGlassBudget.MAX_PANEL_PATCH_PIXELS)
 
         // Enormous full-screen views are still rejected.
         val rejected = WitLiquidGlassBudget.planPatch(Int.MAX_VALUE, Int.MAX_VALUE, 3f, 4096, largeSurface = true)
         assertEquals(0L, rejected.pixels)
+
+        // Two stacked panels (main menu + 1.16x submenu) both fit inside HOST_PIXELS.
+        assertTrue(WitLiquidGlassBudget.MAX_PANEL_PATCH_PIXELS * 2L <= WitLiquidGlassBudget.HOST_PIXELS)
     }
 
     @Test

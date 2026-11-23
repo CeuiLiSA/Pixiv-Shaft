@@ -99,6 +99,7 @@ object SettingsCatalog {
         add(Entry(APPEARANCE, "tag_legibility_boost_rela", R.string.tag_legibility_boost, keywords = "亮暗度 标签原文 正文 标签 辨识度 明暗 亮度 对比度 可读性 清晰 胶囊 增强 无障碍 白天 黑暗 brightness lightness contrast readability tag text"))
         add(Entry(APPEARANCE, "tag_translation_color_rela", R.string.tag_translation_color, keywords = "标签 译文 翻译 颜色 跟随主题 主题色彩 标签译文 tag translation color"))
         add(Entry(APPEARANCE, "app_language_rela", R.string.language, keywords = "语言 简体 繁体 英文 日文 韩文 中文 language english"))
+        add(Entry(APPEARANCE, "liquid_glass_quality_rela", R.string.setting_liquid_glass_quality, R.string.setting_liquid_glass_quality_desc, keywords = "液态玻璃 玻璃 折射 模糊 光效 效果等级 无 标准 极致 liquid glass quality blur refraction"))
         add(Entry(APPEARANCE, "predictive_back_rela", R.string.setting_predictive_back, R.string.setting_predictive_back_desc, keywords = "预测返回 返回手势 侧滑 边缘返回 边缘侧滑 花屏 rom 降级 传统返回 逐页 逐项 按页 按页面 predictive back gesture"))
         add(Entry(APPEARANCE, "navigation_init_position_rela", R.string.string_426, keywords = "启动页 默认页 初始页 首页 导航 start page"))
         add(Entry(APPEARANCE, "bottom_bar_order_rela", R.string.string_342, keywords = "底部导航 tab 顺序 排序 页签 bottom bar"))

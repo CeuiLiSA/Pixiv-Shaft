@@ -266,15 +266,15 @@ internal class ArtworkV3Actions(
                 divider()
             }
             submenu("${context.getString(R.string.share)}…", R.drawable.ic_share_black_24dp) { subItem ->
-                subItem(context.getString(R.string.webview_handler_share), 0) {
+                subItem(context.getString(R.string.webview_handler_share), R.drawable.ic_share_black_24dp) {
                     object : ShareIllust(context, illust) {
                         override fun onPrepare() {}
                     }.execute()
                 }
-                subItem(context.getString(R.string.menu_copy_link), 0) {
+                subItem(context.getString(R.string.menu_copy_link), R.drawable.ic_baseline_launch_24) {
                     Common.copy(context, ShareIllust.URL_Head + illust.id)
                 }
-                subItem(context.getString(R.string.string_454), 0) {
+                subItem(context.getString(R.string.string_454), R.drawable.ic_share_black_24dp) {
                     fragment.shareFirstImage(illust)
                 }
             }
@@ -392,8 +392,8 @@ internal class ArtworkV3Actions(
                     { label, icon, isChecked, onToggle -> switchItem(label, icon, isChecked, onToggle) },
                     { label, icon, subBlock ->
                         submenu(label, icon) {
-                            subBlock { subLabel, subIcon, subOnClick ->
-                                item(subLabel, subIcon, onClick = subOnClick)
+                            subBlock { subLabel, _, subOnClick ->
+                                item(subLabel, 0, onClick = subOnClick)
                             }
                         }
                     },

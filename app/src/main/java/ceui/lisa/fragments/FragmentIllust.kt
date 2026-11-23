@@ -97,7 +97,6 @@ import ceui.pixiv.utils.buildPinnedTagPreviewJson
 import ceui.pixiv.utils.isHostStillResumed
 import ceui.pixiv.utils.setOnClick
 import ceui.pixiv.utils.singleLineTitle
-import ceui.pixiv.ui.common.tintMenuIconsWhite
 import ceui.pixiv.witstudio.widget.WitLiquidGlassMenu
 import ceui.pixiv.ui.bulk.UgoiraEngine
 import ceui.pixiv.ui.detail.frames.openUgoiraFrames
@@ -706,7 +705,13 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
 
         baseBind.toolbar.menu?.clear()
         baseBind.toolbar.inflateMenu(R.menu.share)
-        baseBind.toolbar.tintMenuIconsWhite()
+        // 只给 action_more 染白，避免对带黑色阴影的 PNG 分享图标 ic_share_white_with_shadow 施加纯白 SRC_IN 破坏投影
+        baseBind.toolbar.menu?.findItem(R.id.action_more)?.let { moreItem ->
+            androidx.core.view.MenuItemCompat.setIconTintList(
+                moreItem,
+                android.content.res.ColorStateList.valueOf(android.graphics.Color.WHITE),
+            )
+        }
         if (isSnapshotMode) {
             baseBind.toolbar.menu?.findItem(R.id.action_share)?.isVisible = false
         }
@@ -745,26 +750,31 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
                 if (activeMoreMenu === created) activeMoreMenu = null
             }
             if (illust.isGif()) {
-                item(getString(R.string.ugoira_frames_menu), R.drawable.ic_ugoira_frames_24) {
-                    openUgoiraFrames(requireContext(), illust)
+                val offlineUgoiraDir = if (isSnapshotMode) snapshotViewerData?.offlineUgoira(snapshotIsAuto)?.frames?.dir else null
+                if (!isSnapshotMode || offlineUgoiraDir != null) {
+                    item(getString(R.string.ugoira_frames_menu), R.drawable.ic_ugoira_frames_24) {
+                        openUgoiraFrames(requireContext(), illust, offlineUgoiraDir)
+                    }
                 }
-                switchItem(
-                    getString(R.string.ugoira_rife_enable),
-                    R.drawable.baseline_auto_awesome_24,
-                    { RifePrefs.isEnabled() },
-                    { enabled ->
-                        if (enabled && !RifeInterpolator.isAvailable(requireContext())) {
-                            startActivity(Intent(requireContext(), TemplateActivity::class.java).apply {
-                                putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.RIFE_MODEL_DOWNLOAD.key)
-                                putExtra("rife_model_name", RifeModel.RIFE_V4_6.name)
-                            })
-                        } else {
-                            RifePrefs.setEnabled(enabled)
-                            UgoiraEngine.invalidateAll()
-                            Common.showToast(getString(R.string.string_428))
-                        }
-                    },
-                )
+                if (!isSnapshotMode) {
+                    switchItem(
+                        getString(R.string.ugoira_rife_enable),
+                        R.drawable.baseline_auto_awesome_24,
+                        { RifePrefs.isEnabled() },
+                        { enabled ->
+                            if (enabled && !RifeInterpolator.isAvailable(requireContext())) {
+                                startActivity(Intent(requireContext(), TemplateActivity::class.java).apply {
+                                    putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.RIFE_MODEL_DOWNLOAD.key)
+                                    putExtra("rife_model_name", RifeModel.RIFE_V4_6.name)
+                                })
+                            } else {
+                                RifePrefs.setEnabled(enabled)
+                                UgoiraEngine.invalidateAll()
+                                Common.showToast(getString(R.string.string_428))
+                            }
+                        },
+                    )
+                }
                 divider()
             }
             if (!isSnapshotMode && !illust.isGif() && illust.page_count == 1) {
@@ -787,23 +797,25 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
             item(getString(R.string.artwork_poster_save), R.drawable.ic_setcat_photo) {
                 saveArtworkPoster(illust, pageProgressIndex.coerceAtLeast(0))
             }
-            item(getString(R.string.snapshot_create), R.drawable.ic_snapshot_24) {
-                showSnapshotCreateDialog(illust)
-            }
-            item(getString(R.string.artlist_add), R.drawable.ic_collections_black_24dp) {
-                ceui.pixiv.ui.artlist.ArtlistNavigation.add(requireContext(), illust)
-            }
-            if (Dev.showPlazaShareInArtwork) {
-                item(getString(R.string.plaza_share_illust_to_plaza), R.drawable.ic_plaza_feed_24) {
-                    val intent = Intent(requireContext(), TemplateActivity::class.java).apply {
-                        putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.PLAZA_COMPOSE.key)
-                        putExtra(ceui.pixiv.plaza.ui.PlazaComposeFragment.ARG_PREFILL_ILLUST_ID, illust.id)
-                        putExtra(
-                            ceui.pixiv.plaza.ui.PlazaComposeFragment.ARG_OBJECT_TYPE,
-                            if (illust.type == "manga") "manga" else "illust",
-                        )
+            if (!isSnapshotMode) {
+                item(getString(R.string.snapshot_create), R.drawable.ic_snapshot_24) {
+                    showSnapshotCreateDialog(illust)
+                }
+                item(getString(R.string.artlist_add), R.drawable.ic_collections_black_24dp) {
+                    ceui.pixiv.ui.artlist.ArtlistNavigation.add(requireContext(), illust)
+                }
+                if (Dev.showPlazaShareInArtwork) {
+                    item(getString(R.string.plaza_share_illust_to_plaza), R.drawable.ic_plaza_feed_24) {
+                        val intent = Intent(requireContext(), TemplateActivity::class.java).apply {
+                            putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.PLAZA_COMPOSE.key)
+                            putExtra(ceui.pixiv.plaza.ui.PlazaComposeFragment.ARG_PREFILL_ILLUST_ID, illust.id)
+                            putExtra(
+                                ceui.pixiv.plaza.ui.PlazaComposeFragment.ARG_OBJECT_TYPE,
+                                if (illust.type == "manga") "manga" else "illust",
+                            )
+                        }
+                        startActivity(intent)
                     }
-                    startActivity(intent)
                 }
             }
             if (!illust.isGif()) {
@@ -850,8 +862,10 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
                         aiHelper?.performRembg(illust, model, pageIndex)
                     }
                 }
-                item(getString(R.string.image_filter), R.drawable.ic_photo_filter_24) {
-                    openImageFilter(requireContext(), illust, pageProgressIndex.coerceAtLeast(0))
+                if (!isSnapshotMode) {
+                    item(getString(R.string.image_filter), R.drawable.ic_photo_filter_24) {
+                        openImageFilter(requireContext(), illust, pageProgressIndex.coerceAtLeast(0))
+                    }
                 }
             }
             if (!isSnapshotMode) {
@@ -1506,12 +1520,16 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
     }
 
     override fun onPause() {
-        activeMoreMenu?.dismiss(animated = false)
+        val hostStillResumed = isHostStillResumed()
+        // 仅在 ViewPager 横滑降级时收起菜单；跳模型下载页等宿主 paused 场景保留菜单，回来由 onResume 同步开关态。
+        if (hostStillResumed) {
+            activeMoreMenu?.dismiss(animated = false)
+        }
         if (!isSnapshotMode) {
             // 宿主还 RESUMED ⇒ 是「本页被降级」（横滑到相邻作品），宿主还在、随时会滑回来：
             // 挂起表，不结算也不评估。被自家半透明层（二级大图页及更上层）盖住、或切后台时
             // 宿主自己先 paused，这里什么都不做：计时继续走，不结算也不评估。
-            if (autoSnapshotVisit != null && isHostStillResumed()) {
+            if (autoSnapshotVisit != null && hostStillResumed) {
                 AutoSnapshotEngine.onArtworkPageSuspended(autoSnapshotVisit)
                 autoSnapshotDemoted = true
             }

@@ -748,7 +748,7 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
             val hasIllust = data.profile.total_illusts > 0
             val hasManga = data.profile.total_manga > 0
             if (hasIllust && hasManga) {
-                submenu("跳转作品…") {
+                submenu(getString(R.string.user_menu_jump_works)) {
                     item("跳转到插画…") {
                         jumpTo(data.user.id, UserIllustJumpHelper.Kind.ILLUST, TemplateRoute.USER_ILLUSTS)
                     }

@@ -328,6 +328,17 @@ public class WitLiquidGlassView @JvmOverloads public constructor(
         resetPress()
     }
 
+    internal fun onHostQualityChanged() {
+        if (quality != null) return
+        if (!effectiveQuality.isLiveEnabled) {
+            resetPress()
+        }
+        if (Build.VERSION.SDK_INT >= 31) {
+            discardRenderer()
+        }
+        invalidateMaterial()
+    }
+
     @RequiresApi(31)
     internal fun updateBackdrop(
         backdrop: WitLiquidGlassBackdrop?,
@@ -432,6 +443,12 @@ public class WitLiquidGlassView @JvmOverloads public constructor(
         if (activeTail != null) {
             platterBounds.union(activeTail.tipX - activeTail.tipRadius, activeTail.tipY - activeTail.tipRadius)
             platterBounds.union(activeTail.tipX + activeTail.tipRadius, activeTail.tipY + activeTail.tipRadius)
+            platterBounds.union(activeTail.bellyX - activeTail.bellyRadius, activeTail.bellyY - activeTail.bellyRadius)
+            platterBounds.union(activeTail.bellyX + activeTail.bellyRadius, activeTail.bellyY + activeTail.bellyRadius)
+        }
+        if (needsAlphaLayer) {
+            val layerPad = maxOf(2f, scale)
+            platterBounds.inset(-layerPad, -layerPad)
         }
         canvas.withTranslation(scrollX.toFloat(), scrollY.toFloat()) {
             val count = if (needsAlphaLayer) {

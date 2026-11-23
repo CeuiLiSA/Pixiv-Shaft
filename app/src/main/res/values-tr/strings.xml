@@ -1906,6 +1906,7 @@
     <string name="bulk_user_download_all_illust_confirm">%1$s yazarının tüm %2$d illüstrasyonunu indirme kuyruğuna ekleyin. Devam edilsin mi?</string>
     <string name="bulk_user_menu_download_all_manga">Tüm mangaları indir (toplu kuyruk)</string>
     <string name="bulk_user_menu_download_all_grouped">Tümünü indir… (toplu kuyruk)</string>
+    <string name="user_menu_jump_works">Eserlere git…</string>
     <string name="bulk_user_menu_open_download_manager">İndirme yöneticisini aç…</string>
     <string name="bulk_task_name">%1$s tarafından tüm %2$s</string>
     <string name="bulk_collection_menu_download_all">Tüm eserleri indir</string>

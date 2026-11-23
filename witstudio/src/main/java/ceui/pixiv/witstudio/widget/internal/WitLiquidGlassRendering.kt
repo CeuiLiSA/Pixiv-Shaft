@@ -11,7 +11,7 @@ import kotlin.math.sqrt
 internal object WitLiquidGlassBudget {
     internal const val HOST_PIXELS = 3_200_000L
     private const val MAX_PATCH_PIXELS = 1_000_000L
-    private const val MAX_PANEL_PATCH_PIXELS = 1_600_000L
+    internal const val MAX_PANEL_PATCH_PIXELS = 1_600_000L
     private const val MAX_PATCH_EDGE = 2_048
     private const val MIN_PANEL_SCALE = 0.55f
 

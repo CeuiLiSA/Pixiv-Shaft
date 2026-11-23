@@ -398,9 +398,10 @@ internal class WitLiquidGlassPaint {
         updateDeformation(left, top, right, bottom, cornerRadius, 0f, 0f, 0f, tail)
         if (deformedBounds.width() <= 0f || deformedBounds.height() <= 0f) return
         paint.color = solidFill
-        canvas.drawRoundRect(deformedBounds, deformedRadius, deformedRadius, paint)
         if (hasMorphTail && !clip.isEmpty) {
             canvas.drawPath(clip, paint)
+        } else {
+            canvas.drawRoundRect(deformedBounds, deformedRadius, deformedRadius, paint)
         }
         val rimShader = rim
         val effectiveRimAlpha = rimAlpha.coerceIn(0f, 1f)
@@ -432,16 +433,18 @@ internal class WitLiquidGlassPaint {
     private fun drawSurface(canvas: Canvas, fill: Int, press: Float) {
         if (deformedBounds.width() <= 0f || deformedBounds.height() <= 0f) return
         paint.color = fill
-        canvas.drawRoundRect(deformedBounds, deformedRadius, deformedRadius, paint)
         if (hasMorphTail && !clip.isEmpty) {
             canvas.drawPath(clip, paint)
+        } else {
+            canvas.drawRoundRect(deformedBounds, deformedRadius, deformedRadius, paint)
         }
         if (press > 0f) {
             paint.shader = light
             paint.alpha = (press * 180f).toInt()
-            canvas.drawRoundRect(deformedBounds, deformedRadius, deformedRadius, paint)
             if (hasMorphTail && !clip.isEmpty) {
                 canvas.drawPath(clip, paint)
+            } else {
+                canvas.drawRoundRect(deformedBounds, deformedRadius, deformedRadius, paint)
             }
         }
         val rimShader = rim

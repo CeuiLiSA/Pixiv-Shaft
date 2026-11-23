@@ -6,6 +6,7 @@ import android.graphics.Canvas
 import android.os.Build
 import android.util.AttributeSet
 import android.view.View
+import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.annotation.RequiresApi
 import androidx.core.content.withStyledAttributes
@@ -34,6 +35,13 @@ public class WitLiquidGlassLayout @JvmOverloads public constructor(
     private var backdrop: WitLiquidGlassBackdrop? = null
     private var drawingBackdrop: WitLiquidGlassBackdrop? = null
     private var recordedSource: View? = null
+    internal var backdropSiblingParent: ViewGroup? = null
+        set(value) {
+            if (field === value) return
+            field = value
+            backdropDirty = true
+            invalidate()
+        }
     private var backdropDirty = true
     private var remainingPixels = 0L
     private var canvasEdge = 0
@@ -47,8 +55,16 @@ public class WitLiquidGlassLayout @JvmOverloads public constructor(
             if (field == value) return
             field = value
             if (!value.isLiveEnabled) clearBackdrop()
+            for (i in 0 until childCount) {
+                (getChildAt(i) as? WitLiquidGlassView)?.onHostQualityChanged()
+            }
             invalidate()
         }
+
+    internal fun invalidateBackdrop() {
+        backdropDirty = true
+        invalidate()
+    }
 
     /** Allows callers to choose the lightweight material for a particular host. */
     override var isLiveBackdropEnabled: Boolean
@@ -101,6 +117,10 @@ public class WitLiquidGlassLayout @JvmOverloads public constructor(
 
     @RequiresApi(31)
     private fun recordBackdrop(): WitLiquidGlassBackdrop? {
+        val siblingParent = backdropSiblingParent
+        if (siblingParent != null) {
+            return recordSiblingBackdrop(siblingParent)
+        }
         val source = getChildAt(0)
         val hasGlass = (1 until childCount).any {
             val child = getChildAt(it)
@@ -127,6 +147,61 @@ public class WitLiquidGlassLayout @JvmOverloads public constructor(
             scene.end()
         }
         recordedSource = source
+        backdropDirty = false
+        return scene
+    }
+
+    @RequiresApi(31)
+    private fun recordSiblingBackdrop(siblingParent: ViewGroup): WitLiquidGlassBackdrop? {
+        val selfIndex = siblingParent.indexOfChild(this)
+        val hasGlass = (0 until childCount).any {
+            val child = getChildAt(it)
+            child is WitLiquidGlassView && patchPlan(child).pixels > 0
+        }
+        if (width == 0 || height == 0 || selfIndex <= 0 || !hasGlass) {
+            return null
+        }
+
+        if (backdrop?.hasDisplayList == false) clearBackdrop()
+        val scene = backdrop ?: WitLiquidGlassBackdrop().also { backdrop = it }
+        if (!backdropDirty && recordedSource === siblingParent && scene.hasDisplayList) return scene
+        val recording = scene.begin(width, height)
+        try {
+            if (clipToPadding) {
+                recording.clipRect(paddingLeft, paddingTop, width - paddingRight, height - paddingBottom)
+            }
+            recording.translate(-scrollX.toFloat(), -scrollY.toFloat())
+            for (i in 0 until selfIndex) {
+                val sibling = siblingParent.getChildAt(i) ?: continue
+                if (!sibling.isVisible || sibling.alpha <= 0f) continue
+                val relLeft = (sibling.left - left).toFloat()
+                val relTop = (sibling.top - top).toFloat()
+                val saveCount = if (sibling.alpha < 0.999f) {
+                    recording.saveLayerAlpha(
+                        relLeft,
+                        relTop,
+                        relLeft + sibling.width,
+                        relTop + sibling.height,
+                        (sibling.alpha * 255f).toInt().coerceIn(0, 255),
+                    )
+                } else {
+                    recording.save()
+                }
+                try {
+                    recording.translate(relLeft, relTop)
+                    if (!sibling.matrix.isIdentity) {
+                        recording.concat(sibling.matrix)
+                    }
+                    recording.clipRect(0, 0, sibling.width, sibling.height)
+                    sibling.draw(recording)
+                } finally {
+                    recording.restoreToCount(saveCount)
+                }
+            }
+        } finally {
+            scene.end()
+        }
+        recordedSource = siblingParent
         backdropDirty = false
         return scene
     }

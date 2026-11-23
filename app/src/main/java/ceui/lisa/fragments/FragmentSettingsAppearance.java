@@ -979,6 +979,7 @@ public class FragmentSettingsAppearance extends SettingsPageFragment<FragmentSet
                         Local.setSettings(Shaft.sSettings);
                         setBottomBarStyleName();
                     }
+                    dialog.dismiss();
                 })
                 .show();
     }

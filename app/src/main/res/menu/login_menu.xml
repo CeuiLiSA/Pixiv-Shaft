@@ -5,6 +5,6 @@
         android:id="@+id/action_more"
         android:orderInCategory="100"
         android:icon="@drawable/ic_more_vert_black_24dp"
-        android:title="@string/string_1"
+        android:title="@string/more_actions"
         app:showAsAction="always" />
 </menu>

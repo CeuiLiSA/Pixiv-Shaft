@@ -293,10 +293,9 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
     }
 
     private fun showLoginMoreMenu(anchor: View) {
-        val primary = Common.resolveThemeAttribute(requireContext(), androidx.appcompat.R.attr.colorPrimary)
         WitLiquidGlassMenu.show(anchor) {
             borderless = true
-            startPlatterColor = primary
+            transparentBackground = true
             anchorIconRes = ceui.pixiv.witstudio.R.drawable.wit_ic_more_vert
             item(getString(R.string.action_settings)) {
                 startActivity(Intent(mContext, TemplateActivity::class.java).apply {

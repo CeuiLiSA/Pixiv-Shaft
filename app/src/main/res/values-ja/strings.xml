@@ -1900,6 +1900,7 @@
     <string name="bulk_user_download_all_illust_confirm">%1$s のイラスト全 %2$d 件をダウンロードキューに追加します。続行しますか？</string>
     <string name="bulk_user_menu_download_all_manga">マンガをすべてダウンロード（一括キュー）</string>
     <string name="bulk_user_menu_download_all_grouped">すべてダウンロード…（一括キュー）</string>
+    <string name="user_menu_jump_works">作品へ移動…</string>
     <string name="bulk_user_menu_open_download_manager">ダウンロード管理を開く…</string>
     <string name="bulk_task_name">%1$sの%2$sをすべてダウンロード</string>
     <string name="bulk_collection_menu_download_all">すべての作品をダウンロード</string>

@@ -44,6 +44,9 @@ public class WitLiquidGlassCoordinatorLayout @JvmOverloads public constructor(
             if (field == value) return
             field = value
             if (!value.isLiveEnabled) clearBackdrop()
+            for (i in 0 until childCount) {
+                (getChildAt(i) as? WitLiquidGlassView)?.onHostQualityChanged()
+            }
             invalidate()
         }
 

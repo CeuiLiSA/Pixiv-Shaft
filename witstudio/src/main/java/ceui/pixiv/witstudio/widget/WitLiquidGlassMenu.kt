@@ -248,6 +248,9 @@ public class WitLiquidGlassMenu private constructor(
     private var activeSubmenuSourceChevron: View? = null
     private var activeSubmenuSourceRow: View? = null
     private var parentRecedeOverlay: View? = null
+    private val activeSubmenuToggles = mutableListOf<Pair<SwitchCompat, Entry.Toggle>>()
+    private val closingSubmenuViews = mutableListOf<View>()
+    private var backGestureOnSubmenu = false
     private var safeLeftPx: Int = 0
     private var safeRightPx: Int = 0
     private var safeTopPx: Int = 0
@@ -288,8 +291,9 @@ public class WitLiquidGlassMenu private constructor(
     private var isDark = false
     private var lastContentBlurPx = -1f
     private var lastEchoBlurPx = -1f
+    private var resolvedQuality: WitLiquidGlassQuality = WitLiquidGlassQuality.NONE
     private val isNoneQuality: Boolean
-        get() = (config.quality ?: host.quality ?: WitLiquidGlassQuality.defaultQuality) == WitLiquidGlassQuality.NONE
+        get() = resolvedQuality == WitLiquidGlassQuality.NONE
     private var menuWidth = 0
     private var menuHeight = 0
     private var anchorLocalL = 0f
@@ -395,6 +399,7 @@ public class WitLiquidGlassMenu private constructor(
         isBorderlessAnchor = config.borderless || isTransparentBackground
         val resolvedTone = config.tone ?: anchorGlass?.tone ?: WitLiquidGlassView.Tone.THEME
         val resolvedQuality = config.quality ?: anchorGlass?.quality ?: host.quality
+        this.resolvedQuality = resolvedQuality
         val resolvedMaterial = config.material ?: anchorGlass?.material ?: when (resolvedQuality) {
             WitLiquidGlassQuality.ULTRA -> WitLiquidGlassView.Material.CLEAR
             else -> WitLiquidGlassView.Material.REGULAR
@@ -752,6 +757,9 @@ public class WitLiquidGlassMenu private constructor(
         anchorHidden = true
         (anchor as? WitLiquidGlassView)?.resetInteraction()
         anchor.visibility = View.INVISIBLE
+        if (host.backdropSiblingParent != null) {
+            host.invalidateBackdrop()
+        }
     }
 
     private fun restoreAnchor() {
@@ -988,6 +996,9 @@ public class WitLiquidGlassMenu private constructor(
         val parentGlass = menuGlass ?: return
         if (activeSubmenuGlass != null) return
 
+        flushClosingSubmenuViews()
+        parentGlass.animate().cancel()
+        sourceRow.animate().cancel()
         clearHighlight(animated = true)
         sourceRow.performHapticFeedback(HapticFeedbackConstants.CONTEXT_CLICK)
 
@@ -1005,6 +1016,7 @@ public class WitLiquidGlassMenu private constructor(
         }
         activeSubmenuSourceRow = sourceRow
         activeSubmenuSourceChevron = sourceChevron
+        sourceChevron?.animate()?.cancel()
         sourceChevron?.animate()?.rotation(90f)?.setDuration(220L)?.start()
 
         val subRowsContainer = LinearLayout(context).apply {
@@ -1112,7 +1124,8 @@ public class WitLiquidGlassMenu private constructor(
                     )
                 }
                 is Entry.Toggle -> {
-                    val (row, _) = buildToggleRow(subEntry, contentColor, isDark)
+                    val (row, toggle) = buildToggleRow(subEntry, contentColor, isDark)
+                    activeSubmenuToggles += toggle to subEntry
                     subRowsContainer.addView(
                         row,
                         LinearLayout.LayoutParams(
@@ -1192,6 +1205,8 @@ public class WitLiquidGlassMenu private constructor(
             tintColor = parentGlass.tintColor
             surfaceFillColor = parentGlass.surfaceFillColor
             isGlassInteractive = false
+            isClickable = true
+            isFocusable = false
             clipChildren = false
             clipToPadding = false
             elevation = context.dpF(MENU_ELEVATION_DP + 16f)
@@ -1306,6 +1321,11 @@ public class WitLiquidGlassMenu private constructor(
     }
 
     private fun closeSubmenu(animated: Boolean = true) {
+        backGestureOnSubmenu = false
+        if (activeSubmenuToggles.isNotEmpty()) {
+            toggles.removeAll(activeSubmenuToggles)
+            activeSubmenuToggles.clear()
+        }
         val subGlass = activeSubmenuGlass ?: return
         val parentGlass = menuGlass
         val recedeOverlay = parentRecedeOverlay
@@ -1317,11 +1337,15 @@ public class WitLiquidGlassMenu private constructor(
         activeSubmenuSourceRow = null
 
         if (animated && motionEnabled()) {
+            sourceChevron?.animate()?.cancel()
             sourceChevron?.animate()?.rotation(0f)?.setDuration(200L)?.start()
             sourceRow?.let {
-                it.animate()?.alpha(1f)?.setDuration(180L)?.start()
+                it.animate().cancel()
+                it.animate().alpha(1f).setDuration(180L).start()
             }
 
+            closingSubmenuViews += subGlass
+            subGlass.animate().cancel()
             subGlass.animate()
                 .scaleX(0.88f)
                 .scaleY(0.88f)
@@ -1329,19 +1353,26 @@ public class WitLiquidGlassMenu private constructor(
                 .setDuration(180L)
                 .setInterpolator(AccelerateDecelerateInterpolator())
                 .withEndAction {
-                    host.removeView(subGlass)
+                    closingSubmenuViews.remove(subGlass)
+                    (subGlass.parent as? ViewGroup)?.removeView(subGlass)
                 }
                 .start()
 
-            recedeOverlay?.animate()
-                ?.alpha(0f)
-                ?.setDuration(180L)
-                ?.setInterpolator(AccelerateDecelerateInterpolator())
-                ?.withEndAction {
-                    parentGlass?.removeView(recedeOverlay)
-                }
-                ?.start()
+            recedeOverlay?.let { overlay ->
+                closingSubmenuViews += overlay
+                overlay.animate().cancel()
+                overlay.animate()
+                    .alpha(0f)
+                    .setDuration(180L)
+                    .setInterpolator(AccelerateDecelerateInterpolator())
+                    .withEndAction {
+                        closingSubmenuViews.remove(overlay)
+                        (overlay.parent as? ViewGroup)?.removeView(overlay)
+                    }
+                    .start()
+            }
 
+            parentGlass?.animate()?.cancel()
             parentGlass?.animate()
                 ?.scaleX(1f)
                 ?.scaleY(1f)
@@ -1349,19 +1380,33 @@ public class WitLiquidGlassMenu private constructor(
                 ?.setInterpolator(DecelerateInterpolator(1.8f))
                 ?.start()
         } else {
+            sourceChevron?.animate()?.cancel()
             sourceChevron?.rotation = 0f
+            sourceRow?.animate()?.cancel()
             sourceRow?.alpha = 1f
-            subGlass.animate()?.cancel()
-            host.removeView(subGlass)
+            subGlass.animate().cancel()
+            closingSubmenuViews.remove(subGlass)
+            (subGlass.parent as? ViewGroup)?.removeView(subGlass)
             recedeOverlay?.let {
-                it.animate()?.cancel()
-                parentGlass?.removeView(it)
+                it.animate().cancel()
+                closingSubmenuViews.remove(it)
+                (it.parent as? ViewGroup)?.removeView(it)
             }
             parentGlass?.let {
-                it.animate()?.cancel()
+                it.animate().cancel()
                 it.scaleX = 1f
                 it.scaleY = 1f
             }
+        }
+    }
+
+    private fun flushClosingSubmenuViews() {
+        if (closingSubmenuViews.isEmpty()) return
+        val pending = closingSubmenuViews.toList()
+        closingSubmenuViews.clear()
+        pending.forEach { view ->
+            view.animate().cancel()
+            (view.parent as? ViewGroup)?.removeView(view)
         }
     }
 
@@ -2418,6 +2463,12 @@ public class WitLiquidGlassMenu private constructor(
         val callback = object : OnBackPressedCallback(true) {
             override fun handleOnBackStarted(backEvent: BackEventCompat) {
                 if (state != State.OPENING_OR_OPEN) return
+                if (activeSubmenuGlass != null) {
+                    backGestureOnSubmenu = true
+                    activeSubmenuGlass?.animate()?.cancel()
+                    return
+                }
+                backGestureOnSubmenu = false
                 openSettled = false
                 dragFingerDown = false
                 cancelDragSprings()
@@ -2430,11 +2481,39 @@ public class WitLiquidGlassMenu private constructor(
                 if (state != State.OPENING_OR_OPEN) return
                 val raw = backEvent.progress.coerceIn(0f, 1f)
                 val eased = 1f - (1f - raw) * (1f - raw)
+                if (backGestureOnSubmenu) {
+                    activeSubmenuGlass?.let { sub ->
+                        val s = 1f - eased * 0.08f
+                        sub.scaleX = s
+                        sub.scaleY = s
+                        sub.alpha = (1f - eased * 0.18f).coerceIn(0f, 1f)
+                    }
+                    return
+                }
                 applyProgress((backStartProgress * (1f - eased * 0.42f)).coerceAtLeast(0f), closing = true)
             }
 
             override fun handleOnBackCancelled() {
                 if (state != State.OPENING_OR_OPEN) return
+                if (backGestureOnSubmenu) {
+                    backGestureOnSubmenu = false
+                    activeSubmenuGlass?.let { sub ->
+                        if (motionEnabled()) {
+                            sub.animate()
+                                .scaleX(1f)
+                                .scaleY(1f)
+                                .alpha(1f)
+                                .setDuration(160L)
+                                .setInterpolator(DecelerateInterpolator(1.6f))
+                                .start()
+                        } else {
+                            sub.scaleX = 1f
+                            sub.scaleY = 1f
+                            sub.alpha = 1f
+                        }
+                    }
+                    return
+                }
                 dragPullX = 0f
                 dragPullY = 0f
                 dragPress = 0f
@@ -2447,6 +2526,7 @@ public class WitLiquidGlassMenu private constructor(
             }
 
             override fun handleOnBackPressed() {
+                backGestureOnSubmenu = false
                 if (activeSubmenuGlass != null) {
                     closeSubmenu(animated = true)
                 } else {
@@ -2473,6 +2553,7 @@ public class WitLiquidGlassMenu private constructor(
         openSettled = false
         dragFingerDown = false
         closeSubmenu(animated = false)
+        flushClosingSubmenuViews()
         pendingShowRunnable?.let { host.removeCallbacks(it) }
         pendingShowRunnable = null
         cancelDragSprings()
@@ -2508,6 +2589,7 @@ public class WitLiquidGlassMenu private constructor(
             host.removeView(scrim)
         }
         if (host.tag == "WitLiquidGlassOverlayHost" && host.childCount == 0) {
+            host.backdropSiblingParent = null
             (host.parent as? ViewGroup)?.removeView(host)
         }
         scrimView = null
@@ -2618,6 +2700,7 @@ public class WitLiquidGlassMenu private constructor(
             if (host == null) {
                 host = WitLiquidGlassLayout(activity).apply {
                     tag = "WitLiquidGlassOverlayHost"
+                    backdropSiblingParent = content
                 }
                 content.addView(
                     host,
@@ -2633,6 +2716,10 @@ public class WitLiquidGlassMenu private constructor(
                     )
                     host.layout(0, 0, content.width, content.height)
                 }
+            } else {
+                host.quality = WitLiquidGlassQuality.defaultQuality
+                host.backdropSiblingParent = content
+                host.invalidateBackdrop()
             }
             return host
         }
