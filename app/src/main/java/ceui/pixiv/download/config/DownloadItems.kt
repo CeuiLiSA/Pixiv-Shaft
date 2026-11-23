@@ -12,7 +12,13 @@ import ceui.pixiv.download.model.Flag
 import ceui.pixiv.download.model.ItemMeta
 import ceui.pixiv.download.model.RelativePath
 import ceui.pixiv.download.sanitize.FsSanitizer
+import ceui.pixiv.download.template.DefaultTemplates
+import ceui.pixiv.download.template.PageNumbering
 import ceui.pixiv.download.template.SafeTemplateRender
+import ceui.pixiv.download.template.Template
+import ceui.pixiv.download.template.TemplateNode
+import ceui.pixiv.download.template.TemplateParser
+import ceui.pixiv.download.template.TemplateSamples
 import java.time.Instant
 import java.time.OffsetDateTime
 import java.time.format.DateTimeParseException
@@ -425,7 +431,7 @@ object DownloadItems {
         config: DownloadConfig = DownloadsRegistry.store.loadOrFallback(),
     ): RelativePath {
         val resolved = config.resolve(Bucket.Illust)
-        val staticDir = extractStaticDirectory(resolved.template)
+        val staticDir = extractStaticDirectory(resolved.template, config.pageNumbering)
         val directory = when {
             resolved.storage is StorageChoice.Saf -> staticDir
             staticDir.isEmpty() -> listOf("ShaftImages")
@@ -435,21 +441,42 @@ object DownloadItems {
         return RelativePath(directory + sanitizedName)
     }
 
-    private fun extractStaticDirectory(template: String): List<String> {
-        val lastSlash = template.lastIndexOf('/')
-        if (lastSlash == -1) return emptyList()
-        val dirPart = template.take(lastSlash)
-        val segments = dirPart.split('/')
-        val result = mutableListOf<String>()
-        for (rawSeg in segments) {
-            val seg = rawSeg.trim()
-            if (seg.isEmpty()) continue
-            if ('{' in seg || '[' in seg) {
-                break
-            }
-            result.add(FsSanitizer.cleanSegment(seg, preserveExtension = false))
+    /**
+     * 按模板 DSL（[TemplateParser]）提取第一个动态变量或条件块之前的静态目录段，
+     * 与普通插画下载保持同一解析与消毒语义；模板编译/渲染失败时与 [SafeTemplateRender]
+     * 一致回退到 [DefaultTemplates.ILLUST]。
+     */
+    private fun extractStaticDirectory(
+        template: String,
+        pageNumbering: PageNumbering,
+    ): List<String> {
+        val effectiveSource = try {
+            Template.compile(template).render(
+                TemplateSamples.ILLUST_SAMPLE,
+                "png",
+                pageNumbering,
+            )
+            template
+        } catch (_: Exception) {
+            DefaultTemplates.ILLUST
         }
-        return result
+        val nodes = TemplateParser(effectiveSource).parseAll()
+        val staticPrefix = buildString {
+            for (node in nodes) {
+                if (node is TemplateNode.Literal) {
+                    append(node.text)
+                } else {
+                    break
+                }
+            }
+        }
+        val lastSep = staticPrefix.lastIndexOfAny(charArrayOf('/', '\\'))
+        if (lastSep < 0) return emptyList()
+        return staticPrefix
+            .substring(0, lastSep)
+            .split('/', '\\')
+            .filter { it.isNotEmpty() }
+            .map { FsSanitizer.cleanSegment(it, preserveExtension = false) }
     }
 
     /**

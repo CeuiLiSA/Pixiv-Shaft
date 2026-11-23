@@ -75,4 +75,88 @@ class IllustGalleryDestinationTest {
         )
         assertEquals(listOf("ShaftImages", "upscaled_abc.png"), path.segments)
     }
+
+    @Test
+    fun `literal square brackets in static directory names are preserved`() {
+        val safPath = DownloadItems.illustGalleryDestination(
+            "upscaled_1.png",
+            config("[Pixiv]/[Favorites]/{title}_{id}.{ext}", safStorage),
+        )
+        assertEquals(listOf("[Pixiv]", "[Favorites]", "upscaled_1.png"), safPath.segments)
+
+        val mediaStorePath = DownloadItems.illustGalleryDestination(
+            "upscaled_2.png",
+            config("[Pixiv]/{title}_{id}.{ext}", mediaStoreImages),
+        )
+        assertEquals(listOf("[Pixiv]", "upscaled_2.png"), mediaStorePath.segments)
+    }
+
+    @Test
+    fun `escaped characters and backslash separators match TemplateParser semantics`() {
+        val escapedBraces = DownloadItems.illustGalleryDestination(
+            "upscaled_1.png",
+            config("""\{Pixiv\}/My\ Folder/{title}_{id}.{ext}""", safStorage),
+        )
+        assertEquals(listOf("{Pixiv}", "My Folder", "upscaled_1.png"), escapedBraces.segments)
+
+        val backslashSep = DownloadItems.illustGalleryDestination(
+            "upscaled_2.png",
+            config("""Shaft\\{title}_{id}.{ext}""", safStorage),
+        )
+        assertEquals(listOf("Shaft", "upscaled_2.png"), backslashSep.segments)
+    }
+
+    @Test
+    fun `static filename or dynamic directory prefixes are not mistaken for directory segments`() {
+        val filePrefix = DownloadItems.illustGalleryDestination(
+            "upscaled_1.png",
+            config("Shaft/prefix_{title}_{id}.{ext}", safStorage),
+        )
+        assertEquals(listOf("Shaft", "upscaled_1.png"), filePrefix.segments)
+
+        val dynamicDirPrefix = DownloadItems.illustGalleryDestination(
+            "upscaled_2.png",
+            config("prefix_{author}/{title}_{id}.{ext}", safStorage),
+        )
+        assertEquals(listOf("upscaled_2.png"), dynamicDirPrefix.segments)
+    }
+
+    @Test
+    fun `malformed persisted templates fall back to DefaultTemplates ILLUST like SafeTemplateRender`() {
+        val unknownVar = DownloadItems.illustGalleryDestination(
+            "upscaled_1.png",
+            config("Broken/{unknown_var}.{ext}", safStorage),
+        )
+        assertEquals(listOf("ShaftImages", "upscaled_1.png"), unknownVar.segments)
+
+        val badCondition = DownloadItems.illustGalleryDestination(
+            "upscaled_2.png",
+            config("Broken/[?p<100:x]/{id}.{ext}", safStorage),
+        )
+        assertEquals(listOf("ShaftImages", "upscaled_2.png"), badCondition.segments)
+
+        val unclosedBrace = DownloadItems.illustGalleryDestination(
+            "upscaled_3.png",
+            config("Broken/{unclosed", safStorage),
+        )
+        assertEquals(listOf("ShaftImages", "upscaled_3.png"), unclosedBrace.segments)
+    }
+
+    @Test
+    fun `whitespace-only directory segment matches RelativePath and FsSanitizer`() {
+        val path = DownloadItems.illustGalleryDestination(
+            "upscaled_1.png",
+            config("Shaft/ /{title}_{id}.{ext}", safStorage),
+        )
+        assertEquals(listOf("Shaft", "_", "upscaled_1.png"), path.segments)
+    }
+
+    @Test
+    fun `displayName path separators are sanitized into a single filename segment`() {
+        val path = DownloadItems.illustGalleryDestination(
+            "../evil/name.png",
+            config("Shaft/{title}_{id}.{ext}", safStorage),
+        )
+        assertEquals(listOf("Shaft", "_evil_name.png"), path.segments)
+    }
 }
