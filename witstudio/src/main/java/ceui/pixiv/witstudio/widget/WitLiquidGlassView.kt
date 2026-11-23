@@ -225,6 +225,8 @@ public class WitLiquidGlassView @JvmOverloads public constructor(
     private var pressLoopRunning = false
     private var lastPressFrameMs = 0L
     private val pressPhysics = WitLiquidGlassPhysics.ControlPressPhysics()
+    private val scratchControlTransform = WitLiquidGlassPhysics.MutableControlTransform()
+    private val drawChildrenCallback: (Canvas) -> Unit = { super.dispatchDraw(it) }
     private val pressFrameRunnable = object : Runnable {
         override fun run() {
             pressLoopRunning = false
@@ -601,7 +603,7 @@ public class WitLiquidGlassView @JvmOverloads public constructor(
     override fun dispatchDraw(canvas: Canvas) {
         val activeOverlay = overlay
         if (activeOverlay != null && activeOverlay.isActive) {
-            activeOverlay.dispatchDraw(canvas) { super.dispatchDraw(it) }
+            activeOverlay.dispatchDraw(canvas, drawChildrenCallback)
             return
         }
         if (!morphActive) {
@@ -658,8 +660,12 @@ public class WitLiquidGlassView @JvmOverloads public constructor(
             MotionEvent.ACTION_POINTER_UP -> {
                 if (event.getPointerId(event.actionIndex) == touchPointer) releaseTouch(cancelled = false)
             }
-            MotionEvent.ACTION_UP -> releaseTouch(cancelled = false)
-            MotionEvent.ACTION_CANCEL -> releaseTouch(cancelled = true)
+            MotionEvent.ACTION_UP -> {
+                if (touchPointer != MotionEvent.INVALID_POINTER_ID) releaseTouch(cancelled = false)
+            }
+            MotionEvent.ACTION_CANCEL -> {
+                if (touchPointer != MotionEvent.INVALID_POINTER_ID) releaseTouch(cancelled = true)
+            }
         }
         return handled
     }
@@ -685,8 +691,11 @@ public class WitLiquidGlassView @JvmOverloads public constructor(
     override fun onWindowVisibilityChanged(visibility: Int) {
         super.onWindowVisibilityChanged(visibility)
         if (visibility != VISIBLE) {
+            resetPress()
+            overlay?.onWindowVisibilityChanged(visibility)
             if (Build.VERSION.SDK_INT >= 31) renderer?.clearBackdrop()
         } else {
+            overlay?.onWindowVisibilityChanged(visibility)
             invalidateOptics()
         }
     }
@@ -740,16 +749,22 @@ public class WitLiquidGlassView @JvmOverloads public constructor(
         // Small deadzone keeps stationary taps centered while larger pulls create tactile liquid lean.
         val deadzone = 4f * density
         val dist = hypot(dx, dy)
+        val newTx: Float
+        val newTy: Float
         if (dist <= deadzone) {
-            pressPhysics.targetPullX = 0f
-            pressPhysics.targetPullY = 0f
-            return
+            newTx = 0f
+            newTy = 0f
+        } else {
+            val activeScale = (dist - deadzone) / dist
+            val pullScale = maxOf(36f * density, minOf(width, height) * 0.75f)
+            newTx = WitLiquidGlassPhysics.rubberBandUnit(dx * activeScale, pullScale)
+            newTy = WitLiquidGlassPhysics.rubberBandUnit(dy * activeScale, pullScale)
         }
-        val activeScale = (dist - deadzone) / dist
-        val pullScale = maxOf(36f * density, minOf(width, height) * 0.75f)
-        pressPhysics.targetPullX = WitLiquidGlassPhysics.rubberBandUnit(dx * activeScale, pullScale)
-        pressPhysics.targetPullY = WitLiquidGlassPhysics.rubberBandUnit(dy * activeScale, pullScale)
-        startPressLoop()
+        if (abs(newTx - pressPhysics.targetPullX) > 0.0005f || abs(newTy - pressPhysics.targetPullY) > 0.0005f) {
+            pressPhysics.targetPullX = newTx
+            pressPhysics.targetPullY = newTy
+            startPressLoop()
+        }
     }
 
     private fun releaseTouch(cancelled: Boolean) {
@@ -820,7 +835,8 @@ public class WitLiquidGlassView @JvmOverloads public constructor(
         if (w <= 0 || h <= 0 || !isGlassInteractive || overlay?.isActive == true || morphActive) {
             return
         }
-        val xf = pressPhysics.evaluate(w, h, density)
+        val xf = scratchControlTransform
+        pressPhysics.evaluateInto(w, h, density, xf)
         setOpticalPressure(xf.press, xf.stretch)
         if (pivotX != w * 0.5f) pivotX = w * 0.5f
         if (pivotY != h * 0.5f) pivotY = h * 0.5f

@@ -271,4 +271,65 @@ class WitLiquidGlassTabBarPhysicsTest {
         assertEquals(1f, settled.scaleY, 0.001f)
         assertEquals(0f, settled.shiftX, 0.05f)
     }
+
+    @Test
+    fun stationaryHoldSettlesFrameLoopAtActiveTargetsAndResumesOnMoveOrRelease() {
+        val d = 3f
+        val centers = floatArrayOf(170f, 443f, 718f, 994f)
+        val dt = 1f / 60f
+
+        // 1. TabLoupePhysics stops ticking once held press converges (no 120fps stationary busy-loop),
+        //    preserving full held lift/scale instead of snapping back to rest.
+        val tabPhysics = WitLiquidGlassTabBar.TabLoupePhysics()
+        tabPhysics.snapToRest(centers[1])
+        tabPhysics.pressed = true
+        var tabRunning = true
+        repeat(45) { tabRunning = tabPhysics.step(dt, d) }
+        assertFalse("Expected held TabLoupePhysics to settle within 750ms", tabRunning)
+        assertTrue(tabPhysics.isSettled())
+        assertEquals(WitLiquidGlassTabBar.BAR_PRESS_SCALE, tabPhysics.barScale.value, 0.0005f)
+        assertEquals(1f, tabPhysics.lift.value, 0.0005f)
+
+        // Dragging wakes physics cleanly and converges again at the new target.
+        tabPhysics.dragging = true
+        tabPhysics.targetCx = centers[2]
+        assertFalse("Dragging to new tab must unsettle physics", tabPhysics.isSettled())
+        assertTrue(tabPhysics.step(dt, d))
+        repeat(45) { tabRunning = tabPhysics.step(dt, d) }
+        assertFalse(tabRunning)
+        assertEquals(centers[2], tabPhysics.dropCx.value, 0.5f)
+        assertEquals(1f, tabPhysics.lift.value, 0.0005f)
+
+        // Release unsettles again and returns cleanly to rest (1.0 / 0.0).
+        tabPhysics.pressed = false
+        tabPhysics.dragging = false
+        assertFalse(tabPhysics.isSettled())
+        repeat(45) { tabRunning = tabPhysics.step(dt, d) }
+        assertFalse(tabRunning)
+        assertEquals(1f, tabPhysics.barScale.value, 0.0005f)
+        assertEquals(0f, tabPhysics.lift.value, 0.0005f)
+
+        // 2. ControlPressPhysics also settles cleanly while pressed stationary and wakes on pull/release.
+        val ctrl = WitLiquidGlassPhysics.ControlPressPhysics()
+        ctrl.pressed = true
+        var ctrlRunning = true
+        repeat(45) { ctrlRunning = ctrl.step(dt) }
+        assertFalse("Expected held ControlPressPhysics to settle within 750ms", ctrlRunning)
+        assertTrue(ctrl.isSettled())
+        assertEquals(1f, ctrl.swell.value, 0.0005f)
+
+        ctrl.targetPullX = 0.7f
+        assertFalse("Directional pull must unsettle held control physics", ctrl.isSettled())
+        repeat(35) { ctrlRunning = ctrl.step(dt) }
+        assertFalse(ctrlRunning)
+        assertEquals(0.7f, ctrl.pullX.value, 0.001f)
+
+        // Returning inside deadzone (targetPullX = 0f) unsettles and centers back while still pressed.
+        ctrl.targetPullX = 0f
+        assertFalse(ctrl.isSettled())
+        repeat(35) { ctrlRunning = ctrl.step(dt) }
+        assertFalse(ctrlRunning)
+        assertEquals(0f, ctrl.pullX.value, 0.001f)
+        assertEquals(1f, ctrl.swell.value, 0.0005f)
+    }
 }

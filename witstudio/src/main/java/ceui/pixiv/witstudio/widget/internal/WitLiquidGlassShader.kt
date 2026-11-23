@@ -198,8 +198,8 @@ internal class WitLiquidGlassShader : WitLiquidGlassRenderer() {
                 // During press, heighten curved-rim crystal gleam & prism glints instead of washing the center white.
                 float2 light = normalize(mix(float2(-0.84, -0.54), -fromTouch / pressRadius, response * 0.45));
                 float facing = dot(normal, light);
-                float key = pow(max(facing, 0.0), 4.6);
-                float bounce = pow(max(-facing, 0.0), 4.6);
+                float key = facing > 0.0 ? pow(facing, 4.6) : 0.0;
+                float bounce = facing < 0.0 ? pow(-facing, 4.6) : 0.0;
                 float line = 1.0 - smoothstep(0.0, 1.05, abs(depth - 0.45));
                 float sheen = exp(-depth * 0.36) * smoothstep(0.6, 2.0, depth);
                 float pressRimBoost = 1.0 + pressAmt * 0.48;

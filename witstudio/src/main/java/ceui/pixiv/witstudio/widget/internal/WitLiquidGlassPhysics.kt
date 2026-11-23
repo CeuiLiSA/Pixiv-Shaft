@@ -170,24 +170,37 @@ internal object WitLiquidGlassPhysics {
             }
 
             if (isSettled()) {
-                if (!pressed) {
-                    swell.snap(0f)
-                    pullX.snap(0f)
-                    pullY.snap(0f)
-                }
+                swell.snap(targetSwell)
+                pullX.snap(tx)
+                pullY.snap(ty)
                 return false
             }
             return true
         }
 
         fun isSettled(): Boolean {
-            if (pressed) return false
-            return swell.isSettled(0f, 0.006f, 0.095f) &&
-                pullX.isSettled(0f, 0.006f, 0.095f) &&
-                pullY.isSettled(0f, 0.006f, 0.095f)
+            val targetSwell = if (pressed) 1f else 0f
+            val tx = if (pressed) targetPullX else 0f
+            val ty = if (pressed) targetPullY else 0f
+            return swell.isSettled(targetSwell, 0.006f, 0.095f) &&
+                pullX.isSettled(tx, 0.006f, 0.095f) &&
+                pullY.isSettled(ty, 0.006f, 0.095f)
         }
 
         fun evaluate(widthPx: Int, heightPx: Int, density: Float): ControlTransform {
+            val out = MutableControlTransform()
+            evaluateInto(widthPx, heightPx, density, out)
+            return ControlTransform(
+                scaleX = out.scaleX,
+                scaleY = out.scaleY,
+                shiftX = out.shiftX,
+                shiftY = out.shiftY,
+                press = out.press,
+                stretch = out.stretch,
+            )
+        }
+
+        fun evaluateInto(widthPx: Int, heightPx: Int, density: Float, out: MutableControlTransform) {
             val baseDelta = computePressScaleTarget(widthPx, heightPx, density) - 1f
             val s = swell.value
             val uniform = 1f + baseDelta * s
@@ -201,19 +214,24 @@ internal object WitLiquidGlassPhysics {
             val stretchFactorX = 1f + PULL_STRETCH_MAX * ax - PULL_ORTHO_SQUISH_MAX * ay
             val stretchFactorY = 1f + PULL_STRETCH_MAX * ay - PULL_ORTHO_SQUISH_MAX * ax
 
-            val finalScaleX = (uniform * stretchFactorX).coerceIn(0.90f, 1.30f)
-            val finalScaleY = (uniform * stretchFactorY).coerceIn(0.90f, 1.30f)
             val maxShiftPx = PULL_MAX_SHIFT_DP * density.coerceAtLeast(0.5f)
-            return ControlTransform(
-                scaleX = finalScaleX,
-                scaleY = finalScaleY,
-                shiftX = px * maxShiftPx,
-                shiftY = py * maxShiftPx,
-                press = s.coerceIn(0f, 1f),
-                stretch = s,
-            )
+            out.scaleX = (uniform * stretchFactorX).coerceIn(0.90f, 1.30f)
+            out.scaleY = (uniform * stretchFactorY).coerceIn(0.90f, 1.30f)
+            out.shiftX = px * maxShiftPx
+            out.shiftY = py * maxShiftPx
+            out.press = s.coerceIn(0f, 1f)
+            out.stretch = s
         }
     }
+
+    internal class MutableControlTransform(
+        var scaleX: Float = 1f,
+        var scaleY: Float = 1f,
+        var shiftX: Float = 0f,
+        var shiftY: Float = 0f,
+        var press: Float = 0f,
+        var stretch: Float = 0f,
+    )
 
     internal data class ControlTransform(
         val scaleX: Float,

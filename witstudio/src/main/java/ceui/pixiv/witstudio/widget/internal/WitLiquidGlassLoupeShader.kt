@@ -7,6 +7,7 @@ import android.graphics.RenderNode
 import android.graphics.RuntimeShader
 import androidx.annotation.RequiresApi
 import kotlin.math.ceil
+import kotlin.math.floor
 
 /**
  * Hardware-accelerated AGSL liquid-glass droplet loupe renderer (API 33+).
@@ -32,6 +33,25 @@ import kotlin.math.ceil
 internal class WitLiquidGlassLoupeShader {
     private val node = RenderNode("WitLiquidGlassTabLoupe")
     private val shader = RuntimeShader(SOURCE)
+    private var allocatedNodeW = 0
+    private var allocatedNodeH = 0
+    private var hasCachedUniforms = false
+    private var uDropCx = 0f
+    private var uDropCy = 0f
+    private var uHalfW = 0f
+    private var uHalfH = 0f
+    private var uBarL = 0f
+    private var uBarT = 0f
+    private var uBarR = 0f
+    private var uBarB = 0f
+    private var uSceneL = 0f
+    private var uSceneT = 0f
+    private var uSceneR = 0f
+    private var uSceneB = 0f
+    private var uLift = 0f
+    private var uGlass = 0f
+    private var uDensity = 0f
+    private var uIsDark = 0f
 
     internal fun draw(
         canvas: Canvas,
@@ -42,6 +62,8 @@ internal class WitLiquidGlassLoupeShader {
         dropCy: Float,
         dropW: Float,
         dropH: Float,
+        maxDropW: Float,
+        maxDropH: Float,
         lift: Float,
         isDark: Boolean,
         sceneBoundsLocal: RectF?,
@@ -49,56 +71,84 @@ internal class WitLiquidGlassLoupeShader {
     ): Boolean {
         if (barWidth <= 0 || barHeight <= 0 || dropW <= 1f || dropH <= 1f) return false
         val maxCanvasEdge = minOf(canvas.maximumBitmapWidth, canvas.maximumBitmapHeight, MAX_EDGE)
-        val rawPadX = ceil(PAD_X_DP * density).toInt()
-        val rawPadY = ceil(PAD_Y_DP * density).toInt()
-        val rawW = barWidth + 2 * rawPadX
-        val rawH = barHeight + 2 * rawPadY
-        if (rawW <= 0 || rawH <= 0 || maxCanvasEdge <= 0) return false
+        if (maxCanvasEdge <= 0) return false
+
+        // Tight pixel-snapped sliding window around the droplet (~2.7x smaller than the full bar),
+        // bucketed to a stable 64px high-water envelope so HWUI never reallocates the backing FBO mid-gesture.
+        val padPx = ceil(WINDOW_PAD_DP * density).toInt()
+        val rawW = ceil(maxOf(dropW, maxDropW)).toInt() + 2 * padPx
+        val rawH = ceil(maxOf(dropH, maxDropH)).toInt() + 2 * padPx
+        if (rawW <= 0 || rawH <= 0) return false
 
         var renderScale = 1f
         if (rawW > maxCanvasEdge) renderScale = minOf(renderScale, maxCanvasEdge.toFloat() / rawW)
         if (rawH > maxCanvasEdge) renderScale = minOf(renderScale, maxCanvasEdge.toFloat() / rawH)
         if (renderScale < MIN_SCALE) return false
 
-        val scaledPadX = ceil(rawPadX * renderScale).toInt()
-        val scaledPadY = ceil(rawPadY * renderScale).toInt()
-        val scaledW = ceil(barWidth * renderScale).toInt().coerceAtLeast(1)
-        val scaledH = ceil(barHeight * renderScale).toInt().coerceAtLeast(1)
-        val nodeW = scaledW + 2 * scaledPadX
-        val nodeH = scaledH + 2 * scaledPadY
-        if (nodeW > maxCanvasEdge || nodeH > maxCanvasEdge) return false
+        val reqNodeW = bucketUp(ceil(rawW * renderScale).toInt().coerceAtLeast(1)).coerceAtMost(maxCanvasEdge)
+        val reqNodeH = bucketUp(ceil(rawH * renderScale).toInt().coerceAtLeast(1)).coerceAtMost(maxCanvasEdge)
+        val nodeW = if (allocatedNodeW > reqNodeW + NODE_SHRINK_HYSTERESIS_PX) {
+            reqNodeW
+        } else {
+            maxOf(allocatedNodeW, reqNodeW).coerceAtMost(maxCanvasEdge)
+        }
+        val nodeH = if (allocatedNodeH > reqNodeH + NODE_SHRINK_HYSTERESIS_PX) {
+            reqNodeH
+        } else {
+            maxOf(allocatedNodeH, reqNodeH).coerceAtMost(maxCanvasEdge)
+        }
+        if (nodeW < ceil(dropW * renderScale).toInt() + 4 ||
+            nodeH < ceil(dropH * renderScale).toInt() + 4 ||
+            nodeW > maxCanvasEdge || nodeH > maxCanvasEdge
+        ) {
+            return false
+        }
+        if (allocatedNodeW != nodeW || allocatedNodeH != nodeH) {
+            allocatedNodeW = nodeW
+            allocatedNodeH = nodeH
+            node.setPosition(0, 0, nodeW, nodeH)
+            hasCachedUniforms = false
+        }
 
-        node.setPosition(0, 0, nodeW, nodeH)
+        val s = renderScale
+        val scaledOriginX = floor(dropCx * s - nodeW * 0.5f)
+        val scaledOriginY = floor(dropCy * s - nodeH * 0.5f)
+
         val recording = node.beginRecording()
         try {
-            recording.translate(scaledPadX.toFloat(), scaledPadY.toFloat())
-            if (renderScale != 1f) {
-                recording.scale(renderScale, renderScale)
+            recording.translate(-scaledOriginX, -scaledOriginY)
+            if (s != 1f) {
+                recording.scale(s, s)
             }
             recordContent(recording)
         } finally {
             node.endRecording()
         }
 
-        val s = renderScale
         val scaledDensity = density * s
         val clampedLift = lift.coerceIn(0f, 1.15f)
+        val liftOut = clampedLift.coerceIn(0f, 1f)
         val glassProgress = smoothstep(0.05f, 0.72f, clampedLift)
+        val darkFlag = if (isDark) 1f else 0f
 
-        val localCx = scaledPadX + dropCx * s
-        val localCy = scaledPadY + dropCy * s
+        val localCx = dropCx * s - scaledOriginX
+        val localCy = dropCy * s - scaledOriginY
         val halfW = (dropW * 0.5f * s).coerceAtLeast(1f)
         val halfH = (dropH * 0.5f * s).coerceAtLeast(1f)
+        val barL = -scaledOriginX
+        val barT = -scaledOriginY
+        val barR = barWidth * s - scaledOriginX
+        val barB = barHeight * s - scaledOriginY
 
         val clampMinX: Float
         val clampMinY: Float
         val clampMaxX: Float
         val clampMaxY: Float
         if (sceneBoundsLocal != null && sceneBoundsLocal.width() > 1f && sceneBoundsLocal.height() > 1f) {
-            clampMinX = (scaledPadX + sceneBoundsLocal.left * s).coerceIn(0f, nodeW - 2f)
-            clampMinY = (scaledPadY + sceneBoundsLocal.top * s).coerceIn(0f, nodeH - 2f)
-            clampMaxX = (scaledPadX + sceneBoundsLocal.right * s).coerceIn(clampMinX + 1f, nodeW.toFloat())
-            clampMaxY = (scaledPadY + sceneBoundsLocal.bottom * s).coerceIn(clampMinY + 1f, nodeH.toFloat())
+            clampMinX = (sceneBoundsLocal.left * s - scaledOriginX).coerceIn(0f, nodeW - 2f)
+            clampMinY = (sceneBoundsLocal.top * s - scaledOriginY).coerceIn(0f, nodeH - 2f)
+            clampMaxX = (sceneBoundsLocal.right * s - scaledOriginX).coerceIn(clampMinX + 1f, nodeW.toFloat())
+            clampMaxY = (sceneBoundsLocal.bottom * s - scaledOriginY).coerceIn(clampMinY + 1f, nodeH.toFloat())
         } else {
             clampMinX = 0f
             clampMinY = 0f
@@ -106,24 +156,37 @@ internal class WitLiquidGlassLoupeShader {
             clampMaxY = nodeH.toFloat()
         }
 
-        shader.setFloatUniform("droplet", localCx, localCy, halfW, halfH)
-        shader.setFloatUniform(
-            "barRect",
-            scaledPadX.toFloat(),
-            scaledPadY.toFloat(),
-            scaledPadX + barWidth * s,
-            scaledPadY + barHeight * s,
-        )
-        shader.setFloatUniform("sceneBounds", clampMinX, clampMinY, clampMaxX, clampMaxY)
-        shader.setFloatUniform(
-            "optics",
-            clampedLift.coerceIn(0f, 1f),
-            glassProgress,
-            scaledDensity,
-            if (isDark) 1f else 0f,
-        )
+        val uniformsChanged = !hasCachedUniforms ||
+            uDropCx != localCx || uDropCy != localCy || uHalfW != halfW || uHalfH != halfH ||
+            uBarL != barL || uBarT != barT || uBarR != barR || uBarB != barB ||
+            uSceneL != clampMinX || uSceneT != clampMinY || uSceneR != clampMaxX || uSceneB != clampMaxY ||
+            uLift != liftOut || uGlass != glassProgress || uDensity != scaledDensity || uIsDark != darkFlag
 
-        node.setRenderEffect(RenderEffect.createRuntimeShaderEffect(shader, "content"))
+        if (uniformsChanged) {
+            uDropCx = localCx
+            uDropCy = localCy
+            uHalfW = halfW
+            uHalfH = halfH
+            uBarL = barL
+            uBarT = barT
+            uBarR = barR
+            uBarB = barB
+            uSceneL = clampMinX
+            uSceneT = clampMinY
+            uSceneR = clampMaxX
+            uSceneB = clampMaxY
+            uLift = liftOut
+            uGlass = glassProgress
+            uDensity = scaledDensity
+            uIsDark = darkFlag
+            hasCachedUniforms = true
+
+            shader.setFloatUniform("droplet", localCx, localCy, halfW, halfH)
+            shader.setFloatUniform("barRect", barL, barT, barR, barB)
+            shader.setFloatUniform("sceneBounds", clampMinX, clampMinY, clampMaxX, clampMaxY)
+            shader.setFloatUniform("optics", liftOut, glassProgress, scaledDensity, darkFlag)
+            node.setRenderEffect(RenderEffect.createRuntimeShaderEffect(shader, "content"))
+        }
 
         val save = canvas.save()
         try {
@@ -131,7 +194,7 @@ internal class WitLiquidGlassLoupeShader {
                 val inv = 1f / s
                 canvas.scale(inv, inv)
             }
-            canvas.translate(-scaledPadX.toFloat(), -scaledPadY.toFloat())
+            canvas.translate(scaledOriginX, scaledOriginY)
             canvas.drawRenderNode(node)
         } finally {
             canvas.restoreToCount(save)
@@ -140,9 +203,14 @@ internal class WitLiquidGlassLoupeShader {
     }
 
     internal fun clear() {
+        allocatedNodeW = 0
+        allocatedNodeH = 0
+        hasCachedUniforms = false
         node.setRenderEffect(null)
         node.discardDisplayList()
     }
+
+    private fun bucketUp(px: Int): Int = ((px + NODE_BUCKET_PX - 1) / NODE_BUCKET_PX) * NODE_BUCKET_PX
 
     private fun smoothstep(edge0: Float, edge1: Float, x: Float): Float {
         val t = ((x - edge0) / (edge1 - edge0)).coerceIn(0f, 1f)
@@ -150,8 +218,9 @@ internal class WitLiquidGlassLoupeShader {
     }
 
     private companion object {
-        private const val PAD_X_DP = 44f
-        private const val PAD_Y_DP = 28f
+        private const val WINDOW_PAD_DP = 14f
+        private const val NODE_BUCKET_PX = 64
+        private const val NODE_SHRINK_HYSTERESIS_PX = 192
         private const val MAX_EDGE = 2_048
         private const val MIN_SCALE = 0.55f
 
@@ -163,6 +232,7 @@ internal class WitLiquidGlassLoupeShader {
             uniform float4 optics;      // lift (0..1), glassProgress (0..1), scaledDensity, isDark
 
             const float3 LUMA = float3(0.2126, 0.7152, 0.0722);
+            const float2 KEY_LIGHT = float2(-0.38176, -0.92426); // normalize(float2(-0.38, -0.92))
 
             float3 sampleScene(float2 p, float isDark) {
                 float2 safeP = clamp(p, sceneBounds.xy + 1.0, sceneBounds.zw - 1.0);
@@ -211,7 +281,8 @@ internal class WitLiquidGlassLoupeShader {
                 float shortSideDp = rad * 2.0 / dp;
                 float bevelDp = clamp(shortSideDp * 0.15, 8.0, 11.5);
                 float t = clamp(depth / bevelDp, 0.0, 1.0);
-                float slope = pow(1.0 - t, 2.0);
+                float invT = 1.0 - t;
+                float slope = invT * invT;
 
                 float refractDp = mix(8.5, 4.5, normal.y * normal.y) * glass;
                 float2 bend = -normal * dp * refractDp * slope;
@@ -247,33 +318,35 @@ internal class WitLiquidGlassLoupeShader {
                 }
 
                 // Crisp paired directional Fresnel specular rim + subtle inner dome sheen.
-                float rimLine = 1.0 - smoothstep(0.0, 1.15, abs(depth - 0.50));
-                float vertBias = abs(normal.y);
-                float2 keyLight = normalize(float2(-0.38, -0.92));
-                float facing = dot(normal, keyLight);
-                float keyLobe = pow(max(facing, 0.0), 3.2);
-                float bounceLobe = pow(max(-facing, 0.0), 3.2);
-                float rimProfile = 0.11 + 0.27 * vertBias + 0.25 * (keyLobe + bounceLobe);
+                // Past depth > 11dp both rimLine (0) and innerSheen (<0.0006) vanish below 8-bit LSB.
+                if (depth < 11.0 && glass > 0.001) {
+                    float rimLine = 1.0 - smoothstep(0.0, 1.15, abs(depth - 0.50));
+                    float vertBias = abs(normal.y);
+                    float facing = dot(normal, KEY_LIGHT);
+                    float keyLobe = facing > 0.0 ? pow(facing, 3.2) : 0.0;
+                    float bounceLobe = facing < 0.0 ? pow(-facing, 3.2) : 0.0;
+                    float rimProfile = 0.11 + 0.27 * vertBias + 0.25 * (keyLobe + bounceLobe);
 
-                // Delicate cyan/blue & warm-gold iridescent prism sheen at curved shoulders.
-                float cornerMask = clamp(abs(normal.x * normal.y) * 2.5, 0.0, 1.0);
-                float3 prismTint = mix(
-                    float3(1.0, 1.0, 1.0),
-                    mix(float3(1.12, 1.02, 0.90), float3(0.85, 1.06, 1.18), step(0.0, normal.y)),
-                    cornerMask * 0.58
-                );
+                    // Delicate cyan/blue & warm-gold iridescent prism sheen at curved shoulders.
+                    float cornerMask = clamp(abs(normal.x * normal.y) * 2.5, 0.0, 1.0);
+                    float3 prismTint = mix(
+                        float3(1.0, 1.0, 1.0),
+                        mix(float3(1.12, 1.02, 0.90), float3(0.85, 1.06, 1.18), step(0.0, normal.y)),
+                        cornerMask * 0.58
+                    );
 
-                // Tight inner dome sheen decaying within ~3dp so interior stays crystal clear.
-                float innerSheen = exp(-depth * 0.50) * smoothstep(0.45, 2.0, depth);
-                float rimStrength = mix(1.15, 0.96, isDark) * glass;
-                float3 specular = prismTint * (rimLine * rimProfile * rimStrength)
-                    + float3(1.0) * (innerSheen * (0.04 + 0.09 * keyLobe) * rimStrength);
-                color += specular;
+                    // Tight inner dome sheen decaying within ~3dp so interior stays crystal clear.
+                    float innerSheen = exp(-depth * 0.50) * smoothstep(0.45, 2.0, depth);
+                    float rimStrength = mix(1.15, 0.96, isDark) * glass;
+                    float3 specular = prismTint * (rimLine * rimProfile * rimStrength)
+                        + float3(1.0) * (innerSheen * (0.04 + 0.09 * keyLobe) * rimStrength);
+                    color += specular;
 
-                // Subtle hairline definition on light backgrounds so protruding glass edge reads over white.
-                if (isDark < 0.5) {
-                    float hairline = (1.0 - smoothstep(0.0, 1.0, depth)) * 0.10 * glass;
-                    color *= (1.0 - hairline);
+                    // Subtle hairline definition on light backgrounds so protruding glass edge reads over white.
+                    if (isDark < 0.5) {
+                        float hairline = (1.0 - smoothstep(0.0, 1.0, depth)) * 0.10 * glass;
+                        color *= (1.0 - hairline);
+                    }
                 }
 
                 return half4(half3(clamp(color, 0.0, 1.0) * coverage), half(coverage));
