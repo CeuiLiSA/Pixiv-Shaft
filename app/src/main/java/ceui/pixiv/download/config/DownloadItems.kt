@@ -12,7 +12,13 @@ import ceui.pixiv.download.model.Flag
 import ceui.pixiv.download.model.ItemMeta
 import ceui.pixiv.download.model.RelativePath
 import ceui.pixiv.download.sanitize.FsSanitizer
+import ceui.pixiv.download.template.DefaultTemplates
+import ceui.pixiv.download.template.PageNumbering
 import ceui.pixiv.download.template.SafeTemplateRender
+import ceui.pixiv.download.template.Template
+import ceui.pixiv.download.template.TemplateNode
+import ceui.pixiv.download.template.TemplateParser
+import ceui.pixiv.download.template.TemplateSamples
 import java.time.Instant
 import java.time.OffsetDateTime
 import java.time.format.DateTimeParseException
@@ -408,6 +414,70 @@ object DownloadItems {
         author = Author(0L, ""),
         createdAt = Instant.now(),
     )
+
+    /**
+     * 单图/增强图落盘路径（AI增强保存、AI抠图保存、详情页单图保存）：
+     * 属于 [Bucket.Illust]，目标相对路径动态跟随用户当前配置的插画模板与存储位置：
+     *
+     * 1. 从当前 Illust 模板提取静态目录前缀（遇到变量 { 或条件 [ 之前的纯目录段）；
+     * 2. SAF 模式：自选文件夹本身即为用户指定的保存根目录，若模板无静态目录（如平铺模板），
+     *    则直接落在自选文件夹根目录下，不再强行新建 ShaftImages 子目录；若模板有静态目录则跟随；
+     * 3. MediaStore 模式：若静态目录为空，回退到 "ShaftImages"，防止文件散落在公共 Pictures/ 根目录；
+     */
+    @JvmStatic
+    @JvmOverloads
+    fun illustGalleryDestination(
+        displayName: String,
+        config: DownloadConfig = DownloadsRegistry.store.loadOrFallback(),
+    ): RelativePath {
+        val resolved = config.resolve(Bucket.Illust)
+        val staticDir = extractStaticDirectory(resolved.template, config.pageNumbering)
+        val directory = when {
+            resolved.storage is StorageChoice.Saf -> staticDir
+            staticDir.isEmpty() -> listOf("ShaftImages")
+            else -> staticDir
+        }
+        val sanitizedName = FsSanitizer.cleanSegment(displayName, preserveExtension = true)
+        return RelativePath(directory + sanitizedName)
+    }
+
+    /**
+     * 按模板 DSL（[TemplateParser]）提取第一个动态变量或条件块之前的静态目录段，
+     * 与普通插画下载保持同一解析与消毒语义；模板编译/渲染失败时与 [SafeTemplateRender]
+     * 一致回退到 [DefaultTemplates.ILLUST]。
+     */
+    private fun extractStaticDirectory(
+        template: String,
+        pageNumbering: PageNumbering,
+    ): List<String> {
+        val effectiveSource = try {
+            Template.compile(template).render(
+                TemplateSamples.ILLUST_SAMPLE,
+                "png",
+                pageNumbering,
+            )
+            template
+        } catch (_: Exception) {
+            DefaultTemplates.ILLUST
+        }
+        val nodes = TemplateParser(effectiveSource).parseAll()
+        val staticPrefix = buildString {
+            for (node in nodes) {
+                if (node is TemplateNode.Literal) {
+                    append(node.text)
+                } else {
+                    break
+                }
+            }
+        }
+        val lastSep = staticPrefix.lastIndexOfAny(charArrayOf('/', '\\'))
+        if (lastSep < 0) return emptyList()
+        return staticPrefix
+            .substring(0, lastSep)
+            .split('/', '\\')
+            .filter { it.isNotEmpty() }
+            .map { FsSanitizer.cleanSegment(it, preserveExtension = false) }
+    }
 
     /**
      * 合并下载的兜底：模板里把后缀写死成 `.txt`（或干脆不写后缀）时，导出 EPUB /
