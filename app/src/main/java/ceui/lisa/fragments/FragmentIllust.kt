@@ -51,6 +51,7 @@ import ceui.pixiv.ui.bookmark.SelectTagBottomSheet
 import ceui.pixiv.ui.common.IllustMuteStore
 import ceui.pixiv.ui.common.MutedUserStore
 import ceui.pixiv.ui.detail.ArtworkThumbsSheet
+import ceui.pixiv.ui.detail.DownloadFab
 import ceui.pixiv.ui.detail.TagEditSheet
 import ceui.pixiv.ui.detail.UgoiraPlayerAdapter
 import ceui.pixiv.ui.detail.ViewerPageLink
@@ -83,6 +84,7 @@ import ceui.loxia.User
 import ceui.pixiv.ui.flag.FlagDescFragment
 import ceui.pixiv.snapshot.AutoSnapshotEngine
 import ceui.pixiv.snapshot.AutoSnapshotRepository
+import ceui.pixiv.snapshot.SnapshotImageSaver
 import ceui.pixiv.snapshot.SnapshotManagerFragment
 import ceui.pixiv.snapshot.SnapshotRepository
 import ceui.pixiv.snapshot.SnapshotRuntimeCache
@@ -380,8 +382,20 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
 
     private fun applySnapshotReadOnlyOverrides() {
         val data = snapshotViewerData ?: return
-        baseBind.download.text = getString(R.string.snapshot_downloaded_label)
-        baseBind.download.setOnClickListener(null)
+        val id = snapshotId
+        if (id != null) {
+            renderSnapshotDownloadButton(SnapshotImageSaver.allFabState(id))
+            baseBind.download.setOnClick {
+                val isAuto = snapshotIsAuto
+                val appContext = requireContext().applicationContext
+                val trigger = { SnapshotImageSaver.saveAll(appContext, id, isAuto) }
+                val baseAct = activity as? BaseActivity<*>
+                if (baseAct != null) IllustDownload.check(baseAct) { trigger() } else trigger()
+            }
+        } else {
+            baseBind.download.text = getString(R.string.snapshot_downloaded_label)
+            baseBind.download.setOnClickListener(null)
+        }
         baseBind.download.setOnLongClickListener(null)
 
         baseBind.postLike.setOnClickListener { snapshotUnsupportedToast() }
@@ -403,6 +417,23 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
                 openSnapshotComments()
             } else {
                 Common.showToast(getString(R.string.snapshot_no_comments_toast))
+            }
+        }
+    }
+
+    private fun renderSnapshotDownloadButton(state: DownloadFab) {
+        when (state) {
+            is DownloadFab.Downloading -> {
+                baseBind.download.isEnabled = false
+                baseBind.download.setText(R.string.ugoira_frames_saving)
+            }
+            DownloadFab.Done -> {
+                baseBind.download.isEnabled = true
+                baseBind.download.setText(R.string.ugoira_frames_saved)
+            }
+            else -> {
+                baseBind.download.isEnabled = true
+                baseBind.download.setText(R.string.action_save_to_album)
             }
         }
     }
@@ -1561,7 +1592,18 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
         aiHelper = IllustAiHelper(this, baseBind.root, ensureOverlay = ::ensureAiOverlay)
         // 必须在快照的 early-return 之前：快照详情页同样走这条联动。
         wireViewerPageLink()
-        if (isSnapshotMode) return
+        if (isSnapshotMode) {
+            snapshotId?.let { id ->
+                viewLifecycleOwner.lifecycleScope.launch {
+                    viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                        SnapshotImageSaver.states.collect {
+                            renderSnapshotDownloadButton(SnapshotImageSaver.allFabState(id))
+                        }
+                    }
+                }
+            }
+            return
+        }
         val intentFilter = IntentFilter()
         val illust = ObjectPool.get<Illust>(safeArgs.illustId).value ?: return
         mReceiver = CallBackReceiver { context, intent ->

@@ -26,12 +26,14 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import androidx.viewbinding.ViewBinding
 import ceui.lisa.R
+import ceui.lisa.activities.BaseActivity
 import ceui.lisa.activities.Shaft
 import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.adapters.IllustAdapter
 import ceui.lisa.adapters.ViewHolder
 import ceui.lisa.databinding.FragmentArtworkV3Binding
 import ceui.lisa.databinding.RecyIllustDetailBinding
+import ceui.lisa.download.IllustDownload
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
 import ceui.lisa.utils.Settings
@@ -50,6 +52,7 @@ import ceui.pixiv.feeds.updateItems
 import ceui.pixiv.services.requireNetworkStateManager
 import ceui.pixiv.snapshot.AutoSnapshotEngine
 import ceui.pixiv.snapshot.SnapshotArtworkFeedSource
+import ceui.pixiv.snapshot.SnapshotImageSaver
 import ceui.pixiv.snapshot.SnapshotManagerFragment
 import ceui.pixiv.snapshot.SnapshotRepository
 import ceui.pixiv.snapshot.SnapshotRuntimeCache
@@ -436,10 +439,20 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
                 viewerLinkIllustId.takeIf { it > 0L }?.let { aiHelper?.restoreAiTasksIfRunning(it) }
                 refreshAllAiPages()
             }
-            // 快照只读：保留收藏/关注按钮用于展示“那一刻”的状态，但点击一律无动作。
+            // 快照对 Pixiv 只读：保留下载按钮用于导出快照图片到相册/本地目录，收藏按钮仅展示“那一刻”的状态。
             chromeBind.fabBar.root.isVisible = true
-            chromeBind.fabBar.fabDownloadContainer.isVisible = false
-            chromeBind.fabBar.fabDivider.isVisible = false
+            chromeBind.fabBar.fabDownloadContainer.isVisible = true
+            chromeBind.fabBar.fabDivider.isVisible = true
+            chromeBind.fabBar.fabDownloadContainer.contentDescription =
+                getString(R.string.action_save_to_album)
+            chromeBind.fabBar.fabDownloadContainer.setOnClick {
+                val id = snapshotId ?: return@setOnClick
+                val isAuto = snapshotIsAuto
+                val appContext = requireContext().applicationContext
+                val trigger = { SnapshotImageSaver.saveAll(appContext, id, isAuto) }
+                val baseAct = activity as? BaseActivity<*>
+                if (baseAct != null) IllustDownload.check(baseAct) { trigger() } else trigger()
+            }
             chromeBind.fabBar.fabBookmark.setOnClickListener {
                 Common.showToast(getString(R.string.snapshot_unsupported_toast))
             }
@@ -449,6 +462,16 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
             }
             fabBarController.applyGlassStyle()
             fabBarController.applyLayoutPreference(sideMargin = 20.ppppx)
+            snapshotId?.let { id ->
+                fabBarController.renderDownload(SnapshotImageSaver.allFabState(id))
+                viewLifecycleOwner.lifecycleScope.launch {
+                    viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                        SnapshotImageSaver.states.collect {
+                            fabBarController.renderDownload(SnapshotImageSaver.allFabState(id))
+                        }
+                    }
+                }
+            }
             applySnapshotBookmarkState()
             chromeBind.composerRoot.isVisible = false
             chromeBind.navMore.isVisible = false

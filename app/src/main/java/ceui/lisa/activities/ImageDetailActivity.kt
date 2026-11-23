@@ -43,6 +43,7 @@ import ceui.pixiv.ui.filter.openImageFilter
 import ceui.pixiv.snapshot.AutoSnapshotEngine
 import ceui.pixiv.ui.translate.MangaBatchTranslateCenter
 import ceui.pixiv.snapshot.AutoSnapshotRepository
+import ceui.pixiv.snapshot.SnapshotImageSaver
 import ceui.pixiv.snapshot.SnapshotManagerFragment
 import ceui.pixiv.snapshot.SnapshotRepository
 import ceui.pixiv.snapshot.SnapshotRuntimeCache
@@ -329,7 +330,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         } else if (ceui.pixiv.plaza.ui.PlazaImageViewer.DATA_TYPE == dataType) {
             setupPlazaViewer()
         } else if (isSnapshotMode) {
-            // 快照大图：复用现有查看器，只读本地快照文件，仅隐藏下载按钮。
+            // 快照大图：复用现有查看器，只读本地快照文件，支持将快照图片保存到相册。
             findViewById<View>(R.id.download_this_one).visibility = View.GONE
             currentPage = findViewById(R.id.current_page)
             index = intent.getIntExtra("index", 0)
@@ -513,10 +514,10 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         if (isFinishing || isDestroyed) return
         mIllust = data.localizeIllust()
         val bean = mIllust ?: return
+        val snapshotId = data.manifest.snapshotId
+        val snapshotIsAuto = intent.getBooleanExtra(SnapshotManagerFragment.ARG_SNAPSHOT_IS_AUTO, false)
         // 先于 ViewPager 建页赋值：FragmentImageDetail 绑播放器时来取。
-        snapshotUgoira = data.offlineUgoira(
-            intent.getBooleanExtra(SnapshotManagerFragment.ARG_SNAPSHOT_IS_AUTO, false)
-        )
+        snapshotUgoira = data.offlineUgoira(snapshotIsAuto)
         // 译图仓库按作品分桶，不 bind 的话「翻译整部」跑完了本页也收不到产物(译图不回显)。
         translationViewModel.bindIllust(bean.id)
         val pageCount = bean.page_count.coerceAtLeast(1)
@@ -551,6 +552,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
 
                     override fun onPageSelected(i: Int) {
                         publishViewerPage(i)
+                        renderSnapshotDownloadState(snapshotId, i)
                         currentPage?.setText(
                             String.format(Locale.getDefault(), "第 %d/%d P", i + 1, pageCount)
                         )
@@ -559,19 +561,19 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                     override fun onPageScrollStateChanged(i: Int) = Unit
                 }
             )
-        setupSnapshotFabBar()
+        setupSnapshotFabBar(snapshotId, snapshotIsAuto)
         setupShowTranslatedToggle()
         setupSnapshotAiMenu()
         snapshotUgoira?.let { setupUgoiraFramesEntry(bean, it.frames.dir) }
     }
 
-    /** 快照大图只隐藏下载按钮，收藏按钮保留但只读。 */
-    private fun setupSnapshotFabBar() {
+    /** 快照大图保留「保存当前图」按钮（纯本地导出到相册/下载目录），收藏按钮保留但只读。 */
+    private fun setupSnapshotFabBar(snapshotId: String, snapshotIsAuto: Boolean) {
         val fabBind = ViewV3FabBarBinding.bind(findViewById(R.id.fab_bar))
         // 异步快照缓存未命中时本方法晚于 isFullscreenMode 首次回调执行，沉浸态须保持 INVISIBLE。
         fabBind.root.visibility =
             if (viewModel.isFullscreenMode.value == true) View.INVISIBLE else View.VISIBLE
-        val fabBar = V3FabBarController(fabBind)
+        val fabBar = V3FabBarController(fabBind, saveCurrentImage = true)
         this.fabBar = fabBar
         fabBar.applyGlassStyle(
             material = WitLiquidGlassView.Material.REGULAR,
@@ -579,11 +581,54 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         )
         applyFabBarLayout(fabBar)
         attachFabBarInsets(fabBar)
-        fabBind.fabDownloadContainer.visibility = View.GONE
-        fabBind.fabDivider.visibility = View.GONE
+        fabBind.fabDownloadContainer.visibility = View.VISIBLE
+        fabBind.fabDivider.visibility = View.VISIBLE
+        fabBind.fabDownloadContainer.contentDescription = getString(R.string.action_save_to_album)
+        fabBind.fabDownloadContainer.setOnClick {
+            val illust = mIllust ?: return@setOnClick
+            val page = baseBind!!.viewPager.currentItem
+            val translated = translatedFileOf(page)
+            val appContext = applicationContext
+            IllustDownload.check(this) {
+                when {
+                    translated != null ->
+                        SnapshotImageSaver.saveTranslated(appContext, snapshotId, illust, page, translated)
+                    illust.isGif() ->
+                        SnapshotImageSaver.saveAll(appContext, snapshotId, snapshotIsAuto)
+                    else ->
+                        SnapshotImageSaver.savePage(appContext, snapshotId, snapshotIsAuto, page)
+                }
+            }
+        }
         fabBind.fabBookmark.setOnClickListener { /* 快照只读，不触发收藏 */ }
         fabBind.fabBookmark.setOnLongClickListener { true }
         fabBar.setBookmarked(mIllust?.isBookmarked ?: false)
+        translationViewModel.displayedTranslatedPaths.observe(this) {
+            baseBind?.viewPager?.currentItem?.let { page ->
+                renderSnapshotDownloadState(snapshotId, page)
+            }
+        }
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                SnapshotImageSaver.states.collect {
+                    baseBind?.viewPager?.currentItem?.let { page ->
+                        renderSnapshotDownloadState(snapshotId, page)
+                    }
+                }
+            }
+        }
+        renderSnapshotDownloadState(snapshotId, baseBind!!.viewPager.currentItem)
+    }
+
+    private fun renderSnapshotDownloadState(snapshotId: String, page: Int) {
+        val illust = mIllust ?: return
+        val translated = translatedFileOf(page)
+        val state = when {
+            translated != null -> SnapshotImageSaver.translatedFabState(snapshotId, page, translated)
+            illust.isGif() -> SnapshotImageSaver.allFabState(snapshotId)
+            else -> SnapshotImageSaver.pageFabState(snapshotId, page)
+        }
+        fabBar?.renderDownload(state)
     }
 
     /**
