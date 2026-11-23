@@ -756,7 +756,7 @@ public class WitLiquidGlassView @JvmOverloads public constructor(
             newTy = 0f
         } else {
             val activeScale = (dist - deadzone) / dist
-            val pullScale = maxOf(36f * density, minOf(width, height) * 0.75f)
+            val pullScale = maxOf(34f * density, minOf(width, height) * 0.72f)
             newTx = WitLiquidGlassPhysics.rubberBandUnit(dx * activeScale, pullScale)
             newTy = WitLiquidGlassPhysics.rubberBandUnit(dy * activeScale, pullScale)
         }

@@ -40,13 +40,16 @@ internal object WitLiquidGlassPhysics {
     /** Minimum visual bloom window for quick taps (zero click delay). */
     internal const val MIN_CONTROL_TAP_BLOOM_MS: Long = 85L
     internal const val MIN_TAB_TAP_BLOOM_MS: Long = 120L
+    internal const val MAX_TAB_TAP_BLOOM_MS: Long = 195L
 
     // ── Directional liquid pull & area-conserving stretch (shared across all glass surfaces) ──
     internal const val PULL_ACTIVE_STIFFNESS: Float = 420f
     internal const val PULL_ACTIVE_DAMPING: Float = 0.80f
     internal const val PULL_MAX_SHIFT_DP: Float = 2.5f
-    internal const val PULL_STRETCH_MAX: Float = 0.036f
-    internal const val PULL_ORTHO_SQUISH_MAX: Float = 0.028f
+    internal const val BAR_PULL_SHIFT_Y_MAX_DP: Float = 2.0f
+    internal const val CONTROL_PULL_MAX_SHIFT_DP: Float = 4.6f
+    internal const val CONTROL_PULL_STRETCH_MAX: Float = 0.068f
+    internal const val CONTROL_PULL_ORTHO_SQUISH_MAX: Float = 0.052f
 
     // ── Tab loupe droplet springs ──
     internal const val LIFT_PRESS_STIFFNESS: Float = 280f
@@ -56,23 +59,25 @@ internal object WitLiquidGlassPhysics {
 
     internal const val TRACK_DRAG_STIFFNESS: Float = 620f
     internal const val TRACK_DRAG_DAMPING: Float = 0.86f
-    internal const val TRACK_TAP_STIFFNESS: Float = 220f
-    internal const val TRACK_TAP_DAMPING: Float = 0.82f
+    internal const val TRACK_TAP_STIFFNESS: Float = 340f
+    internal const val TRACK_TAP_DAMPING: Float = 0.84f
     internal const val TRACK_RELEASE_STIFFNESS: Float = 164f
     internal const val TRACK_RELEASE_DAMPING: Float = 0.89f
 
-    internal const val VEL_STRETCH_STIFFNESS: Float = 220f
-    internal const val VEL_STRETCH_DAMPING: Float = 0.72f
-    internal const val VEL_NORM_DP_PER_SEC: Float = 920f
+    internal const val VEL_STRETCH_STIFFNESS: Float = 285f
+    internal const val VEL_STRETCH_DAMPING: Float = 0.60f
+    internal const val VEL_NORM_DP_PER_SEC: Float = 640f
     internal const val VEL_STRETCH_X_MAX: Float = 0.165f
     internal const val VEL_SQUASH_Y_MAX: Float = 0.180f
+    internal const val VEL_REBOUND_MIN: Float = -0.24f
 
     internal const val WALL_SQUISH_STIFFNESS: Float = 340f
-    internal const val WALL_SQUISH_DAMPING: Float = 0.78f
+    internal const val WALL_SQUISH_DAMPING: Float = 0.74f
     internal const val MAX_OVER_TRAVEL_DP: Float = 14f
     internal const val OVER_DRAG_SCALE_DP: Float = 36f
     internal const val WALL_SQUASH_X_MAX: Float = 0.045f
     internal const val WALL_BULGE_Y_MAX: Float = 0.055f
+    internal const val WALL_SQUISH_REBOUND_MIN: Float = -0.20f
     internal const val BAR_PULL_STRETCH_X_MAX: Float = 0.008f
 
     internal const val MAX_PHYSICS_SUBSTEP_SEC: Float = 1f / 240f
@@ -211,12 +216,12 @@ internal object WitLiquidGlassPhysics {
             val ay = abs(py)
 
             // Area-conserving directional jelly stretch along pull axis + orthogonal squish.
-            val stretchFactorX = 1f + PULL_STRETCH_MAX * ax - PULL_ORTHO_SQUISH_MAX * ay
-            val stretchFactorY = 1f + PULL_STRETCH_MAX * ay - PULL_ORTHO_SQUISH_MAX * ax
+            val stretchFactorX = 1f + CONTROL_PULL_STRETCH_MAX * ax - CONTROL_PULL_ORTHO_SQUISH_MAX * ay
+            val stretchFactorY = 1f + CONTROL_PULL_STRETCH_MAX * ay - CONTROL_PULL_ORTHO_SQUISH_MAX * ax
 
-            val maxShiftPx = PULL_MAX_SHIFT_DP * density.coerceAtLeast(0.5f)
-            out.scaleX = (uniform * stretchFactorX).coerceIn(0.90f, 1.30f)
-            out.scaleY = (uniform * stretchFactorY).coerceIn(0.90f, 1.30f)
+            val maxShiftPx = CONTROL_PULL_MAX_SHIFT_DP * density.coerceAtLeast(0.5f)
+            out.scaleX = (uniform * stretchFactorX).coerceIn(0.90f, 1.32f)
+            out.scaleY = (uniform * stretchFactorY).coerceIn(0.90f, 1.32f)
             out.shiftX = px * maxShiftPx
             out.shiftY = py * maxShiftPx
             out.press = s.coerceIn(0f, 1f)

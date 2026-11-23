@@ -118,25 +118,27 @@ public class WitLiquidGlassTabBar private constructor(
         internal const val WALL_SQUASH_X_MAX: Float = WitLiquidGlassPhysics.WALL_SQUASH_X_MAX
         internal const val WALL_BULGE_Y_MAX: Float = WitLiquidGlassPhysics.WALL_BULGE_Y_MAX
         internal const val BAR_PULL_SHIFT_MAX_DP: Float = WitLiquidGlassPhysics.PULL_MAX_SHIFT_DP
+        internal const val BAR_PULL_SHIFT_Y_MAX_DP: Float = WitLiquidGlassPhysics.BAR_PULL_SHIFT_Y_MAX_DP
         internal const val BAR_PULL_STRETCH_X_MAX: Float = WitLiquidGlassPhysics.BAR_PULL_STRETCH_X_MAX
 
         /**
          * Held droplet height ratio in bar-local coordinates. Combined with [BAR_PRESS_SCALE_Y] (1.040),
-         * screen height = 1.28 * 1.040 = 1.331x resting bar height (~82.5dp on 62dp bar, protruding
-         * ~9dp transparently above and below the pressed bar so the outer bar's top/bottom specular
-         * rim and protruding glass crescents ("上下漏边") match the reference capture).
+         * screen height = 1.135 * 1.040 = 1.180x resting bar height (~74dp on 62.7dp bar, protruding
+         * ~4.2dp sleekly above and below the pressed bar to match iOS 26 UITabBar's sleek lozenge).
          */
-        internal const val HELD_HEIGHT_LOCAL_RATIO: Float = 1.28f
+        internal const val HELD_HEIGHT_LOCAL_RATIO: Float = 1.135f
 
         /**
          * Held droplet width multiplier over resting pill width in bar-local coordinates.
-         * Combined with [BAR_PRESS_SCALE] (1.040), screen width = 1.15 * 1.040 = 1.196x resting pill
-         * (~122dp matching the reference video's 122.7dp).
+         * Combined with [BAR_PRESS_SCALE] (1.040), screen width = 1.18 * 1.040 = 1.227x resting pill
+         * (~127dp, matching concentric end-cap protrusion at the leftmost & rightmost tabs).
          */
-        internal const val HELD_WIDTH_LOCAL_MULT: Float = 1.15f
+        internal const val HELD_WIDTH_LOCAL_MULT: Float = 1.18f
 
         internal const val MIN_TAP_BLOOM_MS: Long = WitLiquidGlassPhysics.MIN_TAB_TAP_BLOOM_MS
-        internal const val LOUPE_MAGNIFICATION_MAX: Float = 0.16f
+        internal const val MAX_TAP_BLOOM_MS: Long = WitLiquidGlassPhysics.MAX_TAB_TAP_BLOOM_MS
+        internal const val LOUPE_MAGNIFICATION_MAX: Float = 0.14f
+        internal const val INNER_BAR_RECESS_SCALE_Y: Float = 0.880f
         internal const val MAX_PHYSICS_SUBSTEP_SEC: Float = WitLiquidGlassPhysics.MAX_PHYSICS_SUBSTEP_SEC
         internal const val MAX_FRAME_DT_SEC: Float = WitLiquidGlassPhysics.MAX_FRAME_DT_SEC
 
@@ -176,8 +178,14 @@ public class WitLiquidGlassTabBar private constructor(
             )
 
             val heldH = barH * HELD_HEIGHT_LOCAL_RATIO
-            val rawHeldW = max(restW * HELD_WIDTH_LOCAL_MULT, heldH * 1.46f)
-            val maxHeldW = max(restW * HELD_WIDTH_LOCAL_MULT, min(barW * 0.45f, restW * 1.34f))
+            val protrudeV = (heldH - barH) * 0.5f
+            val endSpan = min(minCx, barW - maxCx).coerceAtLeast(barH * 0.5f)
+            val concentricEndW = (endSpan + protrudeV * 1.12f) * 2f
+            val rawHeldW = max(max(restW * HELD_WIDTH_LOCAL_MULT, heldH * 1.50f), concentricEndW)
+            val maxHeldW = min(
+                max(restW * HELD_WIDTH_LOCAL_MULT, min(barW * 0.45f, restW * 1.34f)),
+                max(restW * 1.12f, concentricEndW),
+            )
             val heldW = rawHeldW.coerceAtMost(maxHeldW)
 
             return BarMetrics(
@@ -239,6 +247,7 @@ public class WitLiquidGlassTabBar private constructor(
     internal class TabLoupePhysics {
         val barScale = WitLiquidGlassPhysics.SpringState(1f, 0f)
         val barShiftX = WitLiquidGlassPhysics.SpringState(0f, 0f)
+        val barShiftY = WitLiquidGlassPhysics.SpringState(0f, 0f)
         val barPullStretchX = WitLiquidGlassPhysics.SpringState(0f, 0f)
         val lift = WitLiquidGlassPhysics.SpringState(0f, 0f)
         val dropCx = WitLiquidGlassPhysics.SpringState(0f, 0f)
@@ -249,6 +258,7 @@ public class WitLiquidGlassTabBar private constructor(
         var dragging: Boolean = false
         var targetCx: Float = 0f
         var targetBarShiftX: Float = 0f
+        var targetBarShiftY: Float = 0f
         var targetBarPullStretchX: Float = 0f
         var targetWallSquish: Float = 0f
         var initialized: Boolean = false
@@ -256,6 +266,7 @@ public class WitLiquidGlassTabBar private constructor(
         fun snapToRest(cx: Float) {
             barScale.snap(1f)
             barShiftX.snap(0f)
+            barShiftY.snap(0f)
             barPullStretchX.snap(0f)
             lift.snap(0f)
             dropCx.snap(cx)
@@ -263,6 +274,7 @@ public class WitLiquidGlassTabBar private constructor(
             wallSquish.snap(0f)
             targetCx = cx
             targetBarShiftX = 0f
+            targetBarShiftY = 0f
             targetBarPullStretchX = 0f
             targetWallSquish = 0f
             pressed = false
@@ -300,12 +312,14 @@ public class WitLiquidGlassTabBar private constructor(
             val pullStiff = if (pressed) WitLiquidGlassPhysics.PULL_ACTIVE_STIFFNESS else BAR_RELEASE_STIFFNESS
             val pullDamp = if (pressed) WitLiquidGlassPhysics.PULL_ACTIVE_DAMPING else BAR_RELEASE_DAMPING
             val effShiftX = if (pressed) targetBarShiftX else 0f
+            val effShiftY = if (pressed) targetBarShiftY else 0f
             val effPullStretchX = if (pressed) targetBarPullStretchX else 0f
             val effWallSquish = if (pressed) targetWallSquish else 0f
 
             repeat(steps) {
                 barScale.step(barTargetScale, barStiff, barDamp, subDt)
                 barShiftX.step(effShiftX, pullStiff, pullDamp, subDt)
+                barShiftY.step(effShiftY, pullStiff, pullDamp, subDt)
                 barPullStretchX.step(effPullStretchX, pullStiff, pullDamp, subDt)
                 lift.step(liftTarget, liftStiff, liftDamp, subDt)
                 dropCx.step(targetCx, cxStiff, cxDamp, subDt)
@@ -323,6 +337,7 @@ public class WitLiquidGlassTabBar private constructor(
             if (isSettled()) {
                 barScale.snap(barTargetScale)
                 barShiftX.snap(effShiftX)
+                barShiftY.snap(effShiftY)
                 barPullStretchX.snap(effPullStretchX)
                 lift.snap(liftTarget)
                 dropCx.snap(targetCx)
@@ -337,10 +352,12 @@ public class WitLiquidGlassTabBar private constructor(
             val barTargetScale = if (pressed) BAR_PRESS_SCALE else 1f
             val liftTarget = if (pressed) 1f else 0f
             val effShiftX = if (pressed) targetBarShiftX else 0f
+            val effShiftY = if (pressed) targetBarShiftY else 0f
             val effPullStretchX = if (pressed) targetBarPullStretchX else 0f
             val effWallSquish = if (pressed) targetWallSquish else 0f
             return barScale.isSettled(barTargetScale, 0.0009f, 0.012f) &&
                 barShiftX.isSettled(effShiftX, 0.25f, 2.5f) &&
+                barShiftY.isSettled(effShiftY, 0.25f, 2.5f) &&
                 barPullStretchX.isSettled(effPullStretchX, 0.0006f, 0.006f) &&
                 lift.isSettled(liftTarget, 0.004f, 0.035f) &&
                 dropCx.isSettled(targetCx, 0.35f, 4.0f) &&
@@ -357,9 +374,11 @@ public class WitLiquidGlassTabBar private constructor(
                 width = out.width,
                 height = out.height,
                 lift = out.lift,
+                velocityStretch = out.velocityStretch,
                 barScaleX = out.barScaleX,
                 barScaleY = out.barScaleY,
                 barShiftX = out.barShiftX,
+                barShiftY = out.barShiftY,
             )
         }
 
@@ -367,8 +386,8 @@ public class WitLiquidGlassTabBar private constructor(
             val l = lift.value
             val lPos = l.coerceIn(0f, 1.15f)
             val activeW = l.coerceIn(0f, 1f)
-            val vStretch = velocityStretch.value.coerceIn(0f, 1.15f)
-            val wSquish = wallSquish.value.coerceIn(0f, 1.15f)
+            val vStretch = velocityStretch.value.coerceIn(WitLiquidGlassPhysics.VEL_REBOUND_MIN, 1.18f)
+            val wSquish = wallSquish.value.coerceIn(WitLiquidGlassPhysics.WALL_SQUISH_REBOUND_MIN, 1.15f)
 
             val baseW = (metrics.restW + (metrics.heldW - metrics.restW) * lPos)
                 .coerceAtLeast(metrics.restH)
@@ -393,9 +412,11 @@ public class WitLiquidGlassTabBar private constructor(
             out.width = clampedW
             out.height = curH
             out.lift = activeW
+            out.velocityStretch = vStretch * activeW
             out.barScaleX = barScale.value + barPullStretchX.value
             out.barScaleY = barScaleYVal
             out.barShiftX = barShiftX.value
+            out.barShiftY = barShiftY.value
         }
     }
 
@@ -405,9 +426,11 @@ public class WitLiquidGlassTabBar private constructor(
         var width: Float = 0f,
         var height: Float = 0f,
         var lift: Float = 0f,
+        var velocityStretch: Float = 0f,
         var barScaleX: Float = 1f,
         var barScaleY: Float = 1f,
         var barShiftX: Float = 0f,
+        var barShiftY: Float = 0f,
     )
 
     internal data class DropletGeometry(
@@ -416,9 +439,11 @@ public class WitLiquidGlassTabBar private constructor(
         val width: Float,
         val height: Float,
         val lift: Float,
+        val velocityStretch: Float,
         val barScaleX: Float,
         val barScaleY: Float,
         val barShiftX: Float,
+        val barShiftY: Float,
     )
 
     private val physics = TabLoupePhysics()
@@ -456,8 +481,10 @@ public class WitLiquidGlassTabBar private constructor(
     private var currentHoverIndex = -1
     private var didDrag = false
     private var crossedOtherTab = false
+    private var committingSelection = false
     private var pendingReleaseAtMs = 0L
     private var appliedBarShiftX = 0f
+    private var appliedBarShiftY = 0f
 
     private var frameLoopRunning = false
     private var lastFrameUptimeMs = 0L
@@ -469,9 +496,13 @@ public class WitLiquidGlassTabBar private constructor(
     private val unselectedLayerPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val selectedLayerPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val fallbackGlassFillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
+    private val fallbackBaseRimPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE }
     private val fallbackRimPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE }
+    private val fallbackInnerBevelPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE }
     private val dropletRect = RectF()
     private val dropletPath = Path()
+    private val innerBarRect = RectF()
+    private val innerBarPath = Path()
     private val layerBounds = RectF()
     private val selectedLayerBounds = RectF()
     private val sceneBoundsLocal = RectF()
@@ -507,9 +538,14 @@ public class WitLiquidGlassTabBar private constructor(
                 return
             }
             val now = SystemClock.uptimeMillis()
-            if (pendingReleaseAtMs > 0L && now >= pendingReleaseAtMs) {
-                pendingReleaseAtMs = 0L
-                beginReleaseSettle()
+            if (pendingReleaseAtMs > 0L) {
+                val minReached = now >= downTimeMs + MIN_TAP_BLOOM_MS
+                val arrivedAtTarget = metrics.valid &&
+                    abs(physics.dropCx.value - physics.targetCx) <= metrics.restW * 0.24f
+                if (now >= pendingReleaseAtMs || (minReached && arrivedAtTarget)) {
+                    pendingReleaseAtMs = 0L
+                    beginReleaseSettle()
+                }
             }
             val dtSec = if (lastFrameUptimeMs > 0L) {
                 ((now - lastFrameUptimeMs).coerceAtLeast(1L)) / 1000f
@@ -617,7 +653,7 @@ public class WitLiquidGlassTabBar private constructor(
         val checkedIdx = resolveCheckedMenuIndex()
         if (checkedIdx < 0 || checkedIdx >= tabCenters.size) return
         lastKnownSelectedIndex = checkedIdx
-        if (activePointerId != MotionEvent.INVALID_POINTER_ID) return
+        if (activePointerId != MotionEvent.INVALID_POINTER_ID || committingSelection) return
 
         val targetX = tabCenters[checkedIdx]
         if (!physics.initialized || !animated || !motionEnabled()) {
@@ -683,7 +719,7 @@ public class WitLiquidGlassTabBar private constructor(
         glassBar.pivotX + (localX - glassBar.pivotX) * glassBar.scaleX + appliedBarShiftX
 
     private fun toUnscaledBarY(localY: Float): Float =
-        glassBar.pivotY + (localY - glassBar.pivotY) * glassBar.scaleY
+        glassBar.pivotY + (localY - glassBar.pivotY) * glassBar.scaleY + appliedBarShiftY
 
     override fun onDispatchTouchEvent(event: MotionEvent): Boolean {
         if (!enabledFlag || !glassBar.isEnabled) return false
@@ -719,6 +755,7 @@ public class WitLiquidGlassTabBar private constructor(
                 physics.pressed = true
                 physics.dragging = false
                 physics.targetBarShiftX = 0f
+                physics.targetBarShiftY = 0f
                 physics.targetBarPullStretchX = 0f
                 physics.targetWallSquish = 0f
 
@@ -728,10 +765,16 @@ public class WitLiquidGlassTabBar private constructor(
                     physics.targetCx = tabCenters[initialSelectedIndex]
                 } else {
                     // Pressing another tab launches the liquid glass droplet smoothly toward it immediately.
-                    dragGrabOffsetX = 0f
+                    dragGrabOffsetX = tabCenters[touchedTabIndex] - downX
                     physics.targetCx = tabCenters[touchedTabIndex]
                 }
+                // Prime frame 0 when waking from rest so press bloom & loupe warmup start on the touch-down frame.
+                if (!frameLoopRunning) {
+                    physics.step(1f / 120f, density)
+                    applyOuterBarTransform()
+                }
                 setMaskingMode(true)
+                glassBar.invalidate()
                 startFrameLoop()
                 return true
             }
@@ -745,8 +788,25 @@ public class WitLiquidGlassTabBar private constructor(
                 val dx = x - downX
                 val dy = y - downY
 
-                if (!didDrag && (abs(dx) > touchSlop * 0.55f || abs(dy) > touchSlop)) {
+                // Trigger horizontal scrub only on horizontal intent so small vertical thumb roll never
+                // suppresses same-tab tap refresh or vertical pull-away cancel.
+                if (!didDrag && abs(dx) > touchSlop * 0.55f) {
                     didDrag = true
+                }
+
+                if (motionEnabled()) {
+                    val vertDeadzone = 6f * density
+                    val effDy = when {
+                        dy > vertDeadzone -> dy - vertDeadzone
+                        dy < -vertDeadzone -> dy + vertDeadzone
+                        else -> 0f
+                    }
+                    val nextShiftY = WitLiquidGlassPhysics.rubberBandUnit(effDy, 48f * density) *
+                        BAR_PULL_SHIFT_Y_MAX_DP * density
+                    if (abs(nextShiftY - physics.targetBarShiftY) > 0.05f) {
+                        physics.targetBarShiftY = nextShiftY
+                        startFrameLoop()
+                    }
                 }
 
                 if (didDrag && motionEnabled()) {
@@ -819,7 +879,12 @@ public class WitLiquidGlassTabBar private constructor(
             val shouldReselectSameTab =
                 targetIndex == initialSelectedIndex && !didDrag && !crossedOtherTab
             if (targetIndex != initialSelectedIndex || shouldReselectSameTab) {
-                navigationView.selectedItemId = targetMenuId
+                committingSelection = true
+                try {
+                    navigationView.selectedItemId = targetMenuId
+                } finally {
+                    committingSelection = false
+                }
             }
         }
 
@@ -836,13 +901,22 @@ public class WitLiquidGlassTabBar private constructor(
         physics.dragging = false
         physics.targetCx = finalCx
         physics.targetBarShiftX = 0f
+        physics.targetBarShiftY = 0f
         physics.targetBarPullStretchX = 0f
         physics.targetWallSquish = 0f
 
+        val tabSpan = abs(targetIndex - initialSelectedIndex)
+        val tapBloomMs = if (!didDrag && tabSpan > 0) {
+            (MIN_TAP_BLOOM_MS + tabSpan * 26L).coerceAtMost(MAX_TAP_BLOOM_MS)
+        } else {
+            MIN_TAP_BLOOM_MS
+        }
         val elapsedMs = SystemClock.uptimeMillis() - downTimeMs
-        if (!cancelled && elapsedMs < MIN_TAP_BLOOM_MS && physics.lift.value < 0.65f) {
+        val needsDistanceBloom = !didDrag && tabSpan > 0 &&
+            abs(physics.dropCx.value - finalCx) > metrics.restW * 0.24f
+        if (!cancelled && elapsedMs < tapBloomMs && (physics.lift.value < 0.65f || needsDistanceBloom)) {
             physics.pressed = true
-            pendingReleaseAtMs = downTimeMs + MIN_TAP_BLOOM_MS
+            pendingReleaseAtMs = downTimeMs + tapBloomMs
         } else {
             beginReleaseSettle()
         }
@@ -853,6 +927,7 @@ public class WitLiquidGlassTabBar private constructor(
         physics.pressed = false
         physics.dragging = false
         physics.targetBarShiftX = 0f
+        physics.targetBarShiftY = 0f
         physics.targetBarPullStretchX = 0f
         physics.targetWallSquish = 0f
     }
@@ -951,16 +1026,21 @@ public class WitLiquidGlassTabBar private constructor(
                     maxDropW = metrics.heldW * 1.22f,
                     maxDropH = metrics.heldH * 1.10f,
                     lift = lift,
+                    velocityStretch = geom.velocityStretch,
                     isDark = isDarkTheme,
                     sceneBoundsLocal = if (hasSceneBounds) sceneBoundsLocal else null,
                 ) { contentCanvas ->
-                    // Plane 1 (1.0x un-zoomed): live backdrop behind bar + outer glass platter + fading resting pill.
+                    // Plane 1A (1.0x un-zoomed): sharp live backdrop behind the bar.
                     glassBar.drawLiveBackdropInLocal(contentCanvas)
+                    // Plane 1B (1.0x unscaled outer glass bar platter):
+                    // Unified dome-meniscus refraction (+normal * amp * u^a * (1 - u)^b) in
+                    // WitLiquidGlassLoupeShader naturally recesses the 1.0x bar inward on top, bottom,
+                    // AND left/right semicircular caps with exact 0.0px corner continuity.
                     glassBar.drawGlassPlatter(contentCanvas)
                     if (restWeight > 0.004f) {
                         drawRestingGlassPill(contentCanvas, cornerRadius, restWeight)
                     }
-                    // Plane 2 (1.16x crisp vector-magnified): selected accent tab icons & labels.
+                    // Plane 2 (1.14x crisp vector-magnified): selected accent tab icons & labels.
                     if (hasSelectedBounds) {
                         contentCanvas.withScale(mag, mag, geom.cx, geom.cy) {
                             val selSave = saveLayer(selectedLayerBounds, selectedLayerPaint)
@@ -1002,19 +1082,19 @@ public class WitLiquidGlassTabBar private constructor(
             restingSheenShader = LinearGradient(
                 0f, 0f, 0f, 1f,
                 if (isDarkTheme) {
-                    intArrayOf(0x26FFFFFF, 0x0CFFFFFF, 0x06FFFFFF, 0x12FFFFFF)
+                    intArrayOf(0x12FFFFFF, 0x05FFFFFF, 0x00FFFFFF, 0x08FFFFFF)
                 } else {
-                    intArrayOf(0x66FFFFFF, 0x22FFFFFF, 0x10FFFFFF, 0x2EFFFFFF)
+                    intArrayOf(0x1EFFFFFF, 0x08FFFFFF, 0x00FFFFFF, 0x0EFFFFFF)
                 },
-                floatArrayOf(0f, 0.32f, 0.72f, 1f),
+                floatArrayOf(0f, 0.34f, 0.72f, 1f),
                 Shader.TileMode.CLAMP,
             )
             restingRimShader = LinearGradient(
                 0f, 0f, 0f, 1f,
                 if (isDarkTheme) {
-                    intArrayOf(0x3DFFFFFF, 0x0EFFFFFF, 0x0AFFFFFF, 0x28FFFFFF)
+                    intArrayOf(0x12FFFFFF, 0x04FFFFFF, 0x03FFFFFF, 0x0CFFFFFF)
                 } else {
-                    intArrayOf(0xCCFFFFFF.toInt(), 0x2EFFFFFF, 0x1EFFFFFF, 0x88FFFFFF.toInt())
+                    intArrayOf(0x28FFFFFF, 0x0AFFFFFF, 0x08FFFFFF, 0x1AFFFFFF)
                 },
                 floatArrayOf(0f, 0.30f, 0.70f, 1f),
                 Shader.TileMode.CLAMP,
@@ -1085,11 +1165,24 @@ public class WitLiquidGlassTabBar private constructor(
             // inside the protruding droplet rather than an opaque gray oval.
             val drewBackdrop = glassBar.drawLiveBackdropInLocal(this)
             if (drewBackdrop) {
-                glassBar.drawGlassPlatter(this)
-                fallbackGlassFillPaint.color = if (isDarkTheme) {
-                    ColorUtils.setAlphaComponent(Color.WHITE, (glass * 16f).toInt().coerceIn(0, 255))
+                val bw = glassBar.width.toFloat()
+                val bh = glassBar.height.toFloat()
+                val barInset = (bh * 0.5f) * (1f - INNER_BAR_RECESS_SCALE_Y) * glass
+                if (barInset > 0.25f && bw - 2f * barInset > 2f && bh - 2f * barInset > 2f) {
+                    innerBarRect.set(barInset, barInset, bw - barInset, bh - barInset)
+                    val innerRad = min(innerBarRect.width(), innerBarRect.height()) * 0.5f
+                    innerBarPath.rewind()
+                    innerBarPath.addRoundRect(innerBarRect, innerRad, innerRad, Path.Direction.CW)
+                    withClip(innerBarPath) {
+                        glassBar.drawGlassPlatter(this)
+                    }
                 } else {
-                    ColorUtils.setAlphaComponent(Color.WHITE, (glass * 54f).toInt().coerceIn(0, 255))
+                    glassBar.drawGlassPlatter(this)
+                }
+                fallbackGlassFillPaint.color = if (isDarkTheme) {
+                    ColorUtils.setAlphaComponent(Color.WHITE, (glass * 10f).toInt().coerceIn(0, 255))
+                } else {
+                    ColorUtils.setAlphaComponent(Color.WHITE, (glass * 38f).toInt().coerceIn(0, 255))
                 }
             } else {
                 fallbackGlassFillPaint.color = if (isDarkTheme) {
@@ -1116,24 +1209,64 @@ public class WitLiquidGlassTabBar private constructor(
             }
         }
 
-        // Delicate directional specular glass rim matching ULTRA aesthetics
+        // Full-360° translucent Fresnel rim + subtle inner meniscus cushion matching ULTRA aesthetics
         if (glass > 0.01f) {
             if (fallbackRimShader == null || fallbackRimDark != isDarkTheme) {
                 fallbackRimDark = isDarkTheme
                 fallbackRimShader = LinearGradient(
-                    0f, 0f, 0f, 1f,
+                    0f, 0f, 0.55f, 1f,
                     intArrayOf(
-                        if (isDarkTheme) 0x6EFFFFFF else 0xCCFFFFFF.toInt(),
-                        if (isDarkTheme) 0x16FFFFFF else 0x26FFFFFF,
-                        if (isDarkTheme) 0x16FFFFFF else 0x26FFFFFF,
-                        if (isDarkTheme) 0x5EFFFFFF else 0xAAFFFFFF.toInt(),
+                        if (isDarkTheme) 0x88FFFFFF.toInt() else 0xB8FFFFFF.toInt(),
+                        if (isDarkTheme) 0x26FFFFFF else 0x36FFFFFF,
+                        if (isDarkTheme) 0x26FFFFFF else 0x36FFFFFF,
+                        if (isDarkTheme) 0x74FFFFFF else 0x9EFFFFFF.toInt(),
                     ),
-                    floatArrayOf(0f, 0.30f, 0.70f, 1f),
+                    floatArrayOf(0f, 0.34f, 0.66f, 1f),
                     Shader.TileMode.CLAMP,
                 )
             }
             val strokeW = max(1f, 0.95f * density)
             val halfStroke = strokeW * 0.5f
+            val rimR = (cornerRadius - halfStroke).coerceAtLeast(0f)
+
+            // Soft 3D inner meniscus bevel ring
+            val innerW = max(1.5f, 2.2f * density)
+            val innerInset = strokeW + innerW * 0.5f
+            val innerR = (cornerRadius - innerInset).coerceAtLeast(0f)
+            fallbackInnerBevelPaint.color = if (isDarkTheme) {
+                ColorUtils.setAlphaComponent(0xFFF2F7FF.toInt(), (glass * 24f).toInt().coerceIn(0, 255))
+            } else {
+                ColorUtils.setAlphaComponent(Color.WHITE, (glass * 54f).toInt().coerceIn(0, 255))
+            }
+            fallbackInnerBevelPaint.strokeWidth = innerW
+            canvas.drawRoundRect(
+                dropletRect.left + innerInset,
+                dropletRect.top + innerInset,
+                dropletRect.right - innerInset,
+                dropletRect.bottom - innerInset,
+                innerR,
+                innerR,
+                fallbackInnerBevelPaint,
+            )
+
+            // Continuous ambient perimeter definition (subtle dark edge on light mode, icy-white on dark)
+            fallbackBaseRimPaint.color = if (isDarkTheme) {
+                ColorUtils.setAlphaComponent(0xFFEAF2FF.toInt(), (glass * 48f).toInt().coerceIn(0, 255))
+            } else {
+                ColorUtils.setAlphaComponent(0xFF1A1A2E.toInt(), (glass * 36f).toInt().coerceIn(0, 255))
+            }
+            fallbackBaseRimPaint.strokeWidth = strokeW
+            canvas.drawRoundRect(
+                dropletRect.left + halfStroke,
+                dropletRect.top + halfStroke,
+                dropletRect.right - halfStroke,
+                dropletRect.bottom - halfStroke,
+                rimR,
+                rimR,
+                fallbackBaseRimPaint,
+            )
+
+            // Paired directional specular rim highlight
             val rimShader = fallbackRimShader
             if (rimShader != null) {
                 fallbackRimMatrix.setScale(
@@ -1145,7 +1278,6 @@ public class WitLiquidGlassTabBar private constructor(
                 fallbackRimPaint.shader = rimShader
                 fallbackRimPaint.strokeWidth = strokeW
                 fallbackRimPaint.alpha = (glass * 255f).toInt().coerceIn(0, 255)
-                val rimR = (cornerRadius - halfStroke).coerceAtLeast(0f)
                 canvas.drawRoundRect(
                     dropletRect.left + halfStroke,
                     dropletRect.top + halfStroke,
@@ -1350,6 +1482,7 @@ public class WitLiquidGlassTabBar private constructor(
         val sx = (physics.barScale.value + physics.barPullStretchX.value).coerceIn(0.93f, 1.12f)
         val sy = (1f + (physics.barScale.value - 1f) * yRatio).coerceIn(0.93f, 1.14f)
         val tx = physics.barShiftX.value
+        val ty = physics.barShiftY.value
         if (glassBar.pivotX != w * 0.5f) glassBar.pivotX = w * 0.5f
         if (glassBar.pivotY != h * 0.5f) glassBar.pivotY = h * 0.5f
         if (glassBar.scaleX != sx) glassBar.scaleX = sx
@@ -1357,6 +1490,10 @@ public class WitLiquidGlassTabBar private constructor(
         if (tx != appliedBarShiftX) {
             glassBar.translationX = (glassBar.translationX - appliedBarShiftX) + tx
             appliedBarShiftX = tx
+        }
+        if (ty != appliedBarShiftY) {
+            glassBar.translationY = (glassBar.translationY - appliedBarShiftY) + ty
+            appliedBarShiftY = ty
         }
     }
 
@@ -1397,6 +1534,10 @@ public class WitLiquidGlassTabBar private constructor(
         if (appliedBarShiftX != 0f) {
             glassBar.translationX -= appliedBarShiftX
             appliedBarShiftX = 0f
+        }
+        if (appliedBarShiftY != 0f) {
+            glassBar.translationY -= appliedBarShiftY
+            appliedBarShiftY = 0f
         }
         glassBar.invalidate()
     }

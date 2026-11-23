@@ -185,7 +185,7 @@ internal class WitLiquidGlassShader : WitLiquidGlassRenderer() {
                     color = (vibrant * 0.98 + 0.025) * (1.0 - material.z);
                 } else if (material.y > 0.5) {
                     float transmission = mix(0.84, 0.56, smoothstep(0.18, 0.82, luma));
-                    float lift = mix(0.035, 0.010, smoothstep(0.20, 0.60, luma));
+                    float lift = mix(0.068, 0.010, smoothstep(0.08, 0.55, luma));
                     color = vibrant * transmission + lift;
                 } else {
                     float frost = mix(0.30, 0.12, smoothstep(0.18, 0.85, luma));
@@ -200,10 +200,11 @@ internal class WitLiquidGlassShader : WitLiquidGlassRenderer() {
                 float facing = dot(normal, light);
                 float key = facing > 0.0 ? pow(facing, 4.6) : 0.0;
                 float bounce = facing < 0.0 ? pow(-facing, 4.6) : 0.0;
-                float line = 1.0 - smoothstep(0.0, 1.05, abs(depth - 0.45));
-                float sheen = exp(-depth * 0.36) * smoothstep(0.6, 2.0, depth);
-                float pressRimBoost = 1.0 + pressAmt * 0.48;
-                float gleam = (line * (0.085 + 0.44 * (key + bounce)) + sheen * (0.05 * pressAmt + key * 0.24)) * pressRimBoost;
+                float line = 1.0 - smoothstep(0.0, 0.95, abs(depth - 0.42));
+                float sheen = exp(-depth * 0.44) * smoothstep(0.25, 1.4, depth);
+                float pressRimBoost = 1.0 + pressAmt * 0.52;
+                float vertEdge = abs(normal.y);
+                float gleam = (line * (0.08 + 0.21 * vertEdge + 0.14 * pressAmt + 0.40 * (key + bounce)) + sheen * (0.082 * vertEdge + 0.09 * pressAmt + key * 0.22)) * pressRimBoost;
                 float cornerMask = clamp(abs(normal.x * normal.y) * 2.2, 0.0, 1.0);
                 float3 prismTint = mix(
                     float3(1.0),

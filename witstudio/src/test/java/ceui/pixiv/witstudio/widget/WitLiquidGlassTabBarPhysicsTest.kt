@@ -27,12 +27,20 @@ class WitLiquidGlassTabBarPhysicsTest {
         // Resting pill height ~53dp (video: 53.0dp) and width ~104dp (video: 105.7dp)
         assertTrue("Expected restH ~53dp, got ${refMetrics.restH / d}", refMetrics.restH / d in 51f..55.5f)
         assertTrue("Expected restW ~100..108dp, got ${refMetrics.restW / d}", refMetrics.restW / d in 98f..108f)
-        // Held droplet screen height ~83dp (protrudes ~9dp transparently above & below pressed bar)
+        // Held droplet screen height ~75dp (sleek iOS 26 1.15x ratio: protrudes ~4.9dp per side)
         val heldScreenH = refMetrics.heldH * WitLiquidGlassTabBar.BAR_PRESS_SCALE_Y / d
-        assertTrue("Expected held screen H ~79..87dp, got $heldScreenH", heldScreenH in 79f..87f)
-        // Held droplet screen width ~124dp (video: 122.7dp)
+        assertTrue("Expected held screen H ~72..78dp, got $heldScreenH", heldScreenH in 72f..78f)
+        // Held droplet screen width ~124dp (video: 122.7dp) and concentric with bar left/right ends
         val heldScreenW = refMetrics.heldW * WitLiquidGlassTabBar.BAR_PRESS_SCALE / d
         assertTrue("Expected held screen W ~118..132dp, got $heldScreenW", heldScreenW in 118f..132f)
+        val protrudeV = (refMetrics.heldH - refMetrics.barH) * 0.5f
+        val protrudeRight = (refMetrics.maxCx + refMetrics.heldW * 0.5f) - refMetrics.barW
+        assertEquals(
+            "Droplet right end protrusion should match vertical protrusion for concentric corners",
+            protrudeV,
+            protrudeRight,
+            1.5f * d,
+        )
 
         // Compact phone 360dp wide (328dp bar) with 3, 4, and 5 tabs never clips past bar edges at rest.
         val compactW = 328f * d
@@ -94,9 +102,9 @@ class WitLiquidGlassTabBarPhysicsTest {
         assertTrue("Expected peak around 180..260ms, got ${peakBarMs}ms", peakBarMs in 180..260)
         assertEquals(WitLiquidGlassTabBar.BAR_PRESS_SCALE, scaleAt400Ms, 0.001f)
 
-        // Droplet blooms from ~160px resting -> ~220+px by 150ms -> ~250px held steady
-        assertTrue("Expected droplet height >210px by 150ms, got $dropScreenHAt150Ms", dropScreenHAt150Ms in 210f..262f)
-        assertTrue("Expected held droplet height ~242..258px at 350ms, got $dropScreenHAt350Ms", dropScreenHAt350Ms in 242f..258f)
+        // Droplet blooms from ~160px resting -> ~205+px by 150ms -> ~225px held steady (1.15x * 1.04x)
+        assertTrue("Expected droplet height >198px by 150ms, got $dropScreenHAt150Ms", dropScreenHAt150Ms in 198f..240f)
+        assertTrue("Expected held droplet height ~218..232px at 350ms, got $dropScreenHAt350Ms", dropScreenHAt350Ms in 218f..232f)
     }
 
     @Test
@@ -248,9 +256,9 @@ class WitLiquidGlassTabBarPhysicsTest {
         ctrl.targetPullY = 0f
         repeat(20) { ctrl.step(dt) }
         val pulled = ctrl.evaluate(w, h, d)
-        assertTrue("Pull right should elongate scaleX (${pulled.scaleX} > ${steadyPressed.scaleX})", pulled.scaleX > steadyPressed.scaleX * 1.015f)
-        assertTrue("Pull right should squish scaleY (${pulled.scaleY} < ${steadyPressed.scaleY})", pulled.scaleY < steadyPressed.scaleY * 0.988f)
-        assertTrue("Pull right should shift gently right (${pulled.shiftX}px)", pulled.shiftX in 4f..8f)
+        assertTrue("Pull right should elongate scaleX (${pulled.scaleX} > ${steadyPressed.scaleX})", pulled.scaleX > steadyPressed.scaleX * 1.045f)
+        assertTrue("Pull right should squish scaleY (${pulled.scaleY} < ${steadyPressed.scaleY})", pulled.scaleY < steadyPressed.scaleY * 0.965f)
+        assertTrue("Pull right should shift tangibly right (${pulled.shiftX}px)", pulled.shiftX in 9f..14f)
 
         // 3. Release -> exact -8.9% elastic undershoot below 0.992x and settle cleanly back to 1.000 / 0 shift
         ctrl.pressed = false
@@ -331,5 +339,95 @@ class WitLiquidGlassTabBarPhysicsTest {
         assertFalse(ctrlRunning)
         assertEquals(0f, ctrl.pullX.value, 0.001f)
         assertEquals(1f, ctrl.swell.value, 0.0005f)
+    }
+
+    @Test
+    fun suddenDragStopProducesLiquidJellyBrakingReboundAndVerticalPullSettlesCleanly() {
+        val d = 3f
+        val barW = 1164.1f
+        val barH = 188.0f
+        val centers = floatArrayOf(170f, 443f, 718f, 994f)
+        val metrics = WitLiquidGlassTabBar.computeMetrics(barW, barH, centers, d)
+        val physics = WitLiquidGlassTabBar.TabLoupePhysics()
+
+        physics.snapToRest(centers[3])
+        physics.barScale.snap(WitLiquidGlassTabBar.BAR_PRESS_SCALE)
+        physics.lift.snap(1f)
+        physics.pressed = true
+        physics.dragging = true
+        val stillGeom = physics.evaluateGeometry(metrics)
+        val dt = 1f / 60f
+
+        // Moderate thumb drag speed (~420dp/s) already produces clear horizontal liquid stretch.
+        var peakStretchDuringDrag = 0f
+        for (frame in 1..12) {
+            physics.targetCx = (centers[3] - frame * 21f).coerceAtLeast(centers[1])
+            physics.step(dt, d)
+            val g = physics.evaluateGeometry(metrics)
+            if (g.velocityStretch > peakStretchDuringDrag) {
+                peakStretchDuringDrag = g.velocityStretch
+            }
+        }
+        assertTrue(
+            "Expected normal drag speed to engage >=0.45 stretch, got $peakStretchDuringDrag",
+            peakStretchDuringDrag >= 0.45f,
+        )
+
+        // Sudden stop on target tab -> underdamped jelly braking rebounds vertically plumper than still held.
+        val stopX = physics.targetCx
+        var minVelStretch = 0f
+        var maxReboundH = stillGeom.height
+        for (frame in 1..30) {
+            physics.targetCx = stopX
+            physics.step(dt, d)
+            val g = physics.evaluateGeometry(metrics)
+            if (g.velocityStretch < minVelStretch) minVelStretch = g.velocityStretch
+            if (g.height > maxReboundH) maxReboundH = g.height
+        }
+        assertTrue("Expected negative jelly braking rebound, got $minVelStretch", minVelStretch < -0.02f)
+        assertTrue(
+            "Expected braking plump height > still height ($maxReboundH vs ${stillGeom.height})",
+            maxReboundH > stillGeom.height * 1.004f,
+        )
+
+        // Vertical damped bar pull engages during press and settles cleanly to 0 on release.
+        physics.targetBarShiftY = WitLiquidGlassTabBar.BAR_PULL_SHIFT_Y_MAX_DP * d
+        repeat(20) { physics.step(dt, d) }
+        val pulledGeom = physics.evaluateGeometry(metrics)
+        assertTrue("Expected vertical bar pull > 3px, got ${pulledGeom.barShiftY}", pulledGeom.barShiftY > 3f)
+
+        physics.pressed = false
+        physics.dragging = false
+        physics.targetBarShiftY = 0f
+        repeat(45) { physics.step(dt, d) }
+        val settled = physics.evaluateGeometry(metrics)
+        assertEquals(0f, settled.barShiftY, 0.1f)
+    }
+
+    @Test
+    fun crossBarTapGlideReachesDestinationQuicklyWithVelocityStretch() {
+        val d = 3f
+        val barW = 1164.1f
+        val barH = 188.0f
+        val centers = floatArrayOf(170f, 443f, 718f, 994f)
+        val metrics = WitLiquidGlassTabBar.computeMetrics(barW, barH, centers, d)
+        val physics = WitLiquidGlassTabBar.TabLoupePhysics()
+
+        // Tap from Tab 0 across to Tab 3
+        physics.snapToRest(centers[0])
+        physics.pressed = true
+        physics.dragging = false
+        physics.targetCx = centers[3]
+
+        val dt = 1f / 60f
+        var peakStretch = 0f
+        for (frame in 1..12) { // 200ms
+            physics.step(dt, d)
+            val g = physics.evaluateGeometry(metrics)
+            if (g.velocityStretch > peakStretch) peakStretch = g.velocityStretch
+        }
+        val distRemaining = kotlin.math.abs(physics.dropCx.value - centers[3])
+        assertTrue("Expected tap glide to produce visible liquid stretch, got $peakStretch", peakStretch > 0.35f)
+        assertTrue("Expected tap glide to approach Tab 3 within 200ms (remaining ${distRemaining}px)", distRemaining < metrics.restW * 0.45f)
     }
 }

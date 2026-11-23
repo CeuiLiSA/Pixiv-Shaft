@@ -678,11 +678,11 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                     ? ColorUtils.setAlphaComponent(Color.WHITE, 204)
                     : ColorUtils.setAlphaComponent(0xFF1A1A2E, 168);
 
-            // 静息选中态液态玻璃内嵌胶囊底托：剔除厚重实底深蓝贴片，改用克制半透中性液态玻璃质感，
-            // 让底栏后方流光自然穿透，同时在深/浅双模下保持选中图标与文字的清晰可读。
+            // 静息选中态液态玻璃内嵌胶囊底托：对齐 iOS 26 深浅双模通透内嵌药丸（深色模式为柔和浅霜透亮层，
+            // 浅色模式为清透冷灰微染层），既能与外层玻璃栏自然区分，又不遮挡后方流光。
             int indicatorFill = isDark
-                    ? ColorUtils.setAlphaComponent(0xFF0C0E14, 78)
-                    : ColorUtils.setAlphaComponent(Color.WHITE, 128);
+                    ? ColorUtils.setAlphaComponent(Color.WHITE, 44)
+                    : ColorUtils.setAlphaComponent(0xFF1A1A2E, 24);
 
             liquidGlassTabBar.applyThemeColors(
                     selectedColor, unselectedColor, indicatorFill, isDark);
