@@ -1,7 +1,9 @@
 package ceui.pixiv.ui.feature
 
 import android.content.Intent
+import android.graphics.Color
 import android.os.Bundle
+import ceui.pixiv.witstudio.widget.WitLiquidGlassMenu
 import android.view.View
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
@@ -91,12 +93,28 @@ class FeatureFeedFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
         setUpToolbar(binding, feedBinding.feedListView)
         binding.toolbarTitle.text = getString(R.string.string_249)
         binding.toolbar.inflateMenu(R.menu.feature_list)
+        binding.toolbar.menu.findItem(R.id.action_more)?.let { item ->
+            item.icon = item.icon?.mutate()?.also { it.setTint(Color.WHITE) }
+        }
         binding.toolbar.setOnMenuItemClickListener { item ->
-            if (item.itemId == R.id.action_delete) {
-                confirmDeleteAll()
+            if (item.itemId == R.id.action_more) {
+                val anchor = binding.toolbar.findViewById<View>(R.id.action_more) ?: binding.toolbar
+                showFeatureMoreMenu(anchor)
                 true
             } else {
                 false
+            }
+        }
+    }
+
+    private fun showFeatureMoreMenu(anchor: View) {
+        val primary = Common.resolveThemeAttribute(requireContext(), androidx.appcompat.R.attr.colorPrimary)
+        WitLiquidGlassMenu.show(anchor) {
+            borderless = true
+            startPlatterColor = primary
+            anchorIconRes = ceui.pixiv.witstudio.R.drawable.wit_ic_more_vert
+            item(getString(R.string.delete_all), R.drawable.ic_delete_black_24dp, destructive = true) {
+                confirmDeleteAll()
             }
         }
     }

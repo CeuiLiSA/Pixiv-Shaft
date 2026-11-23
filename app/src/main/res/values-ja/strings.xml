@@ -133,6 +133,9 @@
     <string name="v3_widget_hide_refresh_button">ウィジェットの更新ボタンを隠す</string>
     <string name="v3_widget_hide_refresh_button_desc">隠すと更新間隔にしたがって自動で切り替わるだけになります</string>
     <string name="tablet_layout">タブレット向けレイアウト</string>
+    <string name="bottom_bar_style">ボトムバーのスタイル</string>
+    <string name="bottom_bar_style_liquid_glass">リキッドグラス・フローティング</string>
+    <string name="bottom_bar_style_classic">固定（クラシック）</string>
     <string name="bottom_bar_scroll_hide">スクロールでボトムバーを隠す</string>
     <string name="bottom_bar_scroll_hide_desc">下スクロールでボトムバーを隠し、上スクロールで戻します。オフにすると常に表示されます</string>
     <string name="top_bar_scroll_hide">スクロールでトップバーを隠す</string>
@@ -1898,6 +1901,8 @@
     <string name="bulk_user_menu_download_all_illust">イラストをすべてダウンロード（一括キュー）</string>
     <string name="bulk_user_download_all_illust_confirm">%1$s のイラスト全 %2$d 件をダウンロードキューに追加します。続行しますか？</string>
     <string name="bulk_user_menu_download_all_manga">マンガをすべてダウンロード（一括キュー）</string>
+    <string name="bulk_user_menu_download_all_grouped">すべてダウンロード…（一括キュー）</string>
+    <string name="user_menu_jump_works">作品へ移動…</string>
     <string name="bulk_user_menu_open_download_manager">ダウンロード管理を開く…</string>
     <string name="bulk_task_name">%1$sの%2$sをすべてダウンロード</string>
     <string name="bulk_collection_menu_download_all">すべての作品をダウンロード</string>
@@ -3682,4 +3687,9 @@
     <string name="ai_results_clear_failed">一部の画像を削除できませんでした。再度お試しください。</string>
     <string name="ai_results_stats_failed">サイズを計算できませんでした</string>
     <string name="account_switch_web_check_failed">Webログインを確認できません。タップして再試行</string>
+    <string name="setting_liquid_glass_quality">リキッドガラス効果</string>
+    <string name="setting_liquid_glass_quality_desc">フローティング操作やメニューのリアルタイム屈折・ぼかし・光沢品質</string>
+    <string name="liquid_glass_quality_none">オフ</string>
+    <string name="liquid_glass_quality_standard">標準</string>
+    <string name="liquid_glass_quality_ultra">最高</string>
 </resources>

@@ -6,10 +6,13 @@ import android.graphics.Canvas
 import android.os.Build
 import android.util.AttributeSet
 import android.view.View
+import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.annotation.RequiresApi
+import androidx.core.content.withStyledAttributes
 import androidx.core.graphics.withClip
 import androidx.core.view.isVisible
+import ceui.pixiv.witstudio.R
 import ceui.pixiv.witstudio.widget.internal.WitLiquidGlassBackend
 import ceui.pixiv.witstudio.widget.internal.WitLiquidGlassBackdrop
 import ceui.pixiv.witstudio.widget.internal.WitLiquidGlassBudget
@@ -27,11 +30,18 @@ public class WitLiquidGlassLayout @JvmOverloads public constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0,
-) : FrameLayout(context, attrs, defStyleAttr) {
+) : FrameLayout(context, attrs, defStyleAttr), WitLiquidGlassHost {
 
     private var backdrop: WitLiquidGlassBackdrop? = null
     private var drawingBackdrop: WitLiquidGlassBackdrop? = null
     private var recordedSource: View? = null
+    internal var backdropSiblingParent: ViewGroup? = null
+        set(value) {
+            if (field === value) return
+            field = value
+            backdropDirty = true
+            invalidate()
+        }
     private var backdropDirty = true
     private var remainingPixels = 0L
     private var canvasEdge = 0
@@ -40,16 +50,41 @@ public class WitLiquidGlassLayout @JvmOverloads public constructor(
         manager != null && !manager.isLowRamDevice && manager.memoryClass > 128
     }
 
-    /** Allows callers to choose the lightweight material for a particular host. */
-    public var isLiveBackdropEnabled: Boolean = true
+    override var quality: WitLiquidGlassQuality = WitLiquidGlassQuality.defaultQuality
         set(value) {
             if (field == value) return
             field = value
+            if (!value.isLiveEnabled) clearBackdrop()
+            for (i in 0 until childCount) {
+                (getChildAt(i) as? WitLiquidGlassView)?.onHostQualityChanged()
+            }
             invalidate()
+        }
+
+    internal fun invalidateBackdrop() {
+        backdropDirty = true
+        invalidate()
+    }
+
+    /** Allows callers to choose the lightweight material for a particular host. */
+    override var isLiveBackdropEnabled: Boolean
+        get() = quality.isLiveEnabled
+        set(value) {
+            quality = if (value) {
+                if (quality == WitLiquidGlassQuality.NONE) WitLiquidGlassQuality.STANDARD else quality
+            } else {
+                WitLiquidGlassQuality.NONE
+            }
         }
 
     init {
         clipChildren = false
+        context.withStyledAttributes(attrs, R.styleable.WitLiquidGlassLayout, defStyleAttr) {
+            val qIdx = getInt(R.styleable.WitLiquidGlassLayout_wit_glassQuality, -1)
+            if (qIdx >= 0) {
+                quality = WitLiquidGlassQuality.fromOrdinal(qIdx)
+            }
+        }
     }
 
     override fun dispatchDraw(canvas: Canvas) {
@@ -57,7 +92,7 @@ public class WitLiquidGlassLayout @JvmOverloads public constructor(
             !canvas.isHardwareAccelerated && isHardwareAccelerated && layerType != LAYER_TYPE_SOFTWARE
         if (!softwareSnapshot) {
             if (Build.VERSION.SDK_INT >= 31 && canvas.isHardwareAccelerated &&
-                isLiveBackdropEnabled && WitLiquidGlassBackend.BACKDROP.available && deviceAllowsBackdrop
+                hasLiveGlass() && WitLiquidGlassBackend.BACKDROP.available && deviceAllowsBackdrop
             ) {
                 canvasEdge = minOf(canvas.maximumBitmapWidth, canvas.maximumBitmapHeight)
                 remainingPixels = WitLiquidGlassBudget.HOST_PIXELS
@@ -82,6 +117,10 @@ public class WitLiquidGlassLayout @JvmOverloads public constructor(
 
     @RequiresApi(31)
     private fun recordBackdrop(): WitLiquidGlassBackdrop? {
+        val siblingParent = backdropSiblingParent
+        if (siblingParent != null) {
+            return recordSiblingBackdrop(siblingParent)
+        }
         val source = getChildAt(0)
         val hasGlass = (1 until childCount).any {
             val child = getChildAt(it)
@@ -112,6 +151,61 @@ public class WitLiquidGlassLayout @JvmOverloads public constructor(
         return scene
     }
 
+    @RequiresApi(31)
+    private fun recordSiblingBackdrop(siblingParent: ViewGroup): WitLiquidGlassBackdrop? {
+        val selfIndex = siblingParent.indexOfChild(this)
+        val hasGlass = (0 until childCount).any {
+            val child = getChildAt(it)
+            child is WitLiquidGlassView && patchPlan(child).pixels > 0
+        }
+        if (width == 0 || height == 0 || selfIndex <= 0 || !hasGlass) {
+            return null
+        }
+
+        if (backdrop?.hasDisplayList == false) clearBackdrop()
+        val scene = backdrop ?: WitLiquidGlassBackdrop().also { backdrop = it }
+        if (!backdropDirty && recordedSource === siblingParent && scene.hasDisplayList) return scene
+        val recording = scene.begin(width, height)
+        try {
+            if (clipToPadding) {
+                recording.clipRect(paddingLeft, paddingTop, width - paddingRight, height - paddingBottom)
+            }
+            recording.translate(-scrollX.toFloat(), -scrollY.toFloat())
+            for (i in 0 until selfIndex) {
+                val sibling = siblingParent.getChildAt(i) ?: continue
+                if (!sibling.isVisible || sibling.alpha <= 0f || sibling.width <= 0 || sibling.height <= 0) continue
+                val relLeft = (sibling.left - left).toFloat()
+                val relTop = (sibling.top - top).toFloat()
+                val saveCount = if (sibling.alpha < 0.999f) {
+                    recording.saveLayerAlpha(
+                        relLeft,
+                        relTop,
+                        relLeft + sibling.width,
+                        relTop + sibling.height,
+                        (sibling.alpha * 255f).toInt().coerceIn(0, 255),
+                    )
+                } else {
+                    recording.save()
+                }
+                try {
+                    recording.translate(relLeft, relTop)
+                    if (!sibling.matrix.isIdentity) {
+                        recording.concat(sibling.matrix)
+                    }
+                    recording.clipRect(0, 0, sibling.width, sibling.height)
+                    sibling.draw(recording)
+                } finally {
+                    recording.restoreToCount(saveCount)
+                }
+            }
+        } finally {
+            scene.end()
+        }
+        recordedSource = siblingParent
+        backdropDirty = false
+        return scene
+    }
+
     override fun drawChild(canvas: Canvas, child: View, drawingTime: Long): Boolean {
         if (Build.VERSION.SDK_INT >= 31 && child is WitLiquidGlassView) {
             if (canvas.isHardwareAccelerated) {
@@ -135,7 +229,7 @@ public class WitLiquidGlassLayout @JvmOverloads public constructor(
         // HWUI may update only the dirty child's display list. Re-record the host when the
         // source scrolls or a glass child moves so the sampled region and its damage stay aligned.
         if (Build.VERSION.SDK_INT < 31 || !isHardwareAccelerated || !deviceAllowsBackdrop) return
-        if (!isLiveBackdropEnabled || !WitLiquidGlassBackend.BACKDROP.available) {
+        if (!hasLiveGlass() || !WitLiquidGlassBackend.BACKDROP.available) {
             if (backdrop != null) {
                 clearBackdrop()
                 invalidate()
@@ -182,8 +276,17 @@ public class WitLiquidGlassLayout @JvmOverloads public constructor(
         backdropDirty = true
     }
 
+    private fun hasLiveGlass(): Boolean {
+        if (quality.isLiveEnabled) return true
+        for (i in 0 until childCount) {
+            val child = getChildAt(i)
+            if (child is WitLiquidGlassView && child.effectiveQuality.isLiveEnabled) return true
+        }
+        return false
+    }
+
     private fun patchPlan(child: WitLiquidGlassView): WitLiquidGlassBudget.PatchPlan {
-        if (!child.isVisible || child.alpha <= 0f || child.layerType == LAYER_TYPE_SOFTWARE) {
+        if (!child.effectiveQuality.isLiveEnabled || !child.isVisible || child.alpha <= 0f || child.layerType == LAYER_TYPE_SOFTWARE) {
             return WitLiquidGlassBudget.PatchPlan(0L, 1f)
         }
         return child.planPatch(canvasEdge)

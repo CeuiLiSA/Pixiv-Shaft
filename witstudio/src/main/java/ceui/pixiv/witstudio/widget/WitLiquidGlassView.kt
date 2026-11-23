@@ -54,12 +54,15 @@ public class WitLiquidGlassView @JvmOverloads public constructor(
 
     public enum class Tone { THEME, LIGHT, DARK }
 
-    public var material: Material = Material.REGULAR
+    public var material: Material? = null
         set(value) {
             if (field == value) return
             field = value
             invalidateMaterial()
         }
+
+    public val effectiveMaterial: Material
+        get() = material ?: if (effectiveQuality == WitLiquidGlassQuality.ULTRA) Material.CLEAR else Material.REGULAR
 
     public var tone: Tone = Tone.THEME
         set(value) {
@@ -104,6 +107,24 @@ public class WitLiquidGlassView @JvmOverloads public constructor(
             if (!value) resetPress()
         }
 
+    /** 显式指定本表面的渲染效果等级；null 时继承宿主 [WitLiquidGlassLayout.quality] 或全局默认。 */
+    public var quality: WitLiquidGlassQuality? = null
+        set(value) {
+            if (field == value) return
+            field = value
+            if (!effectiveQuality.isLiveEnabled) {
+                resetPress()
+            }
+            if (Build.VERSION.SDK_INT >= 31) {
+                discardRenderer()
+            }
+            invalidateMaterial()
+            (parent as? View)?.invalidate()
+        }
+
+    public val effectiveQuality: WitLiquidGlassQuality
+        get() = quality ?: (parent as? WitLiquidGlassHost)?.quality ?: WitLiquidGlassQuality.defaultQuality
+
     /** Foreground color for the resolved [tone]. Set it on the controls this surface contains. */
     @get:ColorInt
     public val contentColor: Int
@@ -128,6 +149,40 @@ public class WitLiquidGlassView @JvmOverloads public constructor(
             invalidateOptics()
         }
 
+    /**
+     * Controls the overall opacity of the glass platter, backdrop and rim without affecting child views.
+     * Used for smooth material condensation transitions when expanding from borderless buttons.
+     */
+    internal var platterAlpha: Float = 1f
+        set(value) {
+            val clamped = value.coerceIn(0f, 1f)
+            if (field == clamped) return
+            field = clamped
+            invalidate()
+        }
+
+    /**
+     * Optional explicit surface base fill color. When non-null, overrides [V3Palette.cardFill].
+     * Used for smooth dynamic color transitions from toolbar background to floating card panel.
+     */
+    @get:ColorInt
+    @setparam:ColorInt
+    internal var surfaceFillColor: Int? = null
+        set(value) {
+            if (field == value) return
+            field = value
+            resolveBaseFill()
+        }
+
+    internal var rimAlpha: Float = 1f
+        set(value) {
+            val clamped = value.coerceIn(0f, 1f)
+            if (field == clamped) return
+            field = clamped
+            materialPaint.rimAlpha = clamped
+            invalidate()
+        }
+
     private var morphActive = false
     private var morphLeft = 0f
     private var morphTop = 0f
@@ -138,6 +193,7 @@ public class WitLiquidGlassView @JvmOverloads public constructor(
     private val morphClipPath = Path()
     private val morphScratchPath = Path()
     private val morphArcRect = RectF()
+    private val platterBounds = RectF()
 
     private val materialPaint = WitLiquidGlassPaint()
     private var renderer: WitLiquidGlassRenderer? = null
@@ -170,7 +226,7 @@ public class WitLiquidGlassView @JvmOverloads public constructor(
                 } else {
                     outline.setRoundRect(0, 0, width, height, radius)
                 }
-                outline.alpha = if (isDark) 0.32f else 0.78f
+                outline.alpha = if (effectiveQuality == WitLiquidGlassQuality.ULTRA) 0.08f else (if (isDark) 0.16f else 0.28f)
             }
         }
 
@@ -179,8 +235,9 @@ public class WitLiquidGlassView @JvmOverloads public constructor(
         }
 
         context.withStyledAttributes(attrs, R.styleable.WitLiquidGlassView, defStyleAttr) {
-            material = Material.entries.getOrElse(getInt(R.styleable.WitLiquidGlassView_wit_glassMaterial, 0)) {
-                Material.REGULAR
+            val matIdx = getInt(R.styleable.WitLiquidGlassView_wit_glassMaterial, -1)
+            if (matIdx >= 0) {
+                material = Material.entries.getOrNull(matIdx)
             }
             tone = Tone.entries.getOrElse(getInt(R.styleable.WitLiquidGlassView_wit_glassTone, 0)) { Tone.THEME }
             cornerRadiusDp = getDimension(
@@ -189,11 +246,19 @@ public class WitLiquidGlassView @JvmOverloads public constructor(
             tintColor = getColor(R.styleable.WitLiquidGlassView_wit_glassTint, Color.TRANSPARENT)
             clearDimming = getFloat(R.styleable.WitLiquidGlassView_wit_glassClearDimming, 0f)
             isGlassInteractive = getBoolean(R.styleable.WitLiquidGlassView_wit_glassInteractive, false)
+            val qIdx = getInt(R.styleable.WitLiquidGlassView_wit_glassQuality, -1)
+            if (qIdx >= 0) {
+                quality = WitLiquidGlassQuality.fromOrdinal(qIdx)
+            }
         }
     }
 
     internal fun planPatch(canvasEdge: Int): WitLiquidGlassBudget.PatchPlan =
-        WitLiquidGlassBudget.planPatch(width, height, density, canvasEdge, isLargeSurface)
+        if (!effectiveQuality.isLiveEnabled) {
+            WitLiquidGlassBudget.PatchPlan(0L, 1f)
+        } else {
+            WitLiquidGlassBudget.planPatch(width, height, density, canvasEdge, isLargeSurface)
+        }
 
     /**
      * Animates the visible glass silhouette inside this view's laid-out bounds without triggering
@@ -267,6 +332,17 @@ public class WitLiquidGlassView @JvmOverloads public constructor(
         resetPress()
     }
 
+    internal fun onHostQualityChanged() {
+        if (quality != null) return
+        if (!effectiveQuality.isLiveEnabled) {
+            resetPress()
+        }
+        if (Build.VERSION.SDK_INT >= 31) {
+            discardRenderer()
+        }
+        invalidateMaterial()
+    }
+
     @RequiresApi(31)
     internal fun updateBackdrop(
         backdrop: WitLiquidGlassBackdrop?,
@@ -274,11 +350,15 @@ public class WitLiquidGlassView @JvmOverloads public constructor(
         parentScrollY: Int,
         renderScale: Float = 1f,
     ) {
-        if (backdrop == null || !WitLiquidGlassBackend.BACKDROP.available) {
+        if (backdrop == null || !effectiveQuality.isLiveEnabled || !WitLiquidGlassBackend.BACKDROP.available) {
             discardRenderer()
             return
         }
         if (renderer?.backend?.available == false) discardRenderer()
+        val expectedShader = effectiveQuality == WitLiquidGlassQuality.ULTRA && Build.VERSION.SDK_INT >= 33
+        if (renderer != null && (renderer is WitLiquidGlassShader) != expectedShader) {
+            discardRenderer()
+        }
         val current = renderer ?: createRenderer()?.also {
             renderer = it
             opticsDirty = true
@@ -298,7 +378,9 @@ public class WitLiquidGlassView @JvmOverloads public constructor(
 
     @RequiresApi(31)
     private fun createRenderer(): WitLiquidGlassRenderer? {
-        if (Build.VERSION.SDK_INT >= 33) {
+        val q = effectiveQuality
+        if (!q.isLiveEnabled) return null
+        if (q == WitLiquidGlassQuality.ULTRA && Build.VERSION.SDK_INT >= 33) {
             WitLiquidGlassBackend.REFRACTION.attempt { WitLiquidGlassShader() }?.let { return it }
         }
         return WitLiquidGlassBackend.BACKDROP.attempt { WitLiquidGlassRenderer() }
@@ -327,7 +409,8 @@ public class WitLiquidGlassView @JvmOverloads public constructor(
 
     private fun resolveBaseFill() {
         val dark = isDark
-        baseFill = if (dark == palette.isDark) palette.cardFill else V3Palette(palette.primary, dark).cardFill
+        val normalFill = if (dark == palette.isDark) palette.cardFill else V3Palette(palette.primary, dark).cardFill
+        baseFill = surfaceFillColor ?: normalFill
         invalidateMaterial()
     }
 
@@ -336,9 +419,13 @@ public class WitLiquidGlassView @JvmOverloads public constructor(
         val w = width
         val h = height
         if (w <= 0 || h <= 0) return
+        val pAlpha = platterAlpha
+        if (pAlpha <= 0.001f) return
+
         val scale = density
         val dark = isDark
-        val clear = material == Material.CLEAR
+        val clear = effectiveMaterial == Material.CLEAR
+        val effectiveDimming = if (clear && clearDimming <= 0.001f) 0f else clearDimming
         val sLeft = if (morphActive) morphLeft else 0f
         val sTop = if (morphActive) morphTop else 0f
         val sRight = if (morphActive) morphRight else w.toFloat()
@@ -350,36 +437,66 @@ public class WitLiquidGlassView @JvmOverloads public constructor(
             radius
         }
         val activeTail = if (morphActive && morphTail.active) morphTail else null
+        materialPaint.rimAlpha = rimAlpha
         if (materialDirty) {
-            materialPaint.update(w, h, scale, baseFill, tintColor, dark, clear, clearDimming)
+            materialPaint.update(w, h, scale, baseFill, tintColor, dark, clear, effectiveDimming)
             materialDirty = false
         }
+        val needsAlphaLayer = pAlpha < 0.999f
+        platterBounds.set(sLeft, sTop, sRight, sBottom)
+        if (activeTail != null) {
+            platterBounds.union(activeTail.tipX - activeTail.tipRadius, activeTail.tipY - activeTail.tipRadius)
+            platterBounds.union(activeTail.tipX + activeTail.tipRadius, activeTail.tipY + activeTail.tipRadius)
+            platterBounds.union(activeTail.bellyX - activeTail.bellyRadius, activeTail.bellyY - activeTail.bellyRadius)
+            platterBounds.union(activeTail.bellyX + activeTail.bellyRadius, activeTail.bellyY + activeTail.bellyRadius)
+        }
+        if (needsAlphaLayer) {
+            val layerPad = maxOf(2f, scale)
+            platterBounds.inset(-layerPad, -layerPad)
+        }
         canvas.withTranslation(scrollX.toFloat(), scrollY.toFloat()) {
-            if (Build.VERSION.SDK_INT >= 31 && isHardwareAccelerated) {
-                val current = renderer
-                if (current != null && current.hasBackdrop) {
-                    val drawn = current.backend.attempt {
-                        if (opticsDirty) {
-                            current.updateOptics(
-                                sLeft, sTop, sRight, sBottom, activeRadius, scale, dark, clear,
-                                isLargeSurface, tintColor, clearDimming, touchX, touchY, press, stretch,
-                                activeTail,
+            val count = if (needsAlphaLayer) {
+                saveLayerAlpha(platterBounds, (pAlpha * 255f).roundToInt())
+            } else {
+                -1
+            }
+            try {
+                if (effectiveQuality == WitLiquidGlassQuality.NONE) {
+                    materialPaint.drawSolid(
+                        this, sLeft, sTop, sRight, sBottom, activeRadius, activeTail,
+                    )
+                    return@withTranslation
+                }
+                if (Build.VERSION.SDK_INT >= 31 && isHardwareAccelerated && effectiveQuality.isLiveEnabled) {
+                    val current = renderer
+                    if (current != null && current.hasBackdrop) {
+                        val drawn = current.backend.attempt {
+                            if (opticsDirty) {
+                                current.updateOptics(
+                                    sLeft, sTop, sRight, sBottom, activeRadius, scale, dark, clear,
+                                    isLargeSurface, tintColor, effectiveDimming, touchX, touchY, press, stretch,
+                                    activeTail,
+                                )
+                                opticsDirty = false
+                            }
+                            current.draw(
+                                this, materialPaint, sLeft, sTop, sRight, sBottom, activeRadius,
+                                touchX, touchY, press, stretch, activeTail,
                             )
-                            opticsDirty = false
                         }
-                        current.draw(
-                            this, materialPaint, sLeft, sTop, sRight, sBottom, activeRadius,
-                            touchX, touchY, press, stretch, activeTail,
-                        )
+                        if (drawn != null) return@withTranslation
+                        discardRenderer()
                     }
-                    if (drawn != null) return@withTranslation
-                    discardRenderer()
+                }
+                materialPaint.drawFallback(
+                    this, sLeft, sTop, sRight, sBottom, activeRadius, touchX, touchY, press, stretch,
+                    activeTail,
+                )
+            } finally {
+                if (count >= 0) {
+                    restoreToCount(count)
                 }
             }
-            materialPaint.drawFallback(
-                this, sLeft, sTop, sRight, sBottom, activeRadius, touchX, touchY, press, stretch,
-                activeTail,
-            )
         }
     }
 
@@ -397,6 +514,9 @@ public class WitLiquidGlassView @JvmOverloads public constructor(
             morphLeft, morphTop, morphRight, morphBottom,
             rad, if (morphTail.active) morphTail else null,
         )
+        if (morphClipPath.isEmpty) {
+            morphClipPath.addRoundRect(morphLeft, morphTop, morphRight, morphBottom, rad, rad, Path.Direction.CW)
+        }
         canvas.withClip(morphClipPath) {
             super.dispatchDraw(this)
         }
@@ -404,7 +524,7 @@ public class WitLiquidGlassView @JvmOverloads public constructor(
 
     override fun dispatchTouchEvent(event: MotionEvent): Boolean {
         val handled = super.dispatchTouchEvent(event)
-        if (!isGlassInteractive || !isEnabled) return handled
+        if (!isGlassInteractive || !isEnabled || effectiveQuality == WitLiquidGlassQuality.NONE) return handled
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> if (handled) {
                 touchPointer = event.getPointerId(0)
@@ -427,6 +547,10 @@ public class WitLiquidGlassView @JvmOverloads public constructor(
 
     override fun drawableStateChanged() {
         super.drawableStateChanged()
+        if (effectiveQuality == WitLiquidGlassQuality.NONE) {
+            resetPress()
+            return
+        }
         if (isGlassInteractive && !isEnabled) {
             resetPress()
         } else if (isGlassInteractive && touchPointer == MotionEvent.INVALID_POINTER_ID) {

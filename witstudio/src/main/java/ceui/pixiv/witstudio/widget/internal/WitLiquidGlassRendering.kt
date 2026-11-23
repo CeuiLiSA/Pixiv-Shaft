@@ -9,9 +9,9 @@ import kotlin.math.sqrt
  * The budget is per host and applies to shader and blur surfaces alike.
  */
 internal object WitLiquidGlassBudget {
-    internal const val HOST_PIXELS = 2_000_000L
-    private const val MAX_PATCH_PIXELS = 512_000L
-    private const val MAX_PANEL_PATCH_PIXELS = 1_300_000L
+    internal const val HOST_PIXELS = 3_200_000L
+    private const val MAX_PATCH_PIXELS = 1_000_000L
+    internal const val MAX_PANEL_PATCH_PIXELS = 1_600_000L
     private const val MAX_PATCH_EDGE = 2_048
     private const val MIN_PANEL_SCALE = 0.55f
 
@@ -42,7 +42,8 @@ internal object WitLiquidGlassBudget {
         largeSurface: Boolean,
     ): PatchPlan {
         if (width <= 0 || height <= 0 || canvasEdge <= 0) return PatchPlan(0L, 1f)
-        if (!largeSurface) return PatchPlan(patchPixels(width, height, density, canvasEdge), 1f)
+        val maxBudget = if (largeSurface) MAX_PANEL_PATCH_PIXELS else MAX_PATCH_PIXELS
+        if (!largeSurface && patchPixels(width, height, density, canvasEdge) > 0) return PatchPlan(patchPixels(width, height, density, canvasEdge), 1f)
 
         val edge = minOf(MAX_PATCH_EDGE, canvasEdge)
         val rawPadding = 2L * inset(density)
@@ -56,8 +57,8 @@ internal object WitLiquidGlassBudget {
         if (rawW > edge) scale = minOf(scale, edge.toFloat() / rawW.toFloat())
         if (rawH > edge) scale = minOf(scale, edge.toFloat() / rawH.toFloat())
         val rawPixels = rawW * rawH
-        if (rawPixels > MAX_PANEL_PATCH_PIXELS) {
-            scale = minOf(scale, sqrt(MAX_PANEL_PATCH_PIXELS.toDouble() / rawPixels.toDouble()).toFloat())
+        if (rawPixels > maxBudget) {
+            scale = minOf(scale, sqrt(maxBudget.toDouble() / rawPixels.toDouble()).toFloat())
         }
         if (scale < MIN_PANEL_SCALE) return PatchPlan(0L, 1f)
 
@@ -66,7 +67,7 @@ internal object WitLiquidGlassBudget {
             val sw = ceil(width * scale).toLong().coerceAtLeast(1L) + scaledPadding
             val sh = ceil(height * scale).toLong().coerceAtLeast(1L) + scaledPadding
             val pixels = sw * sh
-            if (sw <= edge && sh <= edge && pixels <= MAX_PANEL_PATCH_PIXELS) {
+            if (sw <= edge && sh <= edge && pixels <= maxBudget) {
                 return PatchPlan(pixels, scale)
             }
             scale *= 0.96f

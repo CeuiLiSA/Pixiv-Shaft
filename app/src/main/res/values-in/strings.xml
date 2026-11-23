@@ -132,6 +132,9 @@
     <string name="v3_widget_hide_refresh_button">Sembunyikan tombol segarkan widget</string>
     <string name="v3_widget_hide_refresh_button_desc">Jika disembunyikan, gambar hanya berganti otomatis sesuai interval</string>
     <string name="tablet_layout">Tata letak tablet</string>
+    <string name="bottom_bar_style">Gaya bilah bawah</string>
+    <string name="bottom_bar_style_liquid_glass">Kaca Cair Mengambang</string>
+    <string name="bottom_bar_style_classic">Disematkan (Klasik)</string>
     <string name="bottom_bar_scroll_hide">Sembunyikan bilah bawah saat menggulir</string>
     <string name="bottom_bar_scroll_hide_desc">Bilah bawah disembunyikan saat menggulir ke bawah dan muncul lagi saat menggulir ke atas. Jika dimatikan, bilah tetap di bawah dan selalu terlihat</string>
     <string name="top_bar_scroll_hide">Sembunyikan bilah atas saat menggulir</string>
@@ -1935,6 +1938,8 @@
     <string name="bulk_user_menu_download_all_illust">Unduh semua ilustrasi (antrean massal)</string>
     <string name="bulk_user_download_all_illust_confirm">Akan mengunduh semua %2$d ilustrasi karya %1$s. Lanjutkan?</string>
     <string name="bulk_user_menu_download_all_manga">Unduh semua manga (antrean massal)</string>
+    <string name="bulk_user_menu_download_all_grouped">Unduh semua… (antrean massal)</string>
+    <string name="user_menu_jump_works">Lompat ke karya…</string>
     <string name="bulk_user_menu_open_download_manager">Buka pengelola unduhan…</string>
     <string name="bulk_task_name">Unduh semua %2$s dari %1$s</string>
     <string name="bulk_collection_menu_download_all">Unduh semua karya</string>
@@ -3651,4 +3656,9 @@
     <string name="ai_results_clear_failed">Beberapa gambar tidak dapat dihapus. Coba lagi.</string>
     <string name="ai_results_stats_failed">Ukuran tidak dapat dihitung</string>
     <string name="account_switch_web_check_failed">Gagal memeriksa login Web, ketuk untuk mencoba lagi</string>
+    <string name="setting_liquid_glass_quality">Efek liquid glass</string>
+    <string name="setting_liquid_glass_quality_desc">Tingkat pembiasan real-time, blur, dan efek pencahayaan untuk kontrol melayang dan menu</string>
+    <string name="liquid_glass_quality_none">Tidak ada</string>
+    <string name="liquid_glass_quality_standard">Standar</string>
+    <string name="liquid_glass_quality_ultra">Ultra</string>
 </resources>

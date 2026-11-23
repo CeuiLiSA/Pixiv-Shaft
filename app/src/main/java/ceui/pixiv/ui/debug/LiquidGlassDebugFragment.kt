@@ -40,6 +40,7 @@ import ceui.pixiv.witstudio.theme.label
 import ceui.pixiv.witstudio.theme.sectionLabel
 import ceui.pixiv.witstudio.widget.WitLiquidGlassLayout
 import ceui.pixiv.witstudio.widget.WitLiquidGlassMenu
+import ceui.pixiv.witstudio.widget.WitLiquidGlassQuality
 import ceui.pixiv.witstudio.widget.WitLiquidGlassView
 import kotlin.math.abs
 
@@ -120,12 +121,13 @@ class LiquidGlassDebugFragment : Fragment() {
             val mem = am?.memoryClass ?: -1
             val lowRam = am?.isLowRamDevice ?: true
             val backend = when {
-                !glassLayout.isLiveBackdropEnabled -> "轻量玻璃（手动关闭实时采样）"
+                glassLayout.quality == WitLiquidGlassQuality.NONE -> "无（关闭实时采样，轻量静态玻璃）"
                 Build.VERSION.SDK_INT < 31 || lowRam || mem <= 128 -> "轻量玻璃（低版本/低内存自动降级）"
-                Build.VERSION.SDK_INT >= 33 -> "AGSL 实时折射 (API ${Build.VERSION.SDK_INT})"
-                else -> "RenderEffect 实时模糊 (API ${Build.VERSION.SDK_INT})"
+                glassLayout.quality == WitLiquidGlassQuality.STANDARD -> "标准 · RenderEffect 实时模糊 (API ${Build.VERSION.SDK_INT})"
+                Build.VERSION.SDK_INT >= 33 -> "极致 · AGSL 实时折射与色散 (API ${Build.VERSION.SDK_INT})"
+                else -> "标准（受限于系统版本）· RenderEffect 实时模糊 (API ${Build.VERSION.SDK_INT})"
             }
-            statusLabel.text = "API ${Build.VERSION.SDK_INT} · heap=${mem}MB · lowRam=$lowRam\n模式：$backend"
+            statusLabel.text = "API ${Build.VERSION.SDK_INT} · heap=${mem}MB · lowRam=$lowRam\n等级：${glassLayout.quality.name} · 管线：$backend"
         }
 
         // 顶部标题与运行态诊断
@@ -190,12 +192,20 @@ class LiquidGlassDebugFragment : Fragment() {
 
         var liveRowUpdater: ((Int) -> Unit)? = null
         liveRowUpdater = controlsCard.addOptionRow(
-            title = "Live Backdrop",
-            options = listOf("实时开启", "轻量对比"),
-            initialIndex = 0,
+            title = "效果等级 (Quality)",
+            options = listOf("无", "标准", "极致"),
+            initialIndex = when (glassLayout.quality) {
+                WitLiquidGlassQuality.NONE -> 0
+                WitLiquidGlassQuality.STANDARD -> 1
+                WitLiquidGlassQuality.ULTRA -> 2
+            },
             palette = palette,
         ) { index ->
-            glassLayout.isLiveBackdropEnabled = index == 0
+            glassLayout.quality = when (index) {
+                1 -> WitLiquidGlassQuality.STANDARD
+                2 -> WitLiquidGlassQuality.ULTRA
+                else -> WitLiquidGlassQuality.NONE
+            }
             updateStatusLine()
         }
 
@@ -393,16 +403,33 @@ class LiquidGlassDebugFragment : Fragment() {
 
         toggleGlass.setOnClickListener { anchor ->
             WitLiquidGlassMenu.show(glassLayout, anchor) {
-                switchItem(
-                    label = "实时液态玻璃",
+                item(
+                    label = "效果等级：无",
+                    icon = R.drawable.ic_visibility_off_black_24dp,
+                    checked = glassLayout.quality == WitLiquidGlassQuality.NONE,
+                ) {
+                    glassLayout.quality = WitLiquidGlassQuality.NONE
+                    liveRowUpdater?.invoke(0)
+                    updateStatusLine()
+                }
+                item(
+                    label = "效果等级：标准",
                     icon = R.drawable.baseline_auto_awesome_24,
-                    isChecked = { glassLayout.isLiveBackdropEnabled },
-                    onToggle = { enabled ->
-                        glassLayout.isLiveBackdropEnabled = enabled
-                        liveRowUpdater?.invoke(if (enabled) 0 else 1)
-                        updateStatusLine()
-                    },
-                )
+                    checked = glassLayout.quality == WitLiquidGlassQuality.STANDARD,
+                ) {
+                    glassLayout.quality = WitLiquidGlassQuality.STANDARD
+                    liveRowUpdater?.invoke(1)
+                    updateStatusLine()
+                }
+                item(
+                    label = "效果等级：极致",
+                    icon = R.drawable.baseline_auto_awesome_24,
+                    checked = glassLayout.quality == WitLiquidGlassQuality.ULTRA,
+                ) {
+                    glassLayout.quality = WitLiquidGlassQuality.ULTRA
+                    liveRowUpdater?.invoke(2)
+                    updateStatusLine()
+                }
                 divider()
                 item(
                     label = "REGULAR 常规材质",

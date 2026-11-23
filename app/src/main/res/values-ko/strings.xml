@@ -133,6 +133,9 @@
     <string name="v3_widget_hide_refresh_button">위젯 새로고침 버튼 숨기기</string>
     <string name="v3_widget_hide_refresh_button_desc">숨기면 새로고침 간격에 따라 자동으로만 바뀝니다</string>
     <string name="tablet_layout">태블릿 레이아웃</string>
+    <string name="bottom_bar_style">하단 바 스타일</string>
+    <string name="bottom_bar_style_liquid_glass">리퀴드 글래스 플로팅</string>
+    <string name="bottom_bar_style_classic">고정 (클래식)</string>
     <string name="bottom_bar_scroll_hide">스크롤 시 하단 바 숨기기</string>
     <string name="bottom_bar_scroll_hide_desc">아래로 스크롤하면 하단 바를 숨기고 위로 스크롤하면 다시 표시합니다. 끄면 항상 고정되어 표시됩니다</string>
     <string name="top_bar_scroll_hide">스크롤 시 상단 바 숨기기</string>
@@ -1898,6 +1901,8 @@
     <string name="bulk_user_menu_download_all_illust">모든 일러스트 다운로드 (일괄 큐 추가)</string>
     <string name="bulk_user_download_all_illust_confirm">%1$s의 일러스트 전체 %2$d개를 다운로드 큐에 추가합니다. 계속할까요?</string>
     <string name="bulk_user_menu_download_all_manga">모든 만화 다운로드 (일괄 큐 추가)</string>
+    <string name="bulk_user_menu_download_all_grouped">모두 다운로드… (일괄 큐 추가)</string>
+    <string name="user_menu_jump_works">작품으로 이동…</string>
     <string name="bulk_user_menu_open_download_manager">다운로드 관리 열기…</string>
     <string name="bulk_task_name">%1$s의 %2$s 모두 다운로드</string>
     <string name="bulk_collection_menu_download_all">모든 작품 다운로드</string>
@@ -3682,4 +3687,9 @@
     <string name="ai_results_clear_failed">일부 이미지를 삭제하지 못했습니다. 다시 시도하세요.</string>
     <string name="ai_results_stats_failed">크기를 계산하지 못했습니다</string>
     <string name="account_switch_web_check_failed">웹 로그인을 확인할 수 없습니다. 눌러서 재시도</string>
+    <string name="setting_liquid_glass_quality">리퀴드 글래스 효과</string>
+    <string name="setting_liquid_glass_quality_desc">플로팅 컨트롤 및 메뉴의 실시간 굴절, 블러 및 조명 효과 수준</string>
+    <string name="liquid_glass_quality_none">사용 안 함</string>
+    <string name="liquid_glass_quality_standard">표준</string>
+    <string name="liquid_glass_quality_ultra">최고</string>
 </resources>

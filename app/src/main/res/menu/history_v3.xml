@@ -20,22 +20,11 @@
             app:showAsAction="always" />
 
         <item
-            android:id="@+id/action_multi_select"
+            android:id="@+id/action_more"
             android:orderInCategory="150"
-            android:title="@string/history_multi_select"
-            app:showAsAction="never" />
-
-        <item
-            android:id="@+id/action_export_history"
-            android:orderInCategory="200"
-            android:title="@string/view_history_export"
-            app:showAsAction="never" />
-
-        <item
-            android:id="@+id/action_import_history"
-            android:orderInCategory="201"
-            android:title="@string/view_history_import"
-            app:showAsAction="never" />
+            android:icon="@drawable/ic_more_vert_black_24dp"
+            android:title="@string/more_actions"
+            app:showAsAction="always" />
     </group>
 
     <!-- 选择态:全选/取消全选(图标运行时切) / 删除选中 -->

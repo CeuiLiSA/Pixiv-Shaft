@@ -20,6 +20,7 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -31,6 +32,7 @@ import androidx.activity.result.PickVisualMediaRequest;
 import androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
@@ -76,6 +78,21 @@ import ceui.pixiv.ui.navigation.HomeShellHost;
 import ceui.pixiv.ui.navigation.TemplateRoute;
 import ceui.pixiv.witstudio.dialog.WitDialog;
 import ceui.pixiv.witstudio.dialog.WitDialogAction;
+import android.content.res.ColorStateList;
+import android.graphics.Canvas;
+import android.graphics.ColorFilter;
+import android.graphics.Paint;
+import android.graphics.PixelFormat;
+import android.graphics.Rect;
+import android.graphics.RectF;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.StateListDrawable;
+import androidx.core.graphics.ColorUtils;
+import ceui.pixiv.witstudio.theme.V3Palette;
+import ceui.pixiv.witstudio.widget.WitLiquidGlassQuality;
+import ceui.pixiv.witstudio.widget.WitLiquidGlassView;
+import android.util.TypedValue;
 
 import com.blankj.utilcode.util.BarUtils;
 import com.bumptech.glide.Glide;
@@ -94,6 +111,8 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
     // 与 baseFragments 一一对应的底部菜单 item id;TAB 顺序可配置后,
     // id 和位置的关系不再固定,所有 id<->position 换算都查这张表
     private int[] tabMenuIds = null;
+    @Nullable private ColorStateList defaultNavIconTint = null;
+    @Nullable private ColorStateList defaultNavTextColor = null;
 
     /** 宽窗口下侧边导航栏代替底栏（#1087），见 {@link #applyNavigationMode}。 */
     private final MutableLiveData<Boolean> navigationRailShown = new MutableLiveData<>(false);
@@ -528,7 +547,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
             return;
         }
         baseBind.navigationRail.setVisibility(rail ? View.VISIBLE : View.GONE);
-        baseBind.navigationView.setVisibility(rail ? View.GONE : View.VISIBLE);
+        baseBind.bottomBarFrame.setVisibility(rail ? View.GONE : View.VISIBLE);
         if (!rail && bottomBarAutoHide != null) {
             // 宽窗口期间底栏可能停在「收起」位置，回到手机排版时放回来
             bottomBarAutoHide.reveal();
@@ -546,6 +565,276 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
         if (mainBackCallback == null) return;
         boolean exitArmed = System.currentTimeMillis() - mExitTime <= EXIT_WINDOW_MS;
         mainBackCallback.setEnabled(isDrawerOpen() || !exitArmed);
+    }
+
+    private Insets lastNavBars = Insets.NONE;
+    @Nullable private String lastBottomBarStyleKey = null;
+
+    /**
+     * 根据设置动态应用首页底栏样式：
+     * 1. 液态玻璃悬浮：大圆角药丸胶囊、左右留白、悬浮于系统手势条上方、液态玻璃半透微光材质；
+     * 2. 固定（旧版）：全宽贴底、无边距、经典实体窗体背景。
+     */
+    private void applyBottomBarStyle() {
+        boolean isFloating = Shaft.sSettings.isBottomBarFloating();
+        CoordinatorLayout.LayoutParams lp =
+                (CoordinatorLayout.LayoutParams) baseBind.bottomBarFrame.getLayoutParams();
+        if (lp == null) {
+            return;
+        }
+
+        if (defaultNavIconTint == null) {
+            defaultNavIconTint = baseBind.navigationView.getItemIconTintList();
+        }
+        if (defaultNavTextColor == null) {
+            defaultNavTextColor = baseBind.navigationView.getItemTextColor();
+        }
+
+        WitLiquidGlassQuality targetQuality =
+                WitLiquidGlassQuality.fromOrdinal(Shaft.sSettings.getLiquidGlassQuality());
+        V3Palette palette = V3Palette.from(this);
+        String styleKey =
+                isFloating
+                        + "|"
+                        + targetQuality.ordinal()
+                        + "|"
+                        + lastNavBars.left
+                        + "|"
+                        + lastNavBars.right
+                        + "|"
+                        + lastNavBars.bottom
+                        + "|"
+                        + palette.isDark()
+                        + "|"
+                        + palette.getPrimary();
+        if (styleKey.equals(lastBottomBarStyleKey)) {
+            return;
+        }
+        lastBottomBarStyleKey = styleKey;
+
+        boolean isGlassActive = isFloating && targetQuality.isLiveEnabled();
+
+        if (isFloating) {
+            int marginH = dp(16);
+            int marginB = dp(12);
+            lp.leftMargin = lastNavBars.left + marginH;
+            lp.rightMargin = lastNavBars.right + marginH;
+            lp.bottomMargin = lastNavBars.bottom + marginB;
+            baseBind.bottomBarFrame.setLayoutParams(lp);
+
+            baseBind.coordinatorLayout.setQuality(targetQuality);
+            baseBind.bottomBarFrame.setQuality(targetQuality);
+            baseBind.bottomBarFrame.setMaterial(WitLiquidGlassView.Material.REGULAR);
+            baseBind.bottomBarFrame.setTone(WitLiquidGlassView.Tone.THEME);
+            baseBind.bottomBarFrame.setCornerRadiusDp(Float.POSITIVE_INFINITY);
+            baseBind.bottomBarFrame.setGlassInteractive(true);
+            baseBind.bottomBarFrame.setElevation(0f);
+            baseBind.bottomBarFrame.setBackground(null);
+
+            baseBind.navigationView.setBackgroundColor(Color.TRANSPARENT);
+            baseBind.navigationView.setElevation(0f);
+            baseBind.navigationView.setPadding(0, 0, 0, 0);
+            baseBind.navigationView.setItemActiveIndicatorEnabled(false);
+        } else {
+            lp.leftMargin = 0;
+            lp.rightMargin = 0;
+            lp.bottomMargin = 0;
+            baseBind.bottomBarFrame.setLayoutParams(lp);
+
+            baseBind.coordinatorLayout.setQuality(WitLiquidGlassQuality.NONE);
+            baseBind.bottomBarFrame.setQuality(WitLiquidGlassQuality.NONE);
+            baseBind.bottomBarFrame.setCornerRadiusDp(0f);
+            baseBind.bottomBarFrame.setElevation(dp(8));
+            baseBind.bottomBarFrame.setGlassInteractive(false);
+            baseBind.bottomBarFrame.setBackground(null);
+
+            TypedValue typedValue = new TypedValue();
+            boolean resolved = getTheme().resolveAttribute(android.R.attr.windowBackground, typedValue, true);
+            int windowBg =
+                    resolved
+                                    && typedValue.type >= TypedValue.TYPE_FIRST_COLOR_INT
+                                    && typedValue.type <= TypedValue.TYPE_LAST_COLOR_INT
+                            ? typedValue.data
+                            : ContextCompat.getColor(this, R.color.v3_bg);
+            baseBind.navigationView.setBackgroundColor(windowBg);
+            baseBind.navigationView.setElevation(0f);
+            baseBind.navigationView.setPadding(lastNavBars.left, 0, lastNavBars.right, lastNavBars.bottom);
+            baseBind.navigationView.setItemActiveIndicatorEnabled(false);
+        }
+
+        if (isGlassActive) {
+            boolean isDark = palette.isDark();
+
+            // 文本和图标的选中颜色：恢复为主题色
+            int selectedColor = isDark && ColorUtils.calculateLuminance(palette.getPrimary()) < 0.35f
+                    ? palette.getTextAccent()
+                    : palette.getPrimary();
+            int unselectedColor = isDark
+                    ? ColorUtils.setAlphaComponent(Color.WHITE, 140)
+                    : ColorUtils.setAlphaComponent(0xFF1A1A2E, 140);
+
+            // 选中态包裹底色：参考 chen08209/prism_ui，基于当前主题色相进行 Tone 调整
+            // 暗黑模式下压至 Tone 8（深邃藏青底，完美对齐用户截图），浅色模式下为 Tone 96，结合 85% alpha (216) 保留灵动微透
+            float[] hsl = new float[3];
+            ColorUtils.colorToHSL(palette.getPrimary(), hsl);
+            int indicatorFill;
+            if (isDark) {
+                float s = Math.min(hsl[1], 0.70f);
+                int darkBase = ColorUtils.HSLToColor(new float[]{hsl[0], s, 0.08f});
+                indicatorFill = ColorUtils.setAlphaComponent(darkBase, 216);
+            } else {
+                float s = Math.min(hsl[1], 0.15f);
+                int lightBase = ColorUtils.HSLToColor(new float[]{hsl[0], s, 0.96f});
+                indicatorFill = ColorUtils.setAlphaComponent(lightBase, 216);
+            }
+
+            // 药丸胶囊贴合父胶囊上下沿（保留 1.5dp 微距，紧凑贴合），宽高比按截图像素 1.58~1.6:1 舒展
+            float density = getResources().getDisplayMetrics().density;
+            float marginV = 1.5f * density;
+            float maxW = 86f * density;
+            PillIndicatorDrawable pillDrawable =
+                    new PillIndicatorDrawable(indicatorFill, marginV, maxW);
+
+            // 解除 item 裁剪，确保左右大半圆不受 item 边界裁切限制
+            baseBind.navigationView.setClipChildren(false);
+            baseBind.navigationView.setClipToPadding(false);
+            for (int i = 0; i < baseBind.navigationView.getChildCount(); i++) {
+                View child = baseBind.navigationView.getChildAt(i);
+                if (child instanceof ViewGroup) {
+                    ((ViewGroup) child).setClipChildren(false);
+                    ((ViewGroup) child).setClipToPadding(false);
+                }
+            }
+
+            StateListDrawable itemBg = new StateListDrawable();
+            itemBg.addState(new int[]{android.R.attr.state_checked}, pillDrawable);
+            itemBg.addState(new int[]{android.R.attr.state_selected}, pillDrawable);
+            itemBg.addState(new int[]{android.R.attr.state_activated}, pillDrawable);
+            itemBg.addState(new int[]{}, new ColorDrawable(Color.TRANSPARENT));
+
+            baseBind.navigationView.setItemBackground(itemBg);
+
+            // 核心：Material3 的 NavigationBarItemView 依据 state_checked 来判断选中状态！
+            int[][] states = new int[][]{
+                    new int[]{android.R.attr.state_checked},
+                    new int[]{android.R.attr.state_selected},
+                    new int[]{android.R.attr.state_activated},
+                    new int[]{}
+            };
+            ColorStateList itemColors =
+                    new ColorStateList(
+                            states,
+                            new int[]{
+                                    selectedColor,
+                                    selectedColor,
+                                    selectedColor,
+                                    unselectedColor
+                            });
+            baseBind.navigationView.setItemIconTintList(itemColors);
+            baseBind.navigationView.setItemTextColor(itemColors);
+        } else {
+            // 实底（效果等级为无或旧版固定底栏）时不需要选中态包裹
+            baseBind.navigationView.setItemBackground(null);
+            baseBind.navigationView.setItemActiveIndicatorEnabled(false);
+            if (defaultNavIconTint != null) {
+                baseBind.navigationView.setItemIconTintList(defaultNavIconTint);
+            }
+            if (defaultNavTextColor != null) {
+                baseBind.navigationView.setItemTextColor(defaultNavTextColor);
+            }
+        }
+        ViewCompat.requestApplyInsets(baseBind.contentHost);
+    }
+
+    /**
+     * 悬浮液态玻璃底栏选中胶囊指示器（像素级复刻 chen08209/prism_ui 与设计截图）：
+     * 纯粹圆润的 Stadium / Capsule 形状（两端完全半圆，半径恒等于高度一半），
+     * 宽高比按截图像素 1.58~1.6:1 舒展计算，且最大宽度设为 86dp，上下边距 4dp。
+     */
+    private static class PillIndicatorDrawable extends Drawable {
+        private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        private final RectF rect = new RectF();
+        private final int color;
+        private final float marginV;
+        private final float maxW;
+
+        public PillIndicatorDrawable(int color, float marginV, float maxW) {
+            this.color = color;
+            this.marginV = marginV;
+            this.maxW = maxW;
+            this.paint.setColor(color);
+            this.paint.setStyle(Paint.Style.FILL);
+        }
+
+        @Override
+        public ConstantState getConstantState() {
+            return new PillConstantState(color, marginV, maxW);
+        }
+
+        private static class PillConstantState extends ConstantState {
+            final int color;
+            final float marginV;
+            final float maxW;
+
+            PillConstantState(int color, float marginV, float maxW) {
+                this.color = color;
+                this.marginV = marginV;
+                this.maxW = maxW;
+            }
+
+            @NonNull
+            @Override
+            public Drawable newDrawable() {
+                return new PillIndicatorDrawable(color, marginV, maxW);
+            }
+
+            @Override
+            public int getChangingConfigurations() {
+                return 0;
+            }
+        }
+
+        @Override
+        protected void onBoundsChange(Rect bounds) {
+            super.onBoundsChange(bounds);
+            if (bounds.isEmpty()) {
+                rect.setEmpty();
+                return;
+            }
+            float h = Math.max(0f, bounds.height() - marginV * 2f);
+            // 宽高比 1.58:1、上限 maxW，同时受单项可用宽度约束，避免窄屏 5 Tab 时胶囊冲出父圆角边界
+            float availableW = Math.max(0f, bounds.width() - marginV * 2f);
+            float preferredW = Math.min(h * 1.58f, maxW);
+            float w = Math.min(availableW, preferredW);
+            float cx = bounds.exactCenterX();
+            float cy = bounds.exactCenterY();
+            rect.set(cx - w / 2f, cy - h / 2f, cx + w / 2f, cy + h / 2f);
+        }
+
+        @Override
+        public void draw(@NonNull Canvas canvas) {
+            if (!rect.isEmpty()) {
+                float radius = rect.height() / 2f;
+                canvas.drawRoundRect(rect, radius, radius, paint);
+            }
+        }
+
+        @Override
+        public void setAlpha(int alpha) {
+            paint.setAlpha(alpha);
+            invalidateSelf();
+        }
+
+        @Override
+        public void setColorFilter(@Nullable ColorFilter colorFilter) {
+            paint.setColorFilter(colorFilter);
+            invalidateSelf();
+        }
+
+        @Override
+        public int getOpacity() {
+            return PixelFormat.TRANSLUCENT;
+        }
     }
 
     /**
@@ -569,9 +858,18 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                 (v, windowInsets) -> {
                     Insets navBars =
                             windowInsets.getInsets(WindowInsetsCompat.Type.navigationBars());
+                    if (navBars.left != lastNavBars.left
+                            || navBars.right != lastNavBars.right
+                            || navBars.bottom != lastNavBars.bottom) {
+                        lastNavBars = navBars;
+                        applyBottomBarStyle();
+                    }
+                    ViewGroup.MarginLayoutParams lp =
+                            (ViewGroup.MarginLayoutParams) baseBind.bottomBarFrame.getLayoutParams();
+                    int bottomMargin = lp != null ? lp.bottomMargin : 0;
                     int barHeight =
-                            baseBind.navigationView.getVisibility() == View.VISIBLE
-                                    ? baseBind.navigationView.getHeight()
+                            baseBind.bottomBarFrame.getVisibility() == View.VISIBLE
+                                    ? (baseBind.bottomBarFrame.getHeight() + bottomMargin)
                                     : 0;
                     int bottom = Math.max(navBars.bottom, barHeight);
                     return new WindowInsetsCompat.Builder(windowInsets)
@@ -580,18 +878,38 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                                     Insets.of(navBars.left, navBars.top, navBars.right, bottom))
                             .build();
                 });
-        baseBind.navigationView.addOnLayoutChangeListener(
+        // 覆盖 Material BottomNavigationView 默认的 WindowInsets 监听：
+        // 悬浮模式由外层 bottomBarFrame 边距避让导航栏，navigationView 自身必须保持零边距；
+        // 经典模式同步 left/right/bottom，兼容横屏三键导航栏。
+        ViewCompat.setOnApplyWindowInsetsListener(
+                baseBind.navigationView,
+                (v, windowInsets) -> {
+                    Insets navBars =
+                            windowInsets.getInsets(WindowInsetsCompat.Type.navigationBars());
+                    boolean isFloating = Shaft.sSettings.isBottomBarFloating();
+                    int targetLeft = isFloating ? 0 : navBars.left;
+                    int targetRight = isFloating ? 0 : navBars.right;
+                    int targetBottom = isFloating ? 0 : navBars.bottom;
+                    if (v.getPaddingLeft() != targetLeft
+                            || v.getPaddingRight() != targetRight
+                            || v.getPaddingBottom() != targetBottom) {
+                        v.setPadding(targetLeft, v.getPaddingTop(), targetRight, targetBottom);
+                    }
+                    return windowInsets;
+                });
+        baseBind.bottomBarFrame.addOnLayoutChangeListener(
                 (v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {
                     if ((bottom - top) != (oldBottom - oldTop)) {
                         ViewCompat.requestApplyInsets(baseBind.contentHost);
                     }
                 });
 
-        bottomBarAutoHide = new BottomBarAutoHide(baseBind.navigationView);
+        bottomBarAutoHide = new BottomBarAutoHide(baseBind.bottomBarFrame);
         bottomBarAutoHide.install(this);
         // 「底栏跟随滚动收起」关掉时直接把 behavior 摘掉（固定常显）。设置页改完回首页
         // onResume 会再同步一次，所以不用重启。
         bottomBarAutoHide.setEnabled(Shaft.sSettings.isBottomBarHideOnScroll());
+        applyBottomBarStyle();
     }
 
     @SuppressLint("RestrictedApi")
@@ -696,6 +1014,8 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
         // 落在第 0 页时 setCurrentItem 不回调 onPageSelected，侧栏选中态要自己补上
         baseBind.navigationRail.setSelectedItemId(tabMenuIds[navigationInitPosition]);
         Manager.get().restore();
+        lastBottomBarStyleKey = null;
+        applyBottomBarStyle();
 
         // Show rate dialog after a short delay to avoid disrupting app startup.
         // 浏览记录云同步同意框不在首页弹,改到用户点进浏览历史页时再问(见 FragmentHistoryTabs / issue #889)。
@@ -1398,6 +1718,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
         if (bottomBarAutoHide != null) {
             bottomBarAutoHide.setEnabled(Shaft.sSettings.isBottomBarHideOnScroll());
         }
+        applyBottomBarStyle();
         if (SessionManager.INSTANCE.isLoggedIn()) {
             String referralCode = ceui.pixiv.ui.referral.ReferralPendingInvite.consume();
             if (referralCode != null) {

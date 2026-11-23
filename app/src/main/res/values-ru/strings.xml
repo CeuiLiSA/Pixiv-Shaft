@@ -133,6 +133,9 @@
     <string name="v3_widget_hide_refresh_button">Скрыть кнопку обновления в виджете</string>
     <string name="v3_widget_hide_refresh_button_desc">После скрытия иллюстрация меняется только по интервалу обновления</string>
     <string name="tablet_layout">Макет для планшета</string>
+    <string name="bottom_bar_style">Стиль нижней панели</string>
+    <string name="bottom_bar_style_liquid_glass">Жидкое стекло (плавающая)</string>
+    <string name="bottom_bar_style_classic">Закрепленная (классическая)</string>
     <string name="bottom_bar_scroll_hide">Скрывать нижнюю панель при прокрутке</string>
     <string name="bottom_bar_scroll_hide_desc">Панель сворачивается при прокрутке вниз и возвращается при прокрутке вверх. Если выключено, панель закреплена и всегда видна</string>
     <string name="top_bar_scroll_hide">Скрывать верхнюю панель при прокрутке</string>
@@ -1916,6 +1919,8 @@
     <string name="bulk_user_menu_download_all_illust">Скачать все иллюстрации (добавить в очередь)</string>
     <string name="bulk_user_download_all_illust_confirm">Добавить в очередь все иллюстрации автора %1$s (%2$d шт.)?</string>
     <string name="bulk_user_menu_download_all_manga">Скачать всю мангу (добавить в очередь)</string>
+    <string name="bulk_user_menu_download_all_grouped">Скачать все… (добавить в очередь)</string>
+    <string name="user_menu_jump_works">Перейти к работам…</string>
     <string name="bulk_user_menu_open_download_manager">Открыть менеджер загрузок…</string>
     <string name="bulk_task_name">Скачать все %2$s от %1$s</string>
     <string name="bulk_collection_menu_download_all">Скачать все работы</string>
@@ -3724,4 +3729,9 @@
     <string name="ai_results_clear_failed">Не все изображения удалось удалить. Повторите попытку.</string>
     <string name="ai_results_stats_failed">Не удалось подсчитать размер</string>
     <string name="account_switch_web_check_failed">Не удалось проверить вход Web. Нажмите для повтора</string>
+    <string name="setting_liquid_glass_quality">Эффект жидкого стекла</string>
+    <string name="setting_liquid_glass_quality_desc">Качество преломления, размытия и бликов для плавающих элементов и меню</string>
+    <string name="liquid_glass_quality_none">Отключено</string>
+    <string name="liquid_glass_quality_standard">Стандартное</string>
+    <string name="liquid_glass_quality_ultra">Максимальное</string>
 </resources>

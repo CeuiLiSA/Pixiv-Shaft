@@ -26,6 +26,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.core.content.ContextCompat;
 
+import ceui.lisa.utils.Settings;
 import ceui.pixiv.witstudio.databinding.WitDialogSwitchRowBinding;
 import ceui.pixiv.witstudio.dialog.WitDialog;
 import ceui.pixiv.witstudio.dialog.WitDialogAction;
@@ -89,6 +90,17 @@ public class FragmentSettingsAppearance extends SettingsPageFragment<FragmentSet
             }
         }
         baseBind.predictiveBackSummary.setText(enabled + "/" + targets.size());
+    }
+
+    private void refreshLiquidGlassQualitySummary() {
+        int quality = Shaft.sSettings.getLiquidGlassQuality();
+        if (quality == ceui.lisa.utils.Settings.LIQUID_GLASS_QUALITY_STANDARD) {
+            baseBind.liquidGlassQuality.setText(R.string.liquid_glass_quality_standard);
+        } else if (quality == ceui.lisa.utils.Settings.LIQUID_GLASS_QUALITY_ULTRA) {
+            baseBind.liquidGlassQuality.setText(R.string.liquid_glass_quality_ultra);
+        } else {
+            baseBind.liquidGlassQuality.setText(R.string.liquid_glass_quality_none);
+        }
     }
 
     private void showPredictiveBackDialog() {
@@ -290,6 +302,30 @@ public class FragmentSettingsAppearance extends SettingsPageFragment<FragmentSet
                     .show();
         });
 
+        // 液态玻璃效果等级（无 / 标准 / 极致）
+        refreshLiquidGlassQualitySummary();
+        baseBind.liquidGlassQualityRela.setOnClickListener(v -> {
+            final int currentIndex = Shaft.sSettings.getLiquidGlassQuality();
+            String[] QUALITY_NAMES = new String[]{
+                    getString(R.string.liquid_glass_quality_none),
+                    getString(R.string.liquid_glass_quality_standard),
+                    getString(R.string.liquid_glass_quality_ultra)
+            };
+            new WitDialog.CheckableDialogBuilder(mActivity)
+                    .setTitle(R.string.setting_liquid_glass_quality)
+                    .setCheckedIndex(currentIndex)
+                    .addItems(QUALITY_NAMES, (dialog, which) -> {
+                        if (which != currentIndex) {
+                            Shaft.sSettings.setLiquidGlassQuality(which);
+                            Local.setSettings(Shaft.sSettings);
+                            Shaft.applyLiquidGlassQuality(which);
+                            refreshLiquidGlassQualitySummary();
+                        }
+                        dialog.dismiss();
+                    })
+                    .show();
+        });
+
         // 列数
         baseBind.lineCount.setText(getString(R.string.string_349, Shaft.sSettings.getLineCount()));
         baseBind.lineCountRela.setOnClickListener(v -> {
@@ -484,6 +520,11 @@ public class FragmentSettingsAppearance extends SettingsPageFragment<FragmentSet
                     .show();
         });
         baseBind.bottomBarOrderRela.setOnClickListener(v -> baseBind.orderSelect.performClick());
+
+        // 首页底栏样式
+        setBottomBarStyleName();
+        baseBind.bottomBarStyle.setOnClickListener(v -> showBottomBarStyleDialog());
+        baseBind.bottomBarStyleRela.setOnClickListener(v -> baseBind.bottomBarStyle.performClick());
 
         // 底栏跟随列表滚动收起：关掉后底栏固定常显。回首页 onResume 即生效，不用重启
         baseBind.bottomBarScrollHide.setChecked(Shaft.sSettings.isBottomBarHideOnScroll());
@@ -911,6 +952,44 @@ public class FragmentSettingsAppearance extends SettingsPageFragment<FragmentSet
         super.onResume();
         // 从「主题色彩页」选完标签译文颜色返回时刷新这一行的展示值。
         setTagTranslationColorName();
+    }
+
+    private void setBottomBarStyleName() {
+        final int style = Shaft.sSettings.getBottomBarStyle();
+        if (style == Settings.BOTTOM_BAR_STYLE_LIQUID_GLASS) {
+            baseBind.bottomBarStyle.setText(R.string.bottom_bar_style_liquid_glass);
+        } else {
+            baseBind.bottomBarStyle.setText(R.string.bottom_bar_style_classic);
+        }
+    }
+
+    private void showBottomBarStyleDialog() {
+        final int currentStyle = Shaft.sSettings.getBottomBarStyle();
+        final int checkedIndex = currentStyle == Settings.BOTTOM_BAR_STYLE_LIQUID_GLASS ? 0 : 1;
+        final String[] styles = new String[]{
+                getString(R.string.bottom_bar_style_liquid_glass),
+                getString(R.string.bottom_bar_style_classic)
+        };
+        new WitDialog.CheckableDialogBuilder(mActivity)
+                .setTitle(R.string.bottom_bar_style)
+                .setCheckedIndex(checkedIndex)
+                .addItems(styles, (dialog, which) -> {
+                    int newStyle = which == 0
+                            ? Settings.BOTTOM_BAR_STYLE_LIQUID_GLASS
+                            : Settings.BOTTOM_BAR_STYLE_CLASSIC;
+                    if (newStyle != Shaft.sSettings.getBottomBarStyle()) {
+                        Shaft.sSettings.setBottomBarStyle(newStyle);
+                        if (newStyle == Settings.BOTTOM_BAR_STYLE_LIQUID_GLASS) {
+                            // 切到【液态玻璃悬浮】时顺便把【底栏跟随滚动收起】的开关掰成关，制造悬浮时默认是关的行为
+                            Shaft.sSettings.setBottomBarHideOnScroll(false);
+                            baseBind.bottomBarScrollHide.setChecked(false);
+                        }
+                        Local.setSettings(Shaft.sSettings);
+                        setBottomBarStyleName();
+                    }
+                    dialog.dismiss();
+                })
+                .show();
     }
 
     private String currentLanguageDisplay() {

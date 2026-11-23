@@ -133,6 +133,9 @@
     <string name="v3_widget_hide_refresh_button">Widget yenileme düğmesini gizle</string>
     <string name="v3_widget_hide_refresh_button_desc">Gizlendiğinde eser yalnızca yenileme aralığında değişir</string>
     <string name="tablet_layout">Tablet düzeni</string>
+    <string name="bottom_bar_style">Alt çubuk stili</string>
+    <string name="bottom_bar_style_liquid_glass">Sıvı Cam Kayan</string>
+    <string name="bottom_bar_style_classic">Sabit (Klasik)</string>
     <string name="bottom_bar_scroll_hide">Kaydırırken alt çubuğu gizle</string>
     <string name="bottom_bar_scroll_hide_desc">Aşağı kaydırınca alt çubuğu gizler, yukarı kaydırınca geri getirir. Kapalıyken çubuk sabit kalır ve her zaman görünür</string>
     <string name="top_bar_scroll_hide">Kaydırırken üst çubuğu gizle</string>
@@ -1904,6 +1907,8 @@
     <string name="bulk_user_menu_download_all_illust">Tüm illüstrasyonları indir (toplu kuyruk)</string>
     <string name="bulk_user_download_all_illust_confirm">%1$s yazarının tüm %2$d illüstrasyonunu indirme kuyruğuna ekleyin. Devam edilsin mi?</string>
     <string name="bulk_user_menu_download_all_manga">Tüm mangaları indir (toplu kuyruk)</string>
+    <string name="bulk_user_menu_download_all_grouped">Tümünü indir… (toplu kuyruk)</string>
+    <string name="user_menu_jump_works">Eserlere git…</string>
     <string name="bulk_user_menu_open_download_manager">İndirme yöneticisini aç…</string>
     <string name="bulk_task_name">%1$s tarafından tüm %2$s</string>
     <string name="bulk_collection_menu_download_all">Tüm eserleri indir</string>
@@ -3696,4 +3701,9 @@
     <string name="ai_results_clear_failed">Bazı görseller silinemedi. Tekrar deneyin.</string>
     <string name="ai_results_stats_failed">Boyut hesaplanamadı</string>
     <string name="account_switch_web_check_failed">Web girişi kontrol edilemedi, yeniden denemek için dokunun</string>
+    <string name="setting_liquid_glass_quality">Sıvı cam efekti</string>
+    <string name="setting_liquid_glass_quality_desc">Kayan kontroller ve menüler için gerçek zamanlı kırılma, bulanıklık ve ışık efekti düzeyi</string>
+    <string name="liquid_glass_quality_none">Yok</string>
+    <string name="liquid_glass_quality_standard">Standart</string>
+    <string name="liquid_glass_quality_ultra">Ultra</string>
 </resources>

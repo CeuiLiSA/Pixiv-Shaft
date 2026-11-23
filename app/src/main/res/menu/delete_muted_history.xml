@@ -6,18 +6,12 @@
         android:orderInCategory="100"
         android:icon="@drawable/ic_delete_black_24dp"
         android:title="@string/delete_all"
-        app:showAsAction="ifRoom" />
+        app:showAsAction="always" />
 
     <item
-        android:id="@+id/action_export_mute"
+        android:id="@+id/action_more"
         android:orderInCategory="200"
-        android:title="@string/mute_records_export"
-        app:showAsAction="never" />
-
-    <item
-        android:id="@+id/action_import_mute"
-        android:orderInCategory="201"
-        android:title="@string/mute_records_import"
-        app:showAsAction="never" />
-
+        android:icon="@drawable/ic_more_vert_black_24dp"
+        android:title="@string/more_actions"
+        app:showAsAction="always" />
 </menu>

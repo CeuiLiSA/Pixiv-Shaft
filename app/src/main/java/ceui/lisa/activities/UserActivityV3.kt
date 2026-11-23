@@ -42,6 +42,7 @@ import ceui.pixiv.utils.Event
 import ceui.loxia.Novel
 import ceui.pixiv.cache.ObjectPool
 import ceui.pixiv.widgets.ProgressTextButton
+import ceui.pixiv.witstudio.widget.WitLiquidGlassMenu
 import ceui.loxia.User
 import ceui.pixiv.api.model.WebUserDetail
 import ceui.pixiv.session.SessionManager
@@ -736,102 +737,116 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
     // 内部,跟随 ViewPager 横滑,数据复用列表首屏(onUserIllustFirstPage 等),进主页零额外请求。
 
     private fun showMoreMenu(data: UserDetailResponse, isSelf: Boolean) {
+        val anchor = baseBind.moreAction
         val isMuted = mUserViewModel.isUserMuted.value == true
-        val labels = mutableListOf<String>()
-        val actions = mutableListOf<() -> Unit>()
 
-        if (data.profile.total_illusts > 0) {
-            labels.add("跳转到插画…")
-            actions.add { jumpTo(data.user.id, UserIllustJumpHelper.Kind.ILLUST, TemplateRoute.USER_ILLUSTS) }
-        }
-        if (data.profile.total_manga > 0) {
-            labels.add("跳转到漫画…")
-            actions.add { jumpTo(data.user.id, UserIllustJumpHelper.Kind.MANGA, TemplateRoute.USER_MANGA) }
-        }
-        labels.add(getString(R.string.string_436)) // 相关用户
-        actions.add {
-            val intent = Intent(this, TemplateActivity::class.java)
-            intent.putExtra(Params.USER_ID, data.user.id)
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.RELATED_USERS.key)
-            startActivity(intent)
-        }
-        if (data.profile.total_illusts > 0) {
-            labels.add(getString(R.string.bulk_user_menu_download_all_illust))
-            actions.add {
-                startBatchFetch(
-                    userIdLong = data.user.id,
-                    type = ceui.pixiv.db.queue.WorkType.ILLUST,
-                    authorName = data.user.name ?: "user",
-                )
-            }
-        }
-        if (data.profile.total_manga > 0) {
-            labels.add(getString(R.string.bulk_user_menu_download_all_manga))
-            actions.add {
-                startBatchFetch(
-                    userIdLong = data.user.id,
-                    type = ceui.pixiv.db.queue.WorkType.MANGA,
-                    authorName = data.user.name ?: "user",
-                )
-            }
-        }
-        labels.add(getString(R.string.bulk_user_menu_open_download_manager))
-        actions.add {
-            val intent = Intent(this, TemplateActivity::class.java)
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.DOWNLOAD_MANAGER.key) // route key
-            startActivity(intent)
-        }
-        // issue #1027:把作者主页固定成桌面图标。桌面不支持时(部分三方 launcher)不摆这一项
-        if (UserShortcutHelper.isSupported(this)) {
-            labels.add(getString(R.string.add_to_home_screen))
-            actions.add { UserShortcutHelper.pin(this, data.user) }
-        }
-        // 置顶作者:把常看的画师钉在搜索首页,和「置顶标签」各占一段,互不挤占。
-        val userPinned = entityWrapper.isUserPinned(data.user.id)
-        labels.add(getString(if (userPinned) R.string.unpin_user else R.string.pin_user))
-        actions.add {
-            if (userPinned) {
-                entityWrapper.unpinUser(applicationContext, data.user.id)
-                Common.showToast(getString(R.string.unpin_user_success))
-            } else {
-                entityWrapper.pinUser(applicationContext, data.user)
-                Common.showToast(getString(R.string.pinned_user_added, data.user.name.orEmpty()))
-            }
-        }
-        if (!isSelf) {
-            labels.add(
-                if (isMuted) getString(R.string.cancel_block_this_users_work)
-                else getString(R.string.block_this_users_work)
-            )
-            actions.add {
-                // mute switch lives in UserV3InfoFragment now; just push state via shared
-                // UserViewModel and the fragment's observer keeps the switch in sync.
-                if (isMuted) {
-                    PixivOperate.unMuteUser(data.user)
-                    mUserViewModel.isUserMuted.value = false
-                } else {
-                    PixivOperate.muteUser(data.user)
-                    mUserViewModel.isUserMuted.value = true
+        WitLiquidGlassMenu.show(anchor) {
+            borderless = true
+            transparentBackground = true
+            anchorIconRes = ceui.pixiv.witstudio.R.drawable.wit_ic_more_vert
+
+            val hasIllust = data.profile.total_illusts > 0
+            val hasManga = data.profile.total_manga > 0
+            if (hasIllust && hasManga) {
+                submenu(getString(R.string.user_menu_jump_works)) {
+                    item("跳转到插画…") {
+                        jumpTo(data.user.id, UserIllustJumpHelper.Kind.ILLUST, TemplateRoute.USER_ILLUSTS)
+                    }
+                    item("跳转到漫画…") {
+                        jumpTo(data.user.id, UserIllustJumpHelper.Kind.MANGA, TemplateRoute.USER_MANGA)
+                    }
                 }
-                mUserViewModel.refreshEvent.value = Event(100, 0L)
+            } else if (hasIllust) {
+                item("跳转到插画…") {
+                    jumpTo(data.user.id, UserIllustJumpHelper.Kind.ILLUST, TemplateRoute.USER_ILLUSTS)
+                }
+            } else if (hasManga) {
+                item("跳转到漫画…") {
+                    jumpTo(data.user.id, UserIllustJumpHelper.Kind.MANGA, TemplateRoute.USER_MANGA)
+                }
             }
-            // issue #959: pixiv 账号级黑名单（アクセスブロック）,和上面那条纯本地的「屏蔽」是两回事,菜单里并列摆着。
-            labels.add(getString(R.string.pixiv_block_menu))
-            actions.add {
-                ceui.pixiv.ui.user.PixivBlockOperate.showBlockDialog(this, data.user, isMuted) {
-                    mUserViewModel.isUserMuted.value = true
+            item(getString(R.string.string_436)) {
+                val intent = Intent(this@UserActivityV3, TemplateActivity::class.java)
+                intent.putExtra(Params.USER_ID, data.user.id)
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.RELATED_USERS.key)
+                startActivity(intent)
+            }
+            if (hasIllust && hasManga) {
+                submenu(getString(R.string.bulk_user_menu_download_all_grouped)) {
+                    item(getString(R.string.bulk_type_illust)) {
+                        startBatchFetch(
+                            userIdLong = data.user.id,
+                            type = ceui.pixiv.db.queue.WorkType.ILLUST,
+                            authorName = data.user.name ?: "user",
+                        )
+                    }
+                    item(getString(R.string.bulk_type_manga)) {
+                        startBatchFetch(
+                            userIdLong = data.user.id,
+                            type = ceui.pixiv.db.queue.WorkType.MANGA,
+                            authorName = data.user.name ?: "user",
+                        )
+                    }
+                }
+            } else if (hasIllust) {
+                item(getString(R.string.bulk_user_menu_download_all_illust)) {
+                    startBatchFetch(
+                        userIdLong = data.user.id,
+                        type = ceui.pixiv.db.queue.WorkType.ILLUST,
+                        authorName = data.user.name ?: "user",
+                    )
+                }
+            } else if (hasManga) {
+                item(getString(R.string.bulk_user_menu_download_all_manga)) {
+                    startBatchFetch(
+                        userIdLong = data.user.id,
+                        type = ceui.pixiv.db.queue.WorkType.MANGA,
+                        authorName = data.user.name ?: "user",
+                    )
+                }
+            }
+            item(getString(R.string.bulk_user_menu_open_download_manager)) {
+                val intent = Intent(this@UserActivityV3, TemplateActivity::class.java)
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.DOWNLOAD_MANAGER.key)
+                startActivity(intent)
+            }
+            if (UserShortcutHelper.isSupported(this@UserActivityV3)) {
+                item(getString(R.string.add_to_home_screen)) {
+                    UserShortcutHelper.pin(this@UserActivityV3, data.user)
+                }
+            }
+            val userPinned = entityWrapper.isUserPinned(data.user.id)
+            item(getString(if (userPinned) R.string.unpin_user else R.string.pin_user)) {
+                if (userPinned) {
+                    entityWrapper.unpinUser(applicationContext, data.user.id)
+                    Common.showToast(getString(R.string.unpin_user_success))
+                } else {
+                    entityWrapper.pinUser(applicationContext, data.user)
+                    Common.showToast(getString(R.string.pinned_user_added, data.user.name.orEmpty()))
+                }
+            }
+            if (!isSelf) {
+                item(
+                    if (isMuted) getString(R.string.cancel_block_this_users_work)
+                    else getString(R.string.block_this_users_work)
+                ) {
+                    if (isMuted) {
+                        PixivOperate.unMuteUser(data.user)
+                        mUserViewModel.isUserMuted.value = false
+                    } else {
+                        PixivOperate.muteUser(data.user)
+                        mUserViewModel.isUserMuted.value = true
+                    }
                     mUserViewModel.refreshEvent.value = Event(100, 0L)
                 }
+                item(getString(R.string.pixiv_block_menu)) {
+                    ceui.pixiv.ui.user.PixivBlockOperate.showBlockDialog(this@UserActivityV3, data.user, isMuted) {
+                        mUserViewModel.isUserMuted.value = true
+                        mUserViewModel.refreshEvent.value = Event(100, 0L)
+                    }
+                }
             }
         }
-        if (labels.isEmpty()) return
-
-        MenuDialogBuilder(mActivity)
-            .addItems(labels.toTypedArray()) { dialog: DialogInterface, which: Int ->
-                dialog.dismiss()
-                actions.getOrNull(which)?.invoke()
-            }
-            .show()
     }
 
     private fun startBatchFetch(userIdLong: Long, type: String, authorName: String) {

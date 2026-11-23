@@ -2,33 +2,9 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
-        android:id="@+id/action_settings"
+        android:id="@+id/action_more"
         android:orderInCategory="100"
-        android:title="@string/action_settings"
-        app:showAsAction="never" />
-
-    <item
-        android:id="@+id/action_import"
-        android:orderInCategory="100"
-        android:title="@string/action_import"
-        app:showAsAction="never" />
-
-    <item
-        android:id="@+id/action_refresh_token_login"
-        android:orderInCategory="100"
-        android:title="@string/refresh_token_login_entry"
-        app:showAsAction="never" />
-
-    <item
-        android:id="@+id/action_browser_login"
-        android:orderInCategory="100"
-        android:title="@string/action_browser_login"
-        app:showAsAction="never" />
-
-    <item
-        android:id="@+id/action_browser_signup"
-        android:orderInCategory="100"
-        android:title="@string/action_browser_signup"
-        app:showAsAction="never" />
-
+        android:icon="@drawable/ic_more_vert_black_24dp"
+        android:title="@string/more_actions"
+        app:showAsAction="always" />
 </menu>
