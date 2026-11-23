@@ -87,8 +87,6 @@ import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
-import android.graphics.drawable.GradientDrawable;
-import android.graphics.drawable.InsetDrawable;
 import android.graphics.drawable.StateListDrawable;
 import androidx.core.graphics.ColorUtils;
 import ceui.pixiv.witstudio.theme.V3Palette;
@@ -564,7 +562,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
         mainBackCallback.setEnabled(isDrawerOpen() || !exitArmed);
     }
 
-    private int lastNavBarsBottom = 0;
+    private Insets lastNavBars = Insets.NONE;
     @Nullable private String lastBottomBarStyleKey = null;
 
     /**
@@ -595,7 +593,11 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                         + "|"
                         + targetQuality.ordinal()
                         + "|"
-                        + lastNavBarsBottom
+                        + lastNavBars.left
+                        + "|"
+                        + lastNavBars.right
+                        + "|"
+                        + lastNavBars.bottom
                         + "|"
                         + palette.isDark()
                         + "|"
@@ -610,9 +612,9 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
         if (isFloating) {
             int marginH = dp(16);
             int marginB = dp(12);
-            lp.leftMargin = marginH;
-            lp.rightMargin = marginH;
-            lp.bottomMargin = lastNavBarsBottom + marginB;
+            lp.leftMargin = lastNavBars.left + marginH;
+            lp.rightMargin = lastNavBars.right + marginH;
+            lp.bottomMargin = lastNavBars.bottom + marginB;
             baseBind.bottomBarFrame.setLayoutParams(lp);
 
             baseBind.coordinatorLayout.setQuality(targetQuality);
@@ -651,7 +653,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                             : ContextCompat.getColor(this, R.color.v3_bg);
             baseBind.navigationView.setBackgroundColor(windowBg);
             baseBind.navigationView.setElevation(0f);
-            baseBind.navigationView.setPadding(0, 0, 0, lastNavBarsBottom);
+            baseBind.navigationView.setPadding(lastNavBars.left, 0, lastNavBars.right, lastNavBars.bottom);
             baseBind.navigationView.setItemActiveIndicatorEnabled(false);
         }
 
@@ -851,8 +853,10 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                 (v, windowInsets) -> {
                     Insets navBars =
                             windowInsets.getInsets(WindowInsetsCompat.Type.navigationBars());
-                    if (navBars.bottom != lastNavBarsBottom) {
-                        lastNavBarsBottom = navBars.bottom;
+                    if (navBars.left != lastNavBars.left
+                            || navBars.right != lastNavBars.right
+                            || navBars.bottom != lastNavBars.bottom) {
+                        lastNavBars = navBars;
                         applyBottomBarStyle();
                     }
                     ViewGroup.MarginLayoutParams lp =
@@ -870,16 +874,21 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                             .build();
                 });
         // 覆盖 Material BottomNavigationView 默认的 WindowInsets 监听：
-        // 悬浮模式由外层 bottomBarFrame.bottomMargin 避让手势条，navigationView 自身必须保持 paddingBottom=0，
-        // 否则每次窗口重发 insets（键盘收放、旋转、分屏）都会把 navBars.bottom 再写回 paddingBottom 导致双倍底距。
+        // 悬浮模式由外层 bottomBarFrame 边距避让导航栏，navigationView 自身必须保持零边距；
+        // 经典模式同步 left/right/bottom，兼容横屏三键导航栏。
         ViewCompat.setOnApplyWindowInsetsListener(
                 baseBind.navigationView,
                 (v, windowInsets) -> {
                     Insets navBars =
                             windowInsets.getInsets(WindowInsetsCompat.Type.navigationBars());
-                    int targetBottom = Shaft.sSettings.isBottomBarFloating() ? 0 : navBars.bottom;
-                    if (v.getPaddingBottom() != targetBottom) {
-                        v.setPadding(v.getPaddingLeft(), v.getPaddingTop(), v.getPaddingRight(), targetBottom);
+                    boolean isFloating = Shaft.sSettings.isBottomBarFloating();
+                    int targetLeft = isFloating ? 0 : navBars.left;
+                    int targetRight = isFloating ? 0 : navBars.right;
+                    int targetBottom = isFloating ? 0 : navBars.bottom;
+                    if (v.getPaddingLeft() != targetLeft
+                            || v.getPaddingRight() != targetRight
+                            || v.getPaddingBottom() != targetBottom) {
+                        v.setPadding(targetLeft, v.getPaddingTop(), targetRight, targetBottom);
                     }
                     return windowInsets;
                 });

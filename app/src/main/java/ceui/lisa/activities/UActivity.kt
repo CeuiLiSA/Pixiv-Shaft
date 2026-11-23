@@ -285,6 +285,7 @@ class UActivity : BaseActivity<ActivityNewUserBinding>(), Display<UserDetailResp
             borderless = true
             transparentBackground = true
             anchorIconRes = ceui.pixiv.witstudio.R.drawable.wit_ic_more_vert
+            anchorIconTint = android.graphics.Color.WHITE
 
             val hasIllust = data.profile.total_illusts > 0
             val hasManga = data.profile.total_manga > 0

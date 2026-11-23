@@ -112,10 +112,14 @@ public class WitLiquidGlassView @JvmOverloads public constructor(
         set(value) {
             if (field == value) return
             field = value
+            if (!effectiveQuality.isLiveEnabled) {
+                resetPress()
+            }
             if (Build.VERSION.SDK_INT >= 31) {
                 discardRenderer()
             }
             invalidateMaterial()
+            (parent as? View)?.invalidate()
         }
 
     public val effectiveQuality: WitLiquidGlassQuality

@@ -297,6 +297,7 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
             borderless = true
             transparentBackground = true
             anchorIconRes = ceui.pixiv.witstudio.R.drawable.wit_ic_more_vert
+            anchorIconTint = Color.WHITE
             item(getString(R.string.action_settings)) {
                 startActivity(Intent(mContext, TemplateActivity::class.java).apply {
                     putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.SETTINGS.key)

@@ -746,6 +746,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
             borderless = true
             transparentBackground = true
             anchorIconRes = ceui.pixiv.witstudio.R.drawable.wit_ic_more_vert
+            anchorIconTint = android.graphics.Color.WHITE
             onDismiss = {
                 if (activeMoreMenu === created) activeMoreMenu = null
             }

@@ -92,7 +92,7 @@ public class WitLiquidGlassLayout @JvmOverloads public constructor(
             !canvas.isHardwareAccelerated && isHardwareAccelerated && layerType != LAYER_TYPE_SOFTWARE
         if (!softwareSnapshot) {
             if (Build.VERSION.SDK_INT >= 31 && canvas.isHardwareAccelerated &&
-                quality.isLiveEnabled && WitLiquidGlassBackend.BACKDROP.available && deviceAllowsBackdrop
+                hasLiveGlass() && WitLiquidGlassBackend.BACKDROP.available && deviceAllowsBackdrop
             ) {
                 canvasEdge = minOf(canvas.maximumBitmapWidth, canvas.maximumBitmapHeight)
                 remainingPixels = WitLiquidGlassBudget.HOST_PIXELS
@@ -173,7 +173,7 @@ public class WitLiquidGlassLayout @JvmOverloads public constructor(
             recording.translate(-scrollX.toFloat(), -scrollY.toFloat())
             for (i in 0 until selfIndex) {
                 val sibling = siblingParent.getChildAt(i) ?: continue
-                if (!sibling.isVisible || sibling.alpha <= 0f) continue
+                if (!sibling.isVisible || sibling.alpha <= 0f || sibling.width <= 0 || sibling.height <= 0) continue
                 val relLeft = (sibling.left - left).toFloat()
                 val relTop = (sibling.top - top).toFloat()
                 val saveCount = if (sibling.alpha < 0.999f) {
@@ -229,7 +229,7 @@ public class WitLiquidGlassLayout @JvmOverloads public constructor(
         // HWUI may update only the dirty child's display list. Re-record the host when the
         // source scrolls or a glass child moves so the sampled region and its damage stay aligned.
         if (Build.VERSION.SDK_INT < 31 || !isHardwareAccelerated || !deviceAllowsBackdrop) return
-        if (!quality.isLiveEnabled || !WitLiquidGlassBackend.BACKDROP.available) {
+        if (!hasLiveGlass() || !WitLiquidGlassBackend.BACKDROP.available) {
             if (backdrop != null) {
                 clearBackdrop()
                 invalidate()
@@ -276,8 +276,17 @@ public class WitLiquidGlassLayout @JvmOverloads public constructor(
         backdropDirty = true
     }
 
+    private fun hasLiveGlass(): Boolean {
+        if (quality.isLiveEnabled) return true
+        for (i in 0 until childCount) {
+            val child = getChildAt(i)
+            if (child is WitLiquidGlassView && child.effectiveQuality.isLiveEnabled) return true
+        }
+        return false
+    }
+
     private fun patchPlan(child: WitLiquidGlassView): WitLiquidGlassBudget.PatchPlan {
-        if (!quality.isLiveEnabled || !child.isVisible || child.alpha <= 0f || child.layerType == LAYER_TYPE_SOFTWARE) {
+        if (!child.effectiveQuality.isLiveEnabled || !child.isVisible || child.alpha <= 0f || child.layerType == LAYER_TYPE_SOFTWARE) {
             return WitLiquidGlassBudget.PatchPlan(0L, 1f)
         }
         return child.planPatch(canvasEdge)

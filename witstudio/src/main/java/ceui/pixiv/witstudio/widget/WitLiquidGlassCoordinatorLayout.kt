@@ -75,7 +75,7 @@ public class WitLiquidGlassCoordinatorLayout @JvmOverloads public constructor(
             !canvas.isHardwareAccelerated && isHardwareAccelerated && layerType != LAYER_TYPE_SOFTWARE
         if (!softwareSnapshot) {
             if (Build.VERSION.SDK_INT >= 31 && canvas.isHardwareAccelerated &&
-                quality.isLiveEnabled && WitLiquidGlassBackend.BACKDROP.available && deviceAllowsBackdrop
+                hasLiveGlass() && WitLiquidGlassBackend.BACKDROP.available && deviceAllowsBackdrop
             ) {
                 canvasEdge = minOf(canvas.maximumBitmapWidth, canvas.maximumBitmapHeight)
                 remainingPixels = WitLiquidGlassBudget.HOST_PIXELS
@@ -150,7 +150,7 @@ public class WitLiquidGlassCoordinatorLayout @JvmOverloads public constructor(
     override fun onDescendantInvalidated(child: View, target: View) {
         super.onDescendantInvalidated(child, target)
         if (Build.VERSION.SDK_INT < 31 || !isHardwareAccelerated || !deviceAllowsBackdrop) return
-        if (!quality.isLiveEnabled || !WitLiquidGlassBackend.BACKDROP.available) {
+        if (!hasLiveGlass() || !WitLiquidGlassBackend.BACKDROP.available) {
             if (backdrop != null) {
                 clearBackdrop()
                 invalidate()
@@ -197,8 +197,17 @@ public class WitLiquidGlassCoordinatorLayout @JvmOverloads public constructor(
         backdropDirty = true
     }
 
+    private fun hasLiveGlass(): Boolean {
+        if (quality.isLiveEnabled) return true
+        for (i in 0 until childCount) {
+            val child = getChildAt(i)
+            if (child is WitLiquidGlassView && child.effectiveQuality.isLiveEnabled) return true
+        }
+        return false
+    }
+
     private fun patchPlan(child: WitLiquidGlassView): WitLiquidGlassBudget.PatchPlan {
-        if (!quality.isLiveEnabled || !child.isVisible || child.alpha <= 0f || child.layerType == LAYER_TYPE_SOFTWARE) {
+        if (!child.effectiveQuality.isLiveEnabled || !child.isVisible || child.alpha <= 0f || child.layerType == LAYER_TYPE_SOFTWARE) {
             return WitLiquidGlassBudget.PatchPlan(0L, 1f)
         }
         return child.planPatch(canvasEdge)

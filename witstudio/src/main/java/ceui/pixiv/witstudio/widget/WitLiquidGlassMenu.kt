@@ -124,6 +124,9 @@ public class WitLiquidGlassMenu private constructor(
 
         @DrawableRes
         public var anchorIconRes: Int = 0
+        @get:ColorInt
+        @setparam:ColorInt
+        public var anchorIconTint: Int? = null
         public var borderless: Boolean = false
         public var transparentBackground: Boolean = false
         public var dimBackground: Boolean = false
@@ -190,6 +193,7 @@ public class WitLiquidGlassMenu private constructor(
             clearDimming = clearDimming,
             cornerRadiusDp = cornerRadiusDp,
             anchorIconRes = anchorIconRes,
+            anchorIconTint = anchorIconTint,
             borderless = borderless,
             transparentBackground = transparentBackground,
             startPlatterColor = startPlatterColor,
@@ -207,6 +211,7 @@ public class WitLiquidGlassMenu private constructor(
         val clearDimming: Float?,
         val cornerRadiusDp: Float,
         @get:DrawableRes val anchorIconRes: Int,
+        @get:ColorInt val anchorIconTint: Int?,
         val borderless: Boolean,
         val transparentBackground: Boolean,
         @get:ColorInt val startPlatterColor: Int?,
@@ -355,6 +360,7 @@ public class WitLiquidGlassMenu private constructor(
         openSettled = false
         dragFingerDown = false
         closeSubmenu(animated = false)
+        flushClosingSubmenuViews()
         cancelDragSprings()
         clearHighlight(animated = false)
         backCallback?.isEnabled = false
@@ -997,6 +1003,7 @@ public class WitLiquidGlassMenu private constructor(
         if (activeSubmenuGlass != null) return
 
         flushClosingSubmenuViews()
+        settleParentForSubmenu()
         parentGlass.animate().cancel()
         sourceRow.animate().cancel()
         clearHighlight(animated = true)
@@ -1230,6 +1237,13 @@ public class WitLiquidGlassMenu private constructor(
         val scroller = ScrollView(context).apply {
             isVerticalScrollBarEnabled = false
             overScrollMode = View.OVER_SCROLL_IF_CONTENT_SCROLLS
+            val subCornerRadiusPx = minOf(context.dpF(config.cornerRadiusDp), minOf(subW, subH) * 0.5f)
+            outlineProvider = object : ViewOutlineProvider() {
+                override fun getOutline(view: View, outline: Outline) {
+                    outline.setRoundRect(0, 0, view.width, view.height, subCornerRadiusPx)
+                }
+            }
+            clipToOutline = true
             addView(
                 scrollContent,
                 FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT),
@@ -1431,7 +1445,8 @@ public class WitLiquidGlassMenu private constructor(
             extracted?.first ?: androidx.core.content.ContextCompat.getDrawable(context, R.drawable.wit_ic_more_vert)
         } ?: return null
 
-        val tintList = extracted?.second
+        val tintList = config.anchorIconTint?.let { ColorStateList.valueOf(it) }
+            ?: extracted?.second
             ?: anchorIv?.imageTintList
             ?: (anchor as? ImageView)?.imageTintList
             ?: ColorStateList.valueOf(fallbackTint)
@@ -1515,6 +1530,7 @@ public class WitLiquidGlassMenu private constructor(
         closing: Boolean,
     ) {
         morphAnimator?.cancel()
+        if (state == State.FINISHED) return
         val start = progress
         var canceled = false
         morphAnimator = ValueAnimator.ofFloat(start, target).apply {
@@ -1526,14 +1542,14 @@ public class WitLiquidGlassMenu private constructor(
             addListener(object : AnimatorListenerAdapter() {
                 override fun onAnimationCancel(animation: Animator) {
                     canceled = true
-                    if (closing || target <= 0f) {
+                    if (target <= 0f) {
                         finishAndCleanup()
                     }
                 }
 
                 override fun onAnimationEnd(animation: Animator) {
                     if (canceled || state == State.FINISHED) {
-                        if (closing || target <= 0f) {
+                        if (target <= 0f) {
                             finishAndCleanup()
                         }
                         return
@@ -1551,7 +1567,21 @@ public class WitLiquidGlassMenu private constructor(
         }
     }
 
-    private fun settleOpen() {
+    private fun settleParentForSubmenu() {
+        morphAnimator?.cancel()
+        morphAnimator = null
+        cancelDragSprings()
+        dragFingerDown = false
+        val needsSettle = !openSettled ||
+            abs(dragPullX) > 0.5f ||
+            abs(dragPullY) > 0.5f ||
+            abs(dragPress) > 0.01f
+        if (!needsSettle) return
+        applyProgress(1f, closing = false)
+        settleOpen(focus = false)
+    }
+
+    private fun settleOpen(focus: Boolean = true) {
         openSettled = true
         dragPullX = 0f
         dragPullY = 0f
@@ -1587,7 +1617,7 @@ public class WitLiquidGlassMenu private constructor(
             echo.alpha = 0f
             setViewBlur(echo, 0f, isContent = false)
         }
-        focusFirstRow()
+        if (focus) focusFirstRow()
     }
 
     /**
@@ -2588,7 +2618,7 @@ public class WitLiquidGlassMenu private constructor(
         if (scrim != null && scrim.parent === host) {
             host.removeView(scrim)
         }
-        if (host.tag == "WitLiquidGlassOverlayHost" && host.childCount == 0) {
+        if (host.tag == OVERLAY_HOST_TAG && host.childCount == 0) {
             host.backdropSiblingParent = null
             (host.parent as? ViewGroup)?.removeView(host)
         }
@@ -2674,6 +2704,8 @@ public class WitLiquidGlassMenu private constructor(
             val cornerRadius: Float,
         )
 
+        private const val OVERLAY_HOST_TAG = "WitLiquidGlassOverlayHost"
+
         /**
          * Opens a Liquid Glass morphing menu anchored to [anchor].
          * Automatically locates an existing [WitLiquidGlassLayout] in ancestry or attaches a lightweight
@@ -2683,23 +2715,55 @@ public class WitLiquidGlassMenu private constructor(
             anchor: View,
             block: Builder.() -> Unit,
         ): WitLiquidGlassMenu? {
-            val host = findOrCreateHost(anchor) ?: return null
-            return show(host, anchor, block)
+            findAncestorHost(anchor)?.let { return show(it, anchor, block) }
+
+            val activity = findActivity(anchor.context) ?: return null
+            val content = activity.findViewById<ViewGroup>(android.R.id.content) ?: return null
+            val existingHost = content.findViewWithTag<WitLiquidGlassLayout>(OVERLAY_HOST_TAG)
+            if (existingHost != null) {
+                val existing = existingHost.getTag(R.id.wit_liquid_glass_menu_active) as? WitLiquidGlassMenu
+                if (existing != null && existing.state != State.FINISHED) {
+                    val sameAnchor = existing.anchor === anchor
+                    if (sameAnchor && (existing.state == State.ATTACHED || existing.state == State.OPENING_OR_OPEN)) {
+                        existing.dismiss(animated = true)
+                        return null
+                    }
+                    existing.dismiss(animated = false)
+                } else if (existingHost.childCount == 0) {
+                    existingHost.backdropSiblingParent = null
+                    content.removeView(existingHost)
+                }
+            }
+
+            val builder = Builder().apply(block)
+            val entries = builder.buildEntries()
+            if (entries.none { it is Entry.Action || it is Entry.Toggle || it is Entry.Submenu }) return null
+
+            val host = acquireOverlayHost(activity, content)
+            val created = WitLiquidGlassMenu(host, anchor, entries, builder.buildConfig())
+                .apply { showInternal() }
+                .takeUnless { it.state == State.FINISHED }
+            if (created == null && host.childCount == 0) {
+                host.backdropSiblingParent = null
+                (host.parent as? ViewGroup)?.removeView(host)
+            }
+            return created
         }
 
-        private fun findOrCreateHost(anchor: View): WitLiquidGlassLayout? {
+        private fun findAncestorHost(anchor: View): WitLiquidGlassLayout? {
             var cur: ViewParent? = anchor.parent
             while (cur != null) {
                 if (cur is WitLiquidGlassLayout) return cur
                 cur = cur.parent
             }
+            return null
+        }
 
-            val activity = findActivity(anchor.context) ?: return null
-            val content = activity.findViewById<ViewGroup>(android.R.id.content) ?: return null
-            var host = content.findViewWithTag<WitLiquidGlassLayout>("WitLiquidGlassOverlayHost")
+        private fun acquireOverlayHost(activity: Activity, content: ViewGroup): WitLiquidGlassLayout {
+            var host = content.findViewWithTag<WitLiquidGlassLayout>(OVERLAY_HOST_TAG)
             if (host == null) {
                 host = WitLiquidGlassLayout(activity).apply {
-                    tag = "WitLiquidGlassOverlayHost"
+                    tag = OVERLAY_HOST_TAG
                     backdropSiblingParent = content
                 }
                 content.addView(
