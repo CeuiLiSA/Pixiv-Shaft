@@ -2546,6 +2546,7 @@
     <string name="network_test_pollution_dialog_tail_other">\n\n建議在「設定 → 網路」同時開啟直連模式和「安全 DNS（DoH）」來繞過污染。</string>
     <string name="network_test_clean_seg_dns">DNS 解析</string>
     <string name="network_test_clean_seg_handshake">握手</string>
+    <string name="network_test_clean_seg_handshake_ok">握手一切正常。</string>
     <string name="network_test_clean_seg_dim">尺寸探測</string>
     <string name="network_test_clean_seg_download_ok">圖片下載一切正常。</string>
     <string name="network_test_clean_seg_download_slow">圖片下載緩慢。</string>

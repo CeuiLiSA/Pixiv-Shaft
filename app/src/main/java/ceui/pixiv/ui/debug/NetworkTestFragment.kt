@@ -26,6 +26,7 @@ import ceui.lisa.http.ImageHostManager
 import ceui.lisa.utils.Common
 import ceui.pixiv.utils.hideKeyboard
 import com.blankj.utilcode.util.BarUtils
+import ceui.pixiv.witstudio.dialog.WitBottomSheet
 import ceui.pixiv.witstudio.dialog.WitDialog
 import kotlinx.coroutines.launch
 
@@ -64,6 +65,7 @@ class NetworkTestFragment : Fragment(R.layout.fragment_network_perf_test) {
     private lateinit var btnCopy: TextView
 
     private var rawLogShown = false
+    private var scopeSheet: WitBottomSheet? = null
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -115,12 +117,19 @@ class NetworkTestFragment : Fragment(R.layout.fragment_network_perf_test) {
             viewModel.runTests()
         }
         btnRun.setOnLongClickListener {
+            if (viewModel.running.value == true || scopeSheet?.isShowing == true) {
+                return@setOnLongClickListener true
+            }
             hideKeyboard()
-            NetworkTestScopeSheet.show(
+            scopeSheet = NetworkTestScopeSheet.show(
                 requireContext(),
                 viewModel.selectedModules.value ?: NetworkTestModule.entries.toSet(),
             ) { picked ->
                 viewModel.setSelectedModules(picked)
+            }.apply {
+                setOnDismissListener {
+                    if (scopeSheet === this) scopeSheet = null
+                }
             }
             true
         }
@@ -144,6 +153,12 @@ class NetworkTestFragment : Fragment(R.layout.fragment_network_perf_test) {
         }
 
         observeViewModel()
+    }
+
+    override fun onDestroyView() {
+        scopeSheet?.dismiss()
+        scopeSheet = null
+        super.onDestroyView()
     }
 
     private fun observeViewModel() {

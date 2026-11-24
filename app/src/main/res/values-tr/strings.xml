@@ -2537,6 +2537,7 @@
     <string name="network_test_pollution_dialog_tail_other">\n\nAyarlar → Ağ bölümünde doğrudan bağlantı ve Güvenli DNS (DoH)\'i birlikte etkinleştirerek kirliliği atlayın.</string>
     <string name="network_test_clean_seg_dns">DNS çözümlemesi</string>
     <string name="network_test_clean_seg_handshake">el sıkışma</string>
+    <string name="network_test_clean_seg_handshake_ok">el sıkışma sorunsuz.</string>
     <string name="network_test_clean_seg_dim">boyut testi</string>
     <string name="network_test_clean_seg_download_ok">görsel indirmeleri sorunsuz.</string>
     <string name="network_test_clean_seg_download_slow">görsel indirmeleri yavaş.</string>

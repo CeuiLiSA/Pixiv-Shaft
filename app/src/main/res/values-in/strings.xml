@@ -2573,6 +2573,7 @@
     <string name="network_test_pollution_dialog_tail_other">\n\nDisarankan mengaktifkan mode koneksi langsung dan «DNS aman (DoH)» di «Pengaturan → Jaringan» untuk melewati polusi.</string>
     <string name="network_test_clean_seg_dns">Resolusi DNS</string>
     <string name="network_test_clean_seg_handshake">handshake</string>
+    <string name="network_test_clean_seg_handshake_ok">handshake normal.</string>
     <string name="network_test_clean_seg_dim">uji ukuran</string>
     <string name="network_test_clean_seg_download_ok">unduhan gambar semuanya normal.</string>
     <string name="network_test_clean_seg_download_slow">unduhan gambar lambat.</string>

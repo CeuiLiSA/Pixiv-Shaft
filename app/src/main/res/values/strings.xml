@@ -2809,6 +2809,7 @@
          各段独立翻译，_fallback 仅供 Fragment 在 ViewModel 派发前兜底。 -->
     <string name="network_test_clean_seg_dns">DNS解析</string>
     <string name="network_test_clean_seg_handshake">握手</string>
+    <string name="network_test_clean_seg_handshake_ok">握手一切正常。</string>
     <string name="network_test_clean_seg_dim">尺寸探测</string>
     <string name="network_test_clean_seg_download_ok">图片下载一切正常。</string>
     <string name="network_test_clean_seg_download_slow">图片下载缓慢。</string>

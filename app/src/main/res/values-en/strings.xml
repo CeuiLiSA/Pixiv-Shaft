@@ -2554,6 +2554,7 @@
     <string name="network_test_pollution_dialog_tail_other">\n\nIn Settings → Network, enable both direct mode and Secure DNS (DoH) to bypass pollution.</string>
     <string name="network_test_clean_seg_dns">DNS resolution</string>
     <string name="network_test_clean_seg_handshake">handshake</string>
+    <string name="network_test_clean_seg_handshake_ok">handshake OK.</string>
     <string name="network_test_clean_seg_dim">size probe</string>
     <string name="network_test_clean_seg_download_ok">image downloads OK.</string>
     <string name="network_test_clean_seg_download_slow">image downloads slow.</string>

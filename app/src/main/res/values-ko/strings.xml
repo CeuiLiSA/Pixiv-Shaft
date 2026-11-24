@@ -2531,6 +2531,7 @@
     <string name="network_test_pollution_dialog_tail_other">\n\n설정 → 네트워크에서 직접 연결 모드와 보안 DNS(DoH)를 모두 활성화하면 오염을 우회할 수 있습니다.</string>
     <string name="network_test_clean_seg_dns">DNS 해석</string>
     <string name="network_test_clean_seg_handshake">핸드셰이크</string>
+    <string name="network_test_clean_seg_handshake_ok">핸드셰이크가 정상입니다.</string>
     <string name="network_test_clean_seg_dim">크기 검사</string>
     <string name="network_test_clean_seg_download_ok">이미지 다운로드도 정상입니다.</string>
     <string name="network_test_clean_seg_download_slow">이미지 다운로드가 느립니다.</string>

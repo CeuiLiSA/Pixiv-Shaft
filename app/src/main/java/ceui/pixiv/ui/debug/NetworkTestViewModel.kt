@@ -247,7 +247,8 @@ class NetworkTestViewModel : ViewModel() {
     val selectedModules: LiveData<Set<NetworkTestModule>> = _selectedModules
 
     fun setSelectedModules(modules: Set<NetworkTestModule>) {
-        _selectedModules.value = modules
+        if (modules.isEmpty()) return
+        _selectedModules.value = modules.toSet()
     }
 
     fun isModuleSelected(module: NetworkTestModule): Boolean {
@@ -395,6 +396,9 @@ class NetworkTestViewModel : ViewModel() {
         val direct = directConnect
         val appApiCfg = buildAppApiConfig()
         val appApiTitle = appApiCfg.displayName ?: appApiCfg.host
+        val activeModules = (_selectedModules.value ?: NetworkTestModule.entries.toSet())
+            .ifEmpty { NetworkTestModule.entries.toSet() }
+        val imageSelected = NetworkTestModule.IMAGE in activeModules
 
         viewModelScope.launch(Dispatchers.IO) {
             try {
@@ -404,38 +408,41 @@ class NetworkTestViewModel : ViewModel() {
                 )
                 log("")
 
-                // 图片目标联动当前图片代理：反代模式下直接把目标域名换成反代域名来测。
-                val imageProxy = imageProxyDomain()
-                // 自定义反代可能是 http://（明文）——https 握手无法代表它，跳过该目标的连通性，
-                // 卡片判定以图片下载探测为准（runImageDownloadPhase 结束会回写该卡状态）。
-                val imagePlainHttp = ImageHostManager.getMode() == ImageHostManager.Mode.CUSTOM &&
-                    ImageHostManager.getCustomHost().trim().startsWith("http://", ignoreCase = true)
-                imageCardRelyOnDownload = imagePlainHttp
-                val imageCfg = if (imageProxy != null) {
-                    val imageDisplay = if (ImageHostManager.getMode() == ImageHostManager.Mode.CUSTOM) {
-                        maskProxyUrl(imageProxy)
+                // 图片目标联动当前图片代理：反代模式下直接把目标域名换成反代域名来测（仅选中图片模块时生效）。
+                val imageCfg = if (imageSelected) {
+                    val imageProxy = imageProxyDomain()
+                    // 自定义反代可能是 http://（明文）——https 握手无法代表它，跳过该目标的连通性，
+                    // 卡片判定以图片下载探测为准（runImageDownloadPhase 结束会回写该卡状态）。
+                    val imagePlainHttp = ImageHostManager.getMode() == ImageHostManager.Mode.CUSTOM &&
+                        ImageHostManager.getCustomHost().trim().startsWith("http://", ignoreCase = true)
+                    imageCardRelyOnDownload = imagePlainHttp
+                    if (imageProxy != null) {
+                        val imageDisplay = if (ImageHostManager.getMode() == ImageHostManager.Mode.CUSTOM) {
+                            maskProxyUrl(imageProxy)
+                        } else {
+                            imageProxy
+                        }
+                        TargetConfig(
+                            imageProxy,
+                            Shaft.getContext().getString(R.string.network_test_target_sub_image_proxy, imageDisplay),
+                            null,
+                            TargetKind.IMAGE,
+                            plainHttp = imagePlainHttp,
+                            displayName = imageDisplay,
+                        )
                     } else {
-                        imageProxy
+                        TargetConfig(
+                            "i.pximg.net",
+                            Shaft.getContext().getString(R.string.network_test_target_sub_image_official),
+                            PXIMG_CIDRS,
+                            TargetKind.IMAGE,
+                        )
                     }
-                    TargetConfig(
-                        imageProxy,
-                        Shaft.getContext().getString(R.string.network_test_target_sub_image_proxy, imageDisplay),
-                        null,
-                        TargetKind.IMAGE,
-                        plainHttp = imagePlainHttp,
-                        displayName = imageDisplay,
-                    )
                 } else {
-                    TargetConfig(
-                        "i.pximg.net",
-                        Shaft.getContext().getString(R.string.network_test_target_sub_image_official),
-                        PXIMG_CIDRS,
-                        TargetKind.IMAGE,
-                    )
+                    null
                 }
-                imageTargetTitle = imageCfg.displayName ?: imageCfg.host
-                val imageTitle = imageCfg.displayName ?: imageCfg.host
-                val activeModules = _selectedModules.value ?: NetworkTestModule.entries.toSet()
+                val imageTitle = imageCfg?.let { it.displayName ?: it.host }
+                imageTargetTitle = imageTitle
                 val configs = mutableListOf<TargetConfig>()
                 if (NetworkTestModule.APP_API in activeModules) {
                     configs.add(appApiCfg)
@@ -450,7 +457,7 @@ class NetworkTestViewModel : ViewModel() {
                         ),
                     )
                 }
-                if (NetworkTestModule.IMAGE in activeModules) {
+                if (imageCfg != null) {
                     configs.add(imageCfg)
                 }
                 if (NetworkTestModule.PIXSHAFT in activeModules) {
@@ -534,7 +541,7 @@ class NetworkTestViewModel : ViewModel() {
                 // 图片服务器（官方 i.pximg.net 或当前反代域名）失败：卡片 pill 覆盖为红底
                 // 「图片无法加载」，顶部总览并列红底 pill，小字追加换图片代理的提示。
                 // 局部变量用 imageFailed，避免与成员属性 imageTargetFailed 重名遮蔽。
-                val imageFailed = (NetworkTestModule.IMAGE in activeModules) && work.any {
+                val imageFailed = imageSelected && imageTitle != null && work.any {
                     it.title == imageTitle &&
                         (it.status == TargetStatus.FAILED || it.status == TargetStatus.POLLUTED)
                 }
@@ -553,9 +560,15 @@ class NetworkTestViewModel : ViewModel() {
                 val latencyHosts = work.filter {
                     it.status == TargetStatus.HIGH_LATENCY || it.status == TargetStatus.EXTREME_LATENCY
                 }.map { it.title }
-                // 图片下载卡的延迟同样归到「图片代理慢」，小字给换图片代理的建议。
-                val imageHighLatency = latencyHosts.contains(imageTitle) || imageDownloadLatency != null
-                val otherHighLatency = latencyHosts.any { it != imageTitle }
+                // 图片下载卡的延迟同样归到「图片代理慢」，小字给换图片代理的建议（仅选中图片模块时归因）。
+                val imageHighLatency = imageSelected && (
+                    (imageTitle != null && latencyHosts.contains(imageTitle)) || imageDownloadLatency != null
+                )
+                val otherHighLatency = if (imageSelected && imageTitle != null) {
+                    latencyHosts.any { it != imageTitle }
+                } else {
+                    latencyHosts.isNotEmpty()
+                }
                 val ov = when {
                     appApiFailed -> OverallStatus.NETWORK_DOWN
                     polluted.isNotEmpty() -> OverallStatus.POLLUTED
@@ -588,26 +601,13 @@ class NetworkTestViewModel : ViewModel() {
                             else -> generic
                         }
                     }
-                    ov == OverallStatus.CLEAN -> {
-                        // 总览小字按段拼接：fake-ip 去掉「DNS解析」段、尺寸探测失败去掉「尺寸探测」段、
-                        // 下载缓慢换「图片下载缓慢」段。不再对整串做中文字面 replace——
-                        // 旧做法在非中文 locale 下 replace 目标根本不存在（各语言旧译与中文文案不一致）。
-                        val segs = mutableListOf<String>()
-                        if (!fakeIpDetected) segs.add(ctx.getString(R.string.network_test_clean_seg_dns))
-                        segs.add(ctx.getString(R.string.network_test_clean_seg_handshake))
-                        if (!imageDimFailed) segs.add(ctx.getString(R.string.network_test_clean_seg_dim))
-                        segs.add(
-                            ctx.getString(
-                                if (imageSlow) R.string.network_test_clean_seg_download_slow
-                                else R.string.network_test_clean_seg_download_ok,
-                            ),
-                        )
-                        var base = segs.joinToString(ctx.getString(R.string.network_test_clean_seg_sep))
-                        if (imageDimFailed) {
-                            base += "\n" + ctx.getString(R.string.network_test_dim_probe_failed_impact)
-                        }
-                        base
-                    }
+                    ov == OverallStatus.CLEAN -> buildCleanOverallSub(
+                        ctx = ctx,
+                        fakeIpDetected = fakeIpDetected,
+                        imageSelected = imageSelected,
+                        imageDimFailed = imageDimFailed,
+                        imageSlow = imageSlow,
+                    )
                     ov == OverallStatus.DEGRADED -> {
                         // 部分异常：小字说明连通性/握手问题；图片服务器失败时追加换代理提示。
                         var base = ctx.getString(R.string.network_test_overall_degraded_sub)
@@ -629,7 +629,7 @@ class NetworkTestViewModel : ViewModel() {
                 }
                 overallSub.postValue(subText)
                 // 图片服务器失败：卡片 pill 覆盖为红底「图片无法加载」（颜色仍按 FAILED/POLLUTED 取红）。
-                val imageIdx = work.indexOfFirst { it.title == imageTitle }
+                val imageIdx = if (imageTitle != null) work.indexOfFirst { it.title == imageTitle } else -1
                 if (imageIdx >= 0 && imageFailed) {
                     work[imageIdx] = work[imageIdx].copy(
                         statusPillOverride = ctx.getString(R.string.network_test_image_unavailable),
@@ -1338,19 +1338,24 @@ class NetworkTestViewModel : ViewModel() {
                 .build()
             client.newCall(request).execute().use { resp ->
                 val ms = System.currentTimeMillis() - t0
-                val bodyStr = resp.body?.string().orEmpty()
-                val json = runCatching { Gson().fromJson(bodyStr, JsonObject::class.java) }.getOrNull()
-                val ok = json?.get("ok")?.takeIf { it.isJsonPrimitive }?.asBoolean ?: false
-                alive = resp.isSuccessful && ok
-                if (alive) {
-                    updateStep(idx, stepIdx, strRes(R.string.network_test_pixshaft_health_ok, resp.code, ms), StepStatus.OK)
-                    log("Pixshaft /health: HTTP ${resp.code} ${ms}ms ok=true")
-                } else if (resp.isSuccessful) {
-                    updateStep(idx, stepIdx, strRes(R.string.network_test_pixshaft_health_err, resp.code, ms), StepStatus.FAIL)
-                    log("Pixshaft /health 未就绪: HTTP ${resp.code} ${ms}ms ok=$ok body=$bodyStr")
-                } else {
+                if (!resp.isSuccessful) {
                     updateStep(idx, stepIdx, strRes(R.string.network_test_pixshaft_health_fail, resp.code, ms), StepStatus.FAIL)
                     log("Pixshaft /health 失败: HTTP ${resp.code} ${ms}ms")
+                } else {
+                    val bodyStr = resp.body?.byteStream()
+                        ?.let { readCapped(it, MAX_HEALTH_RESPONSE_BYTES).first.toString(Charsets.UTF_8) }
+                        .orEmpty()
+                    val json = runCatching { Gson().fromJson(bodyStr, JsonObject::class.java) }.getOrNull()
+                    val ok = json?.get("ok")?.takeIf { it.isJsonPrimitive && it.asJsonPrimitive.isBoolean }?.asBoolean == true
+                    alive = ok
+                    if (alive) {
+                        updateStep(idx, stepIdx, strRes(R.string.network_test_pixshaft_health_ok, resp.code, ms), StepStatus.OK)
+                        log("Pixshaft /health: HTTP ${resp.code} ${ms}ms ok=true")
+                    } else {
+                        val snippet = bodyStr.trim().take(TRACE_LOG_SNIPPET).replace('\r', ' ').replace('\n', ' ')
+                        updateStep(idx, stepIdx, strRes(R.string.network_test_pixshaft_health_err, resp.code, ms), StepStatus.FAIL)
+                        log("Pixshaft /health 未就绪: HTTP ${resp.code} ${ms}ms ok=$ok body=$snippet")
+                    }
                 }
             }
         } catch (e: Exception) {
@@ -2118,8 +2123,43 @@ class NetworkTestViewModel : ViewModel() {
          */
         private const val TRACE_TIMEOUT_SECONDS = 5L
 
-        /** 非 trace 正文（如 CF 拦截页 HTML）进日志时的截断长度，避免整页 HTML 灌进原始日志。 */
+        /** 非 trace / 非预期 /health 正文（如 CF 或认证页 HTML）进日志时的截断长度，避免整页 HTML 灌进原始日志。 */
         private const val TRACE_LOG_SNIPPET = 200
+
+        /** `/health` 响应体读取上限，防止劫持/认证页返回超大响应体耗尽内存。 */
+        private const val MAX_HEALTH_RESPONSE_BYTES = 64 * 1024
+
+        /**
+         * 总览 CLEAN 小字按段拼接：fake-ip 去掉「DNS解析」段；未选中图片模块时不拼接
+         * 「尺寸探测 / 图片下载」段，避免局部测试给出未执行检测的假结论。
+         */
+        internal fun buildCleanOverallSub(
+            ctx: android.content.Context,
+            fakeIpDetected: Boolean,
+            imageSelected: Boolean,
+            imageDimFailed: Boolean,
+            imageSlow: Boolean,
+        ): String {
+            val segs = mutableListOf<String>()
+            if (!fakeIpDetected) segs.add(ctx.getString(R.string.network_test_clean_seg_dns))
+            if (imageSelected) {
+                segs.add(ctx.getString(R.string.network_test_clean_seg_handshake))
+                if (!imageDimFailed) segs.add(ctx.getString(R.string.network_test_clean_seg_dim))
+                segs.add(
+                    ctx.getString(
+                        if (imageSlow) R.string.network_test_clean_seg_download_slow
+                        else R.string.network_test_clean_seg_download_ok,
+                    ),
+                )
+            } else {
+                segs.add(ctx.getString(R.string.network_test_clean_seg_handshake_ok))
+            }
+            var base = segs.joinToString(ctx.getString(R.string.network_test_clean_seg_sep))
+            if (imageSelected && imageDimFailed) {
+                base += "\n" + ctx.getString(R.string.network_test_dim_probe_failed_impact)
+            }
+            return base
+        }
 
         // 代理 fake-ip 模式返回的占位段：不可路由，命中即说明 DNS 被代理接管，测连通无意义。
         private val FAKE_IP_CIDRS = listOf(

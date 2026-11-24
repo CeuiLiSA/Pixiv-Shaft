@@ -2531,6 +2531,7 @@
     <string name="network_test_pollution_dialog_tail_other">\n\n「設定 → ネットワーク」で直続モードとセキュア DNS（DoH）を両方有効にして汚染を迂回してください。</string>
     <string name="network_test_clean_seg_dns">DNS 解決</string>
     <string name="network_test_clean_seg_handshake">ハンドシェイク</string>
+    <string name="network_test_clean_seg_handshake_ok">ハンドシェイクは正常です。</string>
     <string name="network_test_clean_seg_dim">サイズ検証</string>
     <string name="network_test_clean_seg_download_ok">画像ダウンロードも正常です。</string>
     <string name="network_test_clean_seg_download_slow">画像ダウンロードが遅いです。</string>
