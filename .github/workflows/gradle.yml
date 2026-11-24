@@ -500,11 +500,11 @@ jobs:
           target: google_apis
           arch: x86_64
           profile: pixel_7_pro
-          # 直接使用预构建的 APK。仍由 AGP 安装并生成报告，排除打包任务及其编译依赖。
+          # 保留 AGP 连接测试的打包依赖，让 Gradle 复用预构建产物并提供 APK 输出路径。
           script: |
-            ./gradlew :app:connectedGithubDebugAndroidTest -x :app:packageGithubDebug -x :app:packageGithubDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class="$DEBUG_TEST_CLASS" -PSHAFT_TEST_ABI=x86_64 --stacktrace
-            ./gradlew :actionqueue:connectedDebugAndroidTest -x :actionqueue:packageDebugAndroidTest --stacktrace
-            ./gradlew :app:connectedGithubReleaseAndroidTest -x :app:packageGithubRelease -x :app:packageGithubReleaseAndroidTest -Pandroid.testInstrumentationRunnerArguments.class="$RELEASE_TEST_CLASSES" -PSHAFT_TEST_BUILD_TYPE=release -PSHAFT_TEST_ABI=x86_64 --stacktrace
+            ./gradlew :app:connectedGithubDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class="$DEBUG_TEST_CLASS" -PSHAFT_TEST_ABI=x86_64 --stacktrace
+            ./gradlew :actionqueue:connectedDebugAndroidTest --stacktrace
+            ./gradlew :app:connectedGithubReleaseAndroidTest -Pandroid.testInstrumentationRunnerArguments.class="$RELEASE_TEST_CLASSES" -PSHAFT_TEST_BUILD_TYPE=release -PSHAFT_TEST_ABI=x86_64 --stacktrace
 
       - name: Upload instrumented test reports
         if: failure() && steps.check_run.outputs.should_run == 'true'
