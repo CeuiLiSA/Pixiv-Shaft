@@ -7,6 +7,9 @@ import ceui.pixiv.login.InvalidRefreshTokenException
 import ceui.pixiv.login.PixivOAuthResponse
 import ceui.pixiv.login.PixivOAuthUser
 import ceui.pixiv.nana7mi.session.AcquireResult
+import ceui.pixiv.nana7mi.session.BorrowSource
+import ceui.pixiv.nana7mi.session.BorrowedAccess
+import ceui.pixiv.nana7mi.session.DispatchRequest
 import ceui.pixiv.nana7mi.session.InMemoryAccountReportStore
 import ceui.pixiv.nana7mi.session.Nana7miSessionEngine
 import ceui.pixiv.nana7mi.session.NetworkRetryPolicy
@@ -161,23 +164,51 @@ class ShaftNana7miAdaptersTest {
     }
 
     @Test
+    fun `ShaftBorrowSource maps all channel and build-type variants under app shaft`() {
+        val githubDebug = ShaftBorrowSource.forBuild("github", isDebug = true)
+        assertEquals("shaft-github-debug", githubDebug.id)
+        assertEquals(BorrowSource.APP_SHAFT, githubDebug.app)
+
+        val githubRelease = ShaftBorrowSource.forBuild("github", isDebug = false)
+        assertEquals("shaft-github-release", githubRelease.id)
+        assertEquals(BorrowSource.APP_SHAFT, githubRelease.app)
+
+        val googleDebug = ShaftBorrowSource.forBuild("google", isDebug = true)
+        assertEquals("shaft-google-debug", googleDebug.id)
+        assertEquals(BorrowSource.APP_SHAFT, googleDebug.app)
+
+        val googleRelease = ShaftBorrowSource.forBuild("google", isDebug = false)
+        assertEquals("shaft-google-release", googleRelease.id)
+        assertEquals(BorrowSource.APP_SHAFT, googleRelease.app)
+    }
+
+    @Test
     fun `host adapters wire end-to-end first page, 400 OAuth reactive refresh, and pagination`() = runTest {
         val reportStore = InMemoryAccountReportStore<AccountResponse>()
         val initialPayload = Nana7miPayload(
             uid = 102L,
+            // Sanitized token-only payload from pixshaft-api: no email, nickname, handle, or avatar.
             account = AccountResponse(
                 access_token = "stale-at",
                 refresh_token = "old-rt",
                 expires_in = 3600,
                 scope = "public",
-                user = User(id = 102L, is_premium = true, name = "lender"),
+                user = User(id = 102L, is_premium = true),
             ),
             updatedAt = System.currentTimeMillis(),
             expiresAt = System.currentTimeMillis() + 60_000L,
             expired = false,
         )
+        val seenDispatches = mutableListOf<Pair<DispatchRequest, Boolean>>()
         val engine = Nana7miSessionEngine.create<AccountResponse> {
-            dispatcher = PixshaftAccountDispatcher { _, _ -> Nana7miResult.Success(initialPayload) }
+            borrowSource = BorrowSource.SHAFT_GITHUB_RELEASE
+            dispatcher = PixshaftAccountDispatcher(
+                includeSourceInBody = { true },
+                fetch = { req, includeBody ->
+                    seenDispatches.add(req to includeBody)
+                    Nana7miResult.Success(initialPayload)
+                },
+            )
             tokenRefresher = PixivOAuthTokenRefresher { rt ->
                 assertEquals("old-rt", rt)
                 PixivOAuthResponse(
@@ -201,8 +232,9 @@ class ShaftNana7miAdaptersTest {
             requesterUid = 777L
             idempotencyEnabled = true
             fallback { error("unexpected fallback: ${it.code}") }
-            request { account ->
-                val header = account.authorizationHeader()
+            request { access: BorrowedAccess ->
+                assertEquals(102L, access.uid)
+                val header = access.authorizationHeader()
                 seenAuthHeaders.add(header)
                 if (header == "Bearer stale-at") {
                     throw HttpException(
@@ -222,20 +254,24 @@ class ShaftNana7miAdaptersTest {
             idempotencyEnabled = true
             directRequest { error("must not fall back to direct pagination") }
             endPagination { error("unexpected endPagination: $it") }
-            request { account ->
-                seenAuthHeaders.add(account.authorizationHeader())
+            request { access: BorrowedAccess ->
+                seenAuthHeaders.add(access.authorizationHeader())
                 "page-2"
             }
         }
 
         assertEquals("page-1", first)
         assertEquals("page-2", second)
+        assertEquals(1, seenDispatches.size)
+        assertEquals(BorrowSource.SHAFT_GITHUB_RELEASE, seenDispatches.single().first.source)
+        assertEquals(true, seenDispatches.single().second)
         assertEquals(listOf("Bearer stale-at", "Bearer fresh-at", "Bearer fresh-at"), seenAuthHeaders)
-        // Rotated tokens persisted to report store while preserving richer User metadata & is_premium=true
+        // Rotated tokens persisted to report store while staying PII-free and keeping is_premium=true
         val persisted = reportStore.latestOnlinePayload(102L)!!
         assertEquals("fresh-at", persisted.access_token)
         assertEquals("fresh-rt", persisted.refresh_token)
         assertEquals(true, persisted.user?.is_premium)
-        assertEquals("lender", persisted.user?.name)
+        assertNull(persisted.user?.name)
+        assertNull(persisted.user?.mail_address)
     }
 }

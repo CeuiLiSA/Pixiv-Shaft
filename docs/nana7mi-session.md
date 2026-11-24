@@ -8,7 +8,7 @@
 
 - **上游库 `com.github.SoxiaLiSA:pixiv-premium-session`**（包名 `ceui.pixiv.nana7mi.session`）：
   - 纯 JVM 11 字节码，运行时仅依赖 `kotlinx-coroutines-core-jvm` 与 `kotlin-stdlib`，零 Android / OkHttp / Retrofit / Gson / MMKV / Timber / Hilt 依赖。
-  - 负责会话有限状态机（`Idle` / `CachedCursor` / `Active` / `Lost`）、主动/被动 OAuth 续期、`NonCancellable` 持久化前置校验、防取消早释的 FIFO 串行租约、有界预算重试、缓存游标 409 重放切换与会员归属合并策略（`MembershipPolicy`）。
+  - 负责会话有限状态机（`Idle` / `CachedCursor` / `Active` / `Lost`）、强制借号来源归属（`BorrowSource`，含 `X-Borrow-Source`/`X-Borrow-App` 约定与 Shaft 渠道变体自动归属 `shaft`）、最小权限凭据视图（`BorrowedAccess`，请求闭包不暴露 `refreshToken` 或宿主 `payload`）、主动/被动 OAuth 续期、`NonCancellable` 持久化前置校验、防取消早释的 FIFO 串行租约、有界预算重试、缓存游标 409 重放切换与会员归属合并策略（`MembershipPolicy`）。
 - **本仓宿主适配层（`:app`）**：
   - 适配器：`app/src/main/java/ceui/pixiv/nana7mi/host/ShaftNana7miAdapters.kt`（桥接 `PixshaftApi`、`PixivLogin`、`AccountResponse`、`AccountOnlineReportOutbox`、Retrofit `HttpException`、`Nana7miQuotaNotice`、`Timber`、`Nana7miSearchCache`、`Nana7miSearchTelemetry`）。
   - 进程级组合根：`app/src/main/java/ceui/pixiv/nana7mi/host/ShaftNana7miSession.kt`（`@Singleton`，经 `ServicesProvider.nana7miSession` 注入）。

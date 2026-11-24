@@ -1,6 +1,7 @@
 package ceui.pixiv.shaftapi
 
 import ceui.loxia.Tag
+import ceui.loxia.User
 import ceui.pixiv.api.model.AccountResponse
 import ceui.pixiv.api.model.Illust
 import com.google.gson.JsonElement
@@ -170,6 +171,8 @@ interface PixshaftApi {
     @POST("v1/account/nana7mi")
     suspend fun fetchNana7miRaw(
         @Body body: Nana7miRequest,
+        @Header("X-Borrow-Source") borrowSource: String? = null,
+        @Header("X-Borrow-App") borrowApp: String? = null,
     ): Response<Nana7miResponse>
 
     /**
@@ -253,6 +256,8 @@ interface PixshaftApi {
     @POST("v1/account/nana7mi/telemetry")
     suspend fun reportNana7miSearchTelemetry(
         @Body body: Nana7miSearchTelemetryReq,
+        @Header("X-Borrow-Source") borrowSource: String? = null,
+        @Header("X-Borrow-App") borrowApp: String? = null,
     ): Nana7miSearchTelemetryAck
 
     /**
@@ -263,6 +268,8 @@ interface PixshaftApi {
     @POST("v1/account/nana7mi/telemetry/batch")
     suspend fun reportNana7miSearchTelemetryBatch(
         @Body body: Nana7miSearchTelemetryBatchReq,
+        @Header("X-Borrow-Source") borrowSource: String? = null,
+        @Header("X-Borrow-App") borrowApp: String? = null,
     ): Nana7miSearchTelemetryBatchAck
 
     /**
@@ -277,6 +284,8 @@ interface PixshaftApi {
     @POST("v1/account/nana7mi/search-cache/lookup")
     suspend fun searchCacheLookupRaw(
         @Body body: Nana7miSearchCacheLookupReq,
+        @Header("X-Borrow-Source") borrowSource: String? = null,
+        @Header("X-Borrow-App") borrowApp: String? = null,
     ): Response<Nana7miSearchCacheLookupResp>
 
     /** 借号搜索成功后凭 miss receipt 回填；之后任何人发相同请求都能命中。发完即忘。 */
@@ -511,6 +520,11 @@ data class AppConfigResponse(
      */
     val nana7miRequestIdEnabled: Boolean? = null,
     /**
+     * 服务端是否接受 Nana7mi 请求体里的来源字段（`source`/`app`、遥测 `borrowSource`/`borrowApp`）。
+     * 缺失表示老服务端，客户端仅通过 HTTP 头携带来源，不在严格校验的 JSON 请求体里附加额外键。
+     */
+    val nana7miSourceEnabled: Boolean? = null,
+    /**
      * 这个 uid 的订阅档位。**只有带签名的请求才拿得到**（见 [Client] 里的签名拦截器）——
      * 这条路由本身是公开的，档位却是「谁在付钱、付到哪天」，不能让任何人拿 uid 就查。
      * 没带签名、未登录、或服务端查不到，都是 null；null 是「不知道」，不是「免费用户」。
@@ -711,6 +725,10 @@ data class Nana7miRequest(
     val uid: Long,
     /** 与缓存 lookup / 请求遥测共用；重试或缓存回退不会再开一笔搜索费用。 */
     val requestId: String? = null,
+    /** 借号发起方标识（如 `shaft-github-release`）；仅在服务端宣告 `nana7miSourceEnabled` 时写入请求体。 */
+    val source: String? = null,
+    /** 归属应用名（Shaft 各渠道统一为 `shaft`）；与 [source] 成对发送。 */
+    val app: String? = null,
 )
 
 /**
@@ -855,6 +873,8 @@ data class Nana7miSearchTelemetryReq(
     val durationMs: Long?,
     val appVersion: String,
     val appChannel: String,
+    val borrowSource: String? = null,
+    val borrowApp: String? = null,
 )
 
 data class Nana7miSearchTelemetryAck(
@@ -892,6 +912,8 @@ data class Nana7miSearchCacheLookupReq(
     val page: String,
     /** 本页 lookup、可能发生的官方回退、以及 request 遥测共用的幂等 ID。 */
     val requestId: String? = null,
+    val source: String? = null,
+    val app: String? = null,
 )
 
 /**
@@ -1281,10 +1303,27 @@ private fun parseRateLimited(response: Response<*>): Nana7miResult.RateLimited {
     )
 }
 
-suspend fun PixshaftApi.fetchNana7mi(uid: Long, requestId: String? = null): Nana7miResult {
+suspend fun PixshaftApi.fetchNana7mi(
+    uid: Long,
+    requestId: String? = null,
+    source: String? = null,
+    app: String? = null,
+    includeSourceInBody: Boolean = false,
+): Nana7miResult {
     if (uid <= 0L) return Nana7miResult.InvalidRequest
     return try {
-        val response = fetchNana7miRaw(Nana7miRequest(uid, requestId))
+        val bodySource = if (includeSourceInBody) source else null
+        val bodyApp = if (includeSourceInBody && source != null) app else null
+        val response = fetchNana7miRaw(
+            body = Nana7miRequest(
+                uid = uid,
+                requestId = requestId,
+                source = bodySource,
+                app = bodyApp,
+            ),
+            borrowSource = source,
+            borrowApp = if (source != null) app else null,
+        )
         when (response.code()) {
             404 -> Nana7miResult.NoAccount
             429 -> parseRateLimited(response)
@@ -1292,19 +1331,27 @@ suspend fun PixshaftApi.fetchNana7mi(uid: Long, requestId: String? = null): Nana
                 if (!response.isSuccessful) return Nana7miResult.HttpFailure(response.code())
                 val body = response.body() ?: return Nana7miResult.InvalidResponse()
                 val responseUid = body.uid ?: return Nana7miResult.InvalidResponse()
-                val account = body.account ?: return Nana7miResult.InvalidResponse()
+                val rawAccount = body.account ?: return Nana7miResult.InvalidResponse()
+                val rawUser = rawAccount.user
                 val updatedAt = body.updatedAt ?: return Nana7miResult.InvalidResponse()
                 val expiresAt = body.expiresAt ?: return Nana7miResult.InvalidResponse()
                 val expired = body.expired ?: return Nana7miResult.InvalidResponse()
                 if (
                     responseUid <= 0L ||
-                    account.user?.id != responseUid ||
-                    account.access_token.isNullOrBlank() ||
-                    account.refresh_token.isNullOrBlank() ||
+                    (rawUser != null && rawUser.id != responseUid) ||
+                    rawAccount.access_token.isNullOrBlank() ||
+                    rawAccount.refresh_token.isNullOrBlank() ||
                     updatedAt <= 0L ||
                     expiresAt < updatedAt
                 ) {
                     return Nana7miResult.InvalidResponse()
+                }
+                // 服务端剥离号主个人信息（邮箱、昵称、头像等）后只下发最小 token 与 user:{id,is_premium}；
+                // 若未来版本连 user 也省略，则只按 responseUid 构造最小 User(id) 而不臆造任何个人信息。
+                val account = if (rawUser == null) {
+                    rawAccount.copy(user = User(id = responseUid))
+                } else {
+                    rawAccount
                 }
                 // 借号的全部意义就是会员专属 sort，非会员号发出去必然被 pixiv 拒。服务端的派发池
                 // 本来就只收 is_premium = 1，所以这里是纵深防御（也能自愈分类错乱的行）。

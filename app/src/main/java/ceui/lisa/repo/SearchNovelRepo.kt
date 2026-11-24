@@ -328,6 +328,7 @@ class SearchNovelRepo @JvmOverloads constructor(
                 maxAgeMs = firstMaxAgeMs,
                 type = ListNovel::class.java,
                 stage = "novel_official_search",
+                includeSourceInBody = remoteAppConfig.nana7miSourceEnabled,
             )
             hooks = Nana7miTelemetryFlowHooks.firstPage(
                 telemetry = telemetry,
@@ -409,6 +410,7 @@ class SearchNovelRepo @JvmOverloads constructor(
                     maxAgeMs = cacheMaxAgeMs,
                     type = ListNovel::class.java,
                     stage = "novel_official_search_next",
+                    includeSourceInBody = remoteAppConfig.nana7miSourceEnabled,
                 )
             }
             BorrowedSessionState.Idle,

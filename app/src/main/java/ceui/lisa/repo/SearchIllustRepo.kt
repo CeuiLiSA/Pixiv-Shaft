@@ -320,6 +320,7 @@ class SearchIllustRepo @JvmOverloads constructor(
                 maxAgeMs = firstMaxAgeMs,
                 type = ListIllust::class.java,
                 stage = "official_search",
+                includeSourceInBody = remoteAppConfig.nana7miSourceEnabled,
             )
             hooks = Nana7miTelemetryFlowHooks.firstPage(
                 telemetry = telemetry,
@@ -395,6 +396,7 @@ class SearchIllustRepo @JvmOverloads constructor(
                     maxAgeMs = cacheMaxAgeMs,
                     type = ListIllust::class.java,
                     stage = "official_search_next",
+                    includeSourceInBody = remoteAppConfig.nana7miSourceEnabled,
                 )
             }
             BorrowedSessionState.Idle,

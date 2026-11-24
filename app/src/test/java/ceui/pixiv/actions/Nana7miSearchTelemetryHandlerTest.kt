@@ -443,6 +443,38 @@ class Nana7miSearchTelemetryHandlerTest {
         )
     }
 
+    @Test
+    fun `telemetry handlers gate borrowSource and borrowApp body fields on server capability`() = runBlocking {
+        val withOrigin = validPayload().copy(
+            borrowSource = "shaft-github-debug",
+            borrowApp = "shaft",
+        )
+        var legacyBatch: Nana7miSearchTelemetryBatchReq? = null
+        var modernBatch: Nana7miSearchTelemetryBatchReq? = null
+
+        Nana7miSearchTelemetryBatchHandler(
+            isOnline = { true },
+            includeSourceInBody = { false },
+            report = {
+                legacyBatch = it
+                Nana7miSearchTelemetryBatchAck(ok = true, accepted = 1, stored = 1)
+            },
+        ).execute(batchAction(listOf(withOrigin)))
+        assertEquals(null, legacyBatch?.events?.single()?.borrowSource)
+        assertEquals(null, legacyBatch?.events?.single()?.borrowApp)
+
+        Nana7miSearchTelemetryBatchHandler(
+            isOnline = { true },
+            includeSourceInBody = { true },
+            report = {
+                modernBatch = it
+                Nana7miSearchTelemetryBatchAck(ok = true, accepted = 1, stored = 1)
+            },
+        ).execute(batchAction(listOf(withOrigin)))
+        assertEquals("shaft-github-debug", modernBatch?.events?.single()?.borrowSource)
+        assertEquals("shaft", modernBatch?.events?.single()?.borrowApp)
+    }
+
     private fun batchAction(events: List<Nana7miSearchTelemetry.Payload>) = PendingAction(
         id = 2L,
         type = Nana7miSearchTelemetry.BATCH_ACTION_TYPE,

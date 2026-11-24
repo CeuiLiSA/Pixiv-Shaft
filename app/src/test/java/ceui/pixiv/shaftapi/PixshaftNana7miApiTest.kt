@@ -7,6 +7,7 @@ import okhttp3.mockwebserver.MockWebServer
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -231,5 +232,90 @@ class PixshaftNana7miApiTest {
             """{"eventId":"123e4567-e89b-42d3-a456-426614174000","flowId":"123e4567-e89b-42d3-a456-426614174001","eventType":"request","occurredAt":2000000000000,"requesterUid":31660292,"borrowedUid":4867906,"query":"初音ミク","contentType":"novel","page":"next","route":"borrowed_official","outcome":"failure","reason":"http_500","errorType":"HttpException","httpStatus":500,"appVersion":"6.8.0-debug","appChannel":"github"}""",
             request.body.readUtf8(),
         )
+    }
+
+    @Test
+    fun `nana7mi sends borrow source headers always and gates body fields on capability`() = runBlocking {
+        val sanitizedResponse = """
+            {
+              "uid": 102,
+              "account": {
+                "access_token": "access-102",
+                "refresh_token": "refresh-102",
+                "expires_in": 3600,
+                "token_type": "bearer",
+                "user": { "id": 102, "is_premium": true }
+              },
+              "updatedAt": 1999990000000,
+              "expiresAt": 1999993300000,
+              "expired": false
+            }
+        """.trimIndent()
+        server.enqueue(MockResponse().setResponseCode(200).setBody(sanitizedResponse))
+        server.enqueue(MockResponse().setResponseCode(200).setBody(sanitizedResponse))
+
+        // Capability disabled (old server): headers sent, body stays strictly legacy
+        val legacyResult = api.fetchNana7mi(
+            uid = 31660292L,
+            requestId = null,
+            source = "shaft-github-release",
+            app = "shaft",
+            includeSourceInBody = false,
+        )
+        val legacyReq = server.takeRequest()
+        assertTrue(legacyResult is Nana7miResult.Success)
+        assertEquals("shaft-github-release", legacyReq.getHeader("X-Borrow-Source"))
+        assertEquals("shaft", legacyReq.getHeader("X-Borrow-App"))
+        assertEquals("""{"uid":31660292}""", legacyReq.body.readUtf8())
+        val payload = (legacyResult as Nana7miResult.Success).value
+        assertNull(payload.account.user?.mail_address)
+        assertNull(payload.account.user?.name)
+        assertNull(payload.account.user?.account)
+
+        // Capability enabled (new server): headers AND body carry source + app
+        val newResult = api.fetchNana7mi(
+            uid = 31660292L,
+            requestId = "823e4567-e89b-42d3-a456-426614174010",
+            source = "shaft-github-release",
+            app = "shaft",
+            includeSourceInBody = true,
+        )
+        val newReq = server.takeRequest()
+        assertTrue(newResult is Nana7miResult.Success)
+        assertEquals("shaft-github-release", newReq.getHeader("X-Borrow-Source"))
+        assertEquals("shaft", newReq.getHeader("X-Borrow-App"))
+        assertEquals(
+            """{"uid":31660292,"requestId":"823e4567-e89b-42d3-a456-426614174010","source":"shaft-github-release","app":"shaft"}""",
+            newReq.body.readUtf8(),
+        )
+    }
+
+    @Test
+    fun `nana7mi accepts token-only account even if user object is omitted`() = runBlocking {
+        server.enqueue(
+            MockResponse()
+                .setResponseCode(200)
+                .setBody(
+                    """
+                    {
+                      "uid": 108,
+                      "account": {
+                        "access_token": "access-108",
+                        "refresh_token": "refresh-108"
+                      },
+                      "updatedAt": 1999990000000,
+                      "expiresAt": 1999993300000,
+                      "expired": false
+                    }
+                    """.trimIndent(),
+                ),
+        )
+        val result = api.fetchNana7mi(31660292L)
+        assertTrue(result is Nana7miResult.Success)
+        val account = (result as Nana7miResult.Success).value.account
+        assertEquals(108L, account.user?.id)
+        assertNull(account.user?.is_premium)
+        assertNull(account.user?.name)
+        assertNull(account.user?.mail_address)
     }
 }

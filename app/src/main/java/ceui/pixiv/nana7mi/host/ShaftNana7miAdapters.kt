@@ -18,8 +18,10 @@ import ceui.pixiv.nana7mi.session.AccountReportStore
 import ceui.pixiv.nana7mi.session.AccountTokenRefresher
 import ceui.pixiv.nana7mi.session.AcquireResult
 import ceui.pixiv.nana7mi.session.AuthFailureClassifier
+import ceui.pixiv.nana7mi.session.BorrowSource
 import ceui.pixiv.nana7mi.session.BorrowedAccount
 import ceui.pixiv.nana7mi.session.BorrowedPageCache
+import ceui.pixiv.nana7mi.session.DispatchRequest
 import ceui.pixiv.nana7mi.session.FallbackReason
 import ceui.pixiv.nana7mi.session.FetchEventOutcome
 import ceui.pixiv.nana7mi.session.FirstPageHooks
@@ -41,6 +43,25 @@ import kotlinx.coroutines.CancellationException
 import retrofit2.HttpException
 import timber.log.Timber
 
+/**
+ * Identifies which Pixiv-Shaft build variant initiated a borrowed-account request.
+ *
+ * All Shaft variants associate with [BorrowSource.APP_SHAFT] (`"shaft"`):
+ * `shaft-github-debug`, `shaft-github-release`, `shaft-google-debug`, `shaft-google-release`.
+ */
+internal object ShaftBorrowSource {
+    val current: BorrowSource = forBuild(
+        channel = BuildConfig.UPDATE_CHANNEL,
+        isDebug = BuildConfig.IS_DEBUG_MODE,
+    )
+
+    fun forBuild(channel: String, isDebug: Boolean): BorrowSource =
+        BorrowSource.shaft(
+            channel = channel,
+            buildType = if (isDebug) "debug" else "release",
+        )
+}
+
 /** Defense-in-depth gate: Lite (Google Play) builds never borrow accounts or hit dispatch. */
 internal object ShaftSessionAccessPolicy : SessionAccessPolicy {
     const val DISABLED_FOR_LITE_REASON = "disabled_for_lite"
@@ -52,14 +73,20 @@ internal object ShaftSessionAccessPolicy : SessionAccessPolicy {
 
 /** Maps [PixshaftApi.fetchNana7mi] wire results into pure-JVM [AcquireResult]. */
 internal class PixshaftAccountDispatcher(
-    private val fetch: suspend (requesterUid: Long, requestId: String?) -> Nana7miResult = { uid, reqId ->
-        Client.pixshaft.fetchNana7mi(uid, reqId)
-    },
+    private val includeSourceInBody: () -> Boolean = { false },
+    private val fetch: suspend (request: DispatchRequest, includeSourceInBody: Boolean) -> Nana7miResult =
+        { request, includeBody ->
+            Client.pixshaft.fetchNana7mi(
+                uid = request.requesterUid,
+                requestId = request.requestId,
+                source = request.source.id,
+                app = request.source.app,
+                includeSourceInBody = includeBody,
+            )
+        },
 ) : AccountDispatcher<AccountResponse> {
-    override suspend fun dispatch(
-        requesterUid: Long,
-        requestId: String?,
-    ): AcquireResult<AccountResponse> = fetch(requesterUid, requestId).toAcquireResult()
+    override suspend fun dispatch(request: DispatchRequest): AcquireResult<AccountResponse> =
+        fetch(request, includeSourceInBody()).toAcquireResult()
 }
 
 internal fun Nana7miPayload.toBorrowedAccount(): BorrowedAccount<AccountResponse> =
@@ -221,12 +248,16 @@ internal object TimberSessionObserver : SessionObserver {
                 event.remainingBudgetMs,
             )
             is SessionEvent.FetchStarted -> Timber.tag(SESSION_LOG_TAG).d(
-                "stage=fetch event=request requester_uid=%d",
+                "stage=fetch event=request requester_uid=%d source=%s app=%s",
                 event.requesterUid,
+                event.source.id,
+                event.source.app,
             )
-            is SessionEvent.FetchCompleted -> logFetchOutcome(event.requesterUid, event.outcome)
+            is SessionEvent.FetchCompleted -> logFetchOutcome(event.requesterUid, event.source, event.outcome)
             is SessionEvent.PaidRequestIdRejected -> Timber.tag(SESSION_LOG_TAG).w(
-                "stage=fetch result=paid_request_id_rejected action=retry_fresh_search",
+                "stage=fetch result=paid_request_id_rejected source=%s app=%s action=retry_fresh_search",
+                event.source.id,
+                event.source.app,
             )
             is SessionEvent.AccountReadyCurrent -> Timber.tag(SESSION_LOG_TAG).d(
                 "stage=expiry action=use_current account_uid=%d",
@@ -321,8 +352,10 @@ internal object TimberSessionObserver : SessionObserver {
                 event.cause.javaClass.simpleName,
             )
             is SessionEvent.CachedCursorBorrowStarted -> Timber.tag(SESSION_LOG_TAG).d(
-                "stage=%s event=borrow_for_cached_cursor",
+                "stage=%s event=borrow_for_cached_cursor source=%s app=%s",
                 event.stage,
+                event.source.id,
+                event.source.app,
             )
             is SessionEvent.BorrowedRequestStarted -> Timber.tag(SESSION_LOG_TAG).d(
                 "stage=%s event=request account_uid=%d",
@@ -345,13 +378,15 @@ internal object TimberSessionObserver : SessionObserver {
         }
     }
 
-    private fun logFetchOutcome(requesterUid: Long, outcome: FetchEventOutcome) {
+    private fun logFetchOutcome(requesterUid: Long, source: BorrowSource, outcome: FetchEventOutcome) {
         val logger = Timber.tag(SESSION_LOG_TAG)
         when (outcome) {
             is FetchEventOutcome.Success -> logger.d(
-                "stage=fetch result=success requester_uid=%d account_uid=%d expired=%s updated_at=%d expires_at=%d age_ms=%d remaining_ms=%d",
+                "stage=fetch result=success requester_uid=%d account_uid=%d source=%s app=%s expired=%s updated_at=%d expires_at=%d age_ms=%d remaining_ms=%d",
                 requesterUid,
                 outcome.accountUid,
+                source.id,
+                source.app,
                 outcome.expired,
                 outcome.updatedAtMs,
                 outcome.expiresAtMs,
@@ -359,47 +394,65 @@ internal object TimberSessionObserver : SessionObserver {
                 outcome.remainingMs,
             )
             is FetchEventOutcome.Disabled -> logger.d(
-                "stage=fetch result=%s requester_uid=%d",
+                "stage=fetch result=%s requester_uid=%d source=%s app=%s",
                 outcome.reason,
                 requesterUid,
+                source.id,
+                source.app,
             )
             FetchEventOutcome.Closed -> logger.d(
-                "stage=fetch result=engine_closed requester_uid=%d",
+                "stage=fetch result=engine_closed requester_uid=%d source=%s app=%s",
                 requesterUid,
+                source.id,
+                source.app,
             )
             FetchEventOutcome.NoAccount -> logger.w(
-                "stage=fetch result=no_account requester_uid=%d",
+                "stage=fetch result=no_account requester_uid=%d source=%s app=%s",
                 requesterUid,
+                source.id,
+                source.app,
             )
             is FetchEventOutcome.NotPremium -> logger.w(
-                "stage=fetch result=not_premium requester_uid=%d account_uid=%d",
+                "stage=fetch result=not_premium requester_uid=%d account_uid=%d source=%s app=%s",
                 requesterUid,
                 outcome.accountUid,
+                source.id,
+                source.app,
             )
             is FetchEventOutcome.RateLimited -> logger.w(
-                "stage=fetch result=rate_limited requester_uid=%d retry_after_seconds=%s",
+                "stage=fetch result=rate_limited requester_uid=%d source=%s app=%s retry_after_seconds=%s",
                 requesterUid,
+                source.id,
+                source.app,
                 outcome.info.retryAfterSeconds?.toString() ?: "null",
             )
             is FetchEventOutcome.HttpFailure -> logger.w(
-                "stage=fetch result=http_failure requester_uid=%d status=%d",
+                "stage=fetch result=http_failure requester_uid=%d source=%s app=%s status=%d",
                 requesterUid,
+                source.id,
+                source.app,
                 outcome.statusCode,
             )
             FetchEventOutcome.InvalidRequest -> logger.w(
-                "stage=fetch result=invalid_request requester_uid=%d",
+                "stage=fetch result=invalid_request requester_uid=%d source=%s app=%s",
                 requesterUid,
+                source.id,
+                source.app,
             )
             is FetchEventOutcome.NetworkFailure -> logger.w(
                 outcome.cause,
-                "stage=fetch result=network_failure requester_uid=%d error_type=%s",
+                "stage=fetch result=network_failure requester_uid=%d source=%s app=%s error_type=%s",
                 requesterUid,
+                source.id,
+                source.app,
                 outcome.cause.javaClass.simpleName,
             )
             is FetchEventOutcome.InvalidResponse -> logger.w(
                 outcome.cause,
-                "stage=fetch result=invalid_response requester_uid=%d error_type=%s",
+                "stage=fetch result=invalid_response requester_uid=%d source=%s app=%s error_type=%s",
                 requesterUid,
+                source.id,
+                source.app,
                 outcome.cause?.javaClass?.simpleName ?: "unknown",
             )
         }
@@ -414,9 +467,20 @@ internal class SearchCachePageAdapter<T : Any>(
     private val maxAgeMs: Long,
     private val type: Class<T>,
     private val stage: String,
+    private val includeSourceInBody: Boolean = false,
 ) : BorrowedPageCache<T> {
-    override suspend fun lookup(requestId: String?): T? =
-        Nana7miSearchCache.lookup(kind, key, page, requestId, maxAgeMs, type, stage)
+    override suspend fun lookup(requestId: String?, source: BorrowSource): T? =
+        Nana7miSearchCache.lookup(
+            kind = kind,
+            key = key,
+            page = page,
+            requestId = requestId,
+            maxAgeMs = maxAgeMs,
+            type = type,
+            stage = stage,
+            source = source,
+            includeSourceInBody = includeSourceInBody,
+        )
 
     override fun store(page: T) {
         Nana7miSearchCache.store(kind, key, page, stage)

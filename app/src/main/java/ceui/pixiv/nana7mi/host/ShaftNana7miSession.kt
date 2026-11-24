@@ -2,6 +2,8 @@ package ceui.pixiv.nana7mi.host
 
 import ceui.pixiv.actions.AccountOnlineReportOutbox
 import ceui.pixiv.api.model.AccountResponse
+import ceui.pixiv.config.RemoteAppConfig
+import ceui.pixiv.nana7mi.session.BorrowSource
 import ceui.pixiv.nana7mi.session.BorrowedSession
 import ceui.pixiv.nana7mi.session.Nana7miSessionEngine
 import ceui.pixiv.nana7mi.session.NetworkRetryExecutor
@@ -22,9 +24,15 @@ class ShaftNana7miSession internal constructor(
     val engine: Nana7miSessionEngine<AccountResponse>,
 ) {
     @Inject
-    constructor(outbox: AccountOnlineReportOutbox) : this(
+    constructor(
+        outbox: AccountOnlineReportOutbox,
+        remoteAppConfig: RemoteAppConfig,
+    ) : this(
         engine = Nana7miSessionEngine.create {
-            dispatcher = PixshaftAccountDispatcher()
+            borrowSource = ShaftBorrowSource.current
+            dispatcher = PixshaftAccountDispatcher(
+                includeSourceInBody = { remoteAppConfig.nana7miSourceEnabled },
+            )
             tokenRefresher = PixivOAuthTokenRefresher()
             payloadUpdater = PixivAccountPayloadUpdater
             reportStore = OutboxAccountReportStore(outbox)
@@ -36,6 +44,9 @@ class ShaftNana7miSession internal constructor(
             )
         },
     )
+
+    /** Borrow origin reported by this process (e.g. `shaft-github-release`, app `shaft`). */
+    val borrowSource: BorrowSource get() = engine.borrowSource
 
     /** Creates one generation-isolated borrowed session for a search repository's first page. */
     fun newSession(): BorrowedSession<AccountResponse> = engine.newSession()

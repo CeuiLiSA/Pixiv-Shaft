@@ -4,6 +4,8 @@ import ceui.lisa.BuildConfig
 import ceui.lisa.interfaces.ListShow
 import ceui.lisa.utils.PixivSearchParamUtil
 import ceui.pixiv.api.Client
+import ceui.pixiv.nana7mi.host.ShaftBorrowSource
+import ceui.pixiv.nana7mi.session.BorrowSource
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.shaftapi.Nana7miSearchCacheLookupReq
 import ceui.pixiv.shaftapi.Nana7miSearchCacheLookupResp
@@ -140,10 +142,12 @@ internal object Nana7miSearchCache {
         maxAgeMs: Long,
         type: Class<T>,
         stage: String,
+        source: BorrowSource = ShaftBorrowSource.current,
+        includeSourceInBody: Boolean = false,
         hit: suspend (T) -> T = { it },
         miss: suspend () -> T,
     ): T {
-        val cached = lookup(kind, key, page, requestId, maxAgeMs, type, stage)
+        val cached = lookup(kind, key, page, requestId, maxAgeMs, type, stage, source, includeSourceInBody)
         return if (cached != null) hit(cached) else miss()
     }
 
@@ -161,6 +165,8 @@ internal object Nana7miSearchCache {
         maxAgeMs: Long,
         type: Class<T>,
         stage: String,
+        source: BorrowSource = ShaftBorrowSource.current,
+        includeSourceInBody: Boolean = false,
     ): T? {
         val uid = requesterUidOrNull() ?: return null
         val fillKey = FillKey(uid, kind, key)
@@ -168,14 +174,18 @@ internal object Nana7miSearchCache {
         fillTokens.remove(fillKey)
         val lookup = suspend {
             Client.pixshaft.searchCacheLookupRaw(
-                Nana7miSearchCacheLookupReq(
+                body = Nana7miSearchCacheLookupReq(
                     uid = uid,
                     kind = kind.wire,
                     key = key,
                     maxAgeMs = maxAgeMs,
                     page = page.wire,
                     requestId = requestId,
+                    source = if (includeSourceInBody) source.id else null,
+                    app = if (includeSourceInBody) source.app else null,
                 ),
+                borrowSource = source.id,
+                borrowApp = source.app,
             )
         }
         val resp = try {

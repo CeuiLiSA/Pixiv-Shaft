@@ -13,6 +13,8 @@ import ceui.pixiv.actionqueue.PendingAction
 import ceui.pixiv.actionqueue.QueuePolicy
 import ceui.pixiv.actionqueue.RetryScope
 import ceui.pixiv.api.Client
+import ceui.pixiv.config.RemoteAppConfig
+import ceui.pixiv.nana7mi.host.ShaftBorrowSource
 import ceui.pixiv.shaftapi.Nana7miSearchTelemetryAck
 import ceui.pixiv.shaftapi.Nana7miSearchTelemetryBatchAck
 import ceui.pixiv.shaftapi.Nana7miSearchTelemetryBatchReq
@@ -57,9 +59,16 @@ class Nana7miSearchTelemetry internal constructor(
      * (a stub Context throws on construction); production passes the Application.
      */
     private val appContext: Lazy<Context>,
+    private val includeSourceInBody: () -> Boolean = { false },
 ) {
 
-    @Inject constructor(@ApplicationContext app: Context) : this(lazy { app.applicationContext })
+    @Inject constructor(
+        @ApplicationContext app: Context,
+        remoteAppConfig: RemoteAppConfig,
+    ) : this(
+        appContext = lazy { app.applicationContext },
+        includeSourceInBody = { remoteAppConfig.nana7miSourceEnabled },
+    )
 
     private val started = AtomicBoolean(false)
     private val scope = CoroutineScope(
@@ -105,11 +114,13 @@ class Nana7miSearchTelemetry internal constructor(
                 handlers = mapOf(
                     BATCH_ACTION_TYPE to Nana7miSearchTelemetryBatchHandler(
                         isOnline = { monitor.isConnected },
+                        includeSourceInBody = includeSourceInBody,
                     ),
                     // Compatibility only: drains the one-event-per-row telemetry that builds
                     // before batching left in this database. Nothing enqueues this type now.
                     ACTION_TYPE to Nana7miSearchTelemetryHandler(
                         isOnline = { monitor.isConnected },
+                        includeSourceInBody = includeSourceInBody,
                     ),
                 ),
                 policy = QueuePolicy(
@@ -318,6 +329,8 @@ class Nana7miSearchTelemetry internal constructor(
         val durationMs: Long?,
         val appVersion: String?,
         val appChannel: String?,
+        val borrowSource: String? = null,
+        val borrowApp: String? = null,
     )
 
     /**
@@ -554,6 +567,8 @@ class Nana7miSearchTelemetry internal constructor(
                     durationMs = durationMs,
                     appVersion = APP_VERSION,
                     appChannel = BuildConfig.UPDATE_CHANNEL,
+                    borrowSource = ShaftBorrowSource.current.id,
+                    borrowApp = ShaftBorrowSource.current.app,
                 )
                 if (!valid(payload, requesterUid.toString())) return
                 // Buffering (instead of enqueueing here) also means events reported before the
@@ -608,6 +623,8 @@ class Nana7miSearchTelemetry internal constructor(
                 durationMs = null,
                 appVersion = APP_VERSION,
                 appChannel = BuildConfig.UPDATE_CHANNEL,
+                borrowSource = ShaftBorrowSource.current.id,
+                borrowApp = ShaftBorrowSource.current.app,
             )
             return payload.takeIf { valid(it, requesterUid.toString()) }
         }
@@ -631,6 +648,8 @@ class Nana7miSearchTelemetry internal constructor(
                     (payload.durationMs == null || payload.durationMs in 0..MAX_DURATION_MS) &&
                     payload.appVersion?.isNotBlank() == true && payload.appVersion.length <= VERSION_MAX_CHARS &&
                     payload.appChannel?.isNotBlank() == true && payload.appChannel.length <= VERSION_MAX_CHARS &&
+                    (payload.borrowSource == null || (payload.borrowSource.isNotBlank() && payload.borrowSource.length <= BORROW_SOURCE_MAX_CHARS)) &&
+                    (payload.borrowApp == null || (payload.borrowApp.isNotBlank() && payload.borrowApp.length <= BORROW_SOURCE_MAX_CHARS)) &&
                     validCombination(payload) &&
                     (owner.isBlank() || owner == payload.requesterUid.toString())
 
@@ -673,6 +692,7 @@ class Nana7miSearchTelemetry internal constructor(
         internal const val QUERY_MAX_CHARS = 1_000
         private const val LABEL_MAX_CHARS = 100
         private const val VERSION_MAX_CHARS = 50
+        private const val BORROW_SOURCE_MAX_CHARS = 64
         private const val MAX_DURATION_MS = 24L * 60L * 60L * 1_000L
         internal const val TAG = "Nana7miTelemetry"
         private const val ACTION_TYPE = "nana7mi_search_telemetry"
@@ -719,8 +739,13 @@ class Nana7miSearchTelemetry internal constructor(
  */
 internal class Nana7miSearchTelemetryBatchHandler(
     private val isOnline: () -> Boolean,
+    private val includeSourceInBody: () -> Boolean = { false },
     private val report: suspend (Nana7miSearchTelemetryBatchReq) -> Nana7miSearchTelemetryBatchAck = {
-        Client.pixshaft.reportNana7miSearchTelemetryBatch(it)
+        Client.pixshaft.reportNana7miSearchTelemetryBatch(
+            body = it,
+            borrowSource = ShaftBorrowSource.current.id,
+            borrowApp = ShaftBorrowSource.current.app,
+        )
     },
 ) : ActionHandler {
     override suspend fun execute(action: PendingAction): ActionOutcome {
@@ -737,8 +762,9 @@ internal class Nana7miSearchTelemetryBatchHandler(
         if (events.isEmpty()) {
             return Nana7miSearchTelemetry.permanentFailure("no valid events in batch")
         }
+        val includeSource = includeSourceInBody()
         val outcome = try {
-            val ack = report(Nana7miSearchTelemetryBatchReq(events.map { it.toRequest() }))
+            val ack = report(Nana7miSearchTelemetryBatchReq(events.map { it.toRequest(includeSource) }))
             if (ack.rejected > 0) {
                 // Our validator and the server's disagree — retrying cannot fix that, so leave
                 // a trace instead of parking the row forever.
@@ -778,7 +804,9 @@ private fun Nana7miSearchTelemetry.Payload.upgraded(): Nana7miSearchTelemetry.Pa
 )
 
 /** Only call on a payload that passed [Nana7miSearchTelemetry.valid]. */
-private fun Nana7miSearchTelemetry.Payload.toRequest(): Nana7miSearchTelemetryReq =
+private fun Nana7miSearchTelemetry.Payload.toRequest(
+    includeSourceInBody: Boolean = false,
+): Nana7miSearchTelemetryReq =
     Nana7miSearchTelemetryReq(
         eventId = eventId,
         flowId = flowId,
@@ -798,6 +826,8 @@ private fun Nana7miSearchTelemetry.Payload.toRequest(): Nana7miSearchTelemetryRe
         durationMs = durationMs,
         appVersion = requireNotNull(appVersion),
         appChannel = requireNotNull(appChannel),
+        borrowSource = if (includeSourceInBody) borrowSource else null,
+        borrowApp = if (includeSourceInBody && borrowSource != null) borrowApp else null,
     )
 
 /**
@@ -806,8 +836,13 @@ private fun Nana7miSearchTelemetry.Payload.toRequest(): Nana7miSearchTelemetryRe
  */
 internal class Nana7miSearchTelemetryHandler(
     private val isOnline: () -> Boolean,
+    private val includeSourceInBody: () -> Boolean = { false },
     private val report: suspend (Nana7miSearchTelemetryReq) -> Nana7miSearchTelemetryAck = {
-        Client.pixshaft.reportNana7miSearchTelemetry(it)
+        Client.pixshaft.reportNana7miSearchTelemetry(
+            body = it,
+            borrowSource = ShaftBorrowSource.current.id,
+            borrowApp = ShaftBorrowSource.current.app,
+        )
     },
 ) : ActionHandler {
     override suspend fun execute(action: PendingAction): ActionOutcome {
@@ -818,7 +853,7 @@ internal class Nana7miSearchTelemetryHandler(
             return Nana7miSearchTelemetry.permanentFailure("invalid payload")
         }
         val outcome = try {
-            val ack = report(payload.toRequest())
+            val ack = report(payload.toRequest(includeSourceInBody()))
             if (ack.ok && ack.eventId == payload.eventId) {
                 ActionOutcome.Success
             } else {

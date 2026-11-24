@@ -79,6 +79,14 @@ class RemoteAppConfig @Inject constructor() {
     private var nana7miRequestId = false
 
     /**
+     * 借号来源请求体字段协议（`source`/`app`、`borrowSource`/`borrowApp`），同样不是功能开关、
+     * 不持久化。只有本进程从当前服务端明确看到 true 才写入请求体（覆盖进 HMAC）；老服务端缺字段时
+     * 保持 false，HTTP 头 `X-Borrow-Source`/`X-Borrow-App` 仍照常发送。
+     */
+    @Volatile
+    private var nana7miSource = false
+
+    /**
      * 这个 uid 的订阅档位，null = 还不知道。
      *
      * 和上面那个开关的缓存规矩**不一样**，因为它不是开关：
@@ -163,6 +171,13 @@ class RemoteAppConfig @Inject constructor() {
             if (BuildConfig.IS_LITE) return false
             refreshIfStale()
             return nana7miRequestId
+        }
+
+    val nana7miSourceEnabled: Boolean
+        get() {
+            if (BuildConfig.IS_LITE) return false
+            refreshIfStale()
+            return nana7miSource
         }
 
     /**
@@ -324,8 +339,9 @@ class RemoteAppConfig @Inject constructor() {
         failedForUid = null
         // Capability negotiation is deliberately fail-closed. Unlike the
         // search kill switch below, an absent field is a real answer: this is
-        // an older server, whose strict /nana body rejects requestId.
+        // an older server, whose strict /nana body rejects requestId/source.
         nana7miRequestId = !BuildConfig.IS_LITE && response.nana7miRequestIdEnabled == true
+        nana7miSource = !BuildConfig.IS_LITE && response.nana7miSourceEnabled == true
         applyPlan(uid, response.plan)
         // 推送和档位一样只给签了名的登录用户；Lite 连 plan 都拿不到，推送也一并屏蔽。
         val push = if (BuildConfig.IS_LITE || uid <= 0L) null else response.push
@@ -355,9 +371,10 @@ class RemoteAppConfig @Inject constructor() {
         val enabled = if (BuildConfig.IS_LITE) false else response.nana7miSearchEnabled
         if (enabled == null) {
             Timber.tag(TAG).d(
-                "server has no opinion on nana7mi search, keeping %s request_id=%s",
+                "server has no opinion on nana7mi search, keeping %s request_id=%s source=%s",
                 nana7miSearch,
                 nana7miRequestId,
+                nana7miSource,
             )
             return
         }
@@ -365,10 +382,11 @@ class RemoteAppConfig @Inject constructor() {
         valueForUid = uid
         runCatching { store.putBoolean(cacheKey(uid), enabled) }
         Timber.tag(TAG).i(
-            "config applied uid=%d nana7mi_search_enabled=%s request_id=%s",
+            "config applied uid=%d nana7mi_search_enabled=%s request_id=%s source=%s",
             uid,
             enabled,
             nana7miRequestId,
+            nana7miSource,
         )
     }
 

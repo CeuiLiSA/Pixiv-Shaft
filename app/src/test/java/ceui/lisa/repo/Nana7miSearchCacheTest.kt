@@ -251,6 +251,38 @@ class Nana7miSearchCacheTest {
 
         val sent = JsonParser.parseString(server.takeRequest().body.readUtf8()).asJsonObject
         assertFalse(sent.has("requestId"))
+        assertFalse(sent.has("source"))
+        assertFalse(sent.has("app"))
+    }
+
+    @Test
+    fun `cache lookup carries borrow origin headers and optional body fields`() = runBlocking {
+        server.enqueue(
+            MockResponse()
+                .setResponseCode(200)
+                .setHeader("Content-Type", "application/json")
+                .setBody("""{"hit":false}"""),
+        )
+        api.searchCacheLookupRaw(
+            body = Nana7miSearchCacheLookupReq(
+                uid = 42L,
+                kind = "illust",
+                key = "d".repeat(64),
+                maxAgeMs = 60_000L,
+                page = "first",
+                requestId = "823e4567-e89b-42d3-a456-426614174011",
+                source = "shaft-github-release",
+                app = "shaft",
+            ),
+            borrowSource = "shaft-github-release",
+            borrowApp = "shaft",
+        )
+        val recorded = server.takeRequest()
+        assertEquals("shaft-github-release", recorded.getHeader("X-Borrow-Source"))
+        assertEquals("shaft", recorded.getHeader("X-Borrow-App"))
+        val sent = JsonParser.parseString(recorded.body.readUtf8()).asJsonObject
+        assertEquals("shaft-github-release", sent["source"].asString)
+        assertEquals("shaft", sent["app"].asString)
     }
 
     @Test
