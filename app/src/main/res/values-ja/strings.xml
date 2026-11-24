@@ -2376,6 +2376,30 @@
     <string name="network_test_target_sub_image_official">画像サーバー · Pixiv Japan</string>
     <string name="network_test_target_sub_image_proxy">画像サーバー · プロキシ %1$s</string>
     <string name="network_test_target_sub_pixshaft">Shaft クラウド · 閲覧履歴同期</string>
+
+    <!-- Pixshaft オリジン生存プローブ (/health) -->
+    <string name="network_test_pixshaft_health_step">オリジン生存 (/health)</string>
+    <string name="network_test_pixshaft_health_ok">HTTP %1$d (%2$dms) · オリジン正常</string>
+    <string name="network_test_pixshaft_health_err">HTTP %1$d (%2$dms) · オリジン未準備</string>
+    <string name="network_test_pixshaft_health_fail">HTTP %1$d (%2$dms) · オリジン異常</string>
+    <string name="network_test_pixshaft_health_error">リクエスト失敗: %1$s</string>
+
+    <!-- ネットワークテスト範囲選択 Sheet -->
+    <string name="network_test_scope_title">テスト範囲</string>
+    <string name="network_test_scope_desc">「テスト開始」を長押しするとテスト範囲を一時変更できます（画面を離れるとリセット）。</string>
+    <string name="network_test_scope_select_all">すべて選択</string>
+    <string name="network_test_scope_invert">選択を反転</string>
+    <string name="network_test_scope_confirm">確定</string>
+    <string name="network_test_scope_empty_warn">テスト範囲を1つ以上選択してください</string>
+    <string name="network_test_scope_app_api_title">App API</string>
+    <string name="network_test_scope_app_api_desc">Pixiv 公式 / PxveAPI プロキシ · DNS 解決と接続性 · ハンドシェイクと転送検証</string>
+    <string name="network_test_scope_web_api_title">Web エンドポイント</string>
+    <string name="network_test_scope_web_api_desc">www.pixiv.net · DNS 解決 · TLS ハンドシェイク · サンプルイラストの Web エンドポイント検証</string>
+    <string name="network_test_scope_image_title">画像とプロキシ</string>
+    <string name="network_test_scope_image_desc">公式 / カスタム画像ドメイン · ハンドシェイク · サンプルイラストとアイコンの実ダウンロード</string>
+    <string name="network_test_scope_pixshaft_title">Pixshaft サービス</string>
+    <string name="network_test_scope_pixshaft_desc">pixshaft.com · DNS 解決 · TLS ハンドシェイク · /health オリジン生存確認</string>
+    <string name="network_test_run_scope">テスト開始 (%1$d/%2$d)</string>
     <string name="network_test_status_running">テスト中</string>
     <string name="network_test_status_ok">正常</string>
     <string name="network_test_status_high">高遅延</string>
@@ -2514,6 +2538,7 @@
     <string name="network_test_pollution_dialog_tail_other">\n\n「設定 → ネットワーク」で直続モードとセキュア DNS（DoH）を両方有効にして汚染を迂回してください。</string>
     <string name="network_test_clean_seg_dns">DNS 解決</string>
     <string name="network_test_clean_seg_handshake">ハンドシェイク</string>
+    <string name="network_test_clean_seg_handshake_ok">ハンドシェイクは正常です。</string>
     <string name="network_test_clean_seg_dim">サイズ検証</string>
     <string name="network_test_clean_seg_download_ok">画像ダウンロードも正常です。</string>
     <string name="network_test_clean_seg_download_slow">画像ダウンロードが遅いです。</string>

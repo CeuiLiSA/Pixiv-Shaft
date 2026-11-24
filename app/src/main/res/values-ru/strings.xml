@@ -2394,6 +2394,30 @@
     <string name="network_test_target_sub_image_official">Сервер изображений · Pixiv Japan</string>
     <string name="network_test_target_sub_image_proxy">Сервер изображений · прокси %1$s</string>
     <string name="network_test_target_sub_pixshaft">Shaft cloud · синхронизация истории</string>
+
+    <!-- Проверка доступности источника Pixshaft (/health) -->
+    <string name="network_test_pixshaft_health_step">Доступность источника (/health)</string>
+    <string name="network_test_pixshaft_health_ok">HTTP %1$d (%2$d мс) · Источник доступен</string>
+    <string name="network_test_pixshaft_health_err">HTTP %1$d (%2$d мс) · Источник не готов</string>
+    <string name="network_test_pixshaft_health_fail">HTTP %1$d (%2$d мс) · Ошибка источника</string>
+    <string name="network_test_pixshaft_health_error">Ошибка запроса: %1$s</string>
+
+    <!-- Выбор области сетевого теста -->
+    <string name="network_test_scope_title">Область теста</string>
+    <string name="network_test_scope_desc">Удерживайте «Начать тест», чтобы временно настроить область; сбрасывается при выходе.</string>
+    <string name="network_test_scope_select_all">Выбрать все</string>
+    <string name="network_test_scope_invert">Инвертировать</string>
+    <string name="network_test_scope_confirm">Подтвердить</string>
+    <string name="network_test_scope_empty_warn">Выберите хотя бы одну область теста</string>
+    <string name="network_test_scope_app_api_title">App API</string>
+    <string name="network_test_scope_app_api_desc">Официальный Pixiv / прокси PxveAPI · DNS и подключение · рукопожатие и проверка прокси</string>
+    <string name="network_test_scope_web_api_title">Веб-эндпоинт</string>
+    <string name="network_test_scope_web_api_desc">www.pixiv.net · DNS · TLS-рукопожатие · проверка веб-эндпоинта с образцом работы</string>
+    <string name="network_test_scope_image_title">Изображения и прокси</string>
+    <string name="network_test_scope_image_desc">Официальный / пользовательский хост изображений · рукопожатие · загрузка иллюстрации и аватара</string>
+    <string name="network_test_scope_pixshaft_title">Служба Pixshaft</string>
+    <string name="network_test_scope_pixshaft_desc">pixshaft.com · DNS · TLS-рукопожатие · проверка доступности источника /health</string>
+    <string name="network_test_run_scope">Начать тест (%1$d/%2$d)</string>
     <string name="network_test_status_running">Тест…</string>
     <string name="network_test_status_ok">Нормально</string>
     <string name="network_test_status_high">Высокая задержка</string>
@@ -2532,6 +2556,7 @@
     <string name="network_test_pollution_dialog_tail_other">\n\nВ «Настройки → Сеть» включите прямое подключение и защищённый DNS (DoH), чтобы обойти подмену.</string>
     <string name="network_test_clean_seg_dns">разрешение DNS</string>
     <string name="network_test_clean_seg_handshake">рукопожатие</string>
+    <string name="network_test_clean_seg_handshake_ok">рукопожатие в порядке.</string>
     <string name="network_test_clean_seg_dim">определение размера</string>
     <string name="network_test_clean_seg_download_ok">загрузка изображений в порядке.</string>
     <string name="network_test_clean_seg_download_slow">загрузка изображений медленная.</string>

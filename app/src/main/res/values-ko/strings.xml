@@ -2376,6 +2376,30 @@
     <string name="network_test_target_sub_image_official">이미지 서버 · Pixiv Japan</string>
     <string name="network_test_target_sub_image_proxy">이미지 서버 · 프록시 %1$s</string>
     <string name="network_test_target_sub_pixshaft">Shaft 클라우드 · 열람 기록 동기화</string>
+
+    <!-- Pixshaft 오리진 생존 확인 (/health) -->
+    <string name="network_test_pixshaft_health_step">오리진 생존 (/health)</string>
+    <string name="network_test_pixshaft_health_ok">HTTP %1$d (%2$dms) · 오리진 정상</string>
+    <string name="network_test_pixshaft_health_err">HTTP %1$d (%2$dms) · 오리진 준비 안 됨</string>
+    <string name="network_test_pixshaft_health_fail">HTTP %1$d (%2$dms) · 오리진 이상</string>
+    <string name="network_test_pixshaft_health_error">요청 실패: %1$s</string>
+
+    <!-- 네트워크 테스트 범위 선택 Sheet -->
+    <string name="network_test_scope_title">테스트 범위</string>
+    <string name="network_test_scope_desc">\"테스트 시작\"을 길게 눌러 테스트 범위를 임시 설정할 수 있으며 화면을 벗어나면 재설정됩니다.</string>
+    <string name="network_test_scope_select_all">모두 선택</string>
+    <string name="network_test_scope_invert">반전</string>
+    <string name="network_test_scope_confirm">확인</string>
+    <string name="network_test_scope_empty_warn">테스트 범위를 하나 이상 선택해 주세요</string>
+    <string name="network_test_scope_app_api_title">App API</string>
+    <string name="network_test_scope_app_api_desc">Pixiv 공식 / PxveAPI 프록시 · DNS 해석 및 연결성 · 핸드셰이크 및 전달 검증</string>
+    <string name="network_test_scope_web_api_title">웹 엔드포인트</string>
+    <string name="network_test_scope_web_api_desc">www.pixiv.net · DNS 해석 · TLS 핸드셰이크 · 샘플 작품 웹 엔드포인트 확인</string>
+    <string name="network_test_scope_image_title">이미지 및 프록시</string>
+    <string name="network_test_scope_image_desc">공식 / 사용자 지정 이미지 도메인 · 핸드셰이크 · 샘플 작품 및 아바타 실제 다운로드</string>
+    <string name="network_test_scope_pixshaft_title">Pixshaft 서비스</string>
+    <string name="network_test_scope_pixshaft_desc">pixshaft.com · DNS 해석 · TLS 핸드셰이크 · /health 오리진 생존 확인</string>
+    <string name="network_test_run_scope">테스트 시작 (%1$d/%2$d)</string>
     <string name="network_test_status_running">테스트 중</string>
     <string name="network_test_status_ok">정상</string>
     <string name="network_test_status_high">높은 지연</string>
@@ -2514,6 +2538,7 @@
     <string name="network_test_pollution_dialog_tail_other">\n\n설정 → 네트워크에서 직접 연결 모드와 보안 DNS(DoH)를 모두 활성화하면 오염을 우회할 수 있습니다.</string>
     <string name="network_test_clean_seg_dns">DNS 해석</string>
     <string name="network_test_clean_seg_handshake">핸드셰이크</string>
+    <string name="network_test_clean_seg_handshake_ok">핸드셰이크가 정상입니다.</string>
     <string name="network_test_clean_seg_dim">크기 검사</string>
     <string name="network_test_clean_seg_download_ok">이미지 다운로드도 정상입니다.</string>
     <string name="network_test_clean_seg_download_slow">이미지 다운로드가 느립니다.</string>

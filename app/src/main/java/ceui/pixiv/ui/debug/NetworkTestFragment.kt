@@ -26,6 +26,7 @@ import ceui.lisa.http.ImageHostManager
 import ceui.lisa.utils.Common
 import ceui.pixiv.utils.hideKeyboard
 import com.blankj.utilcode.util.BarUtils
+import ceui.pixiv.witstudio.dialog.WitBottomSheet
 import ceui.pixiv.witstudio.dialog.WitDialog
 import kotlinx.coroutines.launch
 
@@ -64,6 +65,7 @@ class NetworkTestFragment : Fragment(R.layout.fragment_network_perf_test) {
     private lateinit var btnCopy: TextView
 
     private var rawLogShown = false
+    private var scopeSheet: WitBottomSheet? = null
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -114,6 +116,23 @@ class NetworkTestFragment : Fragment(R.layout.fragment_network_perf_test) {
             hideKeyboard()
             viewModel.runTests()
         }
+        btnRun.setOnLongClickListener {
+            if (viewModel.running.value == true || scopeSheet?.isShowing == true) {
+                return@setOnLongClickListener true
+            }
+            hideKeyboard()
+            scopeSheet = NetworkTestScopeSheet.show(
+                requireContext(),
+                viewModel.selectedModules.value ?: NetworkTestModule.entries.toSet(),
+            ) { picked ->
+                viewModel.setSelectedModules(picked)
+            }.apply {
+                setOnDismissListener {
+                    if (scopeSheet === this) scopeSheet = null
+                }
+            }
+            true
+        }
         btnIllustTest.setOnClickListener {
             hideKeyboard()
             val id = illustInput.text?.toString()?.trim()?.toLongOrNull()
@@ -136,16 +155,25 @@ class NetworkTestFragment : Fragment(R.layout.fragment_network_perf_test) {
         observeViewModel()
     }
 
+    override fun onDestroyView() {
+        scopeSheet?.dismiss()
+        scopeSheet = null
+        super.onDestroyView()
+    }
+
     private fun observeViewModel() {
         viewModel.running.observe(viewLifecycleOwner) { isRunning ->
             btnRun.isEnabled = !isRunning
             btnRun.alpha = if (isRunning) 0.6f else 1f
-            btnRun.setText(if (isRunning) R.string.network_test_running else R.string.network_test_run)
+            updateRunButtonText(isRunning, viewModel.selectedModules.value)
             if (isRunning) {
                 emptyState.visibility = View.GONE
                 resultsSection.visibility = View.VISIBLE
                 renderEnvChips()
             }
+        }
+        viewModel.selectedModules.observe(viewLifecycleOwner) { modules ->
+            updateRunButtonText(viewModel.running.value == true, modules)
         }
         viewModel.targets.observe(viewLifecycleOwner) { list ->
             if (list.isEmpty()) {
@@ -414,5 +442,19 @@ class NetworkTestFragment : Fragment(R.layout.fragment_network_perf_test) {
             .setMessage(alert.message)
             .addAction(R.string.network_test_pollution_dialog_action) { d, _ -> d.dismiss() }
             .show()
+    }
+
+    private fun updateRunButtonText(isRunning: Boolean, modules: Set<NetworkTestModule>?) {
+        if (isRunning) {
+            btnRun.setText(R.string.network_test_running)
+            return
+        }
+        val current = modules ?: NetworkTestModule.entries.toSet()
+        val total = NetworkTestModule.entries.size
+        if (current.size in 1 until total) {
+            btnRun.text = getString(R.string.network_test_run_scope, current.size, total)
+        } else {
+            btnRun.setText(R.string.network_test_run)
+        }
     }
 }

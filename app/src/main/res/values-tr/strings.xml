@@ -2382,6 +2382,30 @@
     <string name="network_test_target_sub_image_official">Görsel sunucusu · Pixiv Japan</string>
     <string name="network_test_target_sub_image_proxy">Görsel sunucusu · proxy %1$s</string>
     <string name="network_test_target_sub_pixshaft">Shaft bulut · gezinme geçmişi senkronu</string>
+
+    <!-- Pixshaft kaynak hayatta kalma testi (/health) -->
+    <string name="network_test_pixshaft_health_step">Kaynak durumu (/health)</string>
+    <string name="network_test_pixshaft_health_ok">HTTP %1$d (%2$dms) · Kaynak etkin</string>
+    <string name="network_test_pixshaft_health_err">HTTP %1$d (%2$dms) · Kaynak hazır değil</string>
+    <string name="network_test_pixshaft_health_fail">HTTP %1$d (%2$dms) · Kaynak hatası</string>
+    <string name="network_test_pixshaft_health_error">İstek başarısız: %1$s</string>
+
+    <!-- Ağ testi kapsamı sayfası -->
+    <string name="network_test_scope_title">Test Kapsamı</string>
+    <string name="network_test_scope_desc">Kapsamı geçici olarak özelleştirmek için \"Testi başlat\" düğmesine uzun basın; çıkışta sıfırlanır.</string>
+    <string name="network_test_scope_select_all">Tümünü seç</string>
+    <string name="network_test_scope_invert">Tersine çevir</string>
+    <string name="network_test_scope_confirm">Onayla</string>
+    <string name="network_test_scope_empty_warn">Lütfen en az bir test hedefi seçin</string>
+    <string name="network_test_scope_app_api_title">Uygulama API\'si</string>
+    <string name="network_test_scope_app_api_desc">Pixiv resmi / PxveAPI proxy\'si · DNS ve bağlantı · El sıkışma ve proxy yönlendirme doğrulaması</string>
+    <string name="network_test_scope_web_api_title">Web Uç Noktası</string>
+    <string name="network_test_scope_web_api_desc">www.pixiv.net · DNS · TLS el sıkışması · Örnek çizim web uç noktası</string>
+    <string name="network_test_scope_image_title">Görsel ve Proxy</string>
+    <string name="network_test_scope_image_desc">Resmi / özel görsel sunucusu · El sıkışma · Gerçek örnek çizim ve avatar indirme</string>
+    <string name="network_test_scope_pixshaft_title">Pixshaft Servisi</string>
+    <string name="network_test_scope_pixshaft_desc">pixshaft.com · DNS · TLS el sıkışması · /health kaynak durumu kontrolü</string>
+    <string name="network_test_run_scope">Testi başlat (%1$d/%2$d)</string>
     <string name="network_test_status_running">Test ediliyor</string>
     <string name="network_test_status_ok">Normal</string>
     <string name="network_test_status_high">Yüksek gecikme</string>
@@ -2520,6 +2544,7 @@
     <string name="network_test_pollution_dialog_tail_other">\n\nAyarlar → Ağ bölümünde doğrudan bağlantı ve Güvenli DNS (DoH)\'i birlikte etkinleştirerek kirliliği atlayın.</string>
     <string name="network_test_clean_seg_dns">DNS çözümlemesi</string>
     <string name="network_test_clean_seg_handshake">el sıkışma</string>
+    <string name="network_test_clean_seg_handshake_ok">el sıkışma sorunsuz.</string>
     <string name="network_test_clean_seg_dim">boyut testi</string>
     <string name="network_test_clean_seg_download_ok">görsel indirmeleri sorunsuz.</string>
     <string name="network_test_clean_seg_download_slow">görsel indirmeleri yavaş.</string>

@@ -2628,6 +2628,30 @@
     <string name="network_test_target_sub_image_proxy">图片服务器 · 反代 %1$s</string>
     <string name="network_test_target_sub_pixshaft">Shaft 云服务 · 浏览记录同步</string>
 
+    <!-- Pixshaft 源站存活探测 (/health) -->
+    <string name="network_test_pixshaft_health_step">源站存活 (/health)</string>
+    <string name="network_test_pixshaft_health_ok">HTTP %1$d (%2$dms) · 源站存活</string>
+    <string name="network_test_pixshaft_health_err">HTTP %1$d (%2$dms) · 源站未就绪</string>
+    <string name="network_test_pixshaft_health_fail">HTTP %1$d (%2$dms) · 源站异常</string>
+    <string name="network_test_pixshaft_health_error">请求异常: %1$s</string>
+
+    <!-- 网络测试范围选择 Sheet -->
+    <string name="network_test_scope_title">测试范围</string>
+    <string name="network_test_scope_desc">长按「开始测试」可临时定制本次测试范围，退出页面后重置。</string>
+    <string name="network_test_scope_select_all">全选</string>
+    <string name="network_test_scope_invert">反选</string>
+    <string name="network_test_scope_confirm">确定</string>
+    <string name="network_test_scope_empty_warn">请至少选择一项测试范围</string>
+    <string name="network_test_scope_app_api_title">App API</string>
+    <string name="network_test_scope_app_api_desc">Pixiv 官方 / PxveAPI 代理 · DNS 解析与连通性 · 握手采样与转发验证</string>
+    <string name="network_test_scope_web_api_title">Web 端点</string>
+    <string name="network_test_scope_web_api_desc">www.pixiv.net · DNS 解析 · TLS 握手 · 样例插画网页接口探测</string>
+    <string name="network_test_scope_image_title">图片与反代</string>
+    <string name="network_test_scope_image_desc">官方 / 自定义图片域名 · 握手采样 · 样例插画与头像真实下载</string>
+    <string name="network_test_scope_pixshaft_title">Pixshaft 服务</string>
+    <string name="network_test_scope_pixshaft_desc">pixshaft.com · DNS 解析 · TLS 握手 · /health 源站存活判断</string>
+    <string name="network_test_run_scope">开始测试 (%1$d/%2$d)</string>
+
     <!-- 目标卡右上角状态 pill；network_test_pill_skipped 为 http 反代跳过握手时的覆盖文案 -->
     <string name="network_test_status_running">测试中</string>
     <string name="network_test_status_ok">通畅</string>
@@ -2793,6 +2817,7 @@
          各段独立翻译，_fallback 仅供 Fragment 在 ViewModel 派发前兜底。 -->
     <string name="network_test_clean_seg_dns">DNS解析</string>
     <string name="network_test_clean_seg_handshake">握手</string>
+    <string name="network_test_clean_seg_handshake_ok">握手一切正常。</string>
     <string name="network_test_clean_seg_dim">尺寸探测</string>
     <string name="network_test_clean_seg_download_ok">图片下载一切正常。</string>
     <string name="network_test_clean_seg_download_slow">图片下载缓慢。</string>
