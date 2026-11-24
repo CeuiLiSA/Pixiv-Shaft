@@ -46,7 +46,7 @@ class MainBottomBarInsetsTest {
         // 不会跑，Shaft.sSettings 一直是 null；而 setUpAutoHidingBottomBar 要读
         // isBottomBarHideOnScroll()。以前靠同沙箱里别的用例先赋过值侥幸通过，用例顺序一变
         // 就整类 15 个用例全 NPE，所以这里显式给一份，不再依赖执行顺序。
-        Shaft.sSettings = Settings()
+        Shaft.sSettings = Settings().apply { bottomBarStyle = Settings.BOTTOM_BAR_STYLE_CLASSIC }
         val context = ContextThemeWrapper(RuntimeEnvironment.getApplication(), R.style.AppTheme)
         binding = ActivityCoverBinding.inflate(LayoutInflater.from(context))
         val activity = Robolectric.buildActivity(MainActivity::class.java).get()
@@ -120,28 +120,29 @@ class MainBottomBarInsetsTest {
         layout()
         binding.root.dispatchApplyWindowInsets(systemInsets.toWindowInsets()!!)
         layout()
-        val expectedHeight = binding.navigationView.height
+        val bar = binding.bottomBarFrame
+        val expectedHeight = bar.height
         repeat(5) {
             binding.root.dispatchApplyWindowInsets(systemInsets.toWindowInsets()!!)
             layout()
             assertEquals("Only the system navigation bar belongs in bottom bar padding",
                 initialPadding + systemBottom, binding.navigationView.paddingBottom)
-            assertEquals("Bottom bar height must stabilize", expectedHeight, binding.navigationView.height)
+            assertEquals("Bottom bar height must stabilize", expectedHeight, bar.height)
             contentBottoms.forEach {
                 assertEquals("Every page reserves space for the whole bottom bar", expectedHeight, it)
             }
             assertEquals("Drawer receives original system insets", systemBottom, drawerBottom)
         }
-        val behavior = (binding.navigationView.layoutParams as CoordinatorLayout.LayoutParams)
+        val behavior = (bar.layoutParams as CoordinatorLayout.LayoutParams)
             .behavior as HideViewOnScrollBehavior<View>
-        behavior.slideOut(binding.navigationView, false)
+        behavior.slideOut(bar, false)
         binding.root.dispatchApplyWindowInsets(systemInsets.toWindowInsets()!!)
         layout()
-        assertEquals(expectedHeight.toFloat(), binding.navigationView.translationY, 0f)
-        assertEquals(expectedHeight, binding.navigationView.height)
-        behavior.slideIn(binding.navigationView, false)
-        assertEquals(0f, binding.navigationView.translationY, 0f)
-        assertEquals(View.VISIBLE, binding.navigationView.visibility)
+        assertEquals(expectedHeight.toFloat(), bar.translationY, 0f)
+        assertEquals(expectedHeight, bar.height)
+        behavior.slideIn(bar, false)
+        assertEquals(0f, bar.translationY, 0f)
+        assertEquals(View.VISIBLE, bar.visibility)
         if (Build.VERSION.SDK_INT >= 30) {
             assertTrue("Modern Android retains its existing root listener", rootDispatches > 0)
         }
