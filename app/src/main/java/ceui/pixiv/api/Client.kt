@@ -1,6 +1,5 @@
 package ceui.pixiv.api
 
-import ceui.lisa.BuildConfig
 import ceui.lisa.activities.Shaft
 import ceui.lisa.http.AppApiProxyInterceptor
 import ceui.lisa.http.AppApiTimeouts
@@ -213,20 +212,19 @@ class ClientManager {
         RequestLogInterceptor.installOn(okhttpClientBuilder, "Net/AppApi")
         okhttpClientBuilder.addInterceptor(HeaderInterceptor())
         // Between Header and TokenFetcher on purpose: the borrowed-account marker is only still on
-        // the request here (see OwnSearchLoadInterceptor). Lite never lends its account, so there
-        // is no load to report.
-        if (!BuildConfig.IS_LITE) {
-            okhttpClientBuilder.addInterceptor(
-                OwnSearchLoadInterceptor(
-                    ownerUid = { SessionManager.loggedInUid },
-                    isPremium = { SessionManager.isPremium },
-                    report = { uid, contentType, page, httpStatus ->
-                        Shaft.getContext().appServices().nana7miSearchTelemetry
-                            .reportOwnRequest(uid, contentType, page, httpStatus)
-                    },
-                ),
-            )
-        }
+        // the request here (see OwnSearchLoadInterceptor). Lite still contributes Premium accounts
+        // via /v1/account/online (only the borrowing flow is hidden), so owner search load must be
+        // counted here as well.
+        okhttpClientBuilder.addInterceptor(
+            OwnSearchLoadInterceptor(
+                ownerUid = { SessionManager.loggedInUid },
+                isPremium = { SessionManager.isPremium },
+                report = { uid, contentType, page, httpStatus ->
+                    Shaft.getContext().appServices().nana7miSearchTelemetry
+                        .reportOwnRequest(uid, contentType, page, httpStatus)
+                },
+            ),
+        )
         okhttpClientBuilder.addInterceptor(TokenFetcherInterceptor())
         applyAppApiProxy(okhttpClientBuilder)
         applyDirectConnect(okhttpClientBuilder)

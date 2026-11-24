@@ -96,8 +96,9 @@ class Nana7miSearchTelemetry internal constructor(
     private val buffer = ArrayDeque<Payload>()
 
     /**
-     * Idempotent. Called by Shaft's deferred init (non-Lite only); builds the durable queue and
-     * launches the flush/recovery workers. Flows created before this point buffer their events.
+     * Idempotent. Called by Shaft's deferred init (including Lite for owner own-search load
+     * reporting); builds the durable queue and launches the flush/recovery workers. Flows created
+     * before this point buffer their events.
      */
     fun start() {
         if (!enabledForConfiguration(ShaftHmac.isConfigured)) {

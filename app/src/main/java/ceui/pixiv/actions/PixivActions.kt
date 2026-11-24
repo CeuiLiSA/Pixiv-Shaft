@@ -2,7 +2,6 @@ package ceui.pixiv.actions
 
 import android.content.Intent
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
-import ceui.lisa.BuildConfig
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.pixiv.api.model.Illust
@@ -338,9 +337,6 @@ object PixivActions {
 
     @JvmStatic
     fun bindAccountOnline(uid: Long, accountResponse: AccountResponse) {
-        // /account/online feeds the Nana7mi lending pool. Lite must neither borrow from that pool
-        // nor contribute the signed-in user's AccountResponse to it.
-        if (BuildConfig.IS_LITE) return
         if (uid <= 0L) {
             // 会话还没加载完 / 匿名态。入队只会换来服务端恒定的 400 bad_uid，
             // 而且 dedupeKey 会变成 "user_online:0"，把后面真实 uid 的上报也搅浑。
