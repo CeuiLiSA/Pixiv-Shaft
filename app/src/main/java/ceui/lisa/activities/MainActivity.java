@@ -16,6 +16,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MotionEvent;
@@ -530,6 +531,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         applyNavigationMode(newConfig);
+        applyBottomBarStyle();
     }
 
     /**
@@ -568,10 +570,13 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
 
     /**
      * 根据设置动态应用首页底栏样式：
-     * 1. 液态玻璃悬浮：大圆角药丸胶囊、左右留白、悬浮于系统手势条上方、液态玻璃半透微光材质；
+     * 1. 液态玻璃悬浮：居中紧凑药丸胶囊（按 Tab 数量与标题宽度自适应，避免单项过宽撑满全屏）、悬浮于系统手势条上方、液态玻璃半透微光材质；
      * 2. 固定（旧版）：全宽贴底、无边距、经典实体窗体背景。
      */
     private void applyBottomBarStyle() {
+        if (isFinishing() || isDestroyed() || baseBind == null) {
+            return;
+        }
         boolean isFloating = Shaft.sSettings.isBottomBarFloating();
         CoordinatorLayout.LayoutParams lp =
                 (CoordinatorLayout.LayoutParams) baseBind.bottomBarFrame.getLayoutParams();
@@ -584,6 +589,35 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
         }
         if (defaultNavTextColor == null) {
             defaultNavTextColor = baseBind.navigationView.getItemTextColor();
+        }
+
+        int menuCount = 0;
+        Menu navMenu = baseBind.navigationView.getMenu();
+        for (int i = 0; i < navMenu.size(); i++) {
+            if (navMenu.getItem(i).isVisible()) {
+                menuCount++;
+            }
+        }
+        int hostWidthPx = baseBind.coordinatorLayout.getWidth();
+        if (hostWidthPx <= 0) {
+            hostWidthPx = getResources().getDisplayMetrics().widthPixels;
+        }
+        int marginH = dp(WitLiquidGlassTabBar.DEFAULT_SCREEN_MARGIN_H_DP);
+        int barPadH = dp(WitLiquidGlassTabBar.DEFAULT_BAR_HORIZONTAL_PADDING_DP);
+        int floatingWidthPx = ViewGroup.LayoutParams.MATCH_PARENT;
+        if (isFloating) {
+            int safeAvailableWidthPx =
+                    Math.max(0, hostWidthPx - lastNavBars.left - lastNavBars.right);
+            float maxLabelWidthPx =
+                    WitLiquidGlassTabBar.measureMaxTabLabelWidthPx(baseBind.navigationView);
+            floatingWidthPx =
+                    WitLiquidGlassTabBar.computePreferredBarWidthPx(
+                            safeAvailableWidthPx,
+                            menuCount,
+                            maxLabelWidthPx,
+                            getResources().getDisplayMetrics().density,
+                            marginH,
+                            barPadH);
         }
 
         WitLiquidGlassQuality targetQuality =
@@ -600,6 +634,10 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                         + "|"
                         + lastNavBars.bottom
                         + "|"
+                        + menuCount
+                        + "|"
+                        + floatingWidthPx
+                        + "|"
                         + palette.isDark()
                         + "|"
                         + palette.getPrimary();
@@ -615,8 +653,9 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
         }
 
         if (isFloating) {
-            int marginH = dp(16);
             int marginB = dp(12);
+            lp.width = floatingWidthPx;
+            lp.gravity = Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL;
             lp.leftMargin = lastNavBars.left + marginH;
             lp.rightMargin = lastNavBars.right + marginH;
             lp.bottomMargin = lastNavBars.bottom + marginB;
@@ -633,13 +672,16 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
             // Match iOS 26 ~62dp floating pill height (56dp nav + 3dp top/bottom breathing room) so
             // tab labels sit comfortably inside the flat distortion-free core of the elevated loupe.
             int barPadV = isGlassActive ? dp(3) : 0;
-            baseBind.bottomBarFrame.setPadding(0, barPadV, 0, barPadV);
+            baseBind.bottomBarFrame.setPadding(barPadH, barPadV, barPadH, barPadV);
 
             baseBind.navigationView.setBackgroundColor(Color.TRANSPARENT);
             baseBind.navigationView.setElevation(0f);
             baseBind.navigationView.setPadding(0, 0, 0, 0);
             baseBind.navigationView.setItemActiveIndicatorEnabled(false);
+            baseBind.navigationView.setItemHorizontalTranslationEnabled(false);
         } else {
+            lp.width = ViewGroup.LayoutParams.MATCH_PARENT;
+            lp.gravity = Gravity.BOTTOM;
             lp.leftMargin = 0;
             lp.rightMargin = 0;
             lp.bottomMargin = 0;
@@ -665,6 +707,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
             baseBind.navigationView.setElevation(0f);
             baseBind.navigationView.setPadding(lastNavBars.left, 0, lastNavBars.right, lastNavBars.bottom);
             baseBind.navigationView.setItemActiveIndicatorEnabled(false);
+            baseBind.navigationView.setItemHorizontalTranslationEnabled(true);
         }
 
         if (isGlassActive) {
@@ -767,6 +810,12 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                 (v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {
                     if ((bottom - top) != (oldBottom - oldTop)) {
                         ViewCompat.requestApplyInsets(baseBind.contentHost);
+                    }
+                });
+        baseBind.coordinatorLayout.addOnLayoutChangeListener(
+                (v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {
+                    if ((right - left) != (oldRight - oldLeft)) {
+                        v.post(this::applyBottomBarStyle);
                     }
                 });
 

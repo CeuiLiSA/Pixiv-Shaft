@@ -430,4 +430,59 @@ class WitLiquidGlassTabBarPhysicsTest {
         assertTrue("Expected tap glide to produce visible liquid stretch, got $peakStretch", peakStretch > 0.35f)
         assertTrue("Expected tap glide to approach Tab 3 within 200ms (remaining ${distRemaining}px)", distRemaining < metrics.restW * 0.45f)
     }
+
+    @Test
+    fun compactPreferredBarWidthShrinksPerItemAndKeepsConcentricDropletGeometry() {
+        val d = 3f
+        val marginH = (WitLiquidGlassTabBar.DEFAULT_SCREEN_MARGIN_H_DP * d).toInt()
+        val padH = (WitLiquidGlassTabBar.DEFAULT_BAR_HORIZONTAL_PADDING_DP * d).toInt()
+        val shortLabelPx = 28f * d // e.g. 2-char CJK tab label at 14sp
+
+        // Standard 411dp phone: 3-tab bar is ~252dp (80dp/item + 6dp*2 pad), 4-tab is ~332dp, 5-tab clamps to 379dp
+        val phoneW = (411f * d).toInt()
+        val threeTabW = WitLiquidGlassTabBar.computePreferredBarWidthPx(phoneW, 3, shortLabelPx, d, marginH, padH)
+        val fourTabW = WitLiquidGlassTabBar.computePreferredBarWidthPx(phoneW, 4, shortLabelPx, d, marginH, padH)
+        val fiveTabW = WitLiquidGlassTabBar.computePreferredBarWidthPx(phoneW, 5, shortLabelPx, d, marginH, padH)
+        assertEquals(252f, threeTabW / d, 1f)
+        assertEquals(332f, fourTabW / d, 1f)
+        assertEquals(379f, fiveTabW / d, 1f)
+
+        // Wide non-rail window (560dp): stays compact centered instead of stretching across the window
+        val wideW = (560f * d).toInt()
+        assertEquals(threeTabW, WitLiquidGlassTabBar.computePreferredBarWidthPx(wideW, 3, shortLabelPx, d, marginH, padH))
+        assertEquals(fourTabW, WitLiquidGlassTabBar.computePreferredBarWidthPx(wideW, 4, shortLabelPx, d, marginH, padH))
+
+        // Long localized label (e.g. "Recommended" ~76dp) expands gracefully up to MAX_ITEM_WIDTH_DP (90dp)
+        val longLabelPx = 76f * d
+        val threeTabEnW = WitLiquidGlassTabBar.computePreferredBarWidthPx(phoneW, 3, longLabelPx, d, marginH, padH)
+        assertEquals(282f, threeTabEnW / d, 1f)
+        // Oversized label / 2x font scale is capped at MAX_ITEM_WIDTH_DP per slot
+        val hugeLabelPx = 140f * d
+        val threeTabCappedW = WitLiquidGlassTabBar.computePreferredBarWidthPx(phoneW, 3, hugeLabelPx, d, marginH, padH)
+        assertEquals(282f, threeTabCappedW / d, 1f)
+
+        // Narrow 320dp phone clamps cleanly to available width minus 2 * 16dp horizontal safety margins
+        val narrowW = (320f * d).toInt()
+        val narrow4TabW = WitLiquidGlassTabBar.computePreferredBarWidthPx(narrowW, 4, shortLabelPx, d, marginH, padH)
+        assertEquals(288f, narrow4TabW / d, 1f)
+
+        // Verify WitLiquidGlassTabBar.computeMetrics produces balanced concentric pills & loupes at compact widths
+        val barH = 62f * d
+        for ((barW, count) in listOf(threeTabW to 3, fourTabW to 4, narrow4TabW to 4)) {
+            val navW = barW - 2f * padH
+            val slot = navW / count
+            val centers = FloatArray(count) { padH + slot * (it + 0.5f) }
+            val m = WitLiquidGlassTabBar.computeMetrics(barW.toFloat(), barH, centers, d)
+            assertTrue("Expected valid metrics for $count tabs", m.valid)
+            val leftGap = m.minCx - m.restW * 0.5f
+            val rightGap = barW - (m.maxCx + m.restW * 0.5f)
+            assertTrue("Rest pill stays inside bar ($leftGap / $rightGap)", leftGap >= 3.5f * d && rightGap >= 3.5f * d)
+            assertEquals("Rest pill is horizontally symmetric", leftGap, rightGap, 1.0f)
+            val aspect = m.restW / m.restH
+            assertTrue("Rest pill keeps sleek stadium aspect (1.30..1.65), got $aspect", aspect in 1.30f..1.65f)
+            val protrudeV = (m.heldH - m.barH) * 0.5f
+            val protrudeR = (m.maxCx + m.heldW * 0.5f) - m.barW
+            assertEquals("Held droplet stays concentric at bar end", protrudeV, protrudeR, 1.2f * d)
+        }
+    }
 }

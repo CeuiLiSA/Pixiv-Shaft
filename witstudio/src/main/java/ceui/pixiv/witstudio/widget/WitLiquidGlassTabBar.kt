@@ -14,6 +14,8 @@ import android.graphics.Region
 import android.graphics.Shader
 import android.os.Build
 import android.os.SystemClock
+import android.text.TextPaint
+import android.util.TypedValue
 import android.view.HapticFeedbackConstants
 import android.view.MotionEvent
 import android.view.View
@@ -34,6 +36,7 @@ import ceui.pixiv.witstudio.widget.internal.WitLiquidGlassPhysics
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.roundToInt
 import kotlin.math.sign
 
 /**
@@ -141,6 +144,83 @@ public class WitLiquidGlassTabBar private constructor(
         internal const val INNER_BAR_RECESS_SCALE_Y: Float = 0.880f
         internal const val MAX_PHYSICS_SUBSTEP_SEC: Float = WitLiquidGlassPhysics.MAX_PHYSICS_SUBSTEP_SEC
         internal const val MAX_FRAME_DT_SEC: Float = WitLiquidGlassPhysics.MAX_FRAME_DT_SEC
+
+        /** Default outer screen horizontal safety margin (dp) for a centered floating glass tab bar. */
+        public const val DEFAULT_SCREEN_MARGIN_H_DP: Int = 16
+
+        /** Default inner horizontal padding (dp) inside the floating glass capsule around tab items. */
+        public const val DEFAULT_BAR_HORIZONTAL_PADDING_DP: Int = 6
+
+        /** Compact per-tab baseline width (dp) so 3-4 tab bars float cleanly instead of spanning edge-to-edge. */
+        public const val COMPACT_ITEM_WIDTH_DP: Float = 80f
+
+        /** Upper per-tab width cap (dp) when expanding for longer localized labels or larger system fonts. */
+        public const val MAX_ITEM_WIDTH_DP: Float = 90f
+
+        /** Horizontal breathing room (dp) added around the widest active tab label inside each slot. */
+        public const val LABEL_HORIZONTAL_PADDING_DP: Float = 14f
+
+        private const val ACTIVE_LABEL_TEXT_SIZE_SP: Float = 14f
+
+        /**
+         * Measures the widest visible tab title in [navigationView] at active label size (respecting
+         * the user's system font scale) so compact floating tab widths never clip localized labels.
+         */
+        @JvmStatic
+        public fun measureMaxTabLabelWidthPx(navigationView: BottomNavigationView): Float {
+            val menu = navigationView.menu
+            if (menu.size == 0) return 0f
+            val dm = navigationView.resources.displayMetrics
+            val paint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
+                textSize = TypedValue.applyDimension(
+                    TypedValue.COMPLEX_UNIT_SP,
+                    ACTIVE_LABEL_TEXT_SIZE_SP,
+                    dm,
+                )
+            }
+            var maxWidth = 0f
+            for (i in 0 until menu.size) {
+                val item = menu[i]
+                if (!item.isVisible) continue
+                val title = item.title
+                if (!title.isNullOrEmpty()) {
+                    maxWidth = max(maxWidth, paint.measureText(title, 0, title.length))
+                }
+            }
+            return maxWidth
+        }
+
+        /**
+         * Computes a compact, centered floating bar width (px) from [tabCount] and [maxLabelWidthPx],
+         * clamped cleanly within `[availableWidthPx - 2 * horizontalMarginPx]`.
+         *
+         * Returns [ViewGroup.LayoutParams.MATCH_PARENT] if [tabCount] or [availableWidthPx] is not yet ready.
+         */
+        @JvmStatic
+        @JvmOverloads
+        public fun computePreferredBarWidthPx(
+            availableWidthPx: Int,
+            tabCount: Int,
+            maxLabelWidthPx: Float,
+            density: Float,
+            horizontalMarginPx: Int = (DEFAULT_SCREEN_MARGIN_H_DP * density).roundToInt(),
+            barHorizontalPaddingPx: Int = (DEFAULT_BAR_HORIZONTAL_PADDING_DP * density).roundToInt(),
+        ): Int {
+            if (tabCount <= 0 || availableWidthPx <= 0) {
+                return ViewGroup.LayoutParams.MATCH_PARENT
+            }
+            val safeDensity = density.coerceAtLeast(0.5f)
+            val safeMargin = horizontalMarginPx.coerceAtLeast(0)
+            val safePadH = barHorizontalPaddingPx.coerceAtLeast(0)
+            val maxBarWidth = (availableWidthPx - safeMargin * 2).coerceAtLeast(1)
+
+            val baseItemW = COMPACT_ITEM_WIDTH_DP * safeDensity
+            val maxItemW = MAX_ITEM_WIDTH_DP * safeDensity
+            val labelItemW = maxLabelWidthPx.coerceAtLeast(0f) + LABEL_HORIZONTAL_PADDING_DP * safeDensity
+            val itemW = max(baseItemW, labelItemW).coerceAtMost(maxItemW)
+            val desiredBarWidth = (itemW * tabCount + safePadH * 2f).roundToInt()
+            return desiredBarWidth.coerceIn(1, maxBarWidth)
+        }
 
         private val CHECKED_ITEM_STATES: Array<IntArray> = arrayOf(
             intArrayOf(android.R.attr.state_checked),
