@@ -373,9 +373,10 @@ dependencies {
     // no dependency on :app or Pixiv business models.
     implementation project(path: ':safe')
     implementation project(path: ':communication')
-    // 借号会话框架（BorrowedSession / Nana7miSessionEngine / SerialExecutionCoordinator / BoundedNetworkRetry）。
-    // 纯 JVM 模块，零 Android 依赖；Pixiv/Pixshaft/Timber/Telemetry 适配见 ceui.pixiv.nana7mi.host。
-    implementation project(path: ':nana7mi')
+    // 借号会话库（BorrowedSession / Nana7miSessionEngine / SerialExecutionCoordinator / BoundedNetworkRetry）。
+    // 已独立开源发布至 JitPack（SoxiaLiSA/pixiv-premium-session，纯 JVM，零 Android 依赖）；
+    // Pixiv/Pixshaft/Timber/Telemetry 宿主适配见 ceui.pixiv.nana7mi.host。
+    implementation libs.pixivPremiumSession
     // 应用锁（issue #1197）：BiometricPrompt + 前后台判定 + 锁屏页。对 pixiv 一无所知，
     // 宿主只提供主题；设置页入口在 FragmentSettingsAccount。
     implementation project(path: ':applock')
