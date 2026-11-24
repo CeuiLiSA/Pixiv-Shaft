@@ -100,6 +100,7 @@ public class Shaft extends Application implements ServicesProvider {
     @Inject ceui.pixiv.db.discovery.ProfileManager profileManager;
     @Inject ceui.pixiv.db.discovery.DiscoveryPool discoveryPool;
     @Inject ceui.pixiv.actions.AccountOnlineReportOutbox accountOnlineReportOutbox;
+    @Inject ceui.pixiv.nana7mi.host.ShaftNana7miSession nana7miSession;
     @Inject ceui.pixiv.actions.Nana7miSearchTelemetry nana7miSearchTelemetry;
     @Inject ceui.pixiv.config.RemoteAppConfig remoteAppConfig;
     @Inject ceui.pixiv.events.EventReporter eventReporter;
@@ -1102,6 +1103,11 @@ public class Shaft extends Application implements ServicesProvider {
     @Override
     public @NotNull ceui.pixiv.actions.AccountOnlineReportOutbox getAccountOnlineReportOutbox() {
         return accountOnlineReportOutbox;
+    }
+
+    @Override
+    public @NotNull ceui.pixiv.nana7mi.host.ShaftNana7miSession getNana7miSession() {
+        return nana7miSession;
     }
 
     @Override

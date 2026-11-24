@@ -9,13 +9,19 @@ import ceui.lisa.model.ListNovel
 import ceui.lisa.repo.ViewerBookmarkState.withViewerBookmarkState
 import ceui.lisa.utils.PixivSearchParamUtil
 import ceui.lisa.viewmodel.SearchModel
-import ceui.pixiv.actions.AccountOnlineReportOutbox
-import ceui.pixiv.shaftapi.Nana7miPayload
 import ceui.pixiv.actions.Nana7miSearchTelemetry
 import ceui.pixiv.actions.observeFirstOrRun
 import ceui.pixiv.actions.trackOrRun
+import ceui.pixiv.api.model.AccountResponse
 import ceui.pixiv.config.RemoteAppConfig
 import ceui.pixiv.db.mirror.BookmarkMirrorService
+import ceui.pixiv.nana7mi.host.Nana7miTelemetryFlowHooks
+import ceui.pixiv.nana7mi.host.SearchCachePageAdapter
+import ceui.pixiv.nana7mi.host.ShaftNana7miSession
+import ceui.pixiv.nana7mi.session.BorrowedSession
+import ceui.pixiv.nana7mi.session.BorrowedSessionState
+import ceui.pixiv.nana7mi.session.executeFirstPage
+import ceui.pixiv.nana7mi.session.executeNextPage
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.search.SortType
 import ceui.pixiv.ui.search.v3.DurationBucket
@@ -61,7 +67,7 @@ class SearchNovelRepo @JvmOverloads constructor(
      */
     private var includePotentialViolationWorks: Boolean? = null,
     // 进程级服务，由构造方（Fragment）从 ServicesProvider 取出注入；Repo 自己不认识 Application。
-    private val nana7miOutbox: AccountOnlineReportOutbox,
+    private val nana7miSessionService: ShaftNana7miSession,
     private val nana7miTelemetryService: Nana7miSearchTelemetry,
     private val remoteAppConfig: RemoteAppConfig,
     private val bookmarkMirror: BookmarkMirrorService,
@@ -76,7 +82,7 @@ class SearchNovelRepo @JvmOverloads constructor(
     // 靠它在客户端二次兜底，否则「喜欢！数」筛选会静默消失。
     private val filterMapper: NovelFilterMapper = NovelFilterMapper().enableFilterStarSize()
     @Volatile
-    private var nana7miSession = Nana7miAccountSession(nana7miOutbox)
+    private var nana7miSession: BorrowedSession<AccountResponse> = nana7miSessionService.newSession()
     @Volatile
     private var nana7miTelemetry: Nana7miSearchTelemetry.Flow? = null
 
@@ -89,7 +95,7 @@ class SearchNovelRepo @JvmOverloads constructor(
     /** 首屏请求。挂起点全在网络 / 借号里，调用方不必再切 IO。 */
     suspend fun initApi(): ListNovel {
         // A late completion from an older query must not overwrite the account for this query.
-        val currentNana7miSession = Nana7miAccountSession(nana7miOutbox)
+        val currentNana7miSession = nana7miSessionService.newSession()
         nana7miSession = currentNana7miSession
         nana7miTelemetry = null
         val useBookmarkQuery = (bookmarkMin ?: 0) > 0 || (bookmarkMax ?: 0) > 0
@@ -228,42 +234,38 @@ class SearchNovelRepo @JvmOverloads constructor(
         }
 
         suspend fun fallbackPreview(reason: String): ListNovel {
-            telemetry?.fallback(reason)
             Timber.tag(NANA7MI_LOG_TAG).w(
                 "stage=route target=novel_popular_preview reason=%s",
                 reason,
             )
-            return telemetry.trackOrRun(Nana7miSearchTelemetry.Page.FIRST) {
-                try {
-                    popularPreviewRequest().also { response ->
-                        Timber.tag(NANA7MI_LOG_TAG).d(
-                            "stage=novel_popular_preview result=success novel_count=%d has_next=%s",
-                            response.novels?.size ?: 0,
-                            !response.nextUrl.isNullOrBlank(),
-                        )
-                    }
-                } catch (ce: CancellationException) {
-                    throw ce
-                } catch (error: Throwable) {
-                    Timber.tag(NANA7MI_LOG_TAG).w(
-                        error,
-                        "stage=novel_popular_preview result=failure error_type=%s",
-                        error.javaClass.simpleName,
+            return try {
+                popularPreviewRequest().also { response ->
+                    Timber.tag(NANA7MI_LOG_TAG).d(
+                        "stage=novel_popular_preview result=success novel_count=%d has_next=%s",
+                        response.novels?.size ?: 0,
+                        !response.nextUrl.isNullOrBlank(),
                     )
-                    throw error
                 }
+            } catch (ce: CancellationException) {
+                throw ce
+            } catch (error: Throwable) {
+                Timber.tag(NANA7MI_LOG_TAG).w(
+                    error,
+                    "stage=novel_popular_preview result=failure error_type=%s",
+                    error.javaClass.simpleName,
+                )
+                throw error
             }
         }
 
         // 仅喜欢数筛选（date 排序）的借号失败回退：排序保真走普通官方搜索（sort 此时必为
         // date_desc/date_asc，非会员发也合法），bookmark 参数被服务端忽略后无碍结果正确性。
         suspend fun fallbackPlain(reason: String): ListNovel {
-            telemetry?.fallback(reason)
             Timber.tag(NANA7MI_LOG_TAG).w(
                 "stage=route target=novel_plain_search reason=%s",
                 reason,
             )
-            return telemetry.trackOrRun(Nana7miSearchTelemetry.Page.FIRST) { plainSearchRequest() }
+            return plainSearchRequest()
         }
 
         // 借号失败按诉求分流：热度类诉求回退热度预览；仅喜欢数筛选回退普通直连
@@ -308,111 +310,70 @@ class SearchNovelRepo @JvmOverloads constructor(
                 "reading_time_max" to readingTimeMax,
             ),
         )
-        val requestIdProtocolEnabled = remoteAppConfig.nana7miRequestIdEnabled
-        val firstRequestId = if (requestIdProtocolEnabled) {
-            Nana7miSearchCache.newRequestId()
-        } else {
-            null
-        }
-
-        suspend fun borrowedFlow(): ListNovel = Nana7miSearchSerial.run("novel_first") { lease ->
-            Timber.tag(NANA7MI_LOG_TAG).d(
-                "stage=novel_flow event=start requester_uid=%d sort=%s keyword_length=%d",
-                requesterUid,
-                sortType,
-                assembledKeyword.length,
+        Timber.tag(NANA7MI_LOG_TAG).d(
+            "stage=novel_flow event=start requester_uid=%d sort=%s keyword_length=%d",
+            requesterUid,
+            sortType,
+            assembledKeyword.length,
+        )
+        return currentNana7miSession.executeFirstPage {
+            this.requesterUid = requesterUid
+            idempotencyEnabled = remoteAppConfig.nana7miRequestIdEnabled
+            serialStage = "novel_first"
+            requestStage = "novel_official_search"
+            cache = SearchCachePageAdapter(
+                kind = cacheKind,
+                key = cacheKey,
+                page = Nana7miSearchCache.Page.FIRST,
+                maxAgeMs = firstMaxAgeMs,
+                type = ListNovel::class.java,
+                stage = "novel_official_search",
             )
-            val result = lease.guarded { currentNana7miSession.fetchReady(firstRequestId) }
-            val borrowed = currentNana7miSession.payload
-            if (borrowed == null || borrowed.expired) {
-                return@run fallbackAfterBorrowFailure(currentNana7miSession.resultLabel(result))
+            hooks = Nana7miTelemetryFlowHooks.firstPage(
+                telemetry = telemetry,
+                onBorrowed = { borrowedUid ->
+                    Timber.tag(NANA7MI_LOG_TAG).d(
+                        "stage=route target=novel_official_search account_uid=%d sort=%s",
+                        borrowedUid,
+                        sortType,
+                    )
+                },
+            )
+            describeSuccess { response ->
+                "novel_count=${response.novels?.size ?: 0} " +
+                        "has_next=${!response.nextUrl.isNullOrBlank()}"
             }
-            telemetry?.borrowed(borrowed.uid)
-            Timber.tag(NANA7MI_LOG_TAG).d(
-                "stage=route target=novel_official_search account_uid=%d sort=%s",
-                borrowed.uid,
-                sortType,
-            )
-            try {
-                telemetry.trackOrRun(
-                    page = Nana7miSearchTelemetry.Page.FIRST,
-                    route = Nana7miSearchTelemetry.Route.BORROWED_OFFICIAL,
-                    borrowedUid = borrowed.uid,
-                    eventId = firstRequestId,
-                ) {
-                    currentNana7miSession.requestWithRefresh(
-                        initial = borrowed,
-                        stage = "novel_official_search",
-                        lease = lease,
-                        successDetails = { response ->
-                            "novel_count=${response.novels?.size ?: 0} " +
-                                    "has_next=${!response.nextUrl.isNullOrBlank()}"
-                        },
-                    ) { authorization ->
-                        // 降级重发复用同一份 authorization，不再走一次借号/续期。
-                        withTitleFallback { target ->
-                            api.searchNovelWithAuth(
-                                authorization,
-                                assembledKeyword,
-                                sortType,
-                                effectiveStartDate,
-                                effectiveEndDate,
-                                target,
-                                bookmarkMin,
-                                bookmarkMax,
-                                genre,
-                                lang,
-                                searchAiType,
-                                isOriginalOnly,
-                                isReplaceableOnly,
-                                textLengthMin,
-                                textLengthMax,
-                                wordCountMin,
-                                wordCountMax,
-                                readingTimeMin,
-                                readingTimeMax,
-                                includePotentialViolationWorks,
-                            )
-                        }
-                    }.also { page ->
-                        Nana7miSearchCache.store(cacheKind, cacheKey, page, "novel_official_search")
-                    }.withViewerBookmarkState(bookmarkMirror)
+            postProcess { it.withViewerBookmarkState(bookmarkMirror) }
+            fallback { reason -> fallbackAfterBorrowFailure(reason.code) }
+            request { account ->
+                val authorization = account.authorizationHeader()
+                // 降级重发复用同一份 authorization，不再走一次借号/续期。
+                withTitleFallback { target ->
+                    api.searchNovelWithAuth(
+                        authorization,
+                        assembledKeyword,
+                        sortType,
+                        effectiveStartDate,
+                        effectiveEndDate,
+                        target,
+                        bookmarkMin,
+                        bookmarkMax,
+                        genre,
+                        lang,
+                        searchAiType,
+                        isOriginalOnly,
+                        isReplaceableOnly,
+                        textLengthMin,
+                        textLengthMax,
+                        wordCountMin,
+                        wordCountMax,
+                        readingTimeMin,
+                        readingTimeMax,
+                        includePotentialViolationWorks,
+                    )
                 }
-            } catch (ce: CancellationException) {
-                throw ce
-            } catch (error: Throwable) {
-                if (!isBorrowedAccountUnavailable(error)) throw error
-                fallbackAfterBorrowFailure("borrowed_refresh_failed")
             }
         }
-
-        return Nana7miSearchCache.firstOrElse(
-            kind = cacheKind,
-            key = cacheKey,
-            page = Nana7miSearchCache.Page.FIRST,
-            requestId = firstRequestId,
-            maxAgeMs = firstMaxAgeMs,
-            type = ListNovel::class.java,
-            stage = "novel_official_search",
-            hit = { cached ->
-                // 命中也是一轮完整的流程：路由记成 cache_hit，request + flow 事件照常上报，
-                // 服务端那边已经按一次搜索计过费。
-                currentNana7miSession.markCursorFromCache(
-                    firstRequestId,
-                    requestIdProtocolEnabled,
-                )
-                telemetry?.cacheHit()
-                telemetry.observeFirstOrRun {
-                    telemetry.trackOrRun(
-                        page = Nana7miSearchTelemetry.Page.FIRST,
-                        route = Nana7miSearchTelemetry.Route.CACHE_HIT,
-                        borrowedUid = null,
-                        reason = null,
-                        eventId = firstRequestId,
-                    ) { cached.withViewerBookmarkState(bookmarkMirror) }
-                }
-            },
-        ) { telemetry.observeFirstOrRun { borrowedFlow() } }
     }
 
     /**
@@ -431,93 +392,44 @@ class SearchNovelRepo @JvmOverloads constructor(
     /** 翻页请求，游标取 [nextUrl]。 */
     suspend fun initNextApi(): ListNovel {
         val session = nana7miSession
-        val borrowed = session.payload
-        val cursorFromCache = session.cursorFromCache
         val telemetry = nana7miTelemetry
         // Capture the cursor together with the session before this request waits for the
         // process-wide permit; a newer first page may otherwise replace nextUrl.
         val nextPageUrl = nextUrl
         val api = Client.appApi
-        if (session.borrowedAccountLost) {
-            return endBorrowedPagination("already_lost")
-        }
-        if (borrowed == null && !cursorFromCache) {
-            return telemetry.trackOrRun(Nana7miSearchTelemetry.Page.NEXT) {
-                api.getNextNovel(nextPageUrl)
+        val pageCache = when (session.state) {
+            is BorrowedSessionState.Active,
+            is BorrowedSessionState.CachedCursor,
+            -> {
+                val cacheKind = Nana7miSearchCache.Kind.NOVEL
+                SearchCachePageAdapter(
+                    kind = cacheKind,
+                    key = Nana7miSearchCache.nextPageKey(cacheKind, nextPageUrl),
+                    page = Nana7miSearchCache.Page.NEXT,
+                    maxAgeMs = cacheMaxAgeMs,
+                    type = ListNovel::class.java,
+                    stage = "novel_official_search_next",
+                )
             }
+            BorrowedSessionState.Idle,
+            BorrowedSessionState.Lost,
+            -> null
         }
-        // 会员专属游标：先问缓存，未命中再用借来的号打；首屏来自缓存的话这时才借（见 SearchIllustRepo）。
-        val cacheKind = Nana7miSearchCache.Kind.NOVEL
-        val cacheKey = Nana7miSearchCache.nextPageKey(cacheKind, nextPageUrl)
-        val nextRequestId = if (remoteAppConfig.nana7miRequestIdEnabled) {
-            Nana7miSearchCache.newRequestId()
-        } else {
-            null
-        }
-        return Nana7miSearchCache.firstOrElse(
-            kind = cacheKind,
-            key = cacheKey,
-            page = Nana7miSearchCache.Page.NEXT,
-            requestId = nextRequestId,
-            maxAgeMs = cacheMaxAgeMs,
-            type = ListNovel::class.java,
-            stage = "novel_official_search_next",
-            hit = { cached ->
-                // 命中的翻页同样上报（route=cache_hit），服务端已按一次翻页计费。
-                telemetry.trackOrRun(
-                    page = Nana7miSearchTelemetry.Page.NEXT,
-                    route = Nana7miSearchTelemetry.Route.CACHE_HIT,
-                    borrowedUid = null,
-                    reason = null,
-                    eventId = nextRequestId,
-                ) { cached.withViewerBookmarkState(bookmarkMirror) }
-            },
-        ) {
-            Nana7miSearchSerial.run("novel_next") { lease ->
-                try {
-                    val current: Nana7miPayload = borrowed ?: run {
-                        Timber.tag(NANA7MI_LOG_TAG).d(
-                            "stage=novel_official_search_next event=borrow_for_cached_cursor",
-                        )
-                        lease.guarded {
-                            session.fetchReadyForCachedCursor()
-                            session.payload?.takeIf { !it.expired }
-                                ?: throw BorrowedAccountUnavailableException(
-                                    IllegalStateException("no borrowed account for cached cursor"),
-                                )
-                        }
-                    }
-                    Timber.tag(NANA7MI_LOG_TAG).d(
-                        "stage=novel_official_search_next event=request account_uid=%d",
-                        current.uid,
-                    )
-                    telemetry.trackOrRun(
-                        page = Nana7miSearchTelemetry.Page.NEXT,
-                        route = Nana7miSearchTelemetry.Route.BORROWED_OFFICIAL,
-                        borrowedUid = current.uid,
-                        eventId = nextRequestId,
-                    ) {
-                        session.requestWithRefresh(
-                            initial = current,
-                            stage = "novel_official_search_next",
-                            lease = lease,
-                            successDetails = { response ->
-                                "novel_count=${response.novels?.size ?: 0} " +
-                                        "has_next=${!response.nextUrl.isNullOrBlank()}"
-                            },
-                        ) { authorization ->
-                            api.getNextNovelWithAuth(authorization, nextPageUrl)
-                        }.also { page ->
-                            Nana7miSearchCache.store(cacheKind, cacheKey, page, "novel_official_search_next")
-                        }.withViewerBookmarkState(bookmarkMirror)
-                    }
-                } catch (ce: CancellationException) {
-                    throw ce
-                } catch (error: Throwable) {
-                    if (!isBorrowedAccountUnavailable(error)) throw error
-                    endBorrowedPagination("renew_failed")
-                }
+        return session.executeNextPage {
+            requesterUid = SessionManager.loggedInUid
+            idempotencyEnabled = remoteAppConfig.nana7miRequestIdEnabled
+            serialStage = "novel_next"
+            requestStage = "novel_official_search_next"
+            cache = pageCache
+            hooks = Nana7miTelemetryFlowHooks.nextPage(telemetry)
+            describeSuccess { response ->
+                "novel_count=${response.novels?.size ?: 0} " +
+                        "has_next=${!response.nextUrl.isNullOrBlank()}"
             }
+            postProcess { it.withViewerBookmarkState(bookmarkMirror) }
+            directRequest { api.getNextNovel(nextPageUrl) }
+            endPagination { endBorrowedPagination() }
+            request { account -> api.getNextNovelWithAuth(account.authorizationHeader(), nextPageUrl) }
         }
     }
 
@@ -531,11 +443,7 @@ class SearchNovelRepo @JvmOverloads constructor(
      * 返回空的终止页（无 next_url）让列表停在已拿到的结果上；重新搜索会走 [initApi] 建新会话、
      * 借一个新号从头开始。
      */
-    private fun endBorrowedPagination(reason: String): ListNovel {
-        Timber.tag(NANA7MI_LOG_TAG).w(
-            "stage=novel_official_search_next result=borrow_lost reason=%s action=end_pagination",
-            reason,
-        )
+    private fun endBorrowedPagination(): ListNovel {
         // Mapper.apply 会遍历 getList()，null 会 NPE —— 必须显式给空列表。
         return ListNovel().apply { novels = emptyList() }
     }

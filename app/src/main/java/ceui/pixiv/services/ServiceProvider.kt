@@ -7,6 +7,7 @@ import ceui.lisa.viewmodel.AppLevelState
 import ceui.pixiv.actions.AccountOnlineReportOutbox
 import ceui.pixiv.actions.Nana7miSearchTelemetry
 import ceui.pixiv.actions.PixivActionQueue
+import ceui.pixiv.nana7mi.host.ShaftNana7miSession
 import ceui.pixiv.chat.api.ShaftChatGateway
 import ceui.pixiv.config.RemoteAppConfig
 import ceui.pixiv.db.EntityWrapper
@@ -79,6 +80,9 @@ interface ServicesProvider {
 
     /** 账号在线/失效上报的离线信箱。 */
     val accountOnlineReportOutbox: AccountOnlineReportOutbox
+
+    /** 借号会话引擎（封装串行租约、刷新续期、配额提示与重试策略）。 */
+    val nana7miSession: ShaftNana7miSession
 
     /** nana7mi 搜索埋点（批量攒发）。 */
     val nana7miSearchTelemetry: Nana7miSearchTelemetry

@@ -1,7 +1,7 @@
 package ceui.pixiv.session
 
-import ceui.lisa.repo.freshMembershipOf
 import ceui.pixiv.login.PixivOAuthUser
+import ceui.pixiv.nana7mi.session.MembershipPolicy
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
@@ -49,18 +49,20 @@ class SessionPremiumReportTest {
     }
 
     /**
-     * 刷新响应只能替它自己指名的那个账号说话 —— 和借号那支 [freshMembershipOf] 是同一条
-     * 规则，[SessionManager.freshPremiumOf] 直接复用它，两处不会漂移。
+     * 刷新响应只能替它自己指名的那个账号说话 —— 和借号那支共用 `:nana7mi` 的
+     * [MembershipPolicy.attribute]，两处不会漂移。
      */
     @Test
     fun `a refresh only speaks for the account it names`() {
         val uid = 31660292L
-        assertEquals(true, freshMembershipOf(PixivOAuthUser(uid, "n", "a", isPremium = true), uid))
-        assertNull(freshMembershipOf(PixivOAuthUser(999L, "n", "a", isPremium = false), uid))
+        fun freshMembership(user: PixivOAuthUser?, expectedUid: Long): Boolean? =
+            MembershipPolicy.attribute(user?.id, expectedUid, user?.isPremium)
+
+        assertEquals(true, freshMembership(PixivOAuthUser(uid, "n", "a", isPremium = true), uid))
+        assertNull(freshMembership(PixivOAuthUser(999L, "n", "a", isPremium = false), uid))
         // id 缺失/非数字时 pixiv-login 填 0，绑不到本账号
-        assertNull(freshMembershipOf(PixivOAuthUser(0L, "n", "a", isPremium = false), uid))
-        // 未登录/会话没加载完时 loggedInUid 也是 0，两个 0 会相等 —— 所以
-        // SessionManager.freshPremiumOf 在调用前自己挡了一道 uid > 0，见那里的注释
-        assertEquals(false, freshMembershipOf(PixivOAuthUser(0L, "n", "a", isPremium = false), 0L))
+        assertNull(freshMembership(PixivOAuthUser(0L, "n", "a", isPremium = false), uid))
+        // expectedUid <= 0（未登录/会话未加载完）也由 MembershipPolicy.attribute 直接拒绝，不会 0 == 0 误判
+        assertNull(freshMembership(PixivOAuthUser(0L, "n", "a", isPremium = false), 0L))
     }
 }

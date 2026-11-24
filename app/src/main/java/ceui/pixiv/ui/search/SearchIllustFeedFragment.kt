@@ -63,7 +63,7 @@ class SearchIllustFeedFragment : IllustFeedFragment() {
             // 8 个必填参数先给 null，全部由 update(searchModel) 填；构造时 super 已建好 FilterMapper。
             SearchIllustRepo(
                 null, null, null, null, null, null, null, null,
-                nana7miOutbox = services.accountOnlineReportOutbox,
+                nana7miSessionService = services.nana7miSession,
                 nana7miTelemetryService = services.nana7miSearchTelemetry,
                 remoteAppConfig = services.remoteAppConfig,
                 bookmarkMirror = services.bookmarkMirror,

@@ -1,0 +1,50 @@
+apply plugin: 'java-library'
+apply plugin: 'org.jetbrains.kotlin.jvm'
+apply plugin: 'maven-publish'
+
+group = providers.gradleProperty('NANA7MI_GROUP').orElse('com.github.SoxiaLiSA').get()
+version = providers.gradleProperty('NANA7MI_VERSION').orElse('1.0.0').get()
+
+java {
+    withSourcesJar()
+    withJavadocJar()
+}
+
+kotlin {
+    jvmToolchain(17)
+    // Published pure-JVM framework SDK: enforce explicit visibility and return types so
+    // internal implementation details never leak into the binary API surface.
+    explicitApi()
+}
+
+dependencies {
+    api libs.coroutinesCore
+
+    testImplementation libs.junit4
+    testImplementation libs.coroutinesTest
+
+    // Deliberately absent: Android SDK, OkHttp, Retrofit, Gson, Timber, MMKV, Hilt,
+    // :models, or any Pixiv business types. Host applications supply adapters via SPI ports.
+}
+
+publishing {
+    publications {
+        register('mavenJava', MavenPublication) {
+            from components.java
+            artifactId = 'nana7mi-session'
+
+            pom {
+                name = 'Nana7mi Session SDK'
+                description = 'Pure-JVM borrowed-account session lifecycle, token rotation durability, fair serial leasing, and bounded retry framework.'
+                url = 'https://github.com/CeuiLiSA/Pixiv-Shaft'
+
+                licenses {
+                    license {
+                        name = 'GNU General Public License v3.0'
+                        url = 'https://www.gnu.org/licenses/gpl-3.0.txt'
+                    }
+                }
+            }
+        }
+    }
+}

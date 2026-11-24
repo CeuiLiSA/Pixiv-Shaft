@@ -87,7 +87,7 @@ class SearchNovelFeedFragment : NovelFeedFragment() {
         SearchNovelFeedSource(searchModel, loadedSpec) {
             SearchNovelRepo(
                 null, null, null, null, null, null, null, null,
-                nana7miOutbox = services.accountOnlineReportOutbox,
+                nana7miSessionService = services.nana7miSession,
                 nana7miTelemetryService = services.nana7miSearchTelemetry,
                 remoteAppConfig = services.remoteAppConfig,
                 bookmarkMirror = services.bookmarkMirror,

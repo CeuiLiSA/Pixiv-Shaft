@@ -7,6 +7,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import ceui.lisa.R
 import ceui.lisa.activities.TemplateActivity
+import ceui.pixiv.nana7mi.session.RateLimitInfo
 import ceui.pixiv.shaftapi.Nana7miResult
 import com.google.android.material.snackbar.Snackbar
 import ceui.pixiv.ui.navigation.TemplateRoute
@@ -43,22 +44,30 @@ object Nana7miQuotaNotice {
 
     private var announcedBucket: String? = null
 
+    private val QUOTA_SCOPES = setOf("uid_5h", "uid_weekly")
+
     /** 借号被配额拒了。可以从任意线程调用（仓库在 IO 线程上）。 */
     fun report(result: Nana7miResult.RateLimited) {
-        if (!result.isQuota) return
-        val scope = result.scope ?: return
-        val bucket = "$scope:${result.resetsAt ?: 0L}"
+        report(
+            RateLimitInfo.create {
+                retryAfterSeconds = result.retryAfterSeconds
+                scope = result.scope
+                resetsAtMs = result.resetsAt
+                serverTimeMs = result.serverTime
+            },
+        )
+    }
+
+    /** 借号被配额拒了（来自 `:nana7mi` 会话引擎观察者）。可以从任意线程调用。 */
+    fun report(info: RateLimitInfo) {
+        if (!info.matchesScope(QUOTA_SCOPES)) return
+        val scope = info.scope ?: return
+        val bucket = "$scope:${info.resetsAtMs ?: 0L}"
         if (bucket == announcedBucket) return
 
         // resetsAt 是服务端时刻，必须减服务端的 serverTime，不能减本机时钟；两者都缺时退回
         // Retry-After 的秒数。
-        val resetInMs = when {
-            result.resetsAt != null && result.serverTime != null ->
-                result.resetsAt - result.serverTime
-            result.retryAfterSeconds != null -> result.retryAfterSeconds * 1000L
-            else -> return
-        }
-        if (resetInMs <= 0L) return
+        val resetInMs = info.remainingResetMs() ?: return
 
         announcedBucket = bucket
         _pending.postValue(Notice(scope, resetInMs))

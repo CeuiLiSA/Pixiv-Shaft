@@ -14,7 +14,7 @@ import androidx.lifecycle.MutableLiveData
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.pixiv.services.appServices
-import ceui.lisa.repo.freshMembershipOf
+import ceui.pixiv.nana7mi.session.MembershipPolicy
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.Local
 import ceui.loxia.User
@@ -622,7 +622,7 @@ object SessionManager {
      * 用于 token 刷新完成后同步到 LiveData + 磁盘。
      *
      * [freshPremium] 为 null = pixiv 这次没提会员（部分刷新响应就是不带这个字段）， 保留旧值；绝不能把「没说」写成「不是会员」，那会把一个付费号踢出借号池。
-     * 同一条判断见 [ceui.lisa.repo.mergeMembership]。
+     * 同一条判断见 [MembershipPolicy.merge]。
      *
      * [freshXRestrict] 同理，null 保留旧值。R-18 开关只能在官网改；冷启动的 me/state 预热
      * （[ceui.pixiv.session.SelfProfileWarmup]）会写它一次，这里补上进程长驻期间的更新。
@@ -659,15 +659,15 @@ object SessionManager {
     /**
      * 这次刷新响应能替**当前登录账号**说的会员状态，说不了就是 null。
      *
-     * 判据复用借号那支的 [freshMembershipOf]（uid 对不上就不算数），两处是同一条规则： 一次 token 刷新只能替它自己指名的那个账号说话。
-     *
-     * 这里多一道 `uid > 0`：[freshMembershipOf] 的调用契约是「uid 已保证 > 0」，而 [loggedInUid] 在未登录/会话还没加载完时就是 0，而
-     * pixiv-login 在 pixiv 漏发 id 时 也填 0 —— 两个 0 会相等，等于拿一份认不出主人的响应去改会员状态。
+     * 判据复用 `:nana7mi` 的 [MembershipPolicy.attribute]（要求 uid > 0 且响应 user.id 与之匹配），
+     * 与借号刷新共用同一条规则：一次 token 刷新只能替它自己指名的那个账号说话。
      */
-    fun freshPremiumOf(response: PixivOAuthResponse): Boolean? {
-        val uid = loggedInUid
-        return if (uid <= 0L) null else freshMembershipOf(response.user, uid)
-    }
+    fun freshPremiumOf(response: PixivOAuthResponse): Boolean? =
+        MembershipPolicy.attribute(
+            reportedUid = response.user?.id,
+            expectedUid = loggedInUid,
+            reportedIsPremium = response.user?.isPremium,
+        )
 
     /** 这次刷新响应能替当前登录账号说的 R-18 浏览设置，认主规则同 [freshPremiumOf]。 */
     fun freshXRestrictOf(response: PixivOAuthResponse): Int? {

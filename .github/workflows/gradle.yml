@@ -154,6 +154,7 @@ jobs:
           :progressmanager:testDebugUnitTest
           :safe:testDebugUnitTest
           :witstudio:testDebugUnitTest
+          :nana7mi:test
           --continue
 
       # Room 会在编译时自动写出当前 schema；如果忘记提交，迁移测试会消费刚生成的
