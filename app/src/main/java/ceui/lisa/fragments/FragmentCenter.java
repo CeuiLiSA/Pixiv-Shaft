@@ -21,6 +21,7 @@ import java.util.List;
 import ceui.lisa.BuildConfig;
 import ceui.lisa.R;
 import ceui.lisa.activities.MainActivity;
+import ceui.lisa.activities.Shaft;
 import ceui.lisa.utils.SystemBarMetrics;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.activities.VActivity;
@@ -35,6 +36,7 @@ import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.Params;
 import ceui.pixiv.witstudio.theme.V3Palette;
+import ceui.pixiv.witstudio.widget.WitLiquidGlassQuality;
 import ceui.lisa.view.HorizontalSpaceDecoration;
 import ceui.pixiv.ui.discovery.DiscoverViewModel;
 import ceui.pixiv.ui.prime.PrimeTagIndexItem;
@@ -78,11 +80,22 @@ public class FragmentCenter extends BaseLazyFragment<FragmentNewCenterBinding> {
 
     @Override
     protected void initView() {
+        int statusBarHeight = 0;
         if (Dev.hideMainActivityStatus) {
+            statusBarHeight = SystemBarMetrics.statusBarHeight(mContext);
             ViewGroup.LayoutParams headParams = baseBind.head.getLayoutParams();
-            headParams.height = SystemBarMetrics.statusBarHeight(mContext);
+            headParams.height = statusBarHeight;
             baseBind.head.setLayoutParams(headParams);
         }
+        syncGlassQuality();
+        applyTopOverlayHeight(statusBarHeight + DensityUtil.dp2px(56f));
+        baseBind.headerContainer.addOnLayoutChangeListener(
+                (v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {
+                    int h = bottom - top;
+                    if (h > 0 && h != (oldBottom - oldTop)) {
+                        applyTopOverlayHeight(h);
+                    }
+                });
 
         baseBind.drawerButton.setOnClickListener(v -> {
             if (mActivity instanceof MainActivity) {
@@ -336,7 +349,33 @@ public class FragmentCenter extends BaseLazyFragment<FragmentNewCenterBinding> {
     @Override
     public void onResume() {
         super.onResume();
+        syncGlassQuality();
         DrawerAvatarHelper.applyToImageView(baseBind.drawerButton);
+    }
+
+    private void syncGlassQuality() {
+        if (baseBind == null) {
+            return;
+        }
+        WitLiquidGlassQuality quality =
+                WitLiquidGlassQuality.fromOrdinal(Shaft.sSettings.getLiquidGlassQuality());
+        baseBind.glassHost.setQuality(quality);
+        baseBind.topScrollEdge.setScrimColor(ContextCompat.getColor(mContext, R.color.v3_bg));
+    }
+
+    private void applyTopOverlayHeight(int heightPx) {
+        if (baseBind == null || heightPx <= 0) {
+            return;
+        }
+        baseBind.topScrollEdge.setAnchorHeightPx(heightPx);
+        View scroller = baseBind.discoverScroll;
+        if (scroller.getPaddingTop() != heightPx) {
+            scroller.setPaddingRelative(
+                    scroller.getPaddingStart(),
+                    heightPx,
+                    scroller.getPaddingEnd(),
+                    scroller.getPaddingBottom());
+        }
     }
 
     @Override

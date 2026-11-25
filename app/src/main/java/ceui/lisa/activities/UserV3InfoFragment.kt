@@ -9,7 +9,7 @@ import android.widget.LinearLayout
 import androidx.core.view.OneShotPreDrawListener
 import androidx.core.view.doOnPreDraw
 import androidx.core.view.isVisible
-import androidx.core.view.doOnPreDraw
+import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import ceui.lisa.R
@@ -33,11 +33,12 @@ private const val BIO_COLLAPSED_LINES = 5
  *
  * 共享宿主 UserActivityV3 的 UserViewModel,自身只负责把数据渲染进卡片。
  */
-class UserV3InfoFragment : Fragment() {
+class UserV3InfoFragment : Fragment(), UserV3TopInsetConsumer {
 
     private var _binding: FragmentUserV3InfoBinding? = null
     private val binding get() = _binding!!
     private val userViewModel: UserViewModel by activityViewModels()
+    private var hostTopInsetPx = 0
 
     /** 作者简介展开态（对齐 V3 详情页简介折叠）。 */
     private var bioExpanded = false
@@ -49,7 +50,17 @@ class UserV3InfoFragment : Fragment() {
         savedInstanceState: Bundle?,
     ): View {
         _binding = FragmentUserV3InfoBinding.inflate(inflater, container, false)
+        if (hostTopInsetPx > 0) {
+            binding.root.updatePadding(top = hostTopInsetPx)
+        }
         return binding.root
+    }
+
+    override fun setUserTopInset(topInsetPx: Int) {
+        val clamped = topInsetPx.coerceAtLeast(0)
+        if (hostTopInsetPx == clamped && _binding?.root?.paddingTop == clamped) return
+        hostTopInsetPx = clamped
+        _binding?.root?.updatePadding(top = clamped)
     }
 
     private val muteSwitchListener =

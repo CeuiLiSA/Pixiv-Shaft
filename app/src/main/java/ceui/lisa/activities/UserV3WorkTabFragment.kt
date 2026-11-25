@@ -6,9 +6,13 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isVisible
+import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentManager
+import androidx.recyclerview.widget.RecyclerView
 import ceui.lisa.R
 import ceui.pixiv.api.model.Illust
+import ceui.pixiv.feeds.FeedFragment
 import ceui.pixiv.utils.toTagsBean
 import ceui.lisa.models.TagsBean
 import ceui.lisa.utils.Params
@@ -39,7 +43,7 @@ private const val MAX_TAG_CHIPS = 20 // issue #569: 高频 tag 药丸最多展�
  * 点开 [UserTagSearchSheet] —— 那里走网页 ajax 拿全量 tag(可达近 2000 条)、可搜索、
  * 带作品数,是「想找某个 tag」这件事的正解。
  */
-class UserV3WorkTabFragment : Fragment(), UserIllustFirstPageListener, UserNovelFirstPageListener {
+class UserV3WorkTabFragment : Fragment(), UserIllustFirstPageListener, UserNovelFirstPageListener, UserV3TopInsetConsumer {
 
     private var userId = 0L
     private var tagsRendered = false
@@ -47,7 +51,16 @@ class UserV3WorkTabFragment : Fragment(), UserIllustFirstPageListener, UserNovel
     // trimToTwoRows 的收敛结果缓存(按宽度,重复渲染不再离屏测量)
     private var trimmedMaxTags = 0
     private var trimmedForWidth = 0
+    private var hostTopInsetPx = 0
+    private var observedListView: RecyclerView? = null
+    private var childLifecycleCallbacks: FragmentManager.FragmentLifecycleCallbacks? = null
     private lateinit var filterBar: V3TagFlowView
+
+    private val listScrollListener = object : RecyclerView.OnScrollListener() {
+        override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+            syncFilterBarTranslation(recyclerView)
+        }
+    }
 
     private val category: String by lazy(LazyThreadSafetyMode.NONE) {
         arguments?.getString(ARG_CATEGORY) ?: UserTagSearchSheet.CATEGORY_ILLUSTS
@@ -75,6 +88,13 @@ class UserV3WorkTabFragment : Fragment(), UserIllustFirstPageListener, UserNovel
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         filterBar = view.findViewById(R.id.illust_filter_bar)
+        filterBar.addOnLayoutChangeListener { _, _, top, _, bottom, _, oldTop, _, oldBottom ->
+            if ((bottom - top) != (oldBottom - oldTop)) {
+                applyTopInsets()
+                observedListView?.let(::syncFilterBarTranslation)
+            }
+        }
+        installChildFeedObserver()
         // 旋转/重建时 childFragmentManager 自己恢复列表,别再 add 一份
         if (childFragmentManager.findFragmentById(R.id.illust_list_container) == null) {
             val listFragment = when (category) {
@@ -85,6 +105,93 @@ class UserV3WorkTabFragment : Fragment(), UserIllustFirstPageListener, UserNovel
             childFragmentManager.beginTransaction()
                 .add(R.id.illust_list_container, listFragment)
                 .commit()
+        }
+        applyTopInsets()
+    }
+
+    override fun onDestroyView() {
+        observedListView?.removeOnScrollListener(listScrollListener)
+        observedListView = null
+        childLifecycleCallbacks?.let { childFragmentManager.unregisterFragmentLifecycleCallbacks(it) }
+        childLifecycleCallbacks = null
+        super.onDestroyView()
+    }
+
+    override fun setUserTopInset(topInsetPx: Int) {
+        val clamped = topInsetPx.coerceAtLeast(0)
+        if (hostTopInsetPx == clamped && view == null) return
+        hostTopInsetPx = clamped
+        if (view != null) {
+            applyTopInsets()
+            observedListView?.let(::syncFilterBarTranslation)
+        }
+    }
+
+    private fun installChildFeedObserver() {
+        val callbacks = object : FragmentManager.FragmentLifecycleCallbacks() {
+            override fun onFragmentViewCreated(
+                fm: FragmentManager,
+                f: Fragment,
+                v: View,
+                savedInstanceState: Bundle?,
+            ) {
+                if (f.id == R.id.illust_list_container) {
+                    bindChildList(f, v)
+                }
+            }
+
+            override fun onFragmentViewDestroyed(fm: FragmentManager, f: Fragment) {
+                if (f.id == R.id.illust_list_container) {
+                    observedListView?.removeOnScrollListener(listScrollListener)
+                    observedListView = null
+                }
+            }
+        }
+        childLifecycleCallbacks = callbacks
+        childFragmentManager.registerFragmentLifecycleCallbacks(callbacks, false)
+        childFragmentManager.findFragmentById(R.id.illust_list_container)?.let { existing ->
+            existing.view?.let { bindChildList(existing, it) }
+        }
+    }
+
+    private fun bindChildList(fragment: Fragment, root: View) {
+        if (fragment is FeedFragment) {
+            fragment.setTopContentInset(computeListTopInset())
+        }
+        val rv = root.findViewById<RecyclerView?>(ceui.pixiv.feeds.R.id.feed_list_view) ?: return
+        if (observedListView !== rv) {
+            observedListView?.removeOnScrollListener(listScrollListener)
+            observedListView = rv
+            rv.addOnScrollListener(listScrollListener)
+        }
+        syncFilterBarTranslation(rv)
+    }
+
+    private fun computeListTopInset(): Int {
+        val barH = if (::filterBar.isInitialized && filterBar.isVisible) filterBar.height else 0
+        return hostTopInsetPx + barH
+    }
+
+    private fun applyTopInsets() {
+        if (!::filterBar.isInitialized) return
+        filterBar.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+            if (topMargin != hostTopInsetPx) {
+                topMargin = hostTopInsetPx
+            }
+        }
+        val child = childFragmentManager.findFragmentById(R.id.illust_list_container)
+        if (child is FeedFragment) {
+            child.setTopContentInset(computeListTopInset())
+        }
+    }
+
+    private fun syncFilterBarTranslation(rv: RecyclerView) {
+        if (!::filterBar.isInitialized || !filterBar.isVisible) return
+        val maxTravel = hostTopInsetPx + filterBar.height + 64
+        val scrolled = computeRecyclerScrolledFromTop(rv, maxTravel)
+        val targetY = -scrolled.toFloat()
+        if (filterBar.translationY != targetY) {
+            filterBar.translationY = targetY
         }
     }
 

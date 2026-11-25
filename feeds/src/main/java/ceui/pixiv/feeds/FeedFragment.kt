@@ -104,6 +104,51 @@ abstract class FeedFragment(
     protected var feedAdapter: FeedAdapter? = null
         private set
 
+    /** 宿主悬浮顶栏（如首页 soft scroll edge 顶栏）注入的顶部内容留白（px）。 */
+    private var topContentInsetPx: Int = 0
+    private var baseListPaddingTop: Int = 0
+    private var appliedRefreshTopInsetPx: Int = -1
+
+    /**
+     * 设置宿主悬浮顶栏压住的顶部留白（px）：列表与首屏骨架以 `clipToPadding=false` 让出该高度，
+     * 下拉刷新转圈同步下移至悬浮顶栏下方，同时内容滚动时可直接侵入顶栏与状态栏后方。
+     * 视图创建前后均可调用，重复传入相同值自动幂等。
+     */
+    fun setTopContentInset(topPx: Int) {
+        val clamped = topPx.coerceAtLeast(0)
+        if (topContentInsetPx == clamped && _binding != null && appliedRefreshTopInsetPx == clamped) {
+            return
+        }
+        topContentInsetPx = clamped
+        _binding?.let(::applyTopContentInset)
+    }
+
+    private fun applyTopContentInset(binding: FragmentFeedBinding) {
+        val listView = binding.feedListView
+        val targetListTop = baseListPaddingTop + topContentInsetPx
+        if (listView.paddingTop != targetListTop) {
+            val wasAtTop = !listView.canScrollVertically(-1)
+            listView.updatePadding(top = targetListTop)
+            if (wasAtTop && listView.childCount > 0) {
+                // scrollToPosition(0) 在 SGLM / LLM 上项 0 已部分可见时不会把偏移归零，
+                // 导致筛选条/顶栏动态增高后首行卡片仍压在顶栏后；走 scrollFeedItemToOffset(0, 0) 精确对齐新 paddingTop。
+                listView.scrollFeedItemToOffset(0, 0)
+            }
+        }
+        if (binding.feedSkeleton.paddingTop != topContentInsetPx) {
+            binding.feedSkeleton.updatePadding(top = topContentInsetPx)
+        }
+        if (topContentInsetPx != appliedRefreshTopInsetPx &&
+            (topContentInsetPx > 0 || appliedRefreshTopInsetPx > 0)
+        ) {
+            appliedRefreshTopInsetPx = topContentInsetPx
+            val density = resources.displayMetrics.density
+            val startOffset = if (topContentInsetPx > 0) topContentInsetPx else -(40f * density).toInt()
+            val endOffset = topContentInsetPx + (64f * density).toInt()
+            binding.feedRefreshLayout.setProgressViewOffset(false, startOffset, endOffset)
+        }
+    }
+
     /** 首屏是否用瀑布流骨架图（否则 fallback 转圈圈）。在 onViewCreated 按布局定，render 只读它。 */
     private var skeletonEnabled: Boolean = false
 
@@ -127,6 +172,11 @@ abstract class FeedFragment(
         }
         val binding = FragmentFeedBinding.bind(feedRoot)
         _binding = binding
+        baseListPaddingTop = binding.feedListView.paddingTop
+        appliedRefreshTopInsetPx = -1
+        if (topContentInsetPx > 0) {
+            applyTopContentInset(binding)
+        }
 
         // 裸 fragment_feed 自带列表底色，否则宿主布局的装饰背景（如 activity_multi_view_pager
         // 根上的 ?attr/colorPrimary）会从透明列表后面整页透出来；自定义 contentLayoutId 的页面

@@ -13,6 +13,7 @@ import androidx.core.content.withStyledAttributes
 import androidx.core.graphics.withClip
 import androidx.core.view.isVisible
 import ceui.pixiv.witstudio.R
+import ceui.pixiv.witstudio.widget.internal.WitBackdropConsumers
 import ceui.pixiv.witstudio.widget.internal.WitLiquidGlassBackend
 import ceui.pixiv.witstudio.widget.internal.WitLiquidGlassBackdrop
 import ceui.pixiv.witstudio.widget.internal.WitLiquidGlassBudget
@@ -56,7 +57,7 @@ public class WitLiquidGlassLayout @JvmOverloads public constructor(
             field = value
             if (!value.isLiveEnabled) clearBackdrop()
             for (i in 0 until childCount) {
-                (getChildAt(i) as? WitLiquidGlassView)?.onHostQualityChanged()
+                WitBackdropConsumers.onHostQualityChanged(getChildAt(i))
             }
             invalidate()
         }
@@ -124,10 +125,10 @@ public class WitLiquidGlassLayout @JvmOverloads public constructor(
         val source = getChildAt(0)
         val hasGlass = (1 until childCount).any {
             val child = getChildAt(it)
-            child is WitLiquidGlassView && patchPlan(child).pixels > 0
+            WitBackdropConsumers.isConsumer(child) && patchPlan(child).pixels > 0
         }
         if (width == 0 || height == 0 || source == null ||
-            source is WitLiquidGlassView || !source.isVisible || !hasGlass
+            WitBackdropConsumers.isConsumer(source) || !source.isVisible || !hasGlass
         ) {
             return null
         }
@@ -156,7 +157,7 @@ public class WitLiquidGlassLayout @JvmOverloads public constructor(
         val selfIndex = siblingParent.indexOfChild(this)
         val hasGlass = (0 until childCount).any {
             val child = getChildAt(it)
-            child is WitLiquidGlassView && patchPlan(child).pixels > 0
+            WitBackdropConsumers.isConsumer(child) && patchPlan(child).pixels > 0
         }
         if (width == 0 || height == 0 || selfIndex <= 0 || !hasGlass) {
             return null
@@ -207,18 +208,18 @@ public class WitLiquidGlassLayout @JvmOverloads public constructor(
     }
 
     override fun drawChild(canvas: Canvas, child: View, drawingTime: Long): Boolean {
-        if (Build.VERSION.SDK_INT >= 31 && child is WitLiquidGlassView) {
+        if (Build.VERSION.SDK_INT >= 31 && WitBackdropConsumers.isConsumer(child)) {
             if (canvas.isHardwareAccelerated) {
                 val scene = drawingBackdrop
                 val plan = if (scene != null) patchPlan(child) else WitLiquidGlassBudget.PatchPlan(0L, 1f)
                 if (plan.pixels > 0 && plan.pixels <= remainingPixels) {
                     remainingPixels -= plan.pixels
-                    child.updateBackdrop(scene, scrollX, scrollY, plan.scale)
+                    WitBackdropConsumers.updateBackdrop(child, scene, scrollX, scrollY, plan.scale)
                 } else {
-                    child.updateBackdrop(null, scrollX, scrollY, 1f)
+                    WitBackdropConsumers.updateBackdrop(child, null, scrollX, scrollY, 1f)
                 }
             } else if (!isHardwareAccelerated || layerType == LAYER_TYPE_SOFTWARE) {
-                child.updateBackdrop(null, scrollX, scrollY, 1f)
+                WitBackdropConsumers.updateBackdrop(child, null, scrollX, scrollY, 1f)
             }
         }
         return super.drawChild(canvas, child, drawingTime)
@@ -239,7 +240,7 @@ public class WitLiquidGlassLayout @JvmOverloads public constructor(
         if (child === getChildAt(0) && backdrop != null) {
             backdropDirty = true
             invalidate()
-        } else if (child === target && child is WitLiquidGlassView && (backdrop != null || patchPlan(child).pixels > 0)) {
+        } else if (child === target && WitBackdropConsumers.isConsumer(child) && (backdrop != null || patchPlan(child).pixels > 0)) {
             invalidate()
         }
     }
@@ -280,15 +281,16 @@ public class WitLiquidGlassLayout @JvmOverloads public constructor(
         if (quality.isLiveEnabled) return true
         for (i in 0 until childCount) {
             val child = getChildAt(i)
-            if (child is WitLiquidGlassView && child.effectiveQuality.isLiveEnabled) return true
+            if (WitBackdropConsumers.effectiveQuality(child)?.isLiveEnabled == true) return true
         }
         return false
     }
 
-    private fun patchPlan(child: WitLiquidGlassView): WitLiquidGlassBudget.PatchPlan {
-        if (!child.effectiveQuality.isLiveEnabled || !child.isVisible || child.alpha <= 0f || child.layerType == LAYER_TYPE_SOFTWARE) {
+    private fun patchPlan(child: View): WitLiquidGlassBudget.PatchPlan {
+        val q = WitBackdropConsumers.effectiveQuality(child) ?: return WitLiquidGlassBudget.PatchPlan(0L, 1f)
+        if (!q.isLiveEnabled || !child.isVisible || child.alpha <= 0f || child.layerType == LAYER_TYPE_SOFTWARE) {
             return WitLiquidGlassBudget.PatchPlan(0L, 1f)
         }
-        return child.planPatch(canvasEdge)
+        return WitBackdropConsumers.planPatch(child, canvasEdge)
     }
 }

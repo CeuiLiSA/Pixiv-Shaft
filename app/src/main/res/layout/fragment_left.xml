@@ -1,26 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ceui.pixiv.witstudio.widget.WitLiquidGlassCoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/glass_host"
     android:layout_width="match_parent"
-    android:orientation="vertical"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/v3_bg">
 
-    <ImageView
+    <!-- Child 0: 首页推荐内容页（液态玻璃模式下取消 appbar_scrolling_view_behavior，全屏铺至屏幕顶侵入顶栏与状态栏） -->
+    <androidx.viewpager.widget.ViewPager
+        android:id="@+id/view_pager"
         android:layout_width="match_parent"
-        android:background="?attr/colorPrimary"
-        android:id="@+id/head"
-        android:layout_height="1dp">
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
-    </ImageView>
+    <!-- Child 1: iOS 26 UIScrollEdgeEffect.Style.soft 顶部渐进模糊层 -->
+    <ceui.pixiv.witstudio.widget.WitScrollEdgeBlurView
+        android:id="@+id/top_scroll_edge"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top"
+        android:visibility="gone"
+        app:wit_edgeFeatherHeight="20dp"
+        app:wit_edgeOpaqueHeaderFallback="true"
+        app:wit_edgeScrimColor="@color/v3_bg" />
 
-    <!-- 宽窗口（侧边导航栏在显示，#1087）时换成 V3 页头：与「发现」「动态」同款标题行
-         + 「推荐作品 / 热门标签」分段切换；紫色 Toolbar 与 TabLayout 在宽窗口下隐藏，
-         切换逻辑见 FragmentLeft.applyRailMode。 -->
+    <!-- Child 2: 宽窗口（侧边导航栏在显示，#1087）V3 页头：与「发现」「动态」同款悬浮标题行 + 分段切换 -->
     <LinearLayout
         android:id="@+id/wide_header"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/v3_bg"
+        android:layout_gravity="top"
+        android:background="@android:color/transparent"
         android:orientation="vertical"
         android:visibility="gone">
 
@@ -73,60 +83,55 @@
 
     </LinearLayout>
 
-    <androidx.coordinatorlayout.widget.CoordinatorLayout
+    <!-- Child 3: 手机排版 AppBarLayout（marginTop = statusBarHeight，收起 Toolbar 时由 clipBounds 精确裁在状态栏底缘） -->
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/app_bar"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="wrap_content"
+        android:layout_gravity="top"
+        android:background="?attr/colorPrimary"
+        app:elevation="0dp">
 
-        <com.google.android.material.appbar.AppBarLayout
-            android:id="@+id/app_bar"
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
             android:layout_width="match_parent"
+            android:layout_height="50dp"
+            app:layout_scrollFlags="scroll|enterAlways"
+            app:navigationIcon="@drawable/ic_baseline_dns_24"
+            app:titleTextColor="@android:color/white">
+
+            <TextView
+                android:id="@+id/toolbar_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:textColor="@color/white"
+                android:textSize="18sp" />
+
+        </androidx.appcompat.widget.Toolbar>
+
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/tab_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="48dp"
             android:background="?attr/colorPrimary"
-            android:layout_height="wrap_content">
+            app:tabGravity="fill"
+            app:tabIndicatorColor="@android:color/white"
+            app:tabIndicatorFullWidth="false"
+            app:tabMode="fixed"
+            app:tabSelectedTextColor="@android:color/white"
+            app:tabTextColor="@color/light_new_primary_color" />
 
-            <androidx.appcompat.widget.Toolbar
-                android:id="@+id/toolbar"
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                app:layout_scrollFlags="scroll|enterAlways"
-                app:navigationIcon="@drawable/ic_baseline_dns_24"
-                app:titleTextColor="@android:color/white">
+    </com.google.android.material.appbar.AppBarLayout>
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:id="@+id/toolbar_title"
-                    android:textColor="@color/white"
-                    android:textSize="18sp">
+    <!-- Child 4: 经典模式状态栏底色条（放在 app_bar 之上遮住上滑收起的 Toolbar；液态玻璃态透明） -->
+    <ImageView
+        android:id="@+id/head"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_gravity="top"
+        android:background="?attr/colorPrimary"
+        android:importantForAccessibility="no" />
 
-                </TextView>
-
-            </androidx.appcompat.widget.Toolbar>
-
-            <com.google.android.material.tabs.TabLayout
-                android:layout_width="match_parent"
-                android:id="@+id/tab_layout"
-                android:background="?attr/colorPrimary"
-                app:tabTextColor="@color/light_new_primary_color"
-                app:tabIndicatorFullWidth="false"
-                app:tabIndicatorColor="@android:color/white"
-                app:tabSelectedTextColor="@android:color/white"
-                app:tabMode="fixed"
-                app:tabGravity="fill"
-                android:minHeight="48dp"
-                android:layout_height="wrap_content">
-
-            </com.google.android.material.tabs.TabLayout>
-
-        </com.google.android.material.appbar.AppBarLayout>
-
-        <androidx.viewpager.widget.ViewPager
-            android:layout_width="match_parent"
-            android:id="@+id/view_pager"
-            app:layout_behavior="@string/appbar_scrolling_view_behavior"
-            android:layout_height="match_parent">
-
-        </androidx.viewpager.widget.ViewPager>
-
-    </androidx.coordinatorlayout.widget.CoordinatorLayout>
-</LinearLayout>
+</ceui.pixiv.witstudio.widget.WitLiquidGlassCoordinatorLayout>

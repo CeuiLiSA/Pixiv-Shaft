@@ -42,6 +42,7 @@ import ceui.pixiv.witstudio.widget.WitLiquidGlassLayout
 import ceui.pixiv.witstudio.widget.WitLiquidGlassMenu
 import ceui.pixiv.witstudio.widget.WitLiquidGlassQuality
 import ceui.pixiv.witstudio.widget.WitLiquidGlassView
+import ceui.pixiv.witstudio.widget.WitScrollEdgeBlurView
 import kotlin.math.abs
 
 /**
@@ -59,6 +60,11 @@ class LiquidGlassDebugFragment : Fragment() {
     private var selectedCornerRadiusDp = Float.POSITIVE_INFINITY
     @ColorInt private var selectedTint = Color.TRANSPARENT
     private var selectedInteractive = true
+    private var topEdgeMode = 0 // 0 = 顶栏悬浮侵入, 1 = 仅状态栏 (App Store), 2 = 关闭
+    private var topEdgeFeatherDp = 24f
+    private var topEdgeMaxBlurDp = 18f
+    private var topEdgeScrimStrength = 1.0f
+    private var latestStatusBarTopPx = 0
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -76,6 +82,33 @@ class LiquidGlassDebugFragment : Fragment() {
 
         val glassSurfaces = mutableListOf<WitLiquidGlassView>()
         val contentTintTargets = mutableListOf<Pair<WitLiquidGlassView, () -> Unit>>()
+        val topScrollEdge = WitScrollEdgeBlurView(ctx).apply {
+            featherHeightDp = topEdgeFeatherDp
+            maxBlurRadiusDp = topEdgeMaxBlurDp
+            scrimStrength = topEdgeScrimStrength
+            scrimColor = ctx.color(R.color.v3_bg)
+            isOpaqueHeaderFallback = true
+        }
+
+        fun syncTopEdge() {
+            topScrollEdge.visibility = if (topEdgeMode == 2) View.GONE else View.VISIBLE
+            topScrollEdge.tone = selectedTone
+            topScrollEdge.featherHeightDp = if (topEdgeMode == 1) maxOf(topEdgeFeatherDp, 44f) else topEdgeFeatherDp
+            topScrollEdge.maxBlurRadiusDp = topEdgeMaxBlurDp
+            topScrollEdge.scrimStrength = topEdgeScrimStrength
+            topScrollEdge.isOpaqueHeaderFallback = topEdgeMode == 0
+            val statusTop = latestStatusBarTopPx.coerceAtLeast(ctx.dp(24))
+            topScrollEdge.anchorHeightPx = if (topEdgeMode == 1) {
+                statusTop
+            } else {
+                statusTop + ctx.dp(60)
+            }
+            topScrollEdge.scrimColor = when (selectedTone) {
+                WitLiquidGlassView.Tone.LIGHT -> 0xFFF8F7FC.toInt()
+                WitLiquidGlassView.Tone.DARK -> 0xFF101014.toInt()
+                WitLiquidGlassView.Tone.THEME -> ctx.color(R.color.v3_bg)
+            }
+        }
 
         fun syncAllGlass() {
             glassSurfaces.forEach { glass ->
@@ -86,6 +119,7 @@ class LiquidGlassDebugFragment : Fragment() {
                 glass.tintColor = selectedTint
                 glass.isGlassInteractive = selectedInteractive
             }
+            syncTopEdge()
             contentTintTargets.forEach { (_, applyTint) -> applyTint() }
         }
 
@@ -279,6 +313,101 @@ class LiquidGlassDebugFragment : Fragment() {
             ).apply { topMargin = ctx.dp(4) },
         )
 
+        // 顶部 iOS 26 UIScrollEdgeEffect.Style.soft 渐进模糊调试控件
+        controlsCard.addOptionRow(
+            title = "顶部 Scroll Edge (.soft)",
+            options = listOf("顶栏侵入", "仅状态栏", "关闭"),
+            initialIndex = topEdgeMode,
+            palette = palette,
+        ) { index ->
+            topEdgeMode = index
+            syncTopEdge()
+        }
+
+        val featherHeader = ctx.sectionLabel("Edge Feather 羽化 · ${topEdgeFeatherDp.toInt()}dp")
+        controlsCard.addView(
+            featherHeader,
+            LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+            ).apply { topMargin = ctx.dp(14) },
+        )
+        controlsCard.addView(
+            SeekBar(ctx).apply {
+                max = 52 // 12..64 dp
+                progress = (topEdgeFeatherDp.toInt() - 12).coerceIn(0, 52)
+                setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+                    override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                        topEdgeFeatherDp = (12 + progress).toFloat()
+                        featherHeader.text = "Edge Feather 羽化 · ${topEdgeFeatherDp.toInt()}dp"
+                        syncTopEdge()
+                    }
+                    override fun onStartTrackingTouch(seekBar: SeekBar?) = Unit
+                    override fun onStopTrackingTouch(seekBar: SeekBar?) = Unit
+                })
+            },
+            LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+            ).apply { topMargin = ctx.dp(4) },
+        )
+
+        val blurHeader = ctx.sectionLabel("Edge Max Blur 峰值 · ${topEdgeMaxBlurDp.toInt()}dp")
+        controlsCard.addView(
+            blurHeader,
+            LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+            ).apply { topMargin = ctx.dp(10) },
+        )
+        controlsCard.addView(
+            SeekBar(ctx).apply {
+                max = 20 // 8..28 dp
+                progress = (topEdgeMaxBlurDp.toInt() - 8).coerceIn(0, 20)
+                setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+                    override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                        topEdgeMaxBlurDp = (8 + progress).toFloat()
+                        blurHeader.text = "Edge Max Blur 峰值 · ${topEdgeMaxBlurDp.toInt()}dp"
+                        syncTopEdge()
+                    }
+                    override fun onStartTrackingTouch(seekBar: SeekBar?) = Unit
+                    override fun onStopTrackingTouch(seekBar: SeekBar?) = Unit
+                })
+            },
+            LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+            ).apply { topMargin = ctx.dp(4) },
+        )
+
+        val veilHeader = ctx.sectionLabel("Edge Veil 柔化遮罩 · ${(topEdgeScrimStrength * 100).toInt()}%")
+        controlsCard.addView(
+            veilHeader,
+            LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+            ).apply { topMargin = ctx.dp(10) },
+        )
+        controlsCard.addView(
+            SeekBar(ctx).apply {
+                max = 100
+                progress = (topEdgeScrimStrength * 100).toInt().coerceIn(0, 100)
+                setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+                    override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                        topEdgeScrimStrength = progress / 100f
+                        veilHeader.text = "Edge Veil 柔化遮罩 · $progress%"
+                        syncTopEdge()
+                    }
+                    override fun onStartTrackingTouch(seekBar: SeekBar?) = Unit
+                    override fun onStopTrackingTouch(seekBar: SeekBar?) = Unit
+                })
+            },
+            LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+            ).apply { topMargin = ctx.dp(4) },
+        )
+
         // drawToBitmap 软件快照测试按钮（验证软件画布不破坏在线硬件底图）
         val snapshotBtn = ctx.label(
             value = "drawToBitmap() 软件快照回归测试",
@@ -322,6 +451,16 @@ class LiquidGlassDebugFragment : Fragment() {
         )
 
         // ── 悬浮液态玻璃层（WitLiquidGlassLayout 直接子 View） ──
+
+        // 0) 顶部 iOS 26 UIScrollEdgeEffect.Style.soft 渐进模糊带（位于返回/菜单圆钮之下，背景之上）
+        glassLayout.addView(
+            topScrollEdge,
+            FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                Gravity.TOP,
+            ),
+        )
 
         // 1) 左上返回圆钮
         val backIcon = ImageView(ctx).apply {
@@ -567,6 +706,8 @@ class LiquidGlassDebugFragment : Fragment() {
             val bars = windowInsets.getInsets(
                 WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout(),
             )
+            latestStatusBarTopPx = bars.top
+            syncTopEdge()
             content.setPadding(
                 bars.left + ctx.dp(16),
                 bars.top + ctx.dp(76),

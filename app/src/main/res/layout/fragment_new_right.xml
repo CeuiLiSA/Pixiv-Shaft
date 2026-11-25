@@ -1,75 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 「动态」tab —— V3 重设计,风格对齐 fragment_new_center。
-     · 底色 v3_bg;固定 header(抽屉 + 大标题「动态」+ 常驻搜索胶囊)与「发现」页一致。
-     · 下方 CoordinatorLayout + 两个自定义 behavior 保持不动:imagesTitleBlockLayout(推荐用户折叠头)
-       + content_item(内容 sheet 上滑折叠头)。behavior 只认这两个 id,内部随便重排样式。
-     · 头部推荐用户区铺在 v3_bg 上(同「发现」的 pivision 横条);内容 sheet 用 v3_menu_bg 圆角上浮,
-       跟头部拉开层次。 -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- 「动态」tab —— V3 重设计 + iOS 26 UIScrollEdgeEffect.Style.soft 顶部侵入渐进模糊。
+     · Child 0 (dynamic_coordinator) 全屏铺到屏幕顶:推荐用户折叠头 (imagesTitleBlockLayout)
+       与内容 sheet (content_item) 均向上滑入「动态」标题栏与系统状态栏下方。
+     · Child 1 (top_scroll_edge) 提供无硬分割线的渐进变半径高斯模糊与柔化遮罩。
+     · Child 2 (header_container + dynamic_title_scroll) 悬浮于模糊之上，保证标题、按钮与
+       「插画/漫画·小说 / 全部·公开·私人」筛选条始终锐利且可点。 -->
+<ceui.pixiv.witstudio.widget.WitLiquidGlassLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/glass_host"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/v3_bg"
-    android:orientation="vertical">
+    android:background="@color/v3_bg">
 
-    <!-- 状态栏占位:代码里按 Dev.hideMainActivityStatus 撑到 statusHeight -->
-    <View
-        android:id="@+id/head"
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="@color/v3_bg" />
-
-    <!-- Header 行:抽屉入口 + 大标题「动态」 -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingStart="12dp"
-        android:paddingEnd="16dp">
-
-        <ImageButton
-            android:id="@+id/drawerButton"
-            android:layout_width="44dp"
-            android:layout_height="44dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/string_77"
-            android:scaleType="centerInside"
-            android:src="@drawable/ic_baseline_dns_24"
-            app:tint="@color/v3_text_1" />
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginStart="6dp"
-            android:letterSpacing="-0.02"
-            android:text="@string/string_77"
-            android:textColor="@color/v3_text_1"
-            android:textSize="24sp"
-            android:textStyle="bold" />
-
-        <!-- 搜索入口:挪到 header 右上角,和「推荐」tab 的搜索图标一致 -->
-        <ImageButton
-            android:id="@+id/searchBar"
-            android:layout_width="44dp"
-            android:layout_height="44dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/search"
-            android:scaleType="centerInside"
-            android:src="@drawable/ic_search_black_24dp"
-            app:tint="@color/v3_text_1" />
-
-    </LinearLayout>
-
+    <!-- Child 0: 全屏可滚动与可折叠内容底图 -->
     <androidx.coordinatorlayout.widget.CoordinatorLayout
+        android:id="@+id/dynamic_coordinator"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
+        android:layout_height="match_parent"
         android:background="@color/v3_bg">
 
-        <!-- 折叠头:推荐用户区(behavior 只认 id) -->
+        <!-- 折叠头:推荐用户区(behavior 只认 id)，顶部 padding 由代码补为 statusBar + 56dp 悬浮头高 -->
         <LinearLayout
             android:id="@+id/imagesTitleBlockLayout"
             android:layout_width="match_parent"
@@ -78,11 +29,11 @@
             android:orientation="vertical"
             app:layout_behavior="ceui.lisa.ui.behavior.FragmentRightHeaderBehavior">
 
-            <!-- 分区小标题「推荐用户」+ 查看更多 -->
+            <!-- 分区小标题「推荐用户」+ 查看更多（12dp 顶距避让悬浮头底缘，静止时 100% 清晰） -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
+                android:layout_marginTop="12dp"
                 android:layout_marginBottom="10dp"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
@@ -128,7 +79,9 @@
 
         </LinearLayout>
 
-        <!-- 内容 sheet:v3_menu_bg 圆角上浮(behavior 只认 id content_item) -->
+        <!-- 内容 sheet:v3_menu_bg 圆角上浮(behavior 只认 id content_item)。
+             上滑时整张 sheet 穿透「动态」头直抵屏幕顶，列表项通过 clipToPadding=false 从筛选条、
+             标题栏与状态栏下方穿过，触发顶部 soft 渐进模糊。 -->
         <ceui.pixiv.witstudio.widget.WitRoundLinearLayout
             android:id="@+id/content_item"
             android:layout_width="match_parent"
@@ -141,78 +94,7 @@
             app:wit_radiusTopLeft="20dp"
             app:wit_radiusTopRight="20dp">
 
-            <androidx.core.widget.NestedScrollView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-
-                <RelativeLayout
-                    android:id="@+id/dynamic_title_layout"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
-
-                    <!-- 动态类型切换:插画/漫画 · 小说(点一下就切,与右侧筛选条同款控件)。
-                         外面这层 FrameLayout 是给它兜宽度上限用的:直接给 toggle 挂
-                         alignParentStart + toStartOf,RelativeLayout 会当「拉满这段」处理,
-                         wrap_content 失效、胶囊背景拖出一条尾巴。套一层反而两头都满足——
-                         壳子被拉满,toggle 在壳子里拿到 AT_MOST,仍按内容收窄,同时超大
-                         字号(2.0x 无障碍字体)下也不会压到右边的筛选条上。 -->
-                    <FrameLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_alignParentStart="true"
-                        android:layout_marginStart="8dp"
-                        android:layout_marginTop="10dp"
-                        android:layout_marginBottom="10dp"
-                        android:layout_toStartOf="@+id/dynamic_actions">
-
-                        <ceui.lisa.view.SegmentedToggleLayout
-                            android:id="@+id/dynamic_type_toggle"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            app:stl_textSize="16sp" />
-
-                    </FrameLayout>
-
-                    <LinearLayout
-                        android:id="@+id/dynamic_actions"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_alignParentEnd="true"
-                        android:layout_centerVertical="true"
-                        android:layout_marginStart="8dp"
-                        android:layout_marginEnd="8dp"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
-
-                        <ImageView
-                            android:id="@+id/timeline_toggle"
-                            android:layout_width="36dp"
-                            android:layout_height="36dp"
-                            android:layout_marginEnd="8dp"
-                            android:background="?android:attr/selectableItemBackgroundBorderless"
-                            android:clickable="true"
-                            android:contentDescription="Timeline"
-                            android:focusable="true"
-                            android:padding="6dp"
-                            android:src="@drawable/ic_baseline_dehaze_24"
-                            android:tint="@color/glare_unselected_text"
-                            tools:ignore="HardcodedText,UseAppTint" />
-
-                        <!-- 筛选范围:全部 · 公开 · 私人 -->
-                        <ceui.lisa.view.SegmentedToggleLayout
-                            android:id="@+id/restrict_toggle"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content" />
-
-                    </LinearLayout>
-
-                </RelativeLayout>
-
-            </androidx.core.widget.NestedScrollView>
-
-            <!-- 两条列表各占一个容器,同一时刻只显示一条(见 FragmentRight.applyMode)。
-                 两个都是 feeds/legacy 列表 fragment 自带下拉刷新与空态,所以本页不再有
-                 自己的 refreshLayout / empty_layout。 -->
+            <!-- 两条列表各占一个容器,同一时刻只显示一条(见 FragmentRight.applyMode)。 -->
             <FrameLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
@@ -236,4 +118,142 @@
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
-</LinearLayout>
+    <!-- Child 1: iOS 26 UIScrollEdgeEffect.Style.soft 顶部渐进模糊层 -->
+    <ceui.pixiv.witstudio.widget.WitScrollEdgeBlurView
+        android:id="@+id/top_scroll_edge"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top"
+        app:wit_edgeFeatherHeight="14dp"
+        app:wit_edgeOpaqueHeaderFallback="true"
+        app:wit_edgeScrimColor="@color/v3_bg" />
+
+    <!-- Child 2a: 跟随 sheet 上浮并在「动态」头下方吸顶的筛选条（位于模糊层之上，始终锐利可点） -->
+    <FrameLayout
+        android:id="@+id/dynamic_title_host"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top"
+        android:background="@android:color/transparent">
+
+        <RelativeLayout
+            android:id="@+id/dynamic_title_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <!-- 动态类型切换:插画/漫画 · 小说 -->
+            <FrameLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="10dp"
+                android:layout_toStartOf="@+id/dynamic_actions">
+
+                <ceui.lisa.view.SegmentedToggleLayout
+                    android:id="@+id/dynamic_type_toggle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:stl_textSize="16sp" />
+
+            </FrameLayout>
+
+            <LinearLayout
+                android:id="@+id/dynamic_actions"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:id="@+id/timeline_toggle"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:layout_marginEnd="8dp"
+                    android:background="?android:attr/selectableItemBackgroundBorderless"
+                    android:clickable="true"
+                    android:contentDescription="Timeline"
+                    android:focusable="true"
+                    android:padding="6dp"
+                    android:src="@drawable/ic_baseline_dehaze_24"
+                    android:tint="@color/glare_unselected_text"
+                    tools:ignore="HardcodedText,UseAppTint" />
+
+                <!-- 筛选范围:全部 · 公开 · 私人 -->
+                <ceui.lisa.view.SegmentedToggleLayout
+                    android:id="@+id/restrict_toggle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+            </LinearLayout>
+
+        </RelativeLayout>
+
+    </FrameLayout>
+
+    <!-- Child 2b: 悬浮透明顶栏（状态栏占位 + 抽屉 + 大标题「动态」+ 搜索） -->
+    <LinearLayout
+        android:id="@+id/header_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top"
+        android:background="@android:color/transparent"
+        android:orientation="vertical">
+
+        <!-- 状态栏占位:代码里按 Dev.hideMainActivityStatus 撑到 statusHeight -->
+        <View
+            android:id="@+id/head"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@android:color/transparent" />
+
+        <!-- Header 行:抽屉入口 + 大标题「动态」+ 搜索 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="12dp"
+            android:paddingEnd="16dp">
+
+            <ImageButton
+                android:id="@+id/drawerButton"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/string_77"
+                android:scaleType="centerInside"
+                android:src="@drawable/ic_baseline_dns_24"
+                app:tint="@color/v3_text_1" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="6dp"
+                android:letterSpacing="-0.02"
+                android:text="@string/string_77"
+                android:textColor="@color/v3_text_1"
+                android:textSize="24sp"
+                android:textStyle="bold" />
+
+            <ImageButton
+                android:id="@+id/searchBar"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/search"
+                android:scaleType="centerInside"
+                android:src="@drawable/ic_search_black_24dp"
+                app:tint="@color/v3_text_1" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</ceui.pixiv.witstudio.widget.WitLiquidGlassLayout>

@@ -9,35 +9,56 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <androidx.coordinatorlayout.widget.CoordinatorLayout
+    <!-- 液态玻璃宿主：Child 0 (user_coordinator) 同时承载折叠身份头与全屏 ViewPager2，
+         Child 1 (top_scroll_edge) 提供无硬分割线的 iOS 26 soft 顶部渐进模糊，
+         Child 2 (tab_layout + toolbar) 浮于模糊层之上始终锐利可点。 -->
+    <ceui.pixiv.witstudio.widget.WitLiquidGlassLayout
+        android:id="@+id/glass_host"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@color/v3_bg">
 
-        <com.google.android.material.appbar.AppBarLayout
-            android:id="@+id/app_bar"
+        <!-- Child 0: 折叠头 + 内容页底图子树 -->
+        <androidx.coordinatorlayout.widget.CoordinatorLayout
+            android:id="@+id/user_coordinator"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@android:color/transparent"
-            android:theme="@style/AppTheme.AppBarOverlay"
-            app:elevation="0dp">
+            android:layout_height="match_parent"
+            android:background="@color/v3_bg">
 
-            <com.google.android.material.appbar.CollapsingToolbarLayout
-                android:id="@+id/toolbar_layout"
+            <!-- Paged content: 插画 / 漫画 / 小说 / 收藏 / 资料。
+                 全屏铺设在 AppBar 下层，收起后 translationY 归 0，列表项通过顶留白 + clipToPadding=false
+                 直接穿透 TabLayout / Toolbar 与状态栏后方触发软边渐进模糊。 -->
+            <androidx.viewpager2.widget.ViewPager2
+                android:id="@+id/view_pager"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@android:color/transparent" />
+
+            <com.google.android.material.appbar.AppBarLayout
+                android:id="@+id/app_bar"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:contentScrim="@color/v3_bg"
-                app:layout_scrollFlags="scroll|exitUntilCollapsed"
-                app:statusBarScrim="@android:color/transparent"
-                app:titleEnabled="false">
+                android:background="@android:color/transparent"
+                android:theme="@style/AppTheme.AppBarOverlay"
+                app:elevation="0dp">
 
-                <!-- 身份区:banner 矮条 + 头像 + 名字 + 内联统计,一起随 CTL collapse。 -->
-                <LinearLayout
+                <com.google.android.material.appbar.CollapsingToolbarLayout
+                    android:id="@+id/toolbar_layout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:clipChildren="false"
-                    android:clipToPadding="false"
-                    android:orientation="vertical">
+                    app:contentScrim="@android:color/transparent"
+                    app:layout_scrollFlags="scroll|exitUntilCollapsed"
+                    app:statusBarScrim="@android:color/transparent"
+                    app:titleEnabled="false">
+
+                    <!-- 身份区:banner 矮条 + 头像 + 名字 + 内联统计,一起随 CTL collapse。 -->
+                    <LinearLayout
+                        android:id="@+id/identity_container"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:clipChildren="false"
+                        android:clipToPadding="false"
+                        android:orientation="vertical">
 
                     <!-- Banner 区:视觉层固定 190dp + 头像/按钮下凸 42dp。
                          整块高度 = 190 + 42 = 232dp,让下凸的头像/关注按钮落在自身触摸
@@ -350,75 +371,94 @@
 
                 </LinearLayout>
 
-                <!-- Toolbar 仍挂 CTL 里(collapseMode=pin),但 CTL flags=scroll,会跟 CTL 一起滚出 -->
-                <androidx.appcompat.widget.Toolbar
-                    android:id="@+id/toolbar"
+                    <!-- 透明占位，锁定 CollapsingToolbarLayout 折叠底缘高度与外层悬浮 toolbar 一致 -->
+                    <View
+                        android:id="@+id/toolbar_spacer"
+                        android:layout_width="match_parent"
+                        android:layout_height="80dp"
+                        app:layout_collapseMode="pin" />
+
+                </com.google.android.material.appbar.CollapsingToolbarLayout>
+
+                <!-- 透明占位，锁定 AppBarLayout 底缘高度与外层悬浮 tab_layout 一致 -->
+                <View
+                    android:id="@+id/tab_spacer"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    app:layout_collapseMode="pin"
-                    app:navigationIcon="@drawable/ic_arrow_back_white_shadow">
+                    android:layout_height="48dp" />
 
-                    <TextView
-                        android:id="@+id/toolbar_title"
-                        style="@style/textMontserratBold"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center"
-                        android:alpha="0.0"
-                        android:ellipsize="end"
-                        android:singleLine="true"
-                        android:textColor="@color/v3_text_1"
-                        android:textSize="18sp" />
+            </com.google.android.material.appbar.AppBarLayout>
 
-                    <ImageView
-                        android:id="@+id/more_action"
-                        android:layout_width="44dp"
-                        android:layout_height="44dp"
-                        android:layout_gravity="end"
-                        android:padding="10dp"
-                        android:src="@drawable/ic_more_vert_black_24dp"
-                        android:visibility="gone"
-                        app:tint="@color/v3_text_1" />
-                </androidx.appcompat.widget.Toolbar>
+        </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
-                <!-- Loading indicator -->
-                <ProgressBar
-                    android:id="@+id/progress"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:indeterminateTint="@color/v3_text_1"
-                    android:visibility="invisible" />
-
-            </com.google.android.material.appbar.CollapsingToolbarLayout>
-
-            <!-- Pinned tab strip between header & paged content.
-                 scrollable:tab 数多(漫画/小说都有 + label 带数字)时不挤压,可横向滑动 -->
-            <com.google.android.material.tabs.TabLayout
-                android:id="@+id/tab_layout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@color/v3_bg"
-                app:tabGravity="start"
-                app:tabIndicatorColor="@color/v3_text_1"
-                app:tabIndicatorFullWidth="false"
-                app:tabMode="scrollable"
-                app:tabSelectedTextColor="@color/v3_text_1"
-                app:tabTextColor="@color/v3_text_3" />
-
-            <!-- 标签筛选条已迁入插画 Tab 页面内部(fragment_user_v3_illust_tab.xml)——
-                 放这里(pinned 区)会导致左右切 tab 时列表滑走了它还钉着不动。 -->
-
-        </com.google.android.material.appbar.AppBarLayout>
-
-        <!-- Paged content: 插画 / 漫画 / 小说 / 收藏 / 资料 -->
-        <androidx.viewpager2.widget.ViewPager2
-            android:id="@+id/view_pager"
+        <!-- Child 1: iOS 26 UIScrollEdgeEffect.Style.soft 顶部渐进模糊层。
+             展开态静止看 banner 时 alpha=0 保持原图锐利；开始滚动后平滑渐显，
+             并在 TabLayout 吸顶时将保护区从 Toolbar 延伸至 Toolbar + TabLayout 底缘。 -->
+        <ceui.pixiv.witstudio.widget.WitScrollEdgeBlurView
+            android:id="@+id/top_scroll_edge"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="@color/v3_bg"
-            app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+            android:layout_height="wrap_content"
+            android:layout_gravity="top"
+            android:alpha="0"
+            app:wit_edgeFeatherHeight="18dp"
+            app:wit_edgeOpaqueHeaderFallback="true"
+            app:wit_edgeScrimColor="@color/v3_bg" />
 
-    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+        <!-- Child 2a: 悬浮于模糊层之上的 TabLayout，translationY 与 AppBarLayout 底缘实时同步并吸顶于 Toolbar 下方 -->
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/tab_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top"
+            android:background="@android:color/transparent"
+            app:tabGravity="start"
+            app:tabIndicatorColor="@color/v3_text_1"
+            app:tabIndicatorFullWidth="false"
+            app:tabMode="scrollable"
+            app:tabSelectedTextColor="@color/v3_text_1"
+            app:tabTextColor="@color/v3_text_3" />
+
+        <!-- Child 2b: 悬浮于模糊层之上的顶栏（返回 / 吸顶画师名 / 更多菜单） -->
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top"
+            android:background="@android:color/transparent"
+            android:theme="@style/AppTheme.AppBarOverlay"
+            app:navigationIcon="@drawable/ic_arrow_back_white_shadow">
+
+            <TextView
+                android:id="@+id/toolbar_title"
+                style="@style/textMontserratBold"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:alpha="0.0"
+                android:ellipsize="end"
+                android:singleLine="true"
+                android:textColor="@color/v3_text_1"
+                android:textSize="18sp" />
+
+            <ImageView
+                android:id="@+id/more_action"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:layout_gravity="end"
+                android:padding="10dp"
+                android:src="@drawable/ic_more_vert_black_24dp"
+                android:visibility="gone"
+                app:tint="@color/v3_text_1" />
+        </androidx.appcompat.widget.Toolbar>
+
+        <!-- Loading indicator -->
+        <ProgressBar
+            android:id="@+id/progress"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:indeterminateTint="@color/v3_text_1"
+            android:visibility="invisible" />
+
+    </ceui.pixiv.witstudio.widget.WitLiquidGlassLayout>
 
 </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>

@@ -13,11 +13,17 @@ import ceui.lisa.utils.Common;
 
 public class FragmentRightHeaderBehavior extends CoordinatorLayout.Behavior<View> {
 
+    private int topOverlayHeightPx = 0;
+
     public FragmentRightHeaderBehavior() {
     }
 
     public FragmentRightHeaderBehavior(Context context, AttributeSet attrs) {
         super(context, attrs);
+    }
+
+    public void setTopOverlayHeightPx(int heightPx) {
+        topOverlayHeightPx = Math.max(0, heightPx);
     }
 
     @Override
@@ -32,13 +38,12 @@ public class FragmentRightHeaderBehavior extends CoordinatorLayout.Behavior<View
 
     @Override
     public boolean onDependentViewChanged(@NonNull CoordinatorLayout parent, @NonNull View child, @NonNull View dependency) {
-        child.setTranslationY(dependency.getTranslationY() * 0.6f);
-        // content sheet 的 translationY 从 0（完全展开）滑到 -headerHeight（完全折叠），
-        // 头部跟着从不透明淡出到全透明。这里无条件写 alpha，保证回到展开态一定复原成 1。
-        final float headerHeight = child.getHeight();
-        final float progress = headerHeight > 0f
-                ? Math.min(1f, Math.max(0f, -dependency.getTranslationY() / headerHeight))
-                : 0f;
+        // 推荐用户区净高 = child 总高减去顶部悬浮头占位；content sheet 上滑经过推荐区时
+        // 做 0.6x 视差上移并淡出到透明，随后 sheet 继续穿透顶部导航栏侵入状态栏。
+        final float recmdHeight = Math.max(1f, child.getHeight() - topOverlayHeightPx);
+        final float clampedTransY = Math.max(-recmdHeight, Math.min(0f, dependency.getTranslationY()));
+        child.setTranslationY(clampedTransY * 0.6f);
+        final float progress = Math.min(1f, Math.max(0f, -clampedTransY / recmdHeight));
         child.setAlpha(1f - progress);
         return true;
     }

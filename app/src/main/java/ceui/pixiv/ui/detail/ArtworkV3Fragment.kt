@@ -80,6 +80,7 @@ import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
 import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.pixiv.witstudio.widget.WitLiquidGlassLayout
+import ceui.pixiv.witstudio.widget.WitLiquidGlassQuality
 import ceui.pixiv.witstudio.widget.WitLiquidGlassView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -393,7 +394,10 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         ) {
             ensurePageAdapter()
         }
-        if (_chromeBind != null) applyReadingAnchor(state)
+        if (_chromeBind != null) {
+            applyReadingAnchor(state)
+            syncTopScrollEdgeAlpha()
+        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -407,6 +411,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         setUpTabletStage()
         // 液态玻璃采样底图子树：手机与无舞台平板把 v3_bg 画在 feed_root 上，平板舞台保留透明以透出环境色。
         feedBinding.feedRoot.setBackgroundColor(feedRootBackgroundColor)
+        setupTopScrollEdge()
         if (tabletStage == null) {
             // 页码浮标 / 长按预览都是「列表里的图片页」的配件；舞台自带页码条，不挂
             attachPageProgressPill()
@@ -690,6 +695,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
 
     override fun onResume() {
         super.onResume()
+        syncTopScrollEdgeQuality()
         // 大图会话已结束（退出动画播完才 finish、这里才 resume）：联动状态归零。否则
         // viewerSyncedPage 会一直 ≥ 0，让 publishViewportRect 在之后每一次排版空跑。
         viewerViewportSynced = false
@@ -1868,6 +1874,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
                 status + 16.ppppx
             } ?: v.paddingTop
             v.setPadding(v.paddingLeft, top, v.paddingRight, insets.bottom)
+            syncTopScrollEdgeAnchor(windowInsets.getInsets(WindowInsetsCompat.Type.statusBars()).top)
             windowInsets
         }
         // 右上角胶囊行(页码浮标 + 「收起」)钉在顶栏(toolbar + 可选重试横幅)之下(见 #881)
@@ -1883,6 +1890,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
             _,
             oldBottom ->
             if (bottom == oldBottom || _chromeBind == null) return@addOnLayoutChangeListener
+            syncTopScrollEdgeAnchor()
             val row = chromeBind.topEndPillRow
             val lp = row.layoutParams as FrameLayout.LayoutParams
             val target = bottom + pillGap
@@ -1891,6 +1899,83 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
                 row.layoutParams = lp
             }
         }
+    }
+
+    private var lastStatusBarTopPx: Int = 0
+
+    private fun setupTopScrollEdge() {
+        syncTopScrollEdgeQuality()
+        syncTopScrollEdgeAnchor()
+        feedBinding.feedListView.addOnScrollListener(
+            object : RecyclerView.OnScrollListener() {
+                override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                    syncTopScrollEdgeAlpha()
+                }
+            }
+        )
+        syncTopScrollEdgeAlpha()
+    }
+
+    private fun syncTopScrollEdgeQuality() {
+        if (_chromeBind == null) return
+        val quality = WitLiquidGlassQuality.fromOrdinal(Shaft.sSettings.liquidGlassQuality)
+        val host = (chromeBind.tabletInfoColumn as? WitLiquidGlassLayout)
+            ?: (chromeBind.root as? WitLiquidGlassLayout)
+        host?.quality = quality
+        chromeBind.topScrollEdge.quality = quality
+    }
+
+    private fun syncTopScrollEdgeAnchor(statusBarTopPx: Int = lastStatusBarTopPx) {
+        if (_chromeBind == null) return
+        if (statusBarTopPx > 0) {
+            lastStatusBarTopPx = statusBarTopPx
+        }
+        val edge = chromeBind.topScrollEdge
+        val stage = tabletStage
+        if (stage != null) {
+            if (!stage.sideBySide) {
+                edge.isVisible = false
+                return
+            }
+            edge.isVisible = true
+            edge.tone = WitLiquidGlassView.Tone.THEME
+            edge.scrimColor = requireContext().getColor(R.color.v3_bg)
+            val anchor = (lastStatusBarTopPx.takeIf { it > 0 } ?: 32.ppppx) + 16.ppppx
+            edge.anchorHeightPx = anchor
+        } else {
+            edge.isVisible = true
+            edge.tone = WitLiquidGlassView.Tone.THEME
+            edge.scrimColor = requireContext().getColor(R.color.v3_bg)
+            val overlayH = chromeBind.topOverlayColumn.height
+            val fallbackH = (lastStatusBarTopPx.takeIf { it > 0 } ?: 32.ppppx) + 56.ppppx
+            edge.anchorHeightPx = if (overlayH > 0) overlayH else fallbackH
+        }
+    }
+
+    private fun syncTopScrollEdgeAlpha() {
+        if (_chromeBind == null) return
+        val edge = chromeBind.topScrollEdge
+        if (!edge.isVisible) return
+        val fadeRangePx = 40.ppppx.coerceAtLeast(1)
+        val scrolledPx = computeScrolledFromTop(feedBinding.feedListView, fadeRangePx)
+        val targetAlpha = (scrolledPx.toFloat() / fadeRangePx.toFloat()).coerceIn(0f, 1f)
+        val wasZero = edge.alpha <= 0f
+        if (kotlin.math.abs(edge.alpha - targetAlpha) > 0.004f) {
+            edge.alpha = targetAlpha
+            if (wasZero != (targetAlpha <= 0f)) {
+                (edge.parent as? View)?.invalidate()
+            }
+        }
+    }
+
+    private fun computeScrolledFromTop(rv: RecyclerView, maxNeededPx: Int): Int {
+        if (maxNeededPx <= 0 || !rv.canScrollVertically(-1)) return 0
+        val lm = rv.layoutManager ?: return 0
+        val child0 = lm.findViewByPosition(0) ?: return maxNeededPx
+        val topMargin = (child0.layoutParams as? android.view.ViewGroup.MarginLayoutParams)?.topMargin ?: 0
+        val firstStart = lm.getDecoratedTop(child0) - topMargin
+        val scrolled = (lm.paddingTop - firstStart).coerceAtLeast(0)
+        return scrolled.coerceAtMost(maxNeededPx)
     }
 
     // ── toolbar / 悬浮胶囊 / more 菜单(点击行为见 ArtworkV3Actions) ─────────────────

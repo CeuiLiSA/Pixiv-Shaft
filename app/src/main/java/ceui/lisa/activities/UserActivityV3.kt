@@ -4,14 +4,18 @@ import android.content.DialogInterface
 import android.content.Intent
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffColorFilter
+import android.graphics.Rect
 import android.os.Bundle
 import android.text.TextUtils
 import android.view.View
-import android.view.ViewTreeObserver.OnGlobalLayoutListener
+import android.view.ViewGroup
+import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.view.isVisible
+import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import ceui.lisa.R
 import ceui.lisa.database.SearchDao
@@ -26,8 +30,10 @@ import ceui.lisa.utils.DensityUtil
 import ceui.lisa.utils.Params
 import ceui.lisa.utils.PixivOperate
 import ceui.lisa.utils.SystemBarMetrics
+import ceui.pixiv.feeds.FeedFragment
 import ceui.pixiv.utils.playToggleHaptic
 import ceui.pixiv.witstudio.theme.V3Palette
+import ceui.pixiv.witstudio.widget.WitLiquidGlassQuality
 import ceui.pixiv.actions.FollowVisibility
 import ceui.pixiv.actions.PixivActions
 import ceui.pixiv.widgets.FeedBackToTopFab
@@ -52,6 +58,7 @@ import ceui.pixiv.ui.user.UserShortcutHelper
 import ceui.pixiv.ui.user.UserTagSearchSheet
 import ceui.pixiv.utils.setOnClick
 import com.bumptech.glide.Glide
+import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import ceui.pixiv.witstudio.dialog.WitDialog.MenuDialogBuilder
 import kotlinx.coroutines.withContext
@@ -63,6 +70,26 @@ import java.text.NumberFormat
 import ceui.pixiv.ui.navigation.TemplateRoute
 
 private const val KEY_TAB_KINDS = "user_v3_tab_kinds"
+
+/**
+ * V3 用户主页悬浮顶栏（Toolbar + TabLayout）高度注入契约：
+ * 让各 Tab 内部内容留出顶部悬浮头高度，AppBar 收起后列表项与筛选条直接穿透 TabLayout / Toolbar
+ * 与状态栏后方，触发 iOS 26 soft 顶部渐进模糊。
+ */
+interface UserV3TopInsetConsumer {
+    fun setUserTopInset(topInsetPx: Int)
+}
+
+/** 计算 feeds 列表相对于其 LayoutManager 顶部 padding 已滚出的精确像素（兼容瀑布流与齐行布局）。 */
+internal fun computeRecyclerScrolledFromTop(rv: RecyclerView, maxNeededPx: Int): Int {
+    if (maxNeededPx <= 0 || !rv.canScrollVertically(-1)) return 0
+    val lm = rv.layoutManager ?: return 0
+    val child0 = lm.findViewByPosition(0) ?: return maxNeededPx
+    val topMargin = (child0.layoutParams as? ViewGroup.MarginLayoutParams)?.topMargin ?: 0
+    val firstStart = lm.getDecoratedTop(child0) - topMargin
+    val scrolled = (lm.paddingTop - firstStart).coerceAtLeast(0)
+    return scrolled.coerceAtMost(maxNeededPx)
+}
 /**
  * 插画/漫画列表首屏加载完后回调宿主(UserV3WorkTabFragment / 其他实现方),
  * 让「标签筛选条」复用同一份数据聚合 tag,避免再单独打一次 user/illusts。
@@ -106,6 +133,14 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
     // user/detail 返回的确定数量(插画/漫画/小说/公开插画收藏),>0 时追加到 tab label 后面。
     // 收藏 tab 用 total_illust_bookmarks_public —— 与 header 统计条同源;小说收藏数 API 不给,不凑。
     private val tabCounts = mutableMapOf<TabKind, Int>()
+    private var lastAppBarOffset = 0
+    private var pinnedTopChromeHeightPx = 0
+    private var intrudingBehavior: IntrudingScrollingBehavior? = null
+
+    override fun onResume() {
+        super.onResume()
+        syncGlassQuality()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // 在 super.onCreate 之前恢复完整 tab 列表,这样 BaseActivity.onCreate 里跑 setupViewPager 时
@@ -162,8 +197,22 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
 
     override fun initView() {
         palette = V3Palette.from(this)
-        baseBind.toolbar.setPadding(0, SystemBarMetrics.statusBarHeight(this), 0, 0)
+        val statusBarH = SystemBarMetrics.statusBarHeight(this)
+        val initialToolbarH = statusBarH + SystemBarMetrics.toolbarHeight(this)
+        val initialTabH = DensityUtil.dp2px(48f)
+        baseBind.toolbar.setPadding(0, statusBarH, 0, 0)
         baseBind.toolbar.setNavigationOnClickListener { finish() }
+        baseBind.toolbarSpacer.updateLayoutParams<ViewGroup.LayoutParams> { height = initialToolbarH }
+        baseBind.toolbarLayout.minimumHeight = initialToolbarH
+        baseBind.tabSpacer.updateLayoutParams<ViewGroup.LayoutParams> { height = initialTabH }
+        syncGlassQuality()
+
+        val behavior = IntrudingScrollingBehavior { effectivePinnedSpacerHeightPx() }
+        intrudingBehavior = behavior
+        (baseBind.viewPager.layoutParams as? CoordinatorLayout.LayoutParams)?.let { lp ->
+            lp.behavior = behavior
+            baseBind.viewPager.layoutParams = lp
+        }
 
         // 内嵌列表(插画/漫画/小说/收藏)默认背景是 fragment_center(日#FFFFFF/夜#2A2A2A),与页面
         // v3_bg(日#FAFAFA/夜#08080C)有肉眼可辨色差,交界处出现色彩断层。运行时把列表背景统一刷成
@@ -182,6 +231,9 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
                     val bg = getColor(R.color.v3_bg)
                     v.findViewById<View?>(R.id.refreshLayout)?.setBackgroundColor(bg)
                     v.findViewById<View?>(ceui.pixiv.feeds.R.id.feed_root)?.setBackgroundColor(bg)
+                    if (f.parentFragment == null) {
+                        applyTopInsetToTabFragment(f, pinnedTopChromeHeightPx)
+                    }
                 }
             }, true
         )
@@ -195,40 +247,203 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
         baseBind.unfollow.background = palette.pillSecondary(999f * density, (1 * density).toInt())
         baseBind.unfollow.setTextColor(palette.textSecondary)
 
-        // Toolbar alpha transition on scroll
-        baseBind.toolbarLayout.viewTreeObserver.addOnGlobalLayoutListener(object :
-            OnGlobalLayoutListener {
-            override fun onGlobalLayout() {
-                val offset =
-                    baseBind.toolbarLayout.height - SystemBarMetrics.statusBarHeight(this@UserActivityV3) - SystemBarMetrics.toolbarHeight(this@UserActivityV3)
-                baseBind.appBar.addOnOffsetChangedListener { _, verticalOffset ->
-                    val abs = Math.abs(verticalOffset)
-                    when {
-                        abs < 15 -> {
-                            baseBind.profileHeader.alpha = 1.0f
-                            baseBind.toolbarTitle.alpha = 0.0f
-                        }
-
-                        offset - abs < 15 -> {
-                            baseBind.profileHeader.alpha = 0.0f
-                            baseBind.toolbarTitle.alpha = 1.0f
-                        }
-
-                        else -> {
-                            baseBind.profileHeader.alpha = 1 + verticalOffset.toFloat() / offset
-                            baseBind.toolbarTitle.alpha = -verticalOffset.toFloat() / offset
-                        }
-                    }
-                }
-                baseBind.toolbarLayout.viewTreeObserver.removeOnGlobalLayoutListener(this)
+        // 实时联动折叠头、悬浮 TabLayout、顶部软边渐进模糊及 ViewPager2 侵入位置
+        baseBind.appBar.addOnOffsetChangedListener { _, verticalOffset ->
+            syncAppBarCollapse(verticalOffset)
+        }
+        baseBind.appBar.addOnLayoutChangeListener { _, _, top, _, bottom, _, oldTop, _, oldBottom ->
+            if (top != oldTop || bottom != oldBottom) {
+                syncAppBarCollapse(lastAppBarOffset)
+                intrudingBehavior?.syncPosition(baseBind.userCoordinator, baseBind.viewPager)
             }
-        })
+        }
+        baseBind.tabLayout.addOnLayoutChangeListener { v, _, top, _, bottom, _, oldTop, _, oldBottom ->
+            val h = bottom - top
+            if (h > 0 && h != (oldBottom - oldTop)) {
+                if (baseBind.tabSpacer.layoutParams.height != h) {
+                    baseBind.tabSpacer.updateLayoutParams<ViewGroup.LayoutParams> { height = h }
+                }
+                syncTopChromeMetrics()
+            }
+        }
 
         // 列表右下角「回顶」悬浮钮(issue #1040,设置里默认关):在建 pager 之前装,各 tab 的
         // feeds 列表(含收藏 tab 嵌套的子列表)建好视图时自动挂上;回顶时连带展开折叠头
         FeedBackToTopFab.installForHost(this, baseBind.appBar)
         setupViewPager()
         setupRefresh()
+        syncTopChromeMetrics()
+    }
+
+    private fun syncGlassQuality() {
+        val quality = WitLiquidGlassQuality.fromOrdinal(Shaft.sSettings.liquidGlassQuality)
+        baseBind.glassHost.quality = quality
+        baseBind.topScrollEdge.quality = quality
+    }
+
+    private fun effectiveToolbarHeightPx(): Int {
+        val measured = baseBind.toolbar.height
+        return if (measured > 0) measured
+        else SystemBarMetrics.statusBarHeight(this) + SystemBarMetrics.toolbarHeight(this)
+    }
+
+    private fun effectiveTabHeightPx(): Int {
+        val measured = baseBind.tabLayout.height
+        return if (measured > 0) measured else DensityUtil.dp2px(48f)
+    }
+
+    private fun effectivePinnedSpacerHeightPx(): Int {
+        val spacerToolbarH = baseBind.toolbarSpacer.height
+        val spacerTabH = baseBind.tabSpacer.height
+        return if (spacerToolbarH > 0 && spacerTabH > 0) {
+            spacerToolbarH + spacerTabH
+        } else {
+            effectiveToolbarHeightPx() + effectiveTabHeightPx()
+        }
+    }
+
+    private fun syncTopChromeMetrics() {
+        val toolbarH = effectiveToolbarHeightPx()
+        val tabH = effectiveTabHeightPx()
+        val totalPinned = toolbarH + tabH
+        baseBind.topScrollEdge.anchorHeightPx = totalPinned
+        if (pinnedTopChromeHeightPx != totalPinned) {
+            pinnedTopChromeHeightPx = totalPinned
+            for (fragment in supportFragmentManager.fragments) {
+                if (fragment.parentFragment == null) {
+                    applyTopInsetToTabFragment(fragment, totalPinned)
+                }
+            }
+        }
+        syncAppBarCollapse(lastAppBarOffset)
+        intrudingBehavior?.syncPosition(baseBind.userCoordinator, baseBind.viewPager)
+    }
+
+    private fun applyTopInsetToTabFragment(fragment: Fragment, topInsetPx: Int) {
+        when (fragment) {
+            is UserV3TopInsetConsumer -> fragment.setUserTopInset(topInsetPx)
+            is FeedFragment -> fragment.setTopContentInset(topInsetPx)
+        }
+    }
+
+    private fun syncAppBarCollapse(verticalOffset: Int) {
+        lastAppBarOffset = verticalOffset
+        baseBind.refreshLayout.isEnabled = verticalOffset >= 0
+        val collapseRange = baseBind.appBar.totalScrollRange
+        val absOffset = kotlin.math.abs(verticalOffset)
+        val progress = if (collapseRange > 0) {
+            (absOffset.toFloat() / collapseRange.toFloat()).coerceIn(0f, 1f)
+        } else {
+            0f
+        }
+
+        when {
+            collapseRange <= 0 || absOffset < 15 -> {
+                baseBind.profileHeader.alpha = 1.0f
+                baseBind.toolbarTitle.alpha = 0.0f
+            }
+
+            collapseRange - absOffset < 15 -> {
+                baseBind.profileHeader.alpha = 0.0f
+                baseBind.toolbarTitle.alpha = 1.0f
+            }
+
+            else -> {
+                baseBind.profileHeader.alpha = 1f - progress
+                baseBind.toolbarTitle.alpha = progress
+            }
+        }
+        // 收起末段淡出整个身份头，避免短 profileHeader 场景下 banner/头像底缘残留在作品背景中
+        baseBind.identityContainer.alpha = if (progress <= 0.72f) {
+            1f
+        } else {
+            (1f - (progress - 0.72f) / 0.28f).coerceIn(0f, 1f)
+        }
+
+        val toolbarH = effectiveToolbarHeightPx()
+        val tabH = effectiveTabHeightPx()
+        val appBarBottom = baseBind.appBar.bottom.takeIf { it > 0 } ?: (toolbarH + tabH)
+        val tabTop = (appBarBottom - tabH).coerceAtLeast(toolbarH)
+        baseBind.tabLayout.translationY = tabTop.toFloat()
+
+        // 顶部软边模糊：静止展开看 banner 时 alpha=0 保持原图锐利；上滑 32dp 内平滑渐显至 1；
+        // TabLayout 临近吸顶最后一段行程中，保护高度从 Toolbar 顺滑延展至 Toolbar + TabLayout。
+        val edge = baseBind.topScrollEdge
+        val fadeRange = DensityUtil.dp2px(32f).coerceAtLeast(1).toFloat()
+        val targetAlpha = (absOffset.toFloat() / fadeRange).coerceIn(0f, 1f)
+        val wasZero = edge.alpha <= 0f
+        if (kotlin.math.abs(edge.alpha - targetAlpha) > 0.004f) {
+            edge.alpha = targetAlpha
+            if (wasZero != (targetAlpha <= 0f)) {
+                baseBind.glassHost.invalidate()
+            }
+        }
+        val tabApproach = if (tabH > 0) {
+            ((toolbarH + tabH - tabTop).toFloat() / tabH.toFloat()).coerceIn(0f, 1f)
+        } else {
+            0f
+        }
+        edge.visualAnchorHeightPx = toolbarH + kotlin.math.round(tabH * tabApproach).toInt()
+    }
+
+    /**
+     * 跟随 AppBarLayout 底缘平移全屏 ViewPager2：
+     * - 展开/折叠中（translationY > 0）：按 pinnedHeight 裁切顶缘，避免回顶或切 Tab 时已滚深列表的卡片
+     *   透出到身份头文字背后；
+     * - 收起到位（translationY == 0）：解除裁切，让全屏列表项直接侵入 TabLayout / Toolbar / 状态栏后方。
+     */
+    private class IntrudingScrollingBehavior(
+        private val pinnedHeightProvider: () -> Int,
+    ) : CoordinatorLayout.Behavior<View>() {
+        private val clipRect = Rect()
+
+        override fun layoutDependsOn(
+            parent: CoordinatorLayout,
+            child: View,
+            dependency: View,
+        ): Boolean = dependency is AppBarLayout
+
+        override fun onLayoutChild(
+            parent: CoordinatorLayout,
+            child: View,
+            layoutDirection: Int,
+        ): Boolean {
+            parent.onLayoutChild(child, layoutDirection)
+            syncPosition(parent, child)
+            return true
+        }
+
+        override fun onDependentViewChanged(
+            parent: CoordinatorLayout,
+            child: View,
+            dependency: View,
+        ): Boolean {
+            syncPosition(parent, child)
+            return false
+        }
+
+        fun syncPosition(parent: CoordinatorLayout, child: View) {
+            val appBar = parent.getDependencies(child).firstOrNull { it is AppBarLayout } as? AppBarLayout
+                ?: return
+            val pinned = pinnedHeightProvider().coerceAtLeast(0)
+            val targetTranslationY = (appBar.bottom - pinned).coerceAtLeast(0).toFloat()
+            if (child.translationY != targetTranslationY) {
+                child.translationY = targetTranslationY
+            }
+            if (targetTranslationY > 0.5f && child.width > 0 && child.height > 0) {
+                val clipTop = pinned.coerceAtMost(child.height)
+                if (clipRect.top != clipTop
+                    || clipRect.right != child.width
+                    || clipRect.bottom != child.height
+                    || child.clipBounds == null
+                ) {
+                    clipRect.set(0, clipTop, child.width, child.height)
+                    child.clipBounds = clipRect
+                }
+            } else if (child.clipBounds != null) {
+                child.clipBounds = null
+            }
+        }
     }
 
     /**
@@ -246,19 +461,20 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
         var appliedToolbarHeight = -1
         baseBind.toolbar.addOnLayoutChangeListener { v, _, _, _, _, _, _, _, _ ->
             val start = v.height
-            if (start == appliedToolbarHeight) return@addOnLayoutChangeListener
+            if (start <= 0 || start == appliedToolbarHeight) return@addOnLayoutChangeListener
             appliedToolbarHeight = start
+            if (baseBind.toolbarSpacer.layoutParams.height != start) {
+                baseBind.toolbarSpacer.updateLayoutParams<ViewGroup.LayoutParams> { height = start }
+            }
+            if (baseBind.toolbarLayout.minimumHeight != start) {
+                baseBind.toolbarLayout.minimumHeight = start
+            }
             baseBind.refreshLayout.setProgressViewOffset(
                 false,
                 start,
                 start + DensityUtil.dp2px(64f),
             )
-        }
-        // CoordinatorLayout 套下拉刷新的官方解法:只在 AppBar 完全展开时 enable,
-        // 否则 SwipeRefreshLayout 会拦截掉 AppBar 的展开手势
-        //(它的 canChildScrollUp 只问直接子 View CoordinatorLayout,问不到折叠头的状态)。
-        baseBind.appBar.addOnOffsetChangedListener { _, verticalOffset ->
-            baseBind.refreshLayout.isEnabled = verticalOffset >= 0
+            syncTopChromeMetrics()
         }
         // 这里原本挂了个 setOnChildScrollUpCallback,补 canChildScrollUp 问不到插画 tab
         // 那个内层 tag 滚动容器的问题。筛选条的「+N」展开态移除后,它恒为 2 行、不再可滚,

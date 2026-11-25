@@ -1,31 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 画师主页「插画/漫画/小说」Tab 容器:顶部标签筛选条 + 下方内嵌对应作品列表(issue #996)。
-     筛选条放页面内而不是 AppBar 的 pinned 区 —— 否则左右切 tab 时列表滑走了它还钉着不动。 -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- 画师主页「插画/漫画/小说」Tab 容器:全屏内嵌对应作品列表 + 顶部随首行滚动的标签筛选条(issue #996)。
+     筛选条放页面内而不是 AppBar 的 pinned 区 —— 否则左右切 tab 时列表滑走了它还钉着不动；
+     改用 FrameLayout 叠放后，列表滚起时筛选条与作品一起向上平滑穿透 TabLayout/Toolbar 进软边模糊。 -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/v3_bg"
-    android:orientation="vertical">
+    android:background="@color/v3_bg">
+
+    <FrameLayout
+        android:id="@+id/illust_list_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
 
     <!-- 紧凑小号 chip 换行堆叠,固定 2 行:行数由 UserV3WorkTabFragment 用 flexLines
          离屏收敛(maxTags),不用 maxLine —— 它会把末行放不下的 chip 硬切成半个。
-         末尾恒有一个「高级搜索」动作块,点开 UserTagSearchSheet 看画师全量 tag。
-         PR #947 的「+N」展开态已移除,连带外层 MaxHeightNestedScrollView 一起去掉:
-         内容恒为 2 行,没有可滚的东西,留着只会白白吃掉一层嵌套滚动分发。 -->
+         末尾恒有一个「高级搜索」动作块,点开 UserTagSearchSheet 看画师全量 tag。 -->
     <ceui.pixiv.widgets.V3TagFlowView
         android:id="@+id/illust_filter_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_gravity="top"
         android:paddingStart="20dp"
         android:paddingTop="8dp"
         android:paddingEnd="20dp"
         android:visibility="gone"
         app:flexWrap="wrap" />
-
-    <FrameLayout
-        android:id="@+id/illust_list_container"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1" />
-</LinearLayout>
+</FrameLayout>

@@ -1,18 +1,36 @@
 package ceui.lisa.fragments;
 
 import android.content.Intent;
+import android.graphics.Outline;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
+import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewOutlineProvider;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
+import androidx.core.content.ContextCompat;
+import androidx.core.graphics.ColorUtils;
 import androidx.core.view.GravityCompat;
+import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.RecyclerView;
+
+import java.util.Collections;
+import java.util.Set;
+import java.util.WeakHashMap;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.MainActivity;
 import ceui.lisa.activities.Shaft;
+import ceui.lisa.ui.behavior.FragmentRightContentBehavior;
+import ceui.lisa.ui.behavior.FragmentRightHeaderBehavior;
+import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.SystemBarMetrics;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.databinding.FragmentNewRightBinding;
@@ -21,6 +39,7 @@ import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
 import ceui.pixiv.witstudio.theme.V3Palette;
+import ceui.pixiv.witstudio.widget.WitLiquidGlassQuality;
 import ceui.lisa.view.OnCheckChangeListener;
 import ceui.pixiv.ui.dynamic.DynamicPageViewModel;
 import ceui.pixiv.ui.dynamic.FollowingIllustFeedFragment;
@@ -69,6 +88,51 @@ public class FragmentRight extends BaseLazyFragment<FragmentNewRightBinding> {
     private RecmdUserRailFeedFragment railFragment;
     private FollowingIllustFeedFragment illustFragment;
     private FollowingNovelFeedFragment novelFragment;
+    private int topChromeHeightPx = 0;
+    private int filterBarHeightPx = 0;
+    private float sheetCornerRadiusPx = 0f;
+    private float lastSheetTopPx = Float.NaN;
+    private int pageBgColor = 0;
+    private int sheetFillColor = 0;
+    private float lastAppliedSheetCornerPx = -1f;
+    private boolean settlingFromDownFling = false;
+    private int lastActiveScrollDy = 0;
+    private final Set<RecyclerView> observedFeedLists =
+            Collections.newSetFromMap(new WeakHashMap<>());
+    private FragmentManager.FragmentLifecycleCallbacks childFeedLifecycleCallbacks = null;
+    private final RecyclerView.OnScrollListener activeFeedScrollListener =
+            new RecyclerView.OnScrollListener() {
+                @Override
+                public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                    if (recyclerView != getActiveFeedRecyclerView()) {
+                        return;
+                    }
+                    if (dy != 0) {
+                        lastActiveScrollDy = dy;
+                    }
+                }
+
+                @Override
+                public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
+                    if (recyclerView != getActiveFeedRecyclerView()) {
+                        return;
+                    }
+                    if (newState == RecyclerView.SCROLL_STATE_SETTLING) {
+                        settlingFromDownFling = true;
+                    } else if (newState == RecyclerView.SCROLL_STATE_IDLE) {
+                        // SwipeRefreshLayout 1.1.0 不转发 TYPE_NON_TOUCH 惯性滚动：用户用力向下 fling
+                        // 一路回到列表顶端时，顺滑把侵入顶栏的 sheet 落回筛选条下方，避免首卡半截压在顶栏后。
+                        if (settlingFromDownFling
+                                && lastActiveScrollDy < 0
+                                && !recyclerView.canScrollVertically(-1)) {
+                            ensureSheetDockedOrExpanded();
+                        }
+                        settlingFromDownFling = false;
+                    } else {
+                        settlingFromDownFling = false;
+                    }
+                }
+            };
 
     @Override
     public void initLayout() {
@@ -85,13 +149,38 @@ public class FragmentRight extends BaseLazyFragment<FragmentNewRightBinding> {
     public void initView() {
         super.initView();
         pageModel = new ViewModelProvider(this).get(DynamicPageViewModel.class);
+        pageBgColor = ContextCompat.getColor(mContext, R.color.v3_bg);
+        sheetFillColor = V3Palette.from(mContext).getCardFill();
+        sheetCornerRadiusPx = DensityUtil.dp2px(20f);
+        lastAppliedSheetCornerPx = sheetCornerRadiusPx;
         tintContentSheet();
+        installSheetShoulderClip();
 
+        int statusBarHeight = 0;
         if (Dev.hideMainActivityStatus) {
+            statusBarHeight = SystemBarMetrics.statusBarHeight(mContext);
             ViewGroup.LayoutParams headParams = baseBind.head.getLayoutParams();
-            headParams.height = SystemBarMetrics.statusBarHeight(mContext);
+            headParams.height = statusBarHeight;
             baseBind.head.setLayoutParams(headParams);
         }
+        syncGlassQuality();
+        applyTopChromeHeight(statusBarHeight + DensityUtil.dp2px(56f));
+        attachSheetOverlaySync();
+
+        baseBind.headerContainer.addOnLayoutChangeListener(
+                (v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {
+                    int h = bottom - top;
+                    if (h > 0 && h != (oldBottom - oldTop)) {
+                        applyTopChromeHeight(h);
+                    }
+                });
+        baseBind.dynamicTitleHost.addOnLayoutChangeListener(
+                (v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {
+                    int h = bottom - top;
+                    if (h > 0 && h != (oldBottom - oldTop)) {
+                        applyFilterBarHeight(h);
+                    }
+                });
 
         baseBind.drawerButton.setOnClickListener(v -> {
             if (mActivity instanceof MainActivity) {
@@ -155,9 +244,234 @@ public class FragmentRight extends BaseLazyFragment<FragmentNewRightBinding> {
     }
 
     @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        // 与 onDestroyView 成对安装，避免 BaseFragment 复用缓存 rootView 跳过 initView() 时丢掉监听。
+        installChildFeedScrollObserver();
+    }
+
+    @Override
     public void onResume() {
         super.onResume();
+        syncGlassQuality();
         DrawerAvatarHelper.applyToImageView(baseBind.drawerButton);
+    }
+
+    @Override
+    public void onDestroyView() {
+        uninstallChildFeedScrollObserver();
+        lastSheetTopPx = Float.NaN;
+        super.onDestroyView();
+    }
+
+    private void installChildFeedScrollObserver() {
+        if (childFeedLifecycleCallbacks != null) {
+            return;
+        }
+        childFeedLifecycleCallbacks = new FragmentManager.FragmentLifecycleCallbacks() {
+            @Override
+            public void onFragmentViewCreated(
+                    @NonNull FragmentManager fm,
+                    @NonNull Fragment f,
+                    @NonNull View v,
+                    @Nullable Bundle savedInstanceState) {
+                attachFeedScrollListener(f, v);
+            }
+
+            @Override
+            public void onFragmentViewDestroyed(@NonNull FragmentManager fm, @NonNull Fragment f) {
+                View v = f.getView();
+                if (v != null) {
+                    detachFeedScrollListener(v);
+                }
+            }
+        };
+        getChildFragmentManager().registerFragmentLifecycleCallbacks(
+                childFeedLifecycleCallbacks, false);
+        for (Fragment child : getChildFragmentManager().getFragments()) {
+            View v = child.getView();
+            if (v != null) {
+                attachFeedScrollListener(child, v);
+            }
+        }
+    }
+
+    private void uninstallChildFeedScrollObserver() {
+        if (childFeedLifecycleCallbacks != null) {
+            getChildFragmentManager().unregisterFragmentLifecycleCallbacks(
+                    childFeedLifecycleCallbacks);
+            childFeedLifecycleCallbacks = null;
+        }
+        for (RecyclerView rv : observedFeedLists) {
+            if (rv != null) {
+                rv.removeOnScrollListener(activeFeedScrollListener);
+            }
+        }
+        observedFeedLists.clear();
+        settlingFromDownFling = false;
+    }
+
+    private void attachFeedScrollListener(@NonNull Fragment f, @NonNull View root) {
+        if (TAG_RAIL.equals(f.getTag())) {
+            return;
+        }
+        RecyclerView rv = root.findViewById(ceui.pixiv.feeds.R.id.feed_list_view);
+        if (rv != null && observedFeedLists.add(rv)) {
+            rv.addOnScrollListener(activeFeedScrollListener);
+        }
+    }
+
+    private void detachFeedScrollListener(@NonNull View root) {
+        RecyclerView rv = root.findViewById(ceui.pixiv.feeds.R.id.feed_list_view);
+        if (rv != null) {
+            rv.removeOnScrollListener(activeFeedScrollListener);
+            observedFeedLists.remove(rv);
+        }
+    }
+
+    @Nullable
+    private RecyclerView getActiveFeedRecyclerView() {
+        if (pageModel == null) {
+            return null;
+        }
+        Fragment active = pageModel.isIllustMode() ? illustFragment : novelFragment;
+        View root = active != null ? active.getView() : null;
+        return root != null ? root.findViewById(ceui.pixiv.feeds.R.id.feed_list_view) : null;
+    }
+
+    private void ensureSheetDockedOrExpanded() {
+        if (baseBind == null) {
+            return;
+        }
+        CoordinatorLayout.Behavior<?> contentBehavior =
+                ((CoordinatorLayout.LayoutParams) baseBind.contentItem.getLayoutParams()).getBehavior();
+        if (contentBehavior instanceof FragmentRightContentBehavior) {
+            ((FragmentRightContentBehavior) contentBehavior).ensureDockedOrExpanded();
+        }
+    }
+
+    private void syncGlassQuality() {
+        if (baseBind == null) {
+            return;
+        }
+        baseBind.glassHost.setQuality(
+                WitLiquidGlassQuality.fromOrdinal(Shaft.sSettings.getLiquidGlassQuality()));
+    }
+
+    private void applyTopChromeHeight(int heightPx) {
+        if (baseBind == null || heightPx <= 0) {
+            return;
+        }
+        topChromeHeightPx = heightPx;
+        View headerBlock = baseBind.imagesTitleBlockLayout;
+        if (headerBlock.getPaddingTop() != heightPx) {
+            headerBlock.setPaddingRelative(
+                    headerBlock.getPaddingStart(),
+                    heightPx,
+                    headerBlock.getPaddingEnd(),
+                    headerBlock.getPaddingBottom());
+        }
+        CoordinatorLayout.Behavior<?> headerBehavior =
+                ((CoordinatorLayout.LayoutParams) headerBlock.getLayoutParams()).getBehavior();
+        if (headerBehavior instanceof FragmentRightHeaderBehavior) {
+            ((FragmentRightHeaderBehavior) headerBehavior).setTopOverlayHeightPx(heightPx);
+        }
+        CoordinatorLayout.Behavior<?> contentBehavior =
+                ((CoordinatorLayout.LayoutParams) baseBind.contentItem.getLayoutParams()).getBehavior();
+        if (contentBehavior instanceof FragmentRightContentBehavior) {
+            ((FragmentRightContentBehavior) contentBehavior).setTopOverlayHeightPx(heightPx);
+        }
+        updateScrollEdgeLayoutBounds();
+        if (!Float.isNaN(lastSheetTopPx)) {
+            updateSheetChromeVisuals(lastSheetTopPx);
+        }
+    }
+
+    private void applyFilterBarHeight(int heightPx) {
+        if (baseBind == null || heightPx <= 0) {
+            return;
+        }
+        filterBarHeightPx = heightPx;
+        if (illustFragment != null) {
+            illustFragment.setTopContentInset(heightPx);
+        }
+        if (novelFragment != null) {
+            novelFragment.setTopContentInset(heightPx);
+        }
+        updateScrollEdgeLayoutBounds();
+        if (!Float.isNaN(lastSheetTopPx)) {
+            updateSheetChromeVisuals(lastSheetTopPx);
+        }
+    }
+
+    private void updateScrollEdgeLayoutBounds() {
+        if (baseBind == null || topChromeHeightPx <= 0) {
+            return;
+        }
+        int maxAnchor = topChromeHeightPx + Math.max(filterBarHeightPx, DensityUtil.dp2px(52f));
+        baseBind.topScrollEdge.setAnchorHeightPx(maxAnchor);
+    }
+
+    private void attachSheetOverlaySync() {
+        CoordinatorLayout.Behavior<?> contentBehavior =
+                ((CoordinatorLayout.LayoutParams) baseBind.contentItem.getLayoutParams()).getBehavior();
+        if (contentBehavior instanceof FragmentRightContentBehavior) {
+            ((FragmentRightContentBehavior) contentBehavior).setOffsetListener(
+                    (sheetTopPx, translationY, headerHeightPx, recmdHeightPx) -> {
+                        lastSheetTopPx = sheetTopPx;
+                        updateSheetChromeVisuals(sheetTopPx);
+                    });
+        }
+    }
+
+    private void updateSheetChromeVisuals(float sheetTopPx) {
+        if (baseBind == null || topChromeHeightPx <= 0) {
+            return;
+        }
+        // 筛选条随 sheet 上移并在「动态」头底缘吸顶，始终浮在软边模糊之上保持锐利可点。
+        float pinnedTitleY = Math.max((float) topChromeHeightPx, sheetTopPx);
+        baseBind.dynamicTitleHost.setTranslationY(pinnedTitleY);
+
+        // sheetTop 从 topChromeHeight 穿透至 0 时，顶部圆角平滑收平且渐进模糊覆盖延伸至筛选条底缘。
+        float intrudeProgress = Math.max(0f, Math.min(1f,
+                (topChromeHeightPx - sheetTopPx) / Math.max(1f, (float) topChromeHeightPx)));
+        int visualAnchor = topChromeHeightPx + Math.round(filterBarHeightPx * intrudeProgress);
+        baseBind.topScrollEdge.setVisualAnchorHeightPx(visualAnchor);
+        baseBind.topScrollEdge.setScrimColor(
+                ColorUtils.blendARGB(pageBgColor, sheetFillColor, intrudeProgress));
+
+        float corner = sheetCornerRadiusPx * (1f - intrudeProgress);
+        if (Math.abs(corner - lastAppliedSheetCornerPx) > 0.25f) {
+            lastAppliedSheetCornerPx = corner;
+            Drawable bg = baseBind.contentItem.getBackground();
+            if (bg instanceof GradientDrawable) {
+                ((GradientDrawable) bg).setCornerRadii(new float[]{
+                        corner, corner, corner, corner, 0f, 0f, 0f, 0f
+                });
+            }
+            baseBind.contentItem.invalidateOutline();
+        }
+    }
+
+    /**
+     * 内容列表（FollowingIllustFeedFragment / FollowingNovelFeedFragment）现从 content_item 顶缘 y=0
+     * 起铺设且自带不透明 cardFill 底色，必须给 content_item 开启仅顶部两角的硬件 Outline 裁切，
+     * 否则子列表的直角背景会把 20dp shoulder 圆角完全盖成方角。
+     */
+    private void installSheetShoulderClip() {
+        baseBind.contentItem.setOutlineProvider(new ViewOutlineProvider() {
+            @Override
+            public void getOutline(View view, Outline outline) {
+                int r = Math.max(0, Math.round(lastAppliedSheetCornerPx));
+                if (r > 0) {
+                    outline.setRoundRect(0, 0, view.getWidth(), view.getHeight() + r, r);
+                } else {
+                    outline.setRect(0, 0, view.getWidth(), view.getHeight());
+                }
+            }
+        });
+        baseBind.contentItem.setClipToOutline(true);
+        baseBind.contentItem.invalidateOutline();
     }
 
     @Override
@@ -191,6 +505,14 @@ public class FragmentRight extends BaseLazyFragment<FragmentNewRightBinding> {
         if (any) {
             transaction.commitNowAllowingStateLoss();
         }
+        if (filterBarHeightPx > 0) {
+            if (illustFragment != null) {
+                illustFragment.setTopContentInset(filterBarHeightPx);
+            }
+            if (novelFragment != null) {
+                novelFragment.setTopContentInset(filterBarHeightPx);
+            }
+        }
     }
 
     /**
@@ -203,6 +525,9 @@ public class FragmentRight extends BaseLazyFragment<FragmentNewRightBinding> {
             return;
         }
         novelFragment = FollowingNovelFeedFragment.newInstance(false, pageModel.getRestrict());
+        if (filterBarHeightPx > 0) {
+            novelFragment.setTopContentInset(filterBarHeightPx);
+        }
         getChildFragmentManager().beginTransaction()
                 .add(R.id.novel_list_container, novelFragment, TAG_NOVEL)
                 .commitNowAllowingStateLoss();
@@ -287,6 +612,7 @@ public class FragmentRight extends BaseLazyFragment<FragmentNewRightBinding> {
     }
 
     private void scrollActiveListToTop() {
+        ensureSheetDockedOrExpanded();
         if (pageModel.isIllustMode()) {
             if (illustFragment != null) {
                 illustFragment.scrollToTop();

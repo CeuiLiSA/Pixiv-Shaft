@@ -7,67 +7,19 @@
      · 本月收藏 / 当前最热走自建 shaft-api-v2,Lite 渠道整段 GONE(代码里按 BuildConfig.IS_LITE)。
      · 缩略图货架卡复用排行榜 hero 卡样式(recy_rank_illust_horizontal / recy_discover_tag):
        圆角 16 + 底部 scrim + 白标题,日夜自适应。 -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ceui.pixiv.witstudio.widget.WitLiquidGlassLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/glass_host"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/v3_bg"
-    android:orientation="vertical">
+    android:background="@color/v3_bg">
 
-    <!-- 状态栏占位:代码里按 Dev.hideMainActivityStatus 撑到 statusHeight -->
-    <View
-        android:id="@+id/head"
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="@color/v3_bg" />
-
-    <!-- Header 行:抽屉入口 + 大标题「发现」+ 搜索(和「推荐」tab 一致) -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingStart="12dp"
-        android:paddingEnd="16dp">
-
-        <ImageButton
-            android:id="@+id/drawerButton"
-            android:layout_width="44dp"
-            android:layout_height="44dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/string_75"
-            android:scaleType="centerInside"
-            android:src="@drawable/ic_baseline_dns_24"
-            app:tint="@color/v3_text_1" />
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginStart="6dp"
-            android:letterSpacing="-0.02"
-            android:text="@string/string_75"
-            android:textColor="@color/v3_text_1"
-            android:textSize="24sp"
-            android:textStyle="bold" />
-
-        <ImageButton
-            android:id="@+id/searchBar"
-            android:layout_width="44dp"
-            android:layout_height="44dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/search"
-            android:scaleType="centerInside"
-            android:src="@drawable/ic_search_black_24dp"
-            app:tint="@color/v3_text_1" />
-
-    </LinearLayout>
-
+    <!-- Child 0: 全屏可滚动货架底图（clipToPadding=false，内容向上直接侵入顶部导航栏与状态栏后方） -->
     <FrameLayout
         android:id="@+id/refreshLayout"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1">
+        android:layout_height="match_parent"
+        android:background="@color/v3_bg">
 
         <!-- clipToPadding=false:内容滚动时贴着视口底边裁切,而不是被 24dp paddingBottom 提前
              24dp 切一刀(那会在底部悬空一条「莫名其妙的裁切痕迹」)。padding 只用来给末尾留出滚动余量。 -->
@@ -949,4 +901,74 @@
 
     </FrameLayout>
 
-</LinearLayout>
+    <!-- Child 1: iOS 26 UIScrollEdgeEffect.Style.soft 顶部渐进模糊层 -->
+    <ceui.pixiv.witstudio.widget.WitScrollEdgeBlurView
+        android:id="@+id/top_scroll_edge"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top"
+        app:wit_edgeFeatherHeight="20dp"
+        app:wit_edgeOpaqueHeaderFallback="true"
+        app:wit_edgeScrimColor="@color/v3_bg" />
+
+    <!-- Child 2: 悬浮透明顶栏（状态栏占位 + 抽屉 + 大标题「发现」+ 搜索），前景文字图标保持绝对锐利 -->
+    <LinearLayout
+        android:id="@+id/header_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top"
+        android:background="@android:color/transparent"
+        android:orientation="vertical">
+
+        <!-- 状态栏占位:代码里按 Dev.hideMainActivityStatus 撑到 statusHeight -->
+        <View
+            android:id="@+id/head"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@android:color/transparent" />
+
+        <!-- Header 行:抽屉入口 + 大标题「发现」+ 搜索(和「推荐」tab 一致) -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="12dp"
+            android:paddingEnd="16dp">
+
+            <ImageButton
+                android:id="@+id/drawerButton"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/string_75"
+                android:scaleType="centerInside"
+                android:src="@drawable/ic_baseline_dns_24"
+                app:tint="@color/v3_text_1" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="6dp"
+                android:letterSpacing="-0.02"
+                android:text="@string/string_75"
+                android:textColor="@color/v3_text_1"
+                android:textSize="24sp"
+                android:textStyle="bold" />
+
+            <ImageButton
+                android:id="@+id/searchBar"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/search"
+                android:scaleType="centerInside"
+                android:src="@drawable/ic_search_black_24dp"
+                app:tint="@color/v3_text_1" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</ceui.pixiv.witstudio.widget.WitLiquidGlassLayout>

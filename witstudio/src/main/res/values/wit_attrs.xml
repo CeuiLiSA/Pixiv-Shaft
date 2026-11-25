@@ -54,4 +54,19 @@
         <attr name="wit_glassQuality" />
     </declare-styleable>
 
+    <declare-styleable name="WitScrollEdgeBlurView">
+        <attr name="wit_scrollEdge">
+            <enum name="top" value="0" />
+            <enum name="bottom" value="1" />
+        </attr>
+        <attr name="wit_edgeAnchorHeight" format="dimension" />
+        <attr name="wit_edgeFeatherHeight" format="dimension" />
+        <attr name="wit_edgeMaxBlurRadius" format="dimension" />
+        <attr name="wit_edgeScrimColor" format="color" />
+        <attr name="wit_edgeScrimStrength" format="float" />
+        <attr name="wit_edgeOpaqueHeaderFallback" format="boolean" />
+        <attr name="wit_glassTone" />
+        <attr name="wit_glassQuality" />
+    </declare-styleable>
+
 </resources>

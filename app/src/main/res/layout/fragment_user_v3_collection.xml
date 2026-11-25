@@ -1,14 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 画师主页「收藏」Tab 容器:顶部分段(插画/漫画收藏 ↔ 小说收藏),下方 childFragment 承载列表。 -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- 画师主页「收藏」Tab 容器:全屏 childFragment 列表 + 顶部随首行滚动的分段条(插画/漫画收藏 ↔ 小说收藏)。 -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/v3_bg"
-    android:orientation="vertical">
+    android:background="@color/v3_bg">
+
+    <FrameLayout
+        android:id="@+id/collection_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
 
     <LinearLayout
+        android:id="@+id/collection_seg_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_gravity="top"
         android:orientation="horizontal"
         android:paddingHorizontal="20dp"
         android:paddingTop="10dp"
@@ -23,8 +30,7 @@
             android:paddingHorizontal="18dp"
             android:textSize="13sp"
             android:textStyle="bold"
-            tools:ignore="MissingConstraints"
-            xmlns:tools="http://schemas.android.com/tools" />
+            tools:ignore="MissingConstraints" />
 
         <TextView
             android:id="@+id/seg_novel"
@@ -35,10 +41,4 @@
             android:textSize="13sp"
             android:textStyle="bold" />
     </LinearLayout>
-
-    <FrameLayout
-        android:id="@+id/collection_container"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1" />
-</LinearLayout>
+</FrameLayout>

@@ -6,26 +6,87 @@ import android.view.View;
 import android.widget.OverScroller;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.view.ViewCompat;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import ceui.lisa.R;
 
 public class FragmentRightContentBehavior extends CoordinatorLayout.Behavior<View> {
 
+    public interface OffsetListener {
+        void onSheetPositionChanged(float sheetTopPx, float translationY, float headerHeightPx, float recmdHeightPx);
+    }
+
     private float headerHeight;
+    private int topOverlayHeightPx = 0;
     private View contentView;
     private OverScroller scroller;
+    @Nullable
+    private OffsetListener offsetListener;
+
     private final Runnable scrollRunnable = new Runnable() {
         @Override
         public void run() {
             if (scroller != null) {
                 if (scroller.computeScrollOffset()) {
-                    contentView.setTranslationY((float) scroller.getCurrY());
+                    applyTranslationY((float) scroller.getCurrY());
                     ViewCompat.postOnAnimation(contentView, this);
                 }
             }
         }
     };
+
+    public FragmentRightContentBehavior() {
+    }
+
+    public FragmentRightContentBehavior(Context context, AttributeSet attrs) {
+        super(context, attrs);
+    }
+
+    public void setTopOverlayHeightPx(int heightPx) {
+        topOverlayHeightPx = Math.max(0, heightPx);
+        notifyOffset();
+    }
+
+    public void setOffsetListener(@Nullable OffsetListener listener) {
+        offsetListener = listener;
+        notifyOffset();
+    }
+
+    /** 回到展开态或安全落位，供点击标题栏回顶时确保首条内容露在筛选条下方。 */
+    public void ensureDockedOrExpanded() {
+        if (contentView == null) {
+            return;
+        }
+        float recmdHeight = getRecmdHeight();
+        if (contentView.getTranslationY() < -recmdHeight) {
+            stopAutoScroll();
+            startAutoScroll((int) contentView.getTranslationY(), (int) -recmdHeight, 240);
+        }
+    }
+
+    private float getRecmdHeight() {
+        return Math.max(0f, headerHeight - topOverlayHeightPx);
+    }
+
+    private void applyTranslationY(float targetY) {
+        if (contentView == null) {
+            return;
+        }
+        float clamped = Math.max(-headerHeight, Math.min(0f, targetY));
+        contentView.setTranslationY(clamped);
+        notifyOffset();
+    }
+
+    private void notifyOffset() {
+        if (offsetListener == null || contentView == null) {
+            return;
+        }
+        float ty = contentView.getTranslationY();
+        float sheetTop = headerHeight + ty;
+        offsetListener.onSheetPositionChanged(sheetTop, ty, headerHeight, getRecmdHeight());
+    }
 
     private void startAutoScroll(int current, int target, int duration) {
         if (scroller == null) {
@@ -50,24 +111,20 @@ public class FragmentRightContentBehavior extends CoordinatorLayout.Behavior<Vie
     @Override
     public void onStopNestedScroll(@NonNull CoordinatorLayout coordinatorLayout, @NonNull View child, @NonNull View target, int type) {
         super.onStopNestedScroll(coordinatorLayout, child, target, type);
-        if (child.getTranslationY() >= 0f || child.getTranslationY() <= -headerHeight) {
-            // RV 已经归位（完全折叠或完全展开）
+        float recmdHeight = getRecmdHeight();
+        float ty = child.getTranslationY();
+        // 仅在「推荐用户」半折叠区间 (-recmdHeight, 0) 内吸附展开或收起；
+        // 当 sheet 已进入顶部侵入过渡带 [-headerHeight, -recmdHeight] 时不强行弹回，保持跟手连续。
+        if (ty >= 0f || ty <= -recmdHeight) {
             return;
         }
-        if (child.getTranslationY() <= -headerHeight * 0.5f) {
+        if (ty <= -recmdHeight * 0.5f) {
             stopAutoScroll();
-            startAutoScroll((int)child.getTranslationY(), (int)-headerHeight, 1000);
+            startAutoScroll((int) ty, (int) -recmdHeight, 600);
         } else {
             stopAutoScroll();
-            startAutoScroll((int)child.getTranslationY(), 0, 600);
+            startAutoScroll((int) ty, 0, 500);
         }
-    }
-
-    public FragmentRightContentBehavior() {
-    }
-
-    public FragmentRightContentBehavior(Context context, AttributeSet attrs) {
-        super(context, attrs);
     }
 
     @Override
@@ -77,16 +134,16 @@ public class FragmentRightContentBehavior extends CoordinatorLayout.Behavior<Vie
 
     @Override
     public boolean onLayoutChild(@NonNull CoordinatorLayout parent, @NonNull View child, int layoutDirection) {
-
-        // 首先让父布局按照标准方式解析
         parent.onLayoutChild(child, layoutDirection);
-        // 获取到 HeaderView 的高度
-        headerHeight = parent.findViewById(R.id.imagesTitleBlockLayout).getMeasuredHeight();
-
+        View header = parent.findViewById(R.id.imagesTitleBlockLayout);
+        headerHeight = header != null ? header.getMeasuredHeight() : 0f;
         contentView = child;
-        // 设置 top 从而排在 HeaderView的下面
-        ViewCompat.offsetTopAndBottom(child, (int)headerHeight);
-        return true; // true 表示我们自己完成了解析 不要再自动解析了
+        ViewCompat.offsetTopAndBottom(child, (int) headerHeight);
+        if (child.getTranslationY() < -headerHeight) {
+            child.setTranslationY(-headerHeight);
+        }
+        notifyOffset();
+        return true;
     }
 
     @Override
@@ -94,21 +151,48 @@ public class FragmentRightContentBehavior extends CoordinatorLayout.Behavior<Vie
         return (axes & ViewCompat.SCROLL_AXIS_VERTICAL) != 0;
     }
 
+    private static boolean canTargetScrollUp(@NonNull View target) {
+        // SwipeRefreshLayout 是 NestedScrollingChild3，CoordinatorLayout 收到的 target 就是它而非内部的
+        // RecyclerView；SwipeRefreshLayout 未覆写 View.canScrollVertically(-1)（永远返回 false），
+        // 必须走 canChildScrollUp() 查询内层列表是否还能继续向下滚回顶部，否则列表深处刚一下滑就会把
+        // sheet 拽离屏幕顶露出顶部黑色空洞。
+        if (target instanceof SwipeRefreshLayout) {
+            return ((SwipeRefreshLayout) target).canChildScrollUp();
+        }
+        return target.canScrollVertically(-1);
+    }
+
     @Override
     public void onNestedPreScroll(@NonNull CoordinatorLayout coordinatorLayout, @NonNull View child,
                                   @NonNull View target, int dx, int dy, @NonNull int[] consumed, int type) {
         super.onNestedPreScroll(coordinatorLayout, child, target, dx, dy, consumed, type);
         stopAutoScroll();
-        if (dy > 0) { // 只处理手指上滑
-            float newTransY = child.getTranslationY() - dy;
-            if (newTransY >= (-headerHeight)) {
-                // 完全消耗滑动距离后没有完全贴顶或刚好贴顶
-                // 那么就声明消耗所有滑动距离，并上移 RecyclerView
-                consumed[1] = dy; // consumed[0/1] 分别用于声明消耗了x/y方向多少滑动距离
-                child.setTranslationY(newTransY);
-            } else {
-                consumed[1] = (int)(headerHeight + child.getTranslationY());
-                child.setTranslationY(-headerHeight);
+        if (dy > 0) { // 手指上滑：先收起推荐用户，再将内容 sheet 平滑送入顶部导航栏与状态栏下方
+            float ty = child.getTranslationY();
+            if (ty > -headerHeight) {
+                float newTransY = ty - dy;
+                if (newTransY >= -headerHeight) {
+                    consumed[1] = dy;
+                    applyTranslationY(newTransY);
+                } else {
+                    consumed[1] = (int) (headerHeight + ty);
+                    applyTranslationY(-headerHeight);
+                }
+            }
+        } else if (dy < 0 && !canTargetScrollUp(target)) {
+            // 列表确实已回顶且 sheet 仍侵入在顶部导航栏后方时，先将 sheet 退回筛选条对齐位，
+            // 确保首条卡片完整露出且下拉刷新转圈从筛选条下方出现。
+            float recmdHeight = getRecmdHeight();
+            float ty = child.getTranslationY();
+            if (ty < -recmdHeight) {
+                float newTransY = ty - dy;
+                if (newTransY <= -recmdHeight) {
+                    consumed[1] = dy;
+                    applyTranslationY(newTransY);
+                } else {
+                    consumed[1] = (int) (ty + recmdHeight);
+                    applyTranslationY(-recmdHeight);
+                }
             }
         }
     }
@@ -117,12 +201,13 @@ public class FragmentRightContentBehavior extends CoordinatorLayout.Behavior<Vie
     public void onNestedScroll(@NonNull CoordinatorLayout coordinatorLayout, @NonNull View child, @NonNull View target, int dxConsumed, int dyConsumed, int dxUnconsumed, int dyUnconsumed, int type, @NonNull int[] consumed) {
         super.onNestedScroll(coordinatorLayout, child, target, dxConsumed, dyConsumed, dxUnconsumed, dyUnconsumed, type, consumed);
         stopAutoScroll();
-        if (dyUnconsumed < 0) { // 只处理手指向下滑动的情况
-            float newTransY = child.getTranslationY() - dyUnconsumed;
-            if (newTransY <= 0) {
-                child.setTranslationY(newTransY);
-            } else {
-                child.setTranslationY(0.0f);
+        if (dyUnconsumed < 0) { // 手指向下继续拉出内容 sheet 与推荐用户区
+            float ty = child.getTranslationY();
+            if (ty < 0f) {
+                float newTransY = Math.min(0f, ty - dyUnconsumed);
+                int taken = Math.max(dyUnconsumed, Math.min(0, Math.round(ty - newTransY)));
+                applyTranslationY(newTransY);
+                consumed[1] += taken;
             }
         }
     }
