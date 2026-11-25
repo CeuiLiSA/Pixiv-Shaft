@@ -61,7 +61,7 @@ class LiquidGlassDebugFragment : Fragment() {
     @ColorInt private var selectedTint = Color.TRANSPARENT
     private var selectedInteractive = true
     private var topEdgeMode = 0 // 0 = 顶栏悬浮侵入, 1 = 仅状态栏 (App Store), 2 = 关闭
-    private var topEdgeFeatherDp = 24f
+    private var topEdgeFeatherDp = 20f
     private var topEdgeMaxBlurDp = 18f
     private var topEdgeScrimStrength = 1.0f
     private var latestStatusBarTopPx = 0

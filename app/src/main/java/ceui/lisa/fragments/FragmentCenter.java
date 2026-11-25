@@ -89,6 +89,10 @@ public class FragmentCenter extends BaseLazyFragment<FragmentNewCenterBinding> {
         }
         syncGlassQuality();
         applyTopOverlayHeight(statusBarHeight + DensityUtil.dp2px(56f));
+        baseBind.discoverScroll.setOnScrollChangeListener(
+                (androidx.core.widget.NestedScrollView.OnScrollChangeListener)
+                        (v, scrollX, scrollY, oldScrollX, oldScrollY) -> syncScrollEdgeActivation(scrollY));
+        syncScrollEdgeActivation(baseBind.discoverScroll.getScrollY());
         baseBind.headerContainer.addOnLayoutChangeListener(
                 (v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {
                     int h = bottom - top;
@@ -361,6 +365,15 @@ public class FragmentCenter extends BaseLazyFragment<FragmentNewCenterBinding> {
                 WitLiquidGlassQuality.fromOrdinal(Shaft.sSettings.getLiquidGlassQuality());
         baseBind.glassHost.setQuality(quality);
         baseBind.topScrollEdge.setScrimColor(ContextCompat.getColor(mContext, R.color.v3_bg));
+        syncScrollEdgeActivation(baseBind.discoverScroll.getScrollY());
+    }
+
+    private void syncScrollEdgeActivation(int scrollY) {
+        if (baseBind == null) {
+            return;
+        }
+        float fadeRange = Math.max(1f, (float) DensityUtil.dp2px(24f));
+        baseBind.topScrollEdge.setActivationProgress(Math.max(0f, Math.min(1f, scrollY / fadeRange)));
     }
 
     private void applyTopOverlayHeight(int heightPx) {

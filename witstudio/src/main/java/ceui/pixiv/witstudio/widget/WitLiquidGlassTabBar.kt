@@ -12,6 +12,7 @@ import android.graphics.PorterDuffColorFilter
 import android.graphics.RectF
 import android.graphics.Region
 import android.graphics.Shader
+import android.graphics.drawable.Drawable
 import android.os.Build
 import android.os.SystemClock
 import android.text.TextPaint
@@ -29,6 +30,7 @@ import androidx.core.view.get
 import androidx.core.view.isNotEmpty
 import androidx.core.view.size
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.android.material.tabs.TabLayout
 import ceui.pixiv.witstudio.theme.motionEnabled
 import ceui.pixiv.witstudio.widget.internal.WitLiquidGlassBackend
 import ceui.pixiv.witstudio.widget.internal.WitLiquidGlassLoupeShader
@@ -73,8 +75,389 @@ internal interface WitLiquidGlassOverlay {
  */
 public class WitLiquidGlassTabBar private constructor(
     private val glassBar: WitLiquidGlassView,
-    private val navigationView: BottomNavigationView,
+    private val host: TabHostAdapter,
 ) : WitLiquidGlassOverlay {
+
+    private interface TabHostAdapter {
+        val hostView: View
+        val isScrollable: Boolean
+        val usesVariableTabWidths: Boolean
+        val tabCount: Int
+        fun selectedIndex(): Int
+        fun selectTab(index: Int, reselect: Boolean)
+        fun configureForLoupe()
+        fun applyTint(maskingMode: Boolean, restingTintList: ColorStateList?, opaqueWhiteTint: ColorStateList)
+        fun restoreOnDetach()
+        fun readTabGeometry(
+            glassBar: WitLiquidGlassView,
+            centers: FloatArray,
+            widths: FloatArray,
+            ids: IntArray,
+        ): Boolean
+        fun isCachedGeometryExact(
+            glassBar: WitLiquidGlassView,
+            centers: FloatArray,
+            widths: FloatArray,
+            ids: IntArray,
+            count: Int,
+        ): Boolean
+        fun scrollX(): Int = 0
+        fun maxScrollX(): Int = 0
+        fun scrollBy(dx: Int) = Unit
+        fun ensureTabVisible(index: Int) = Unit
+        fun installObservers(onGeometryChanged: () -> Unit, onScrolled: () -> Unit) = Unit
+        fun uninstallObservers() = Unit
+    }
+
+    private class BottomNavAdapter(
+        private val navigationView: BottomNavigationView,
+    ) : TabHostAdapter {
+        private val reusableItemViews = ArrayList<View>(5)
+        private var savedItemRippleColor: ColorStateList? = null
+        private var rippleSaved = false
+
+        override val hostView: View get() = navigationView
+        override val isScrollable: Boolean get() = false
+        override val usesVariableTabWidths: Boolean get() = false
+        override val tabCount: Int get() = navigationView.menu.size
+
+        override fun selectedIndex(): Int {
+            val menu = navigationView.menu
+            for (i in 0 until menu.size) {
+                if (menu[i].isChecked) return i
+            }
+            return if (menu.isNotEmpty()) 0 else -1
+        }
+
+        override fun selectTab(index: Int, reselect: Boolean) {
+            val menu = navigationView.menu
+            if (index !in 0 until menu.size) return
+            navigationView.selectedItemId = menu[index].itemId
+        }
+
+        override fun configureForLoupe() {
+            if (!rippleSaved) {
+                savedItemRippleColor = navigationView.itemRippleColor
+                rippleSaved = true
+            }
+            navigationView.itemBackground = null
+            navigationView.itemRippleColor = ColorStateList.valueOf(Color.TRANSPARENT)
+            navigationView.isItemActiveIndicatorEnabled = false
+            navigationView.clipChildren = false
+            navigationView.clipToPadding = false
+            for (i in 0 until navigationView.childCount) {
+                val child = navigationView.getChildAt(i)
+                if (child is ViewGroup) {
+                    child.clipChildren = false
+                    child.clipToPadding = false
+                }
+            }
+        }
+
+        override fun applyTint(
+            maskingMode: Boolean,
+            restingTintList: ColorStateList?,
+            opaqueWhiteTint: ColorStateList,
+        ) {
+            val tint = if (maskingMode) opaqueWhiteTint else (restingTintList ?: opaqueWhiteTint)
+            val iconTintChanged = navigationView.itemIconTintList !== tint
+            if (iconTintChanged) {
+                navigationView.itemIconTintList = tint
+            }
+            if (navigationView.itemTextColor !== tint) {
+                navigationView.itemTextColor = tint
+            }
+            if (iconTintChanged) {
+                val menuView = navigationView.getChildAt(0) as? ViewGroup ?: return
+                for (i in 0 until menuView.childCount) {
+                    menuView.getChildAt(i).refreshDrawableState()
+                }
+            }
+        }
+
+        override fun restoreOnDetach() {
+            if (rippleSaved) {
+                navigationView.itemRippleColor = savedItemRippleColor
+            }
+        }
+
+        override fun readTabGeometry(
+            glassBar: WitLiquidGlassView,
+            centers: FloatArray,
+            widths: FloatArray,
+            ids: IntArray,
+        ): Boolean {
+            val menu = navigationView.menu
+            val menuCount = menu.size
+            if (menuCount <= 0 || centers.size < menuCount) return false
+            val menuView = navigationView.getChildAt(0) as? ViewGroup
+            val navOffsetX = navigationView.left.toFloat() + (menuView?.left?.toFloat() ?: 0f)
+            reusableItemViews.clear()
+            if (menuView != null) {
+                for (i in 0 until menuView.childCount) {
+                    val child = menuView.getChildAt(i)
+                    if (child.visibility != View.GONE && child.width > 0) {
+                        reusableItemViews += child
+                    }
+                }
+            }
+            if (reusableItemViews.size == menuCount) {
+                for (i in 0 until menuCount) {
+                    ids[i] = menu[i].itemId
+                    val itemView = reusableItemViews[i]
+                    centers[i] = navOffsetX + (itemView.left + itemView.right) * 0.5f
+                    widths[i] = itemView.width.toFloat()
+                }
+            } else {
+                val isRtl = navigationView.layoutDirection == View.LAYOUT_DIRECTION_RTL
+                val slot = glassBar.width.toFloat() / menuCount
+                for (i in 0 until menuCount) {
+                    ids[i] = menu[i].itemId
+                    val visualSlot = if (isRtl) (menuCount - 1 - i) else i
+                    centers[i] = slot * (visualSlot + 0.5f)
+                    widths[i] = slot
+                }
+            }
+            reusableItemViews.clear()
+            return true
+        }
+
+        override fun isCachedGeometryExact(
+            glassBar: WitLiquidGlassView,
+            centers: FloatArray,
+            widths: FloatArray,
+            ids: IntArray,
+            count: Int,
+        ): Boolean {
+            val menu = navigationView.menu
+            val menuView = navigationView.getChildAt(0) as? ViewGroup
+            val navOffsetX = navigationView.left.toFloat() + (menuView?.left?.toFloat() ?: 0f)
+            if (menuView == null) {
+                for (i in 0 until count) {
+                    if (ids[i] != menu[i].itemId) return false
+                }
+                return true
+            }
+            var visibleIndex = 0
+            for (i in 0 until menuView.childCount) {
+                val child = menuView.getChildAt(i)
+                if (child.visibility != View.GONE && child.width > 0) {
+                    if (visibleIndex >= count) return false
+                    if (ids[visibleIndex] != menu[visibleIndex].itemId) return false
+                    val expectedCenter = navOffsetX + (child.left + child.right) * 0.5f
+                    if (abs(expectedCenter - centers[visibleIndex]) > 0.01f) return false
+                    visibleIndex++
+                }
+            }
+            return visibleIndex == count
+        }
+    }
+
+    private class TabLayoutAdapter(
+        private val tabLayout: TabLayout,
+    ) : TabHostAdapter {
+        private var savedRippleColor: ColorStateList? = null
+        private var savedIndicator: Drawable? = null
+        private var savedClipChildren = true
+        private var savedClipToPadding = true
+        private var savedStripClipChildren = true
+        private var savedStripClipToPadding = true
+        private var savedState = false
+        private var hierarchyListener: ViewGroup.OnHierarchyChangeListener? = null
+        private var tabSelectedListener: TabLayout.OnTabSelectedListener? = null
+
+        override val hostView: View get() = tabLayout
+        override val isScrollable: Boolean
+            get() = tabLayout.tabMode == TabLayout.MODE_SCROLLABLE ||
+                tabLayout.tabMode == TabLayout.MODE_AUTO
+        override val usesVariableTabWidths: Boolean get() = true
+        override val tabCount: Int get() = tabLayout.tabCount
+
+        override fun selectedIndex(): Int {
+            val count = tabLayout.tabCount
+            if (count <= 0) return -1
+            val pos = tabLayout.selectedTabPosition
+            return if (pos in 0 until count) pos else 0
+        }
+
+        override fun selectTab(index: Int, reselect: Boolean) {
+            tabLayout.getTabAt(index)?.select()
+        }
+
+        override fun configureForLoupe() {
+            val strip = tabLayout.getChildAt(0) as? ViewGroup
+            if (!savedState) {
+                savedRippleColor = tabLayout.tabRippleColor
+                savedIndicator = tabLayout.tabSelectedIndicator
+                savedClipChildren = tabLayout.clipChildren
+                savedClipToPadding = tabLayout.clipToPadding
+                savedStripClipChildren = strip?.clipChildren ?: true
+                savedStripClipToPadding = strip?.clipToPadding ?: true
+                savedState = true
+            }
+            tabLayout.setSelectedTabIndicator(null)
+            tabLayout.setSelectedTabIndicatorColor(Color.TRANSPARENT)
+            tabLayout.tabRippleColor = ColorStateList.valueOf(Color.TRANSPARENT)
+            tabLayout.setBackgroundColor(Color.TRANSPARENT)
+            // Keep scrollable TabLayout clipped horizontally to its own bounds so scrolled-out tabs
+            // don't spill outside the capsule caps; fixed TabLayout stays unclipped for loupe bloom.
+            val clip = isScrollable
+            tabLayout.clipChildren = clip
+            tabLayout.clipToPadding = clip
+            strip?.let {
+                it.clipChildren = clip
+                it.clipToPadding = clip
+            }
+        }
+
+        override fun applyTint(
+            maskingMode: Boolean,
+            restingTintList: ColorStateList?,
+            opaqueWhiteTint: ColorStateList,
+        ) {
+            val tint = if (maskingMode) opaqueWhiteTint else (restingTintList ?: opaqueWhiteTint)
+            if (tabLayout.tabTextColors !== tint) {
+                tabLayout.tabTextColors = tint
+            }
+        }
+
+        override fun restoreOnDetach() {
+            if (savedState) {
+                tabLayout.tabRippleColor = savedRippleColor
+                tabLayout.setSelectedTabIndicator(savedIndicator)
+                tabLayout.clipChildren = savedClipChildren
+                tabLayout.clipToPadding = savedClipToPadding
+                (tabLayout.getChildAt(0) as? ViewGroup)?.let { strip ->
+                    strip.clipChildren = savedStripClipChildren
+                    strip.clipToPadding = savedStripClipToPadding
+                }
+                savedState = false
+            }
+        }
+
+        override fun scrollX(): Int = tabLayout.scrollX
+
+        override fun maxScrollX(): Int {
+            val strip = tabLayout.getChildAt(0) ?: return 0
+            val contentW = strip.width + tabLayout.paddingLeft + tabLayout.paddingRight
+            return (contentW - tabLayout.width).coerceAtLeast(0)
+        }
+
+        override fun scrollBy(dx: Int) {
+            if (dx == 0 || !isScrollable) return
+            val max = maxScrollX()
+            if (max <= 0) return
+            val next = (tabLayout.scrollX + dx).coerceIn(0, max)
+            if (next != tabLayout.scrollX) {
+                tabLayout.scrollTo(next, 0)
+            }
+        }
+
+        override fun ensureTabVisible(index: Int) {
+            if (!isScrollable) return
+            val tabView = tabLayout.getTabAt(index)?.view ?: return
+            val stripLeft = (tabLayout.getChildAt(0)?.left ?: 0)
+            val left = stripLeft + tabView.left
+            val right = stripLeft + tabView.right
+            val viewW = tabLayout.width
+            if (viewW <= 0) return
+            val targetScroll = ((left + right) * 0.5f - viewW * 0.5f)
+                .roundToInt()
+                .coerceIn(0, maxScrollX())
+            if (abs(targetScroll - tabLayout.scrollX) > 2) {
+                tabLayout.smoothScrollTo(targetScroll, 0)
+            }
+        }
+
+        override fun installObservers(onGeometryChanged: () -> Unit, onScrolled: () -> Unit) {
+            uninstallObservers()
+            val strip = tabLayout.getChildAt(0) as? ViewGroup
+            hierarchyListener = object : ViewGroup.OnHierarchyChangeListener {
+                override fun onChildViewAdded(parent: View?, child: View?) = onGeometryChanged()
+                override fun onChildViewRemoved(parent: View?, child: View?) = onGeometryChanged()
+            }.also { strip?.setOnHierarchyChangeListener(it) }
+            tabSelectedListener = object : TabLayout.OnTabSelectedListener {
+                override fun onTabSelected(tab: TabLayout.Tab?) = onGeometryChanged()
+                override fun onTabUnselected(tab: TabLayout.Tab?) = Unit
+                override fun onTabReselected(tab: TabLayout.Tab?) = Unit
+            }.also { tabLayout.addOnTabSelectedListener(it) }
+            tabLayout.setOnScrollChangeListener { _, _, _, _, _ -> onScrolled() }
+        }
+
+        override fun uninstallObservers() {
+            (tabLayout.getChildAt(0) as? ViewGroup)?.setOnHierarchyChangeListener(null)
+            hierarchyListener = null
+            tabSelectedListener?.let { tabLayout.removeOnTabSelectedListener(it) }
+            tabSelectedListener = null
+            tabLayout.setOnScrollChangeListener(null)
+        }
+
+        override fun readTabGeometry(
+            glassBar: WitLiquidGlassView,
+            centers: FloatArray,
+            widths: FloatArray,
+            ids: IntArray,
+        ): Boolean {
+            val count = tabLayout.tabCount
+            if (count <= 0 || centers.size < count) return false
+            val strip = tabLayout.getChildAt(0) as? ViewGroup
+            val offsetX = tabLayout.left.toFloat() + (strip?.left?.toFloat() ?: 0f) - tabLayout.scrollX.toFloat()
+            var anyMeasured = false
+            for (i in 0 until count) {
+                val tv = tabLayout.getTabAt(i)?.view
+                if (tv != null && tv.width > 0) {
+                    anyMeasured = true
+                    break
+                }
+            }
+            if (anyMeasured) {
+                for (i in 0 until count) {
+                    ids[i] = i
+                    val tv = tabLayout.getTabAt(i)?.view
+                    if (tv != null && tv.width > 0) {
+                        centers[i] = offsetX + (tv.left + tv.right) * 0.5f
+                        widths[i] = tv.width.toFloat()
+                    } else {
+                        val fallbackSlot = (glassBar.width.toFloat() - glassBar.paddingLeft - glassBar.paddingRight) / count
+                        centers[i] = glassBar.paddingLeft + fallbackSlot * (i + 0.5f)
+                        widths[i] = fallbackSlot
+                    }
+                }
+            } else {
+                val isRtl = tabLayout.layoutDirection == View.LAYOUT_DIRECTION_RTL
+                val innerW = (glassBar.width - glassBar.paddingLeft - glassBar.paddingRight).coerceAtLeast(1).toFloat()
+                val slot = innerW / count
+                for (i in 0 until count) {
+                    ids[i] = i
+                    val visualSlot = if (isRtl) (count - 1 - i) else i
+                    centers[i] = glassBar.paddingLeft + slot * (visualSlot + 0.5f)
+                    widths[i] = slot
+                }
+            }
+            return true
+        }
+
+        override fun isCachedGeometryExact(
+            glassBar: WitLiquidGlassView,
+            centers: FloatArray,
+            widths: FloatArray,
+            ids: IntArray,
+            count: Int,
+        ): Boolean {
+            if (tabLayout.tabCount != count) return false
+            val strip = tabLayout.getChildAt(0) as? ViewGroup
+            val offsetX = tabLayout.left.toFloat() + (strip?.left?.toFloat() ?: 0f) - tabLayout.scrollX.toFloat()
+            for (i in 0 until count) {
+                val tv = tabLayout.getTabAt(i)?.view ?: return false
+                if (tv.width <= 0) return false
+                val expectedCx = offsetX + (tv.left + tv.right) * 0.5f
+                if (abs(expectedCx - centers[i]) > 0.5f || abs(tv.width.toFloat() - widths[i]) > 0.5f) {
+                    return false
+                }
+            }
+            return true
+        }
+    }
 
     public companion object {
         @JvmStatic
@@ -83,10 +466,60 @@ public class WitLiquidGlassTabBar private constructor(
             navigationView: BottomNavigationView,
         ): WitLiquidGlassTabBar {
             (glassBar.overlay as? WitLiquidGlassTabBar)?.detach()
-            return WitLiquidGlassTabBar(glassBar, navigationView).also { controller ->
+            return WitLiquidGlassTabBar(glassBar, BottomNavAdapter(navigationView)).also { controller ->
                 glassBar.overlay = controller
             }
         }
+
+        /**
+         * Attaches the full iOS 26 Liquid Glass interactive tab bar engine (resting inset glass
+         * pill, press bloom, 3D AGSL droplet loupe, horizontal drag scrubbing with squash-stretch
+         * and haptics, rubber-band over-drag, and continuous ViewPager swipe following) to a
+         * Material [TabLayout] hosted inside [glassBar].
+         */
+        @JvmStatic
+        public fun attach(
+            glassBar: WitLiquidGlassView,
+            tabLayout: TabLayout,
+        ): WitLiquidGlassTabBar {
+            (glassBar.overlay as? WitLiquidGlassTabBar)?.detach()
+            return WitLiquidGlassTabBar(glassBar, TabLayoutAdapter(tabLayout)).also { controller ->
+                glassBar.overlay = controller
+            }
+        }
+
+        /**
+         * Configures [glassBar] with the exact calibrated iOS 26 floating glass bar chrome used by
+         * the home bottom navigation bar (`Material.REGULAR`, capsule radius, light-mode subtle
+         * bright tint + soft elevation, dark-mode crystal transparent glass, `6dp × 3dp` inner pad).
+         */
+        @JvmStatic
+        public fun applyFloatingGlassChrome(
+            glassBar: WitLiquidGlassView,
+            quality: WitLiquidGlassQuality,
+            isDark: Boolean,
+        ) {
+            val d = glassBar.resources.displayMetrics.density
+            val isLive = quality.isLiveEnabled
+            glassBar.quality = quality
+            glassBar.material = WitLiquidGlassView.Material.REGULAR
+            glassBar.tone = WitLiquidGlassView.Tone.THEME
+            glassBar.cornerRadiusDp = Float.POSITIVE_INFINITY
+            glassBar.isGlassInteractive = false
+            glassBar.tintColor = if (isLive && !isDark) 0x7CF7F8FC else Color.TRANSPARENT
+            glassBar.elevation = if (isLive && !isDark) 8f * d else 0f
+            glassBar.background = null
+            val padH = (DEFAULT_BAR_HORIZONTAL_PADDING_DP * d).roundToInt()
+            val padV = if (isLive) (3f * d).roundToInt() else 0
+            glassBar.setPadding(padH, padV, padH, padV)
+        }
+
+        /** Returns the calibrated iOS 26 resting inset selection pill color for light or dark mode. */
+        @JvmStatic
+        @ColorInt
+        public fun defaultRestingPillColor(isDark: Boolean): Int =
+            if (isDark) ColorUtils.setAlphaComponent(Color.WHITE, 44)
+            else ColorUtils.setAlphaComponent(0xFF1A1A2E.toInt(), 40)
 
         // ── Shared calibrated physics constants (delegating to WitLiquidGlassPhysics) ──
         internal const val BAR_PRESS_SCALE: Float = WitLiquidGlassPhysics.WIDE_BAR_PRESS_SCALE
@@ -299,6 +732,42 @@ public class WitLiquidGlassTabBar private constructor(
             val squish = abs(unit).coerceIn(0f, 1f)
             return EdgeOverDrag(clamped + shift, shift, squish)
         }
+
+        /**
+         * Resolves which tab owns horizontal coordinate [x]. For variable-width hosts (Material
+         * [TabLayout]), tests each tab's actual `[center - width/2, center + width/2]` interval so
+         * tapping near the edge of a wide tab never mis-hits an adjacent narrower tab; outside all
+         * intervals, picks the closest tab edge (breaking ties by center distance).
+         */
+        internal fun resolveTabIndexAt(
+            x: Float,
+            centers: FloatArray,
+            widths: FloatArray,
+            useWidths: Boolean,
+        ): Int {
+            if (centers.isEmpty()) return 0
+            val checkIntervals = useWidths && widths.size == centers.size
+            var bestIdx = 0
+            var bestIntervalDist = Float.POSITIVE_INFINITY
+            var bestCenterDist = Float.POSITIVE_INFINITY
+            for (i in centers.indices) {
+                val centerDist = abs(x - centers[i])
+                val intervalDist = if (checkIntervals && widths[i] > 0f) {
+                    val halfW = widths[i] * 0.5f
+                    max(0f, max((centers[i] - halfW) - x, x - (centers[i] + halfW)))
+                } else {
+                    centerDist
+                }
+                if (intervalDist < bestIntervalDist - 0.001f ||
+                    (abs(intervalDist - bestIntervalDist) <= 0.001f && centerDist < bestCenterDist)
+                ) {
+                    bestIntervalDist = intervalDist
+                    bestCenterDist = centerDist
+                    bestIdx = i
+                }
+            }
+            return bestIdx
+        }
     }
 
     internal data class BarMetrics(
@@ -331,28 +800,32 @@ public class WitLiquidGlassTabBar private constructor(
         val barPullStretchX = WitLiquidGlassPhysics.SpringState(0f, 0f)
         val lift = WitLiquidGlassPhysics.SpringState(0f, 0f)
         val dropCx = WitLiquidGlassPhysics.SpringState(0f, 0f)
+        val dropW = WitLiquidGlassPhysics.SpringState(0f, 0f)
         val velocityStretch = WitLiquidGlassPhysics.SpringState(0f, 0f)
         val wallSquish = WitLiquidGlassPhysics.SpringState(0f, 0f)
 
         var pressed: Boolean = false
         var dragging: Boolean = false
         var targetCx: Float = 0f
+        var targetW: Float = 0f
         var targetBarShiftX: Float = 0f
         var targetBarShiftY: Float = 0f
         var targetBarPullStretchX: Float = 0f
         var targetWallSquish: Float = 0f
         var initialized: Boolean = false
 
-        fun snapToRest(cx: Float) {
+        fun snapToRest(cx: Float, restWidth: Float = 0f) {
             barScale.snap(1f)
             barShiftX.snap(0f)
             barShiftY.snap(0f)
             barPullStretchX.snap(0f)
             lift.snap(0f)
             dropCx.snap(cx)
+            dropW.snap(restWidth)
             velocityStretch.snap(0f)
             wallSquish.snap(0f)
             targetCx = cx
+            targetW = restWidth
             targetBarShiftX = 0f
             targetBarShiftY = 0f
             targetBarPullStretchX = 0f
@@ -403,6 +876,13 @@ public class WitLiquidGlassTabBar private constructor(
                 barPullStretchX.step(effPullStretchX, pullStiff, pullDamp, subDt)
                 lift.step(liftTarget, liftStiff, liftDamp, subDt)
                 dropCx.step(targetCx, cxStiff, cxDamp, subDt)
+                if (targetW > 0f) {
+                    if (dropW.value <= 0f) {
+                        dropW.snap(targetW)
+                    } else {
+                        dropW.step(targetW, cxStiff, cxDamp, subDt)
+                    }
+                }
 
                 val vxDpPerSec = abs(dropCx.velocity) / safeDensity
                 val velTarget = if (lift.value > 0.08f) {
@@ -421,6 +901,7 @@ public class WitLiquidGlassTabBar private constructor(
                 barPullStretchX.snap(effPullStretchX)
                 lift.snap(liftTarget)
                 dropCx.snap(targetCx)
+                if (targetW > 0f) dropW.snap(targetW)
                 velocityStretch.snap(0f)
                 wallSquish.snap(effWallSquish)
                 return false
@@ -441,6 +922,7 @@ public class WitLiquidGlassTabBar private constructor(
                 barPullStretchX.isSettled(effPullStretchX, 0.0006f, 0.006f) &&
                 lift.isSettled(liftTarget, 0.004f, 0.035f) &&
                 dropCx.isSettled(targetCx, 0.35f, 4.0f) &&
+                (targetW <= 0f || dropW.isSettled(targetW, 0.35f, 4.0f)) &&
                 velocityStretch.isSettled(0f, 0.005f, 0.04f) &&
                 wallSquish.isSettled(effWallSquish, 0.005f, 0.04f)
         }
@@ -469,7 +951,15 @@ public class WitLiquidGlassTabBar private constructor(
             val vStretch = velocityStretch.value.coerceIn(WitLiquidGlassPhysics.VEL_REBOUND_MIN, 1.18f)
             val wSquish = wallSquish.value.coerceIn(WitLiquidGlassPhysics.WALL_SQUISH_REBOUND_MIN, 1.15f)
 
-            val baseW = (metrics.restW + (metrics.heldW - metrics.restW) * lPos)
+            val restW = if (targetW > 0f && dropW.value > 0.5f) dropW.value else metrics.restW
+            val heldW = if (targetW > 0f && dropW.value > 0.5f) {
+                val protrudeV = (metrics.heldH - metrics.barH).coerceAtLeast(0f) * 0.5f
+                max(restW + protrudeV * 2.24f, metrics.heldH * 1.35f)
+            } else {
+                metrics.heldW
+            }
+
+            val baseW = (restW + (heldW - restW) * lPos)
                 .coerceAtLeast(metrics.restH)
             val baseH = (metrics.restH + (metrics.heldH - metrics.restH) * lPos)
                 .coerceAtLeast(metrics.restH * 0.85f)
@@ -537,6 +1027,7 @@ public class WitLiquidGlassTabBar private constructor(
     @ColorInt private var restingPillColor: Int = 0xD8101828.toInt()
 
     private var tabCenters = FloatArray(0)
+    private var tabWidths = FloatArray(0)
     private var tabMenuIds = IntArray(0)
     private var lastKnownSelectedIndex = -1
     private var metrics = BarMetrics(0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f)
@@ -545,15 +1036,14 @@ public class WitLiquidGlassTabBar private constructor(
     private var cachedBarH = 0f
     private var cachedDensity = 0f
     private var cachedLayoutDir = -1
-    private var cachedNavOffsetX = Float.NaN
-    private var cachedMenuViewChildCount = -1
-    private val reusableItemViews = ArrayList<View>(5)
+    private var cachedScrollX = Int.MIN_VALUE
     private val scratchGeometry = MutableDropletGeometry()
 
     // Active pointer tracking in transform-invariant bar coordinates
     private var activePointerId = MotionEvent.INVALID_POINTER_ID
     private var downX = 0f
     private var downY = 0f
+    private var lastMoveX = 0f
     private var downTimeMs = 0L
     private var dragGrabOffsetX = 0f
     private var initialSelectedIndex = -1
@@ -562,6 +1052,7 @@ public class WitLiquidGlassTabBar private constructor(
     private var didDrag = false
     private var crossedOtherTab = false
     private var committingSelection = false
+    private var pageScrollTracking = false
     private var pendingReleaseAtMs = 0L
     private var appliedBarShiftX = 0f
     private var appliedBarShiftY = 0f
@@ -603,8 +1094,6 @@ public class WitLiquidGlassTabBar private constructor(
     }
     private var restingTintList: ColorStateList? = null
     private var maskingMode = false
-    private var savedItemRippleColor: ColorStateList? = null
-    private var rippleSaved = false
     private var loupeShader: WitLiquidGlassLoupeShader? = null
 
     private val layoutListener = View.OnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
@@ -639,7 +1128,9 @@ public class WitLiquidGlassTabBar private constructor(
             }
             lastFrameUptimeMs = now
 
-            val keepRunning = physics.step(dtSec, density) || pendingReleaseAtMs > 0L
+            // Auto-pan scrollable TabLayout smoothly while finger holds near either capsule edge.
+            val edgePanActive = maybeAutoPanScrollableHost(dtSec)
+            val keepRunning = physics.step(dtSec, density) || pendingReleaseAtMs > 0L || edgePanActive
             applyOuterBarTransform()
 
             if (keepRunning) {
@@ -671,7 +1162,7 @@ public class WitLiquidGlassTabBar private constructor(
     }
 
     init {
-        navigationView.addOnLayoutChangeListener(layoutListener)
+        host.hostView.addOnLayoutChangeListener(layoutListener)
         glassBar.addOnLayoutChangeListener(layoutListener)
     }
 
@@ -689,13 +1180,52 @@ public class WitLiquidGlassTabBar private constructor(
                 glassBar.clipChildren = false
                 glassBar.clipToPadding = false
                 geometryDirty = true
-                configureNavigationViewForLoupe()
+                configureHostForLoupe()
+                host.installObservers(
+                    onGeometryChanged = {
+                        geometryDirty = true
+                        if (enabledFlag) {
+                            refreshTabGeometry(snapIfUninitialized = true)
+                            glassBar.invalidate()
+                        }
+                    },
+                    onScrolled = {
+                        geometryDirty = true
+                        if (enabledFlag) {
+                            refreshTabGeometry(snapIfUninitialized = true)
+                            if (activePointerId == MotionEvent.INVALID_POINTER_ID && !pageScrollTracking) {
+                                val checkedIdx = resolveCheckedMenuIndex()
+                                if (checkedIdx in tabCenters.indices) {
+                                    physics.targetCx = tabCenters[checkedIdx]
+                                    physics.targetW = targetRestWidthForIndex(checkedIdx)
+                                    if (!frameLoopRunning && !physics.pressed && pendingReleaseAtMs == 0L) {
+                                        physics.dropCx.snap(physics.targetCx)
+                                        if (physics.targetW > 0f) physics.dropW.snap(physics.targetW)
+                                    }
+                                }
+                            }
+                            glassBar.invalidate()
+                        }
+                    },
+                )
                 refreshTabGeometry(snapIfUninitialized = true)
                 glassBar.invalidate()
             } else {
                 cancelAndReset()
             }
         }
+
+    /**
+     * Positions [glassBar] vertically without clobbering any active elastic vertical drag pull
+     * applied by [WitLiquidGlassTabBar]. Use this instead of setting `glassBar.translationY` directly
+     * when the floating tab bar also translates with scroll/AppBar collapse.
+     */
+    public fun setBaseTranslationY(baseY: Float) {
+        val target = baseY + appliedBarShiftY
+        if (glassBar.translationY != target) {
+            glassBar.translationY = target
+        }
+    }
 
     /** Updates theme-derived colors for selected icons/text, unselected icons/text, and resting pill. */
     public fun applyThemeColors(
@@ -724,15 +1254,50 @@ public class WitLiquidGlassTabBar private constructor(
         )
 
         if (enabledFlag) {
-            configureNavigationViewForLoupe()
+            configureHostForLoupe()
             glassBar.invalidate()
         }
+    }
+
+    /**
+     * Continuously tracks a `ViewPager` / `ViewPager2` horizontal swipe (`position` +
+     * `positionOffset` in `[0, 1]`), sliding the inset frosted glass pill 1:1 between tabs with
+     * live pixel-exact selected/unselected color masking.
+     */
+    public fun syncPageScroll(position: Int, positionOffset: Float) {
+        if (!enabledFlag) return
+        if (activePointerId != MotionEvent.INVALID_POINTER_ID || committingSelection ||
+            pendingReleaseAtMs > 0L || physics.lift.value > 0.08f
+        ) {
+            return
+        }
+        refreshTabGeometry(snapIfUninitialized = true)
+        if (tabCenters.isEmpty() || position !in tabCenters.indices) return
+        val clampedOffset = positionOffset.coerceIn(0f, 1f)
+        val nextPos = (position + 1).coerceAtMost(tabCenters.lastIndex)
+        val cx = tabCenters[position] + (tabCenters[nextPos] - tabCenters[position]) * clampedOffset
+        val w0 = targetRestWidthForIndex(position)
+        val w1 = targetRestWidthForIndex(nextPos)
+        val w = w0 + (w1 - w0) * clampedOffset
+        val midSwipe = clampedOffset > 0.002f && clampedOffset < 0.998f
+        pageScrollTracking = midSwipe
+        physics.targetCx = cx
+        physics.dropCx.snap(cx)
+        if (w > 0f) {
+            physics.targetW = w
+            physics.dropW.snap(w)
+        }
+        physics.pressed = false
+        physics.dragging = false
+        setMaskingMode(midSwipe)
+        glassBar.invalidate()
     }
 
     /** Synchronizes the selection pill position after external tab selection (e.g., ViewPager swipe). */
     @JvmOverloads
     public fun syncSelection(animated: Boolean = true) {
         if (!enabledFlag) return
+        pageScrollTracking = false
         geometryDirty = true
         refreshTabGeometry(snapIfUninitialized = false)
         val checkedIdx = resolveCheckedMenuIndex()
@@ -741,26 +1306,44 @@ public class WitLiquidGlassTabBar private constructor(
         if (activePointerId != MotionEvent.INVALID_POINTER_ID || committingSelection) return
 
         val targetX = tabCenters[checkedIdx]
+        val targetWidth = targetRestWidthForIndex(checkedIdx)
+        val loupeAnimating = pendingReleaseAtMs > 0L || physics.pressed || physics.lift.value > 0.002f
+        if (loupeAnimating) {
+            val moved = abs(physics.targetCx - targetX) > 0.5f ||
+                (targetWidth > 0f && abs(physics.targetW - targetWidth) > 0.5f)
+            if (moved) {
+                physics.targetCx = targetX
+                physics.targetW = targetWidth
+                startFrameLoop()
+            }
+            return
+        }
         if (!physics.initialized || !animated || !motionEnabled()) {
-            physics.snapToRest(targetX)
+            physics.snapToRest(targetX, targetWidth)
             applyOuterBarTransform()
             setMaskingMode(false)
             glassBar.invalidate()
             return
         }
-        if (abs(physics.targetCx - targetX) > 0.5f || abs(physics.dropCx.value - targetX) > 0.5f) {
+        if (abs(physics.targetCx - targetX) > 0.5f || abs(physics.dropCx.value - targetX) > 0.5f ||
+            (targetWidth > 0f && abs(physics.dropW.value - targetWidth) > 0.5f)
+        ) {
             physics.targetCx = targetX
+            physics.targetW = targetWidth
             physics.pressed = false
             physics.dragging = false
             setMaskingMode(true)
             startFrameLoop()
+        } else {
+            setMaskingMode(false)
+            glassBar.invalidate()
         }
     }
 
     /** Detaches listeners, cancels running physics, and releases offscreen GPU nodes. */
     public fun detach() {
         cancelAndReset()
-        navigationView.removeOnLayoutChangeListener(layoutListener)
+        host.hostView.removeOnLayoutChangeListener(layoutListener)
         glassBar.removeOnLayoutChangeListener(layoutListener)
         if (glassBar.overlay === this) {
             glassBar.overlay = null
@@ -774,11 +1357,12 @@ public class WitLiquidGlassTabBar private constructor(
         lastFrameUptimeMs = 0L
         activePointerId = MotionEvent.INVALID_POINTER_ID
         pendingReleaseAtMs = 0L
+        pageScrollTracking = false
         if (enabledFlag) {
             if (tabCenters.isNotEmpty()) {
                 val checkedIdx = resolveCheckedMenuIndex().coerceIn(0, tabCenters.lastIndex)
                 lastKnownSelectedIndex = checkedIdx
-                physics.snapToRest(tabCenters[checkedIdx])
+                physics.snapToRest(tabCenters[checkedIdx], targetRestWidthForIndex(checkedIdx))
             } else {
                 physics.initialized = false
             }
@@ -793,7 +1377,7 @@ public class WitLiquidGlassTabBar private constructor(
     }
 
     override fun onDetachedFromWindow() {
-        cancelAndReset()
+        pauseForWindowDetach()
     }
 
     /**
@@ -815,8 +1399,10 @@ public class WitLiquidGlassTabBar private constructor(
             MotionEvent.ACTION_DOWN -> {
                 activePointerId = event.getPointerId(0)
                 pendingReleaseAtMs = 0L
+                pageScrollTracking = false
                 downX = toUnscaledBarX(event.x)
                 downY = toUnscaledBarY(event.y)
+                lastMoveX = downX
                 downTimeMs = SystemClock.uptimeMillis()
                 didDrag = false
                 crossedOtherTab = false
@@ -830,7 +1416,10 @@ public class WitLiquidGlassTabBar private constructor(
                 glassBar.parent?.requestDisallowInterceptTouchEvent(true)
 
                 if (!physics.initialized) {
-                    physics.snapToRest(tabCenters[initialSelectedIndex])
+                    physics.snapToRest(
+                        tabCenters[initialSelectedIndex],
+                        targetRestWidthForIndex(initialSelectedIndex),
+                    )
                 }
 
                 if (!motionEnabled()) {
@@ -848,10 +1437,12 @@ public class WitLiquidGlassTabBar private constructor(
                     // Preserve resting center on stationary press; smoothly blend off-center grab when dragging.
                     dragGrabOffsetX = physics.dropCx.value - downX
                     physics.targetCx = tabCenters[initialSelectedIndex]
+                    physics.targetW = targetRestWidthForIndex(initialSelectedIndex)
                 } else {
                     // Pressing another tab launches the liquid glass droplet smoothly toward it immediately.
                     dragGrabOffsetX = tabCenters[touchedTabIndex] - downX
                     physics.targetCx = tabCenters[touchedTabIndex]
+                    physics.targetW = targetRestWidthForIndex(touchedTabIndex)
                 }
                 // Prime frame 0 when waking from rest so press bloom & loupe warmup start on the touch-down frame.
                 if (!frameLoopRunning) {
@@ -870,6 +1461,7 @@ public class WitLiquidGlassTabBar private constructor(
                 if (idx < 0) return true
                 val x = toUnscaledBarX(event.getX(idx))
                 val y = toUnscaledBarY(event.getY(idx))
+                lastMoveX = x
                 val dx = x - downX
                 val dy = y - downY
 
@@ -898,15 +1490,22 @@ public class WitLiquidGlassTabBar private constructor(
                     physics.dragging = true
                     val travelNorm = (abs(dx) / (44f * density)).coerceIn(0f, 1f)
                     val desiredFingerX = x + dragGrabOffsetX * (1f - travelNorm)
-                    val edge = computeEdgeOverDrag(desiredFingerX, metrics.minCx, metrics.maxCx, density)
+                    val clampMin = visibleDragMinCx()
+                    val clampMax = visibleDragMaxCx()
+                    val edge = computeEdgeOverDrag(desiredFingerX, clampMin, clampMax, density)
 
                     physics.targetCx = edge.targetCx
-                    physics.targetWallSquish = edge.wallSquish
+                    val canPanLeft = host.isScrollable && host.scrollX() > 0 && edge.overShiftPx < 0f
+                    val canPanRight = host.isScrollable && host.scrollX() < host.maxScrollX() && edge.overShiftPx > 0f
+                    val hitWall = !canPanLeft && !canPanRight
+                    val effSquish = if (hitWall) edge.wallSquish else 0f
+                    physics.targetWallSquish = effSquish
                     val pullSign = sign(edge.overShiftPx)
-                    physics.targetBarShiftX = pullSign * BAR_PULL_SHIFT_MAX_DP * density * edge.wallSquish
-                    physics.targetBarPullStretchX = BAR_PULL_STRETCH_X_MAX * edge.wallSquish
+                    physics.targetBarShiftX = pullSign * BAR_PULL_SHIFT_MAX_DP * density * effSquish
+                    physics.targetBarPullStretchX = BAR_PULL_STRETCH_X_MAX * effSquish
 
                     val hover = nearestTabIndex(edge.targetCx)
+                    physics.targetW = targetRestWidthForIndex(hover)
                     if (hover != currentHoverIndex) {
                         currentHoverIndex = hover
                         if (hover != initialSelectedIndex) {
@@ -959,25 +1558,31 @@ public class WitLiquidGlassTabBar private constructor(
         }
 
         // Commit tab selection immediately on ACTION_UP with zero navigation delay.
-        if (!cancelled && !farVerticalCancel && targetIndex in tabMenuIds.indices) {
-            val targetMenuId = tabMenuIds[targetIndex]
+        var switchedTab = false
+        if (!cancelled && !farVerticalCancel && targetIndex in tabCenters.indices) {
             val shouldReselectSameTab =
                 targetIndex == initialSelectedIndex && !didDrag && !crossedOtherTab
             if (targetIndex != initialSelectedIndex || shouldReselectSameTab) {
+                switchedTab = targetIndex != initialSelectedIndex
                 committingSelection = true
                 try {
-                    navigationView.selectedItemId = targetMenuId
+                    host.selectTab(targetIndex, reselect = shouldReselectSameTab)
                 } finally {
                     committingSelection = false
                 }
             }
         }
 
-        val finalCx = tabCenters[targetIndex.coerceIn(0, tabCenters.lastIndex)]
-        lastKnownSelectedIndex = targetIndex
+        val clampedIdx = targetIndex.coerceIn(0, tabCenters.lastIndex)
+        if (!switchedTab) {
+            host.ensureTabVisible(clampedIdx)
+        }
+        val finalCx = tabCenters[clampedIdx]
+        val finalW = targetRestWidthForIndex(clampedIdx)
+        lastKnownSelectedIndex = clampedIdx
 
         if (!motionEnabled()) {
-            physics.snapToRest(finalCx)
+            physics.snapToRest(finalCx, finalW)
             applyOuterBarTransform()
             glassBar.invalidate()
             return
@@ -985,6 +1590,7 @@ public class WitLiquidGlassTabBar private constructor(
 
         physics.dragging = false
         physics.targetCx = finalCx
+        physics.targetW = finalW
         physics.targetBarShiftX = 0f
         physics.targetBarShiftY = 0f
         physics.targetBarPullStretchX = 0f
@@ -1025,15 +1631,17 @@ public class WitLiquidGlassTabBar private constructor(
         }
 
         // Catch any external tab switch (e.g., ViewPager swipe) even if caller didn't invoke syncSelection().
-        if (activePointerId == MotionEvent.INVALID_POINTER_ID) {
+        if (activePointerId == MotionEvent.INVALID_POINTER_ID && !pageScrollTracking) {
             val checkedIdx = resolveCheckedMenuIndex()
             if (checkedIdx in tabCenters.indices && checkedIdx != lastKnownSelectedIndex) {
                 lastKnownSelectedIndex = checkedIdx
                 val targetX = tabCenters[checkedIdx]
+                val targetW = targetRestWidthForIndex(checkedIdx)
                 if (!physics.initialized || !motionEnabled()) {
-                    physics.snapToRest(targetX)
+                    physics.snapToRest(targetX, targetW)
                 } else {
                     physics.targetCx = targetX
+                    physics.targetW = targetW
                     startFrameLoop()
                 }
             }
@@ -1056,11 +1664,22 @@ public class WitLiquidGlassTabBar private constructor(
         val restWeight = (1f - smoothstep(0f, 0.48f, lift)).coerceIn(0f, 1f)
 
         // 1. Resting state: translucent liquid-glass selection pill + crisp accent tab.
-        // At settled IDLE rest (!maskingMode), NavigationView already carries the 2-state
+        // At settled IDLE rest (!maskingMode), host already carries the 2-state
         // selected/unselected ColorStateList so we render in a single direct pass with zero
         // offscreen saveLayer FBOs and zero clipOutPath overhead during 120fps feed scrolling.
         if (lift <= 0.002f) {
-            drawRestingGlassPill(canvas, cornerRadius, 1f)
+            if (host.isScrollable) {
+                canvas.withClip(
+                    glassBar.paddingLeft.toFloat(),
+                    0f,
+                    (w - glassBar.paddingRight).coerceAtLeast(glassBar.paddingLeft.toFloat()),
+                    h,
+                ) {
+                    drawRestingGlassPill(this, cornerRadius, 1f)
+                }
+            } else {
+                drawRestingGlassPill(canvas, cornerRadius, 1f)
+            }
             if (!maskingMode && restingTintList != null) {
                 drawChildren(canvas)
             } else {
@@ -1108,7 +1727,7 @@ public class WitLiquidGlassTabBar private constructor(
                     dropCy = geom.cy,
                     dropW = geom.width,
                     dropH = geom.height,
-                    maxDropW = metrics.heldW * 1.22f,
+                    maxDropW = maxOf(metrics.heldW, geom.width) * 1.22f,
                     maxDropH = metrics.heldH * 1.10f,
                     lift = lift,
                     velocityStretch = geom.velocityStretch,
@@ -1376,53 +1995,80 @@ public class WitLiquidGlassTabBar private constructor(
         }
     }
 
-    private fun configureNavigationViewForLoupe() {
-        if (!rippleSaved) {
-            savedItemRippleColor = navigationView.itemRippleColor
-            rippleSaved = true
-        }
-        applyNavigationTint()
-        navigationView.itemBackground = null
-        navigationView.itemRippleColor = ColorStateList.valueOf(Color.TRANSPARENT)
-        navigationView.isItemActiveIndicatorEnabled = false
-        navigationView.clipChildren = false
-        navigationView.clipToPadding = false
-        for (i in 0 until navigationView.childCount) {
-            val child = navigationView.getChildAt(i)
-            if (child is ViewGroup) {
-                child.clipChildren = false
-                child.clipToPadding = false
-            }
-        }
+    private fun configureHostForLoupe() {
+        host.configureForLoupe()
+        applyHostTint()
     }
 
     private fun setMaskingMode(active: Boolean) {
         if (maskingMode == active) return
         maskingMode = active
         if (enabledFlag) {
-            applyNavigationTint()
+            applyHostTint()
         }
     }
 
-    private fun applyNavigationTint() {
-        val tint = if (maskingMode) opaqueWhiteTint else (restingTintList ?: opaqueWhiteTint)
-        val iconTintChanged = navigationView.itemIconTintList !== tint
-        if (iconTintChanged) {
-            navigationView.itemIconTintList = tint
-        }
-        if (navigationView.itemTextColor !== tint) {
-            navigationView.itemTextColor = tint
-        }
-        if (iconTintChanged) {
-            refreshNavigationItemDrawableStates()
-        }
+    private fun applyHostTint() {
+        host.applyTint(maskingMode, restingTintList, opaqueWhiteTint)
     }
 
-    private fun refreshNavigationItemDrawableStates() {
-        val menuView = navigationView.getChildAt(0) as? ViewGroup ?: return
-        for (i in 0 until menuView.childCount) {
-            menuView.getChildAt(i).refreshDrawableState()
+    private fun targetRestWidthForIndex(index: Int): Float {
+        if (!host.usesVariableTabWidths) return 0f
+        if (index !in tabWidths.indices || !metrics.valid) return metrics.restW
+        val raw = tabWidths[index]
+        val insetH = 2f * density
+        val maxAllowed = (metrics.barW - 2f * max(glassBar.paddingLeft, glassBar.paddingRight))
+            .coerceAtLeast(metrics.restH)
+        return (raw - insetH).coerceIn(metrics.restH * 1.15f, maxAllowed)
+    }
+
+    private fun visibleDragMinCx(): Float {
+        if (!host.isScrollable || host.maxScrollX() <= 0) return metrics.minCx
+        val pad = max(glassBar.paddingLeft.toFloat(), metrics.restH * 0.65f)
+        return max(metrics.minCx, pad)
+    }
+
+    private fun visibleDragMaxCx(): Float {
+        if (!host.isScrollable || host.maxScrollX() <= 0) return metrics.maxCx
+        val pad = max(glassBar.paddingRight.toFloat(), metrics.restH * 0.65f)
+        return min(metrics.maxCx, metrics.barW - pad)
+    }
+
+    private fun maybeAutoPanScrollableHost(dtSec: Float): Boolean {
+        if (!host.isScrollable || !didDrag || !physics.dragging ||
+            activePointerId == MotionEvent.INVALID_POINTER_ID
+        ) {
+            return false
         }
+        val maxScroll = host.maxScrollX()
+        if (maxScroll <= 0) return false
+        val edgeZone = 42f * density
+        val speedPxPerSec = 360f * density
+        val panDir = when {
+            lastMoveX < edgeZone && host.scrollX() > 0 ->
+                -((edgeZone - lastMoveX) / edgeZone).coerceIn(0f, 1f)
+            lastMoveX > metrics.barW - edgeZone && host.scrollX() < maxScroll ->
+                ((lastMoveX - (metrics.barW - edgeZone)) / edgeZone).coerceIn(0f, 1f)
+            else -> 0f
+        }
+        if (abs(panDir) <= 0.01f) return false
+        val dx = (panDir * speedPxPerSec * dtSec).roundToInt()
+        if (dx == 0) return false
+        val prevScroll = host.scrollX()
+        host.scrollBy(dx)
+        if (host.scrollX() == prevScroll) return false
+        geometryDirty = true
+        refreshTabGeometry(snapIfUninitialized = false)
+        val hover = nearestTabIndex(physics.targetCx)
+        physics.targetW = targetRestWidthForIndex(hover)
+        if (hover != currentHoverIndex) {
+            currentHoverIndex = hover
+            if (hover != initialSelectedIndex) {
+                crossedOtherTab = true
+            }
+            performTabBoundaryHaptic()
+        }
+        return true
     }
 
     private fun refreshTabGeometry(snapIfUninitialized: Boolean) {
@@ -1430,11 +2076,11 @@ public class WitLiquidGlassTabBar private constructor(
         val barH = glassBar.height.toFloat()
         if (barW <= 0f || barH <= 0f) return
 
-        val menu = navigationView.menu
-        val menuCount = menu.size
-        if (menuCount <= 0) {
+        val count = host.tabCount
+        if (count <= 0) {
             if (tabCenters.isNotEmpty() || metrics.valid) {
                 tabCenters = FloatArray(0)
+                tabWidths = FloatArray(0)
                 tabMenuIds = IntArray(0)
                 metrics = BarMetrics(0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f)
             }
@@ -1443,10 +2089,8 @@ public class WitLiquidGlassTabBar private constructor(
         }
 
         val curDensity = density
-        val navDir = navigationView.layoutDirection
-        val menuView = navigationView.getChildAt(0) as? ViewGroup
-        val menuViewChildCount = menuView?.childCount ?: 0
-        val navOffsetX = navigationView.left.toFloat() + (menuView?.left?.toFloat() ?: 0f)
+        val navDir = host.hostView.layoutDirection
+        val curScrollX = host.scrollX()
 
         // Zero-allocation fast path for 120fps draw/scroll frames when geometry is unchanged.
         if (!geometryDirty &&
@@ -1454,121 +2098,68 @@ public class WitLiquidGlassTabBar private constructor(
             barH == cachedBarH &&
             curDensity == cachedDensity &&
             navDir == cachedLayoutDir &&
-            navOffsetX == cachedNavOffsetX &&
-            menuViewChildCount == cachedMenuViewChildCount &&
-            menuCount == tabCenters.size &&
+            curScrollX == cachedScrollX &&
+            count == tabCenters.size &&
             metrics.valid &&
-            isCachedGeometryExact(menu, menuCount, menuView, navOffsetX)
+            host.isCachedGeometryExact(glassBar, tabCenters, tabWidths, tabMenuIds, count)
         ) {
             if (snapIfUninitialized && !physics.initialized) {
                 val checkedIdx = resolveCheckedMenuIndex().coerceIn(0, tabCenters.lastIndex)
                 lastKnownSelectedIndex = checkedIdx
-                physics.snapToRest(tabCenters[checkedIdx])
+                physics.snapToRest(tabCenters[checkedIdx], targetRestWidthForIndex(checkedIdx))
                 applyOuterBarTransform()
             }
             return
         }
 
-        reusableItemViews.clear()
-        if (menuView != null) {
-            for (i in 0 until menuViewChildCount) {
-                val child = menuView.getChildAt(i)
-                if (child.visibility != View.GONE && child.width > 0) {
-                    reusableItemViews += child
-                }
-            }
-        }
-
-        val centers = if (tabCenters.size == menuCount) tabCenters else FloatArray(menuCount)
-        val ids = if (tabMenuIds.size == menuCount) tabMenuIds else IntArray(menuCount)
-
-        if (reusableItemViews.size == menuCount) {
-            for (i in 0 until menuCount) {
-                ids[i] = menu[i].itemId
-                val itemView = reusableItemViews[i]
-                centers[i] = navOffsetX + (itemView.left + itemView.right) * 0.5f
-            }
-        } else {
-            val isRtl = navDir == View.LAYOUT_DIRECTION_RTL
-            val slot = barW / menuCount
-            for (i in 0 until menuCount) {
-                ids[i] = menu[i].itemId
-                val visualSlot = if (isRtl) (menuCount - 1 - i) else i
-                centers[i] = slot * (visualSlot + 0.5f)
-            }
-        }
-        reusableItemViews.clear()
+        val centers = if (tabCenters.size == count) tabCenters else FloatArray(count)
+        val widths = if (tabWidths.size == count) tabWidths else FloatArray(count)
+        val ids = if (tabMenuIds.size == count) tabMenuIds else IntArray(count)
+        if (!host.readTabGeometry(glassBar, centers, widths, ids)) return
 
         tabCenters = centers
+        tabWidths = widths
         tabMenuIds = ids
-        metrics = computeMetrics(barW, barH, centers, curDensity)
+        val baseMetrics = computeMetrics(barW, barH, centers, curDensity)
+        metrics = if (host.usesVariableTabWidths) {
+            var maxTabW = baseMetrics.restW
+            for (w in widths) {
+                if (w > maxTabW) maxTabW = w
+            }
+            val protrudeV = (baseMetrics.heldH - baseMetrics.barH).coerceAtLeast(0f) * 0.5f
+            val maxHeldW = (maxTabW + protrudeV * 2.24f).coerceAtMost(barW * 1.12f)
+            baseMetrics.copy(
+                restW = maxTabW.coerceIn(baseMetrics.restH * 1.15f, barW),
+                heldW = max(baseMetrics.heldW, maxHeldW),
+            )
+        } else {
+            baseMetrics
+        }
         cachedBarW = barW
         cachedBarH = barH
         cachedDensity = curDensity
         cachedLayoutDir = navDir
-        cachedNavOffsetX = navOffsetX
-        cachedMenuViewChildCount = menuViewChildCount
+        cachedScrollX = curScrollX
         geometryDirty = false
 
         val checkedIdx = resolveCheckedMenuIndex().coerceIn(0, centers.lastIndex)
+        val checkedW = targetRestWidthForIndex(checkedIdx)
         if (snapIfUninitialized && !physics.initialized) {
             lastKnownSelectedIndex = checkedIdx
-            physics.snapToRest(centers[checkedIdx])
+            physics.snapToRest(centers[checkedIdx], checkedW)
             applyOuterBarTransform()
-        } else if (activePointerId == MotionEvent.INVALID_POINTER_ID && !physics.pressed && !frameLoopRunning) {
-            val anchorIdx = checkedIdx.coerceIn(0, centers.lastIndex)
-            lastKnownSelectedIndex = anchorIdx
-            physics.snapToRest(centers[anchorIdx])
+        } else if (activePointerId == MotionEvent.INVALID_POINTER_ID && !physics.pressed &&
+            !frameLoopRunning && !pageScrollTracking
+        ) {
+            lastKnownSelectedIndex = checkedIdx
+            physics.snapToRest(centers[checkedIdx], checkedW)
         }
     }
 
-    private fun isCachedGeometryExact(
-        menu: android.view.Menu,
-        menuCount: Int,
-        menuView: ViewGroup?,
-        navOffsetX: Float,
-    ): Boolean {
-        if (menuView == null) {
-            for (i in 0 until menuCount) {
-                if (tabMenuIds[i] != menu[i].itemId) return false
-            }
-            return true
-        }
-        var visibleIndex = 0
-        for (i in 0 until menuView.childCount) {
-            val child = menuView.getChildAt(i)
-            if (child.visibility != View.GONE && child.width > 0) {
-                if (visibleIndex >= menuCount) return false
-                if (tabMenuIds[visibleIndex] != menu[visibleIndex].itemId) return false
-                val expectedCenter = navOffsetX + (child.left + child.right) * 0.5f
-                if (abs(expectedCenter - tabCenters[visibleIndex]) > 0.01f) return false
-                visibleIndex++
-            }
-        }
-        return visibleIndex == menuCount
-    }
+    private fun resolveCheckedMenuIndex(): Int = host.selectedIndex()
 
-    private fun resolveCheckedMenuIndex(): Int {
-        val menu = navigationView.menu
-        for (i in 0 until menu.size) {
-            if (menu[i].isChecked) return i
-        }
-        return if (menu.isNotEmpty()) 0 else -1
-    }
-
-    private fun nearestTabIndex(x: Float): Int {
-        if (tabCenters.isEmpty()) return 0
-        var bestIdx = 0
-        var bestDist = Float.POSITIVE_INFINITY
-        for (i in tabCenters.indices) {
-            val d = abs(x - tabCenters[i])
-            if (d < bestDist) {
-                bestDist = d
-                bestIdx = i
-            }
-        }
-        return bestIdx
-    }
+    private fun nearestTabIndex(x: Float): Int =
+        resolveTabIndexAt(x, tabCenters, tabWidths, host.usesVariableTabWidths)
 
     private fun applyOuterBarTransform() {
         val w = glassBar.width.toFloat()
@@ -1606,18 +2197,34 @@ public class WitLiquidGlassTabBar private constructor(
         glassBar.postOnAnimation(frameRunnable)
     }
 
+    private fun pauseForWindowDetach() {
+        glassBar.removeCallbacks(frameRunnable)
+        frameLoopRunning = false
+        lastFrameUptimeMs = 0L
+        activePointerId = MotionEvent.INVALID_POINTER_ID
+        pendingReleaseAtMs = 0L
+        pageScrollTracking = false
+        setMaskingMode(false)
+        geometryDirty = true
+        physics.initialized = false
+        resetVisualState()
+        if (Build.VERSION.SDK_INT >= 33) {
+            loupeShader?.clear()
+        }
+    }
+
     private fun cancelAndReset() {
         glassBar.removeCallbacks(frameRunnable)
         frameLoopRunning = false
         lastFrameUptimeMs = 0L
         activePointerId = MotionEvent.INVALID_POINTER_ID
         pendingReleaseAtMs = 0L
+        pageScrollTracking = false
         maskingMode = false
         geometryDirty = true
         physics.initialized = false
-        if (rippleSaved) {
-            navigationView.itemRippleColor = savedItemRippleColor
-        }
+        host.uninstallObservers()
+        host.restoreOnDetach()
         resetVisualState()
         if (Build.VERSION.SDK_INT >= 33) {
             loupeShader?.clear()

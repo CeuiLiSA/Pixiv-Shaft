@@ -92,6 +92,7 @@ public class FragmentRight extends BaseLazyFragment<FragmentNewRightBinding> {
     private int filterBarHeightPx = 0;
     private float sheetCornerRadiusPx = 0f;
     private float lastSheetTopPx = Float.NaN;
+    private float lastSheetTranslationY = 0f;
     private int pageBgColor = 0;
     private int sheetFillColor = 0;
     private float lastAppliedSheetCornerPx = -1f;
@@ -110,6 +111,7 @@ public class FragmentRight extends BaseLazyFragment<FragmentNewRightBinding> {
                     if (dy != 0) {
                         lastActiveScrollDy = dy;
                     }
+                    syncScrollEdgeActivation();
                 }
 
                 @Override
@@ -261,6 +263,7 @@ public class FragmentRight extends BaseLazyFragment<FragmentNewRightBinding> {
     public void onDestroyView() {
         uninstallChildFeedScrollObserver();
         lastSheetTopPx = Float.NaN;
+        lastSheetTranslationY = 0f;
         super.onDestroyView();
     }
 
@@ -419,6 +422,7 @@ public class FragmentRight extends BaseLazyFragment<FragmentNewRightBinding> {
             ((FragmentRightContentBehavior) contentBehavior).setOffsetListener(
                     (sheetTopPx, translationY, headerHeightPx, recmdHeightPx) -> {
                         lastSheetTopPx = sheetTopPx;
+                        lastSheetTranslationY = translationY;
                         updateSheetChromeVisuals(sheetTopPx);
                     });
         }
@@ -439,6 +443,7 @@ public class FragmentRight extends BaseLazyFragment<FragmentNewRightBinding> {
         baseBind.topScrollEdge.setVisualAnchorHeightPx(visualAnchor);
         baseBind.topScrollEdge.setScrimColor(
                 ColorUtils.blendARGB(pageBgColor, sheetFillColor, intrudeProgress));
+        syncScrollEdgeActivation();
 
         float corner = sheetCornerRadiusPx * (1f - intrudeProgress);
         if (Math.abs(corner - lastAppliedSheetCornerPx) > 0.25f) {
@@ -451,6 +456,18 @@ public class FragmentRight extends BaseLazyFragment<FragmentNewRightBinding> {
             }
             baseBind.contentItem.invalidateOutline();
         }
+    }
+
+    private void syncScrollEdgeActivation() {
+        if (baseBind == null) {
+            return;
+        }
+        float fadeRange = Math.max(1f, (float) DensityUtil.dp2px(24f));
+        float sheetTravel = Math.max(0f, -lastSheetTranslationY);
+        RecyclerView rv = getActiveFeedRecyclerView();
+        float feedScroll = (rv != null && rv.canScrollVertically(-1)) ? fadeRange : 0f;
+        float progress = Math.max(0f, Math.min(1f, Math.max(sheetTravel, feedScroll) / fadeRange));
+        baseBind.topScrollEdge.setActivationProgress(progress);
     }
 
     /**

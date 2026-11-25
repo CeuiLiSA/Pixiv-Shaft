@@ -152,13 +152,20 @@ public class WitLiquidGlassView @JvmOverloads public constructor(
 
     /**
      * Controls the overall opacity of the glass platter, backdrop and rim without affecting child views.
-     * Used for smooth material condensation transitions when expanding from borderless buttons.
+     * Used for smooth iOS 26 material condensation transitions when borderless controls condense into
+     * floating glass capsules as content scrolls underneath.
      */
-    internal var platterAlpha: Float = 1f
+    public var platterAlpha: Float = 1f
         set(value) {
             val clamped = value.coerceIn(0f, 1f)
             if (field == clamped) return
+            val wasZero = field <= 0.001f
             field = clamped
+            val isZero = clamped <= 0.001f
+            invalidateOutline()
+            if (wasZero != isZero) {
+                (parent as? View)?.invalidate()
+            }
             invalidate()
         }
 
@@ -305,7 +312,8 @@ public class WitLiquidGlassView @JvmOverloads public constructor(
                 } else {
                     outline.setRoundRect(0, 0, width, height, radius)
                 }
-                outline.alpha = if (effectiveQuality == WitLiquidGlassQuality.ULTRA) 0.08f else (if (isDark) 0.16f else 0.28f)
+                val baseOutlineAlpha = if (effectiveQuality == WitLiquidGlassQuality.ULTRA) 0.08f else (if (isDark) 0.16f else 0.28f)
+                outline.alpha = baseOutlineAlpha * platterAlpha
             }
         }
 
@@ -333,7 +341,7 @@ public class WitLiquidGlassView @JvmOverloads public constructor(
     }
 
     internal fun planPatch(canvasEdge: Int): WitLiquidGlassBudget.PatchPlan =
-        if (!effectiveQuality.isLiveEnabled) {
+        if (!effectiveQuality.isLiveEnabled || platterAlpha <= 0.001f) {
             WitLiquidGlassBudget.PatchPlan(0L, 1f)
         } else {
             WitLiquidGlassBudget.planPatch(width, height, density, canvasEdge, isLargeSurface)

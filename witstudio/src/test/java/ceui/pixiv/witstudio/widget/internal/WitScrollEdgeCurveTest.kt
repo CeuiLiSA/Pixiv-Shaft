@@ -9,11 +9,11 @@ class WitScrollEdgeCurveTest {
     @Test
     fun blurAndScrimCurvesAreZeroAtBoundaryMonotonicAndInflectionFree() {
         val cases = listOf(
-            // Status-bar-only (App Store Today style): ~44dp status bar + 44dp soft extension
-            44f to 44f,
-            // Floating header bar (Discover / Dynamic style): ~98dp chrome + 20dp soft tail
-            98f to 20f,
-            // Tall floating Toolbar + TabLayout (Recommend style): ~140dp chrome + 20dp soft tail
+            // Status-bar-only (App Store Today / collapsed Recommend): ~44dp status bar + 20dp soft tail
+            44f to 20f,
+            // Compact floating header (Discover / UserV3 toolbar / ArtworkV3): ~96dp chrome + 20dp soft tail
+            96f to 20f,
+            // Two-row header fallback case: ~140dp chrome + 20dp soft tail
             140f to 20f,
         )
 
@@ -40,7 +40,6 @@ class WitScrollEdgeCurveTest {
                     assertTrue(scrims[i] <= scrims[i - 1] + 1e-6f)
                 }
                 if (i >= 2) {
-                    // Convexity: slope magnitude decreases smoothly toward bottom boundary -> zero harsh step.
                     val d1 = blurs[i - 2] - blurs[i - 1]
                     val d2 = blurs[i - 1] - blurs[i]
                     assertTrue("Blur slope must decrease smoothly toward boundary ($d2 > $d1)", d2 <= d1 + 1e-5f)
@@ -101,15 +100,15 @@ class WitScrollEdgeCurveTest {
 
     @Test
     fun pyramidBudgetFitsPhoneQhdAndWideTabletWithinGpuLimits() {
-        // 1080p phone (3x density), 140dp tall top scroll edge -> 5-level pyramid stays compact (< 650K px).
-        val phoneUltra = WitScrollEdgeCurve.planPyramid(1080, 420, 3f, 4096, ultra = true)
+        // 1080p phone (3x density), 184dp tall two-row header + 40dp soft bleed -> 5-level pyramid fits budget.
+        val phoneUltra = WitScrollEdgeCurve.planPyramid(1080, 552, 3f, 4096, ultra = true)
         assertEquals(5, phoneUltra.levels.size)
-        assertTrue("Phone ULTRA pixels (${phoneUltra.totalPixels}) should stay compact", phoneUltra.totalPixels in 150_000L..650_000L)
+        assertTrue("Phone ULTRA pixels (${phoneUltra.totalPixels}) should stay compact", phoneUltra.totalPixels in 200_000L..800_000L)
 
         // Standard quality uses a single compact pass.
-        val phoneStd = WitScrollEdgeCurve.planPyramid(1080, 420, 3f, 4096, ultra = false)
+        val phoneStd = WitScrollEdgeCurve.planPyramid(1080, 552, 3f, 4096, ultra = false)
         assertEquals(1, phoneStd.levels.size)
-        assertTrue(phoneStd.totalPixels in 40_000L..160_000L)
+        assertTrue(phoneStd.totalPixels in 60_000L..200_000L)
 
         // Wide landscape tablet (2560px wide, 2x density) fits cleanly under 2048px edge limit & budget.
         val tabletUltra = WitScrollEdgeCurve.planPyramid(2560, 280, 2f, 4096, ultra = true)
@@ -157,8 +156,8 @@ class WitScrollEdgeCurveTest {
         assertEquals(255, maskAlphas.first())
         assertEquals(0, maskAlphas.last())
 
-        val (_, veilAlphas) = WitScrollEdgeCurve.buildStandardVeilStops(264f, 72f, isDark = true, scrimStrength = 1f)
-        assertTrue(veilAlphas.first() in 175..195)
+        val (_, veilAlphas) = WitScrollEdgeCurve.buildStandardVeilStops(264f, 60f, isDark = true, scrimStrength = 1f)
+        assertTrue(veilAlphas.first() in 135..155)
         assertEquals(0, veilAlphas.last())
     }
 }

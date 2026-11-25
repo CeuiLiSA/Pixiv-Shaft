@@ -27,11 +27,11 @@ import kotlin.math.ceil
  * - **API 31+ (`STANDARD`)**: [WitScrollEdgeStandardRenderer] renders a single downscaled HWUI
  *   Gaussian blur RenderNode feathered through an eased multi-stop `DST_IN` alpha mask and topped
  *   by the matching soft veil gradient.
- * - **API 33+ (`ULTRA`)**: [WitScrollEdgeUltraRenderer] renders a true 4-level geometric hardware
- *   Gaussian pyramid (`2.0 / 4.8 / 10.0 / 18.0 dp`) composited via AGSL [RuntimeShader] with exact
- *   piecewise trilinear pyramid weights (zero sharp-over-blur ghosting), iOS 26 vibrancy
- *   preservation, luminance-adaptive veil, and Interleaved Gradient Noise dithering to eliminate
- *   8-bit OLED banding.
+ * - **API 33+ (`ULTRA`)**: [WitScrollEdgeUltraRenderer] renders a true 5-level geometric hardware
+ *   Gaussian pyramid (`1.0 / 2.6 / 5.8 / 11.2 / 18.0 dp`) composited via AGSL [RuntimeShader] with
+ *   exact piecewise trilinear pyramid weights (zero sharp-over-blur ghosting), anchor-protected
+ *   soft-shoulder falloff, iOS 26 vibrancy preservation, per-pixel luminance-adaptive contrast
+ *   clamping, and Interleaved Gradient Noise dithering to eliminate 8-bit OLED banding.
  */
 @RequiresApi(31)
 internal abstract class WitScrollEdgeRenderer {
@@ -261,14 +261,15 @@ internal class WitScrollEdgeStandardRenderer : WitScrollEdgeRenderer() {
 }
 
 /**
- * True 4-level hardware Gaussian pyramid + AGSL per-pixel continuous variable-radius progressive
+ * True 5-level hardware Gaussian pyramid + AGSL per-pixel continuous variable-radius progressive
  * blur renderer (API 33+ `ULTRA` quality).
  *
  * Calibrated directly against iOS 26 `UIScrollEdgeEffect.Style.soft`:
  * - Zero sharp-over-blur double-vision (each pyramid level reaches alpha=1.0 before the next begins).
- * - Zero seam at bottom feather edge (C² smootherstep zero-derivative landing).
- * - Subtle vibrancy preservation & luminance-adaptive surface veil (protects status bar & floating
- *   header contrast over both pure-white and pure-black illustrations while keeping rich colors glowing).
+ * - Anchor-protected C∞ soft-shoulder falloff keeping multi-row headers (Toolbar + TabLayout) fully
+ *   blurred & legible while landing with zero 1st & 2nd derivative across the below-chrome feather tail.
+ * - Subtle vibrancy preservation & per-pixel luminance-adaptive veil clamping (protects status bar &
+ *   floating tabs over both pure-white manga pages and pure-black illustrations).
  * - Interleaved Gradient Noise micro-dithering to eliminate OLED 8-bit gradient banding.
  */
 @RequiresApi(33)
@@ -422,6 +423,9 @@ internal class WitScrollEdgeUltraRenderer : WitScrollEdgeRenderer() {
         val darkFlag = if (isDark) 1f else 0f
         val topFlag = if (isTopEdge) 1f else 0f
         val clampedStrength = scrimStrength.coerceIn(0f, 1f)
+        val baseVeil = if (isDark) WitScrollEdgeCurve.LIVE_VEIL_MAX_ALPHA_DARK else WitScrollEdgeCurve.LIVE_VEIL_MAX_ALPHA_LIGHT
+        val adaptiveBoost = if (isDark) WitScrollEdgeCurve.LIVE_VEIL_ADAPTIVE_BOOST_DARK else WitScrollEdgeCurve.LIVE_VEIL_ADAPTIVE_BOOST_LIGHT
+        val vibrancySat = if (isDark) WitScrollEdgeCurve.VIBRANCY_SATURATION_DARK else WitScrollEdgeCurve.VIBRANCY_SATURATION_LIGHT
 
         for (i in levels.indices) {
             val level = levels[i]
@@ -436,18 +440,25 @@ internal class WitScrollEdgeUltraRenderer : WitScrollEdgeRenderer() {
                 topFlag,
             )
             level.shader.setFloatUniform(
+                "curve",
+                WitScrollEdgeCurve.BLUR_CURVE_EXPONENT,
+                WitScrollEdgeCurve.SCRIM_CURVE_EXPONENT,
+                adaptiveBoost,
+                0f,
+            )
+            level.shader.setFloatUniform(
                 "layer",
                 level.scale,
                 rLo,
                 rHi,
-                WitScrollEdgeCurve.BLUR_CURVE_EXPONENT,
+                0f,
             )
             level.shader.setFloatUniform(
                 "tone",
                 darkFlag,
                 clampedStrength,
-                if (isDark) WitScrollEdgeCurve.LIVE_VEIL_MAX_ALPHA_DARK else WitScrollEdgeCurve.LIVE_VEIL_MAX_ALPHA_LIGHT,
-                if (isDark) WitScrollEdgeCurve.VIBRANCY_SATURATION_DARK else WitScrollEdgeCurve.VIBRANCY_SATURATION_LIGHT,
+                baseVeil,
+                vibrancySat,
             )
             level.shader.setColorUniform("scrimColor", opaqueScrim)
             val maskEffect = RenderEffect.createRuntimeShaderEffect(level.shader, "backdrop")
@@ -491,8 +502,9 @@ internal class WitScrollEdgeUltraRenderer : WitScrollEdgeRenderer() {
         private const val SHADER_SOURCE = """
             uniform shader backdrop;
             uniform float4 metrics; // totalH, spanH (anchorH+featherH), topPadPx, isTopEdge (1=top, 0=bottom)
-            uniform float4 layer;   // renderScale, rLo (0..1), rHi (0..1), blurExponent
-            uniform float4 tone;    // isDark, scrimStrength, maxVeilAlpha, vibrancySat
+            uniform float4 curve;   // blurExp, scrimExp, adaptiveVeilBoost, unused
+            uniform float4 layer;   // renderScale, rLo (0..1), rHi (0..1), unused
+            uniform float4 tone;    // isDark, scrimStrength, baseVeilAlpha, vibrancySat
             layout(color) uniform half4 scrimColor;
 
             const float3 LUMA = float3(0.2126, 0.7152, 0.0722);
@@ -516,9 +528,9 @@ internal class WitScrollEdgeUltraRenderer : WitScrollEdgeRenderer() {
                     return half4(0.0);
                 }
 
-                // 1) Inflection-free continuous power curve across the entire spanH (zero shelf, zero cliff).
+                // 1) Compact, inflection-free convex power curve across spanH (zero shelf, zero cliff).
                 float u = clamp((spanH - distFromEdge) / spanH, 0.0, 1.0);
-                float blurNorm = u > 0.0 ? pow(u, layer.w) : 0.0;
+                float blurNorm = u <= 0.0 ? 0.0 : pow(u, curve.x);
 
                 // Exact physical-radius trilinear pyramid weight (zero sharp-over-blur ghosting).
                 float rSpan = max(layer.z - layer.y, 0.0001);
@@ -532,17 +544,17 @@ internal class WitScrollEdgeUltraRenderer : WitScrollEdgeRenderer() {
                 float3 ground = float3(scrimColor.rgb);
                 float3 scene = float3(px.rgb) + ground * (1.0 - float(px.a));
 
-                // 3) Subtle Apple-style vibrancy preservation ramping smoothly with u.
+                // 3) Subtle Apple-style vibrancy preservation keeping colorful artwork glowing.
                 float luma = dot(scene, LUMA);
                 float sat = mix(1.0, tone.w, u);
                 float3 vibrant = clamp(mix(float3(luma), scene, sat), 0.0, 1.0);
 
-                // 4) Smooth inflection-free atmospheric surface veil + luminance-adaptive protection.
-                float scrimNorm = u > 0.0 ? pow(u, 1.70) : 0.0;
+                // 4) Light, airy atmospheric veil with subtle luminance protection (never a black slab).
+                float scrimNorm = u <= 0.0 ? 0.0 : pow(u, curve.y);
                 float isDark = tone.x;
                 float contrastRisk = mix(1.0 - smoothstep(0.06, 0.42, luma), smoothstep(0.45, 0.90, luma), isDark);
-                float maxVeil = clamp(tone.z + 0.14 * contrastRisk, 0.0, 0.94);
-                float veilAlpha = clamp(scrimNorm * maxVeil * tone.y, 0.0, 0.96);
+                float maxVeil = clamp(tone.z + curve.z * contrastRisk, 0.0, 0.84);
+                float veilAlpha = clamp(scrimNorm * maxVeil * tone.y, 0.0, 0.86);
 
                 float3 color = mix(vibrant, ground, veilAlpha);
 
