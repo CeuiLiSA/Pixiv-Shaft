@@ -509,8 +509,8 @@ public class WitLiquidGlassMenu private constructor(
             quality = resolvedQuality
             clearDimming = resolvedClearDimming
             cornerRadiusDp = config.cornerRadiusDp
-            tintColor = Color.TRANSPARENT
-            surfaceFillColor = if (isBorderlessAnchor && !isTransparentBackground) startPlatterColor else null
+            tintColor = if (isBorderlessAnchor && (isTransparentBackground || !isNoneQuality)) targetTint else Color.TRANSPARENT
+            surfaceFillColor = if (isBorderlessAnchor && !isTransparentBackground && isNoneQuality) startPlatterColor else null
             isGlassInteractive = false
             isClickable = true
             isFocusable = false
@@ -1652,9 +1652,11 @@ public class WitLiquidGlassMenu private constructor(
             glass.scaleX = 1f
             glass.scaleY = 1f
             glass.alpha = 1f
-            if (isBorderlessAnchor && !isTransparentBackground) {
+            if (isBorderlessAnchor && !isTransparentBackground && isNoneQuality) {
+                glass.tintColor = Color.TRANSPARENT
                 glass.surfaceFillColor = targetPlatterColor
             } else {
+                glass.tintColor = targetTint
                 glass.surfaceFillColor = null
             }
             glass.platterAlpha = 1f
@@ -2438,26 +2440,16 @@ public class WitLiquidGlassMenu private constructor(
         glass.alpha = 1f
 
         if (isBorderlessAnchor) {
-            if (isTransparentBackground) {
-                // 透明底（详情页 3 个点）：保持纯正毛玻璃材质，底色从透明凝聚水滴，随加权派生色自然涌出
+            if (isTransparentBackground || !isNoneQuality) {
+                // 液态玻璃模式（及透明底无边框锚点）：全程保持稳定玻璃底染，仅做形态与透明度凝聚，不闪主题色
                 glass.surfaceFillColor = null
-                val derivedTint = ColorUtils.setAlphaComponent(
-                    derivedPlatterColor,
-                    (Color.alpha(targetTint) * (if (isDark) 0.85f else 0.70f)).roundToInt().coerceIn(0, 255),
-                )
-                glass.tintColor = computeSurfaceFill(
-                    progress = p,
-                    startColor = Color.TRANSPARENT,
-                    derivedColor = derivedTint,
-                    targetColor = targetTint,
-                    isBorderless = true,
-                    closing = closing,
-                )
+                glass.tintColor = targetTint
                 glass.platterAlpha = computeAnimAlpha(p, closing = closing, isBorderless = true)
                 glass.rimAlpha = computeRimAlpha(p, true)
                 glass.elevation = context.dpF(MENU_ELEVATION_DP) * computeElevationFraction(p, true)
             } else {
-                val computedSurface = computeSurfaceFill(
+                glass.tintColor = Color.TRANSPARENT
+                glass.surfaceFillColor = computeSurfaceFill(
                     progress = p,
                     startColor = startPlatterColor,
                     derivedColor = derivedPlatterColor,
@@ -2465,12 +2457,6 @@ public class WitLiquidGlassMenu private constructor(
                     isBorderless = true,
                     closing = closing,
                 )
-                glass.tintColor = if (!isNoneQuality && targetTint != Color.TRANSPARENT) {
-                    ColorUtils.setAlphaComponent(computedSurface, Color.alpha(targetTint))
-                } else {
-                    Color.TRANSPARENT
-                }
-                glass.surfaceFillColor = computedSurface
                 glass.platterAlpha = 1f
                 glass.rimAlpha = computeRimAlpha(p, true)
                 glass.elevation = context.dpF(MENU_ELEVATION_DP) * computeElevationFraction(p, true)
@@ -2478,7 +2464,12 @@ public class WitLiquidGlassMenu private constructor(
         } else {
             // 标准/已有玻璃锚点浮动菜单模式
             glass.surfaceFillColor = null
-            glass.tintColor = ColorUtils.blendARGB(startTint, targetTint, smoothstep(0f, 0.25f, p))
+            val effectiveStartTint = if (startTint == Color.TRANSPARENT) {
+                ColorUtils.setAlphaComponent(targetTint, 0)
+            } else {
+                startTint
+            }
+            glass.tintColor = ColorUtils.blendARGB(effectiveStartTint, targetTint, smoothstep(0f, 0.25f, p))
             glass.platterAlpha = 1f
             glass.rimAlpha = 1f
             glass.elevation = context.dpF(MENU_ELEVATION_DP)
