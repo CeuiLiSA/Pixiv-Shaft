@@ -65,6 +65,22 @@ private fun evalSmoothMin(a: Float, b: Float, k: Float): Float {
 }
 
 /**
+ * Clamps [target] onto the inscribed corner-circle center span of `[start, end]` with corner
+ * radius [radius]. Uses symmetric `[center - innerHalf, center + innerHalf]` bounds so float32
+ * rounding at full capsule radius (`radius == (end - start) * 0.5f`) can never invert `min > max`.
+ */
+internal fun clampInscribedCornerCenter(
+    target: Float,
+    start: Float,
+    end: Float,
+    radius: Float,
+): Float {
+    val center = (start + end) * 0.5f
+    val innerHalf = ((end - start) * 0.5f - radius).coerceAtLeast(0f)
+    return target.coerceIn(center - innerHalf, center + innerHalf)
+}
+
+/**
  * Builds the closed metaball-union silhouette: Body B rounded rect smoothly joined to the
  * anchor orb circle via an smin-calibrated concave liquid bridge. Used for child clipping and
  * non-AGSL glass backends so every API level shares the same liquid droplet contour.
@@ -114,8 +130,8 @@ internal fun buildLiquidGlassMorphPath(
     }
 
     // Closest inscribed corner circle of Body B toward the orb defines the natural neck axis.
-    val bCx = orbX.coerceIn(left + rad, right - rad)
-    val bCy = orbY.coerceIn(top + rad, bottom - rad)
+    val bCx = clampInscribedCornerCenter(orbX, left, right, rad)
+    val bCy = clampInscribedCornerCenter(orbY, top, bottom, rad)
     val rB = rad.coerceAtLeast(1f)
     val dx = bCx - orbX
     val dy = bCy - orbY

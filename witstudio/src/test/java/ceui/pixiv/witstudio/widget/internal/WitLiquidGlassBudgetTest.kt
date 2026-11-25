@@ -240,4 +240,63 @@ class WitLiquidGlassBudgetTest {
         assertEquals(al + aw * 0.5f, cEnd.echoCenterX, 0.5f)
         assertEquals(acy, cEnd.echoCenterY, 0.5f)
     }
+
+    @Test
+    fun clampInscribedCornerCenterHandlesFullCapsuleFloatRoundingWithoutEmptyRange() {
+        // Exact float32 pairs where naive `start + rad` exceeds `end - rad` by 1 ULP at full
+        // capsule radius (`rad == (end - start) * 0.5f`), which previously threw in `coerceIn`.
+        val trickySpans = listOf(
+            9.833998f to 348.46893f,
+            59.586533f to 394.4554f,
+            141.64748f to 629.88495f,
+            175.8044f to 572.99146f,
+        )
+        for ((start, end) in trickySpans) {
+            val rad = (end - start) * 0.5f
+            assertTrue(
+                "Test fixture must reproduce float32 1-ULP inversion: start+rad=${start + rad}, end-rad=${end - rad}",
+                start + rad > end - rad,
+            )
+            val expectedCenter = (start + end) * 0.5f
+            assertEquals(expectedCenter, clampInscribedCornerCenter(start - 40f, start, end, rad), 0f)
+            assertEquals(expectedCenter, clampInscribedCornerCenter(expectedCenter, start, end, rad), 0f)
+            assertEquals(expectedCenter, clampInscribedCornerCenter(end + 40f, start, end, rad), 0f)
+        }
+
+        // Normal rounded-rect case preserves exact corner-center clamping along the straight edge.
+        assertEquals(120f, clampInscribedCornerCenter(50f, 100f, 300f, 20f), 0.0001f)
+        assertEquals(185f, clampInscribedCornerCenter(185f, 100f, 300f, 20f), 0.0001f)
+        assertEquals(280f, clampInscribedCornerCenter(350f, 100f, 300f, 20f), 0.0001f)
+
+        // Sweep real open/close morph trajectories across densities and menu heights to ensure
+        // neither axis ever triggers an inverted range during active orb frames.
+        for (d in listOf(2f, 2.625f, 2.75f, 3f, 3.5f)) {
+            val w = 220f * d
+            val aw = 44f * d
+            val ah = 44f * d
+            val endR = 32f * d
+            val margin = 26f * d
+            for (h in listOf(112f * d, 168f * d, 237.67f * d, 420f * d)) {
+                val al = w - aw
+                val at = 2f * d
+                for (step in 0..200) {
+                    val p = step / 200f
+                    for (frame in listOf(
+                        WitLiquidGlassMenu.evaluateOpenMorph(p, w, h, al, at, aw, ah, endR, d, true, true, margin),
+                        WitLiquidGlassMenu.evaluateCloseMorph(p, w, h, al, at, aw, ah, endR, d, true, true, margin),
+                    )) {
+                        if (frame.orbRadius <= 0.5f || frame.orbBlendPx <= 0.01f) continue
+                        val bw = (frame.bodyRight - frame.bodyLeft).coerceAtLeast(0f)
+                        val bh = (frame.bodyBottom - frame.bodyTop).coerceAtLeast(0f)
+                        if (bw <= 0.5f || bh <= 0.5f) continue
+                        val rad = frame.bodyRadius.coerceIn(0f, minOf(bw, bh) * 0.5f)
+                        val bCx = clampInscribedCornerCenter(frame.orbX, frame.bodyLeft, frame.bodyRight, rad)
+                        val bCy = clampInscribedCornerCenter(frame.orbY, frame.bodyTop, frame.bodyBottom, rad)
+                        assertTrue(bCx in frame.bodyLeft..frame.bodyRight)
+                        assertTrue(bCy in frame.bodyTop..frame.bodyBottom)
+                    }
+                }
+            }
+        }
+    }
 }
