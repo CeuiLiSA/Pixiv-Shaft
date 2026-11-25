@@ -439,7 +439,8 @@ internal class WitLiquidGlassPaint {
                 ColorUtils.compositeColors(tint, 0x10FFFFFF),
             )
         } else {
-            ColorUtils.setAlphaComponent(tintedBase, if (dark) 118 else 108)
+            val washAlpha = maxOf(if (dark) 118 else 108, Color.alpha(tint))
+            ColorUtils.setAlphaComponent(tintedBase, washAlpha)
         }
         rim = if (width > 0 && height > 0) {
             LinearGradient(

@@ -218,4 +218,57 @@ class WitLiquidGlassQualityTest {
         assertEquals(22, WitLiquidGlassMenu.computeScrimAlpha(0.55f, isDark = false, dimBackground = true))
         assertEquals(22, WitLiquidGlassMenu.computeScrimAlpha(1f, isDark = false, dimBackground = true))
     }
+
+    @Test
+    fun menuDefaultsToRegularMaterialAndNeverDimsLightModeAutomatically() {
+        // Menus always carry text rows and default to REGULAR even under ULTRA quality.
+        assertEquals(
+            WitLiquidGlassView.Material.REGULAR,
+            WitLiquidGlassMenu.resolveMenuMaterial(explicitMaterial = null, anchorMaterial = null),
+        )
+        assertEquals(
+            WitLiquidGlassView.Material.CLEAR,
+            WitLiquidGlassMenu.resolveMenuMaterial(
+                explicitMaterial = WitLiquidGlassView.Material.CLEAR,
+                anchorMaterial = null,
+            ),
+        )
+        assertEquals(
+            WitLiquidGlassView.Material.CLEAR,
+            WitLiquidGlassMenu.resolveMenuMaterial(
+                explicitMaterial = null,
+                anchorMaterial = WitLiquidGlassView.Material.CLEAR,
+            ),
+        )
+
+        // REGULAR never auto-dims; explicit CLEAR only auto-dims for dark tone (white text), never light tone (dark text).
+        assertEquals(
+            0f,
+            WitLiquidGlassMenu.resolveMenuClearDimming(null, null, WitLiquidGlassView.Material.REGULAR, isDark = false),
+            0.0001f,
+        )
+        assertEquals(
+            0f,
+            WitLiquidGlassMenu.resolveMenuClearDimming(null, null, WitLiquidGlassView.Material.REGULAR, isDark = true),
+            0.0001f,
+        )
+        assertEquals(
+            0f,
+            WitLiquidGlassMenu.resolveMenuClearDimming(null, null, WitLiquidGlassView.Material.CLEAR, isDark = false),
+            0.0001f,
+        )
+        assertEquals(
+            0.18f,
+            WitLiquidGlassMenu.resolveMenuClearDimming(null, null, WitLiquidGlassView.Material.CLEAR, isDark = true),
+            0.0001f,
+        )
+
+        // Default light panel frost tint must stay bright and opaque enough (>= 0x80 alpha) for dark text over dark art.
+        val lightAlpha = (WitLiquidGlassMenu.DEFAULT_LIGHT_PANEL_TINT ushr 24) and 0xFF
+        val lightRed = (WitLiquidGlassMenu.DEFAULT_LIGHT_PANEL_TINT ushr 16) and 0xFF
+        val lightGreen = (WitLiquidGlassMenu.DEFAULT_LIGHT_PANEL_TINT ushr 8) and 0xFF
+        val lightBlue = WitLiquidGlassMenu.DEFAULT_LIGHT_PANEL_TINT and 0xFF
+        assertTrue("Light panel tint alpha should be >= 128, got $lightAlpha", lightAlpha >= 128)
+        assertTrue("Light panel tint RGB should stay near-white", lightRed >= 240 && lightGreen >= 240 && lightBlue >= 240)
+    }
 }

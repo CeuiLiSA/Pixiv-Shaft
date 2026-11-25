@@ -440,16 +440,18 @@ public class WitLiquidGlassMenu private constructor(
         val resolvedTone = config.tone ?: anchorGlass?.tone ?: WitLiquidGlassView.Tone.THEME
         val resolvedQuality = config.quality ?: anchorGlass?.quality ?: host.quality
         this.resolvedQuality = resolvedQuality
-        val resolvedMaterial = config.material ?: anchorGlass?.material ?: when (resolvedQuality) {
-            WitLiquidGlassQuality.ULTRA -> WitLiquidGlassView.Material.CLEAR
-            else -> WitLiquidGlassView.Material.REGULAR
-        }
-        val resolvedClearDimming = (config.clearDimming ?: anchorGlass?.clearDimming ?: if (resolvedMaterial == WitLiquidGlassView.Material.CLEAR) 0.18f else 0f).coerceIn(0f, 1f)
+        val resolvedMaterial = resolveMenuMaterial(config.material, anchorGlass?.material)
         isDark = when (resolvedTone) {
             WitLiquidGlassView.Tone.THEME -> palette.isDark
             WitLiquidGlassView.Tone.LIGHT -> false
             WitLiquidGlassView.Tone.DARK -> true
         }
+        val resolvedClearDimming = resolveMenuClearDimming(
+            explicitDimming = config.clearDimming,
+            anchorDimming = anchorGlass?.clearDimming,
+            resolvedMaterial = resolvedMaterial,
+            isDark = isDark,
+        )
 
         startTint = when {
             isTransparentBackground -> Color.TRANSPARENT
@@ -2455,8 +2457,7 @@ public class WitLiquidGlassMenu private constructor(
                 glass.rimAlpha = computeRimAlpha(p, true)
                 glass.elevation = context.dpF(MENU_ELEVATION_DP) * computeElevationFraction(p, true)
             } else {
-                glass.tintColor = Color.TRANSPARENT
-                glass.surfaceFillColor = computeSurfaceFill(
+                val computedSurface = computeSurfaceFill(
                     progress = p,
                     startColor = startPlatterColor,
                     derivedColor = derivedPlatterColor,
@@ -2464,6 +2465,12 @@ public class WitLiquidGlassMenu private constructor(
                     isBorderless = true,
                     closing = closing,
                 )
+                glass.tintColor = if (!isNoneQuality && targetTint != Color.TRANSPARENT) {
+                    ColorUtils.setAlphaComponent(computedSurface, Color.alpha(targetTint))
+                } else {
+                    Color.TRANSPARENT
+                }
+                glass.surfaceFillColor = computedSurface
                 glass.platterAlpha = 1f
                 glass.rimAlpha = computeRimAlpha(p, true)
                 glass.elevation = context.dpF(MENU_ELEVATION_DP) * computeElevationFraction(p, true)
@@ -2875,10 +2882,27 @@ public class WitLiquidGlassMenu private constructor(
         private const val LIGHT_SCRIM_ALPHA = 22
         private const val DARK_HIGHLIGHT_FILL = 0x24FFFFFF
         private const val LIGHT_HIGHLIGHT_FILL = 0x181A1A2E
-        private const val DEFAULT_DARK_PANEL_TINT = 0x4212131A
-        private const val DEFAULT_LIGHT_PANEL_TINT = 0x58F6F4FB
+        internal const val DEFAULT_DARK_PANEL_TINT: Int = 0x5C12131A
+        internal const val DEFAULT_LIGHT_PANEL_TINT: Int = 0x94F8F7FC.toInt()
         private const val DARK_DANGER_COLOR = 0xFFFF6B70.toInt()
         private const val LIGHT_DANGER_COLOR = 0xFFD9383E.toInt()
+
+        internal fun resolveMenuMaterial(
+            explicitMaterial: WitLiquidGlassView.Material?,
+            anchorMaterial: WitLiquidGlassView.Material?,
+        ): WitLiquidGlassView.Material =
+            explicitMaterial ?: anchorMaterial ?: WitLiquidGlassView.Material.REGULAR
+
+        internal fun resolveMenuClearDimming(
+            explicitDimming: Float?,
+            anchorDimming: Float?,
+            resolvedMaterial: WitLiquidGlassView.Material,
+            isDark: Boolean,
+        ): Float = (
+            explicitDimming
+                ?: anchorDimming
+                ?: if (resolvedMaterial == WitLiquidGlassView.Material.CLEAR && isDark) 0.18f else 0f
+            ).coerceIn(0f, 1f)
 
         private const val SCRUB_CORRIDOR_X_DP = 24f
         private const val SCRUB_CORRIDOR_Y_DP = 20f

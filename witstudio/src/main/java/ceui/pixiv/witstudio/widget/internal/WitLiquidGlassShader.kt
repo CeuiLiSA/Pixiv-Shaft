@@ -28,7 +28,7 @@ internal class WitLiquidGlassShader : WitLiquidGlassRenderer() {
         val scaledDensity = density * s
         val scatter = scaledDensity * when {
             clear -> 0.85f
-            largeSurface -> 3.0f
+            largeSurface -> 4.0f
             else -> 1.95f
         }
         if (blur == null || scatter != blurRadius) {
