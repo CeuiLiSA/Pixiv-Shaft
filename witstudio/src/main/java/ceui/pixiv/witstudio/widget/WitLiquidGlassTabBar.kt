@@ -594,7 +594,12 @@ public class WitLiquidGlassTabBar private constructor(
     private var fallbackRimShader: LinearGradient? = null
     private var fallbackRimDark: Boolean? = null
     private val opaqueWhiteTint: ColorStateList by lazy(LazyThreadSafetyMode.NONE) {
-        ColorStateList.valueOf(Color.WHITE)
+        // Keep isStateful() == true even during masking mode so Android ImageView.drawableStateChanged()
+        // never skips Drawable.setState() when selectedItemId changes mid-gesture.
+        ColorStateList(
+            CHECKED_ITEM_STATES,
+            intArrayOf(Color.WHITE, Color.WHITE, Color.WHITE, Color.WHITE),
+        )
     }
     private var restingTintList: ColorStateList? = null
     private var maskingMode = false
@@ -1401,11 +1406,22 @@ public class WitLiquidGlassTabBar private constructor(
 
     private fun applyNavigationTint() {
         val tint = if (maskingMode) opaqueWhiteTint else (restingTintList ?: opaqueWhiteTint)
-        if (navigationView.itemIconTintList !== tint) {
+        val iconTintChanged = navigationView.itemIconTintList !== tint
+        if (iconTintChanged) {
             navigationView.itemIconTintList = tint
         }
         if (navigationView.itemTextColor !== tint) {
             navigationView.itemTextColor = tint
+        }
+        if (iconTintChanged) {
+            refreshNavigationItemDrawableStates()
+        }
+    }
+
+    private fun refreshNavigationItemDrawableStates() {
+        val menuView = navigationView.getChildAt(0) as? ViewGroup ?: return
+        for (i in 0 until menuView.childCount) {
+            menuView.getChildAt(i).refreshDrawableState()
         }
     }
 
