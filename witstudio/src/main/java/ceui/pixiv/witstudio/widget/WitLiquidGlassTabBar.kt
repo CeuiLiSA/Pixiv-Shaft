@@ -1169,7 +1169,7 @@ public class WitLiquidGlassTabBar private constructor(
                 if (isDarkTheme) {
                     intArrayOf(0x12FFFFFF, 0x05FFFFFF, 0x00FFFFFF, 0x08FFFFFF)
                 } else {
-                    intArrayOf(0x1EFFFFFF, 0x08FFFFFF, 0x00FFFFFF, 0x0EFFFFFF)
+                    intArrayOf(0x0B1A1A2E, 0x031A1A2E, 0x001A1A2E, 0x04FFFFFF)
                 },
                 floatArrayOf(0f, 0.34f, 0.72f, 1f),
                 Shader.TileMode.CLAMP,
@@ -1179,7 +1179,7 @@ public class WitLiquidGlassTabBar private constructor(
                 if (isDarkTheme) {
                     intArrayOf(0x12FFFFFF, 0x04FFFFFF, 0x03FFFFFF, 0x0CFFFFFF)
                 } else {
-                    intArrayOf(0x28FFFFFF, 0x0AFFFFFF, 0x08FFFFFF, 0x1AFFFFFF)
+                    intArrayOf(0x1A1A1A2E, 0x101A1A2E, 0x101A1A2E, 0x141A1A2E)
                 },
                 floatArrayOf(0f, 0.30f, 0.70f, 1f),
                 Shader.TileMode.CLAMP,

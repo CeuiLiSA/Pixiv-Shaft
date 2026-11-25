@@ -667,7 +667,10 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
             baseBind.bottomBarFrame.setTone(WitLiquidGlassView.Tone.THEME);
             baseBind.bottomBarFrame.setCornerRadiusDp(Float.POSITIVE_INFINITY);
             baseBind.bottomBarFrame.setGlassInteractive(!isGlassActive);
-            baseBind.bottomBarFrame.setElevation(0f);
+            baseBind.bottomBarFrame.setTintColor(
+                    isGlassActive && !palette.isDark() ? 0x7CF7F8FC : Color.TRANSPARENT);
+            baseBind.bottomBarFrame.setElevation(
+                    isGlassActive && !palette.isDark() ? dp(8) : 0f);
             baseBind.bottomBarFrame.setBackground(null);
             // Match iOS 26 ~62dp floating pill height (56dp nav + 3dp top/bottom breathing room) so
             // tab labels sit comfortably inside the flat distortion-free core of the elevated loupe.
@@ -689,6 +692,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
 
             baseBind.coordinatorLayout.setQuality(WitLiquidGlassQuality.NONE);
             baseBind.bottomBarFrame.setQuality(WitLiquidGlassQuality.NONE);
+            baseBind.bottomBarFrame.setTintColor(Color.TRANSPARENT);
             baseBind.bottomBarFrame.setCornerRadiusDp(0f);
             baseBind.bottomBarFrame.setElevation(dp(8));
             baseBind.bottomBarFrame.setGlassInteractive(false);
@@ -722,10 +726,10 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                     : ColorUtils.setAlphaComponent(0xFF1A1A2E, 168);
 
             // 静息选中态液态玻璃内嵌胶囊底托：对齐 iOS 26 深浅双模通透内嵌药丸（深色模式为柔和浅霜透亮层，
-            // 浅色模式为清透冷灰微染层），既能与外层玻璃栏自然区分，又不遮挡后方流光。
+            // 浅色模式为清晰冷灰内嵌胶囊），在白底页面与高饱和插画背景上均一眼可辨。
             int indicatorFill = isDark
                     ? ColorUtils.setAlphaComponent(Color.WHITE, 44)
-                    : ColorUtils.setAlphaComponent(0xFF1A1A2E, 24);
+                    : ColorUtils.setAlphaComponent(0xFF1A1A2E, 40);
 
             liquidGlassTabBar.applyThemeColors(
                     selectedColor, unselectedColor, indicatorFill, isDark);
