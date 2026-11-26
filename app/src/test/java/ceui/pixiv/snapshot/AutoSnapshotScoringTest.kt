@@ -38,12 +38,101 @@ class AutoSnapshotScoringTest {
 
     @Test
     fun `dwell floor scales with page count`() {
-        // ratio = 1 时恰好 50 分：所需驻留 = 页数 × 6s。
-        val cases = listOf(1 to 6_000L, 3 to 18_000L, 10 to 60_000L, 30 to 180_000L, 100 to 600_000L)
+        // 3p 及以上无惩罚，ratio = 1 时恰好 50 分：所需驻留 = 页数 × 6s。
+        val cases = listOf(3 to 18_000L, 10 to 60_000L, 30 to 180_000L, 100 to 600_000L)
         for ((pages, ms) in cases) {
             val breakdown = AutoSnapshotScoring.score(record(pageCount = pages), dwellMs = ms, now = now)
             assertEquals("pages=$pages", 50, breakdown.dwell)
         }
+    }
+
+    @Test
+    fun `low page count dwell is penalized`() {
+        // 1p 打 6 折：ratio = 1（6s）时得 30 分；即使用户停了 60s（raw=90），也仅得 54 分
+        val p1Ratio1 = AutoSnapshotScoring.score(record(pageCount = 1), dwellMs = 6_000L, now = now)
+        assertEquals(30, p1Ratio1.dwell)
+        val p1Long = AutoSnapshotScoring.score(record(pageCount = 1), dwellMs = 60_000L, now = now)
+        assertEquals(54, p1Long.dwell)
+
+        // 2p 打 8 折：ratio = 1（12s）时得 40 分
+        val p2Ratio1 = AutoSnapshotScoring.score(record(pageCount = 2), dwellMs = 12_000L, now = now)
+        assertEquals(40, p2Ratio1.dwell)
+    }
+
+    @Test
+    fun `single page work with only 6s dwell does not trigger auto snapshot`() {
+        val p1 = record(pageCount = 1)
+        val breakdown = AutoSnapshotScoring.score(p1, dwellMs = 6_000L, now = now)
+        assertEquals(30, breakdown.total)
+        assertTrue(breakdown.total < AutoSnapshotScoring.SCORE_THRESHOLD)
+    }
+
+    @Test
+    fun `single page work with dwell and viewer engagement triggers via elevated secondary weight`() {
+        // 单图停留 12s（打 6 折后 core=40），若进大图细看（attention=50）且放大（zoom=10），
+        // 辅助项在 0.4 加权下 support = 44，total = 40 + 44 * 0.4 = 57 >= 50 触发
+        val p1 = record(
+            pageCount = 1,
+            pages = listOf(
+                AutoSnapshotViewerPageSample(at = now, page = 0, ms = 6_000L, zoomed = true)
+            ),
+            sessions = listOf(
+                AutoSnapshotViewerSessionSample(at = now, pageCount = 1, viewedPages = 1)
+            ),
+        )
+        val breakdown = AutoSnapshotScoring.score(p1, dwellMs = 12_000L, now = now)
+        assertEquals(40, breakdown.dwell)
+        assertEquals(50, breakdown.attention)
+        assertEquals(50, breakdown.coverage)
+        assertEquals(10, breakdown.zoom)
+        assertEquals(57, breakdown.total)
+        assertTrue(breakdown.total >= AutoSnapshotScoring.SCORE_THRESHOLD)
+    }
+
+    @Test
+    fun `unknown record page count falls back to latest viewer session for dwell and secondary weight`() {
+        val viewerPages = listOf(
+            AutoSnapshotViewerPageSample(at = now, page = 0, ms = 6_000L, zoomed = true)
+        )
+        val viewerSessions = listOf(
+            AutoSnapshotViewerSessionSample(at = now, pageCount = 1, viewedPages = 1)
+        )
+        val dwellDriven = record(
+            pageCount = 0,
+            pages = viewerPages,
+            sessions = viewerSessions,
+        )
+        val dwellBreakdown = AutoSnapshotScoring.score(dwellDriven, dwellMs = 12_000L, now = now)
+        assertEquals(40, dwellBreakdown.dwell)
+        assertEquals(57, dwellBreakdown.total)
+        assertTrue(dwellBreakdown.total >= AutoSnapshotScoring.SCORE_THRESHOLD)
+
+        // 核心项走 revisit（2 次进入 = 33）时，辅助权重同样应按会话页数 1p 取 0.4 而非回落 0.25。
+        val revisitDriven = record(
+            pageCount = 0,
+            visits = listOf(now, now - 1_000L),
+            pages = listOf(
+                AutoSnapshotViewerPageSample(at = now, page = 0, ms = 8_000L, zoomed = true)
+            ),
+            sessions = viewerSessions,
+        )
+        val revisitBreakdown = AutoSnapshotScoring.score(revisitDriven, dwellMs = 0L, now = now)
+        assertEquals(33, revisitBreakdown.revisit)
+        assertEquals(50, revisitBreakdown.total)
+        assertTrue(revisitBreakdown.total >= AutoSnapshotScoring.SCORE_THRESHOLD)
+    }
+
+    @Test
+    fun `expired viewer session does not supply fallback page count`() {
+        val old = now - AutoSnapshotBehaviorStore.WINDOW_MS - 1L
+        val r = record(
+            pageCount = 0,
+            visits = listOf(now),
+            pages = listOf(AutoSnapshotViewerPageSample(at = old, page = 0, ms = 6_000L, zoomed = true)),
+            sessions = listOf(AutoSnapshotViewerSessionSample(at = old, pageCount = 1, viewedPages = 1)),
+        )
+        assertEquals(9, AutoSnapshotScoring.score(r, dwellMs = 6_000L, now = now).dwell)
+        assertEquals(50, AutoSnapshotScoring.score(r, dwellMs = 60_000L, now = now).dwell)
     }
 
     @Test
