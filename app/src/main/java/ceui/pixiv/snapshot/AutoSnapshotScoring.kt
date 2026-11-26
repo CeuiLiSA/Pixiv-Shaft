@@ -83,7 +83,11 @@ internal object AutoSnapshotScoring {
         // 行为库只在写入新样本时裁剪对应列表，读出来的记录里可能还躺着窗口外的二级大图会话
         // （作品一直有新访问、记录没被 prune 掉）。评分统一按 now 重新过一遍窗口。
         val windowed = record?.trimmed(now)
-        val pageCount = windowed?.pageCount ?: 0
+        // 从广场卡片 / 通知 / 深链等懒加载入口进入时，onResume 时尚未命中 ObjectPool，record.pageCount 会落成 0；
+        // 若用户随后打开了二级大图，窗口内最近一次会话已带有真实页数，评分回落用它避免驻留与辅助权重一起失效。
+        val pageCount = windowed?.pageCount?.takeIf { it > 0 }
+            ?: windowed?.latestViewerSession?.pageCount?.takeIf { it > 0 }
+            ?: 0
         val dwell = dwellScore(dwellMs, pageCount)
         val revisit = revisitScore(windowed, now)
         val attention = attentionScore(windowed)

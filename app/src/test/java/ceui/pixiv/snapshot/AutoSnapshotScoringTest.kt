@@ -90,6 +90,52 @@ class AutoSnapshotScoringTest {
     }
 
     @Test
+    fun `unknown record page count falls back to latest viewer session for dwell and secondary weight`() {
+        val viewerPages = listOf(
+            AutoSnapshotViewerPageSample(at = now, page = 0, ms = 6_000L, zoomed = true)
+        )
+        val viewerSessions = listOf(
+            AutoSnapshotViewerSessionSample(at = now, pageCount = 1, viewedPages = 1)
+        )
+        val dwellDriven = record(
+            pageCount = 0,
+            pages = viewerPages,
+            sessions = viewerSessions,
+        )
+        val dwellBreakdown = AutoSnapshotScoring.score(dwellDriven, dwellMs = 12_000L, now = now)
+        assertEquals(40, dwellBreakdown.dwell)
+        assertEquals(57, dwellBreakdown.total)
+        assertTrue(dwellBreakdown.total >= AutoSnapshotScoring.SCORE_THRESHOLD)
+
+        // 核心项走 revisit（2 次进入 = 33）时，辅助权重同样应按会话页数 1p 取 0.4 而非回落 0.25。
+        val revisitDriven = record(
+            pageCount = 0,
+            visits = listOf(now, now - 1_000L),
+            pages = listOf(
+                AutoSnapshotViewerPageSample(at = now, page = 0, ms = 8_000L, zoomed = true)
+            ),
+            sessions = viewerSessions,
+        )
+        val revisitBreakdown = AutoSnapshotScoring.score(revisitDriven, dwellMs = 0L, now = now)
+        assertEquals(33, revisitBreakdown.revisit)
+        assertEquals(50, revisitBreakdown.total)
+        assertTrue(revisitBreakdown.total >= AutoSnapshotScoring.SCORE_THRESHOLD)
+    }
+
+    @Test
+    fun `expired viewer session does not supply fallback page count`() {
+        val old = now - AutoSnapshotBehaviorStore.WINDOW_MS - 1L
+        val r = record(
+            pageCount = 0,
+            visits = listOf(now),
+            pages = listOf(AutoSnapshotViewerPageSample(at = old, page = 0, ms = 6_000L, zoomed = true)),
+            sessions = listOf(AutoSnapshotViewerSessionSample(at = old, pageCount = 1, viewedPages = 1)),
+        )
+        assertEquals(9, AutoSnapshotScoring.score(r, dwellMs = 6_000L, now = now).dwell)
+        assertEquals(50, AutoSnapshotScoring.score(r, dwellMs = 60_000L, now = now).dwell)
+    }
+
+    @Test
     fun `the same dwell scores higher on a few page work than on a long work`() {
         val few = AutoSnapshotScoring.score(record(pageCount = 3), dwellMs = 60_000L, now = now).dwell
         val many = AutoSnapshotScoring.score(record(pageCount = 100), dwellMs = 60_000L, now = now).dwell
