@@ -5,6 +5,8 @@ import ceui.loxia.Novel
 import ceui.loxia.Tag
 import ceui.pixiv.api.model.Illust
 import ceui.pixiv.api.model.UserPreview
+import com.google.gson.JsonElement
+import com.google.gson.JsonParser
 import timber.log.Timber
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
@@ -136,11 +138,14 @@ object BookmarkMirrorMapper {
 
     /**
      * 一位关注的用户。作品维度的列（页数、画幅、人气、分级…）对人没有意义，一律填「未知」，
-     * 筛选面板也不会给用户书架露出那些节；借用的只有三处，都是有真实语义的：
+     * 筛选面板也不会给用户书架露出那些节；借用的只有四处，都是有真实语义的：
      *
      * - [BookmarkMirrorEntity.createDateMs] = 预览作品里**最新一件的发布时间**，即「最近投稿」。
      *   `/v1/user/following` 附带的预览就是对方最近的作品，于是「发布时间」排序在这个书架上
      *   就是「最近有更新 / 最久没更新」—— 清理多年不更新的关注，正是这份镜像能给的东西。
+     * - [BookmarkMirrorEntity.isVisible] = 预览中是否存在可见作品（插画或小说）。预览作品全空
+     *   时记为 `false`（对应「已失效关注」筛选：删光作品 / 被隐藏 / 空号）。本地刚点击关注时
+     *   尚无预览（[previewLoaded] = false），暂记为 `true`，待增量同步拉回真实预览后更新。
      * - 标签表 = 预览作品的标签并集，回答「我关注的人最近在画什么」。只覆盖最近几件，
      *   面板上会写明这一点，不冒充画师的全部标签。
      * - [BookmarkMirrorEntity.authorId] = 用户自己，纯数字关键词按 uid 命中不用另写分支。
@@ -151,10 +156,13 @@ object BookmarkMirrorMapper {
         bookmarkSeq: Long,
         generation: Int,
         now: Long,
+        previewLoaded: Boolean = true,
     ): MirrorRow {
         val user = requireNotNull(preview.user) { "关注预览缺少 user" }
-        val works = preview.illusts.map { it.tags.orEmpty() to it.create_date } +
-            preview.novels.orEmpty().map { it.tags.orEmpty() to it.create_date }
+        val visibleIllusts = preview.illusts.filter { it.visible != false }
+        val visibleNovels = preview.novels.orEmpty().filter { it.visible != false }
+        val works = visibleIllusts.map { it.tags.orEmpty() to it.create_date } +
+            visibleNovels.map { it.tags.orEmpty() to it.create_date }
         val tags = works.flatMap { it.first }
         val tagRows = tagRows(shelf, user.id, tags)
         val name = user.name.orEmpty()
@@ -183,7 +191,7 @@ object BookmarkMirrorMapper {
                 aiType = 0,
                 xRestrict = 0,
                 sanityLevel = 0,
-                isVisible = true,
+                isVisible = !previewLoaded || works.isNotEmpty(),
                 isMuted = preview.is_muted == true,
                 seriesId = 0L,
                 tagCount = tagRows.size,
@@ -194,6 +202,36 @@ object BookmarkMirrorMapper {
             ),
             tags = tagRows,
         )
+    }
+
+    /**
+     * 供数据库迁移（v45 → v46）回填存量关注行的 [BookmarkMirrorEntity.isVisible]：
+     * 直接按 JSON 树检查 `illusts` / `novels` 是否存在可见预览作品（`visible != false`），
+     * 不依赖 [Shaft.sGson]（迁移可能早于其初始化）；损坏 JSON 按可见放行，避免误判或中断开库。
+     */
+    @JvmStatic
+    fun hasVisiblePreviewWorks(payloadJson: String): Boolean = try {
+        val root = JsonParser.parseString(payloadJson)
+        if (!root.isJsonObject) {
+            true
+        } else {
+            val obj = root.asJsonObject
+            hasVisibleWorkArray(obj.get("illusts")) || hasVisibleWorkArray(obj.get("novels"))
+        }
+    } catch (_: Throwable) {
+        true
+    }
+
+    private fun hasVisibleWorkArray(element: JsonElement?): Boolean {
+        if (element == null || !element.isJsonArray) return false
+        for (item in element.asJsonArray) {
+            if (!item.isJsonObject) continue
+            val visible = item.asJsonObject.get("visible")
+            val isHidden = visible != null && visible.isJsonPrimitive &&
+                visible.asJsonPrimitive.isBoolean && !visible.asBoolean
+            if (!isHidden) return true
+        }
+        return false
     }
 
     private fun tagRows(shelf: BookmarkShelf, targetId: Long, tags: List<Tag>): List<BookmarkMirrorTagEntity> {

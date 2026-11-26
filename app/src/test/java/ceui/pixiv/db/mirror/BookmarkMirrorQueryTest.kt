@@ -181,5 +181,27 @@ class BookmarkMirrorQueryTest {
         assertFalse(BookmarkFilter(shelfKey = shelf, sort = BookmarkSort.RANDOM).hasAnyCondition)
         assertTrue(BookmarkFilter(shelfKey = shelf, seriesOnly = true).hasAnyCondition)
         assertTrue(BookmarkFilter(shelfKey = shelf, keyword = "x").hasAnyCondition)
+        assertTrue(BookmarkFilter(shelfKey = shelf, validity = ValidityFilter.INVALID_ONLY).hasAnyCondition)
+    }
+
+    @Test
+    fun `有效性筛选精确映射到 isVisible 条件`() {
+        val any = BookmarkMirrorQuery.rows(BookmarkFilter(shelfKey = shelf, validity = ValidityFilter.ANY), 30, 0).sql
+        assertFalse(any, any.contains("isVisible"))
+
+        val valid = BookmarkMirrorQuery.rows(BookmarkFilter(shelfKey = shelf, validity = ValidityFilter.VALID_ONLY), 30, 0).sql
+        assertTrue(valid, valid.contains("isVisible = 1"))
+
+        val invalid = BookmarkMirrorQuery.rows(BookmarkFilter(shelfKey = shelf, validity = ValidityFilter.INVALID_ONLY), 30, 0).sql
+        assertTrue(invalid, invalid.contains("isVisible = 0"))
+        assertTrue(BookmarkMirrorQuery.count(BookmarkFilter(shelfKey = shelf, validity = ValidityFilter.INVALID_ONLY)).sql.contains("isVisible = 0"))
+
+        val ids = BookmarkMirrorQuery.targetIds(
+            BookmarkFilter(shelfKey = shelf, validity = ValidityFilter.INVALID_ONLY, sort = BookmarkSort.BOOKMARK_OLDEST),
+        ).sql
+        assertTrue(ids, ids.startsWith("SELECT targetId FROM bookmark_mirror_table WHERE "))
+        assertTrue(ids, ids.contains("isVisible = 0"))
+        assertTrue(ids, ids.contains("ORDER BY bookmarkSeq ASC"))
+        assertFalse(ids, ids.contains("LIMIT"))
     }
 }

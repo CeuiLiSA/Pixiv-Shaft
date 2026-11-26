@@ -391,6 +391,7 @@ class BookmarkMirrorService(
         upsertLocally(MirrorContentType.USER, user.id, restrict) { shelf, seq, generation, now ->
             BookmarkMirrorMapper.fromUserPreview(
                 shelf, UserPreview(user = user.copy(is_followed = true)), seq, generation, now,
+                previewLoaded = false,
             )
         }
     }

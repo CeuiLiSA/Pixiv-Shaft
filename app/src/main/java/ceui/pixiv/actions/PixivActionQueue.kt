@@ -13,6 +13,7 @@ import ceui.pixiv.actionqueue.ActionQueue
 import ceui.pixiv.actionqueue.ActionRequest
 import ceui.pixiv.actionqueue.PendingAction
 import ceui.pixiv.actionqueue.QueuePolicy
+import ceui.pixiv.actionqueue.QueueState
 import ceui.pixiv.analytics.Analytics
 import ceui.pixiv.analytics.AnalyticsClassifiers
 import ceui.pixiv.db.mirror.MirrorContentType
@@ -30,6 +31,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -92,6 +96,11 @@ class PixivActionQueue @Inject constructor(
     /** 「补齐收藏快照」（#1275）：又一条独立队列，业务状态较多，单独成类，同样在 [start] 里启动。 */
     val snapshotBackfill = SnapshotBackfill(this.app)
 
+    private val _queueState = MutableStateFlow<QueueState>(QueueState.Idle)
+
+    /** 主写操作队列（收藏 / 关注）的实时运行态，供本地库清理横幅展示剩余数与限流冷却态。 */
+    val queueState: StateFlow<QueueState> = _queueState.asStateFlow()
+
     /** 幂等。由 [ceui.lisa.activities.Shaft] 调，必须排在 SessionManager.initialize 之后（gate 要读登录态）。 */
     fun start() {
         if (!started.compareAndSet(false, true)) return
@@ -128,6 +137,7 @@ class PixivActionQueue @Inject constructor(
         )
         queue = instance
         observeFailures(instance)
+        feedbackScope.launch { instance.state.collect { _queueState.value = it } }
         instance.start()
 
         val downloads = ActionQueue.withRoomStore(
@@ -163,9 +173,14 @@ class PixivActionQueue @Inject constructor(
      * 向上取整且至少 1，免得批量确认框上写着「约 0 分钟」。冷却和重试不算在内 ——
      * 这是下界，撞了限流只会更久。
      */
-    internal fun estimatedMinutes(count: Int): Int {
-        val totalMs = count.toLong() * MIN_GAP_MS
+    internal fun estimatedMinutes(count: Int, gapMs: Long = MIN_GAP_MS): Int {
+        val totalMs = count.toLong() * maxOf(MIN_GAP_MS, gapMs)
         return maxOf(1L, (totalMs + MS_PER_MINUTE - 1) / MS_PER_MINUTE).toInt()
+    }
+
+    internal fun estimatedSeconds(count: Int, gapMs: Long = MIN_GAP_MS): Int {
+        val effectiveGapMs = maxOf(MIN_GAP_MS, gapMs)
+        return maxOf(1L, (count.coerceAtLeast(1).toLong() * effectiveGapMs + 999L) / 1_000L).toInt()
     }
 
     internal fun enqueue(request: ActionRequest) {
@@ -319,7 +334,7 @@ class PixivActionQueue @Inject constructor(
                 // 池里没有的收藏事件全部无 meta 上报,操作记录页整页读不出条目(#1010),
                 // 且 manga 因取不到 type 全被误报成 illust。
                 val illust = ObjectPool.get<Illust>(payload.id).value
-                val fetched = if (illust == null) {
+                val fetched = if (illust == null && !payload.skipMetaFetch) {
                     withContext(Dispatchers.IO) {
                         runCatching { Client.appApi.getIllust(payload.id).illust }.getOrNull()
                     }
@@ -378,9 +393,11 @@ class PixivActionQueue @Inject constructor(
                 if (payload.bookmark) action.owner.toLongOrNull()?.let(ReferralActivityReporter::onBookmark)
                 // 统一 Novel 池命中优先，进程重启后的补发再走 API 兜底。
                 val novel = ObjectPool.get<Novel>(payload.id).value
-                    ?: withContext(Dispatchers.IO) {
-                        runCatching { Client.appApi.getNovel(payload.id).novel }.getOrNull()
-                    }
+                    ?: if (!payload.skipMetaFetch) {
+                        withContext(Dispatchers.IO) {
+                            runCatching { Client.appApi.getNovel(payload.id).novel }.getOrNull()
+                        }
+                    } else null
                 analytics.bookmarkConfirmed(
                     Analytics.ContentType.NOVEL,
                     add = payload.bookmark,
@@ -412,7 +429,16 @@ class PixivActionQueue @Inject constructor(
                 // reportFollowUser 自己做 ObjectPool 命中→getUserProfile 兜底的解析，
                 // 调用方不用先把 User 取到手 —— 省掉了 UActivity 里那次「等 profile 回来
                 // 才敢关注」的等待，那期间页面被销毁的话意图就丢了。
-                eventReporter.reportFollowUser(payload.userId, payload.follow)
+                if (payload.skipMetaFetch) {
+                    eventReporter.report(
+                        if (payload.follow) EventReporter.Type.FOLLOW else EventReporter.Type.UNFOLLOW,
+                        EventReporter.Target.USER,
+                        payload.userId,
+                        ObjectPool.get<User>(payload.userId).value,
+                    )
+                } else {
+                    eventReporter.reportFollowUser(payload.userId, payload.follow)
+                }
                 analytics.followConfirmed(
                     payload.follow,
                     payload.restrict,

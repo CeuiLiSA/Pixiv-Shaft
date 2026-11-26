@@ -1,7 +1,9 @@
 package ceui.lisa.database;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.os.SystemClock;
+import android.util.Pair;
 
 import androidx.annotation.NonNull;
 import androidx.room.Database;
@@ -9,6 +11,11 @@ import androidx.room.Room;
 import androidx.room.RoomDatabase;
 import androidx.room.migration.Migration;
 import androidx.sqlite.db.SupportSQLiteDatabase;
+import androidx.sqlite.db.SupportSQLiteStatement;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import ceui.lisa.feature.FeatureEntity;
 import ceui.pixiv.db.DiscoveryDao;
@@ -18,6 +25,7 @@ import ceui.pixiv.db.GeneralEntity;
 import ceui.pixiv.db.RemoteKey;
 import ceui.pixiv.db.mirror.BookmarkMirrorDao;
 import ceui.pixiv.db.mirror.BookmarkMirrorEntity;
+import ceui.pixiv.db.mirror.BookmarkMirrorMapper;
 import ceui.pixiv.db.mirror.BookmarkMirrorStateEntity;
 import ceui.pixiv.db.mirror.BookmarkMirrorTagEntity;
 import ceui.pixiv.db.queue.DownloadQueueDao;
@@ -61,7 +69,7 @@ import timber.log.Timber;
 )
 public abstract class AppDatabase extends RoomDatabase {
 
-    public static final int VERSION = 45;
+    public static final int VERSION = 46;
     public static final String DATABASE_NAME = "roomDemo-database";
 
     /** 迁移/开库相关日志的 tag。升级出问题时 `adb logcat -s AppDatabase` 一把抓。 */
@@ -622,6 +630,50 @@ public abstract class AppDatabase extends RoomDatabase {
         }
     };
 
+    /**
+     * 迁移 45 -> 46：
+     * 1. 回填存量关注镜像（contentType = 2）的 isVisible：此前恒写 1，现按「无可见预览作品即视为已失效」
+     *    对齐。除 createDateMs = 0 的空预览行外，也覆盖 v45 写入过 createDateMs > 0 但预览作品全为
+     *    visible=false 的行，按 JSON 树精确判定后批量更新；
+     * 2. 给 (shelfKey, isVisible, bookmarkSeq) 补复合索引，支撑「已失效作品 / 已失效关注」纯索引扫描。
+     */
+    static final Migration MIGRATION_45_46 = new Migration(45, 46) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            final long start = SystemClock.elapsedRealtime();
+            List<Pair<String, Long>> invisibleRows = new ArrayList<>();
+            try (Cursor cursor = database.query(
+                    "SELECT shelfKey, targetId, payloadJson FROM bookmark_mirror_table " +
+                            "WHERE contentType = 2 AND isVisible = 1 " +
+                            "AND (createDateMs = 0 OR payloadJson LIKE '%\"visible\":false%' " +
+                            "OR payloadJson LIKE '%\"visible\": false%')")) {
+                while (cursor.moveToNext()) {
+                    String payload = cursor.getString(2);
+                    if (payload != null && !BookmarkMirrorMapper.hasVisiblePreviewWorks(payload)) {
+                        invisibleRows.add(new Pair<>(cursor.getString(0), cursor.getLong(1)));
+                    }
+                }
+            }
+            if (!invisibleRows.isEmpty()) {
+                try (SupportSQLiteStatement stmt = database.compileStatement(
+                        "UPDATE bookmark_mirror_table SET isVisible = 0 WHERE shelfKey = ? AND targetId = ?")) {
+                    for (Pair<String, Long> row : invisibleRows) {
+                        stmt.bindString(1, row.first);
+                        stmt.bindLong(2, row.second);
+                        stmt.executeUpdateDelete();
+                    }
+                } catch (IOException e) {
+                    Timber.tag(TAG).w(e, "MIGRATION_45_46 close statement failed");
+                }
+            }
+            database.execSQL(
+                    "CREATE INDEX IF NOT EXISTS index_bookmark_mirror_table_shelfKey_isVisible_bookmarkSeq " +
+                            "ON bookmark_mirror_table(shelfKey, isVisible, bookmarkSeq)");
+            Timber.tag(TAG).i("MIGRATION_45_46 done in %d ms (marked %d followings invalid)",
+                    SystemClock.elapsedRealtime() - start, invisibleRows.size());
+        }
+    };
+
     private static final Migration[] ALL_MIGRATIONS = {
             MIGRATION_23_24,
             MIGRATION_24_25,
@@ -645,6 +697,7 @@ public abstract class AppDatabase extends RoomDatabase {
             MIGRATION_42_43,
             MIGRATION_43_44,
             MIGRATION_44_45,
+            MIGRATION_45_46,
     };
 
     /**

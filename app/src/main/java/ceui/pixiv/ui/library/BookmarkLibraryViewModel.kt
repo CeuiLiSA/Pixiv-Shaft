@@ -192,9 +192,9 @@ class BookmarkLibraryViewModel : ViewModel() {
         _filter.value = next
         loadedFilter = null
         Timber.tag(TAG).d(
-            "筛选变更 sort=%s kw='%s' tags=%d 排除=%d 作者=%d 类型=%s",
+            "筛选变更 sort=%s kw='%s' tags=%d 排除=%d 作者=%d 类型=%s 状态=%s",
             next.sort, next.keyword, next.tagNames.size, next.excludedTagNames.size,
-            next.authorIds.size, next.workTypes,
+            next.authorIds.size, next.workTypes, next.validity,
         )
         refreshCounts()
         refreshFacets()

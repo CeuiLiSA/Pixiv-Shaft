@@ -41,6 +41,8 @@ internal data class BookmarkPayload(
     val autoSnapshot: Boolean = false,
     /** 埋点上下文，见 [AnalyticsOrigin]。 */
     val origin: AnalyticsOrigin? = null,
+    /** 批量清理失效作品时为 true：确认成功后不额外回源拉 `getIllust`/`getNovel`，避免放大请求量。 */
+    val skipMetaFetch: Boolean = false,
 )
 
 /** @param follow true = 关注，false = 取关 */
@@ -52,6 +54,8 @@ internal data class FollowPayload(
     val visibilityOnly: Boolean = false,
     /** 埋点上下文，见 [AnalyticsOrigin]。 */
     val origin: AnalyticsOrigin? = null,
+    /** 批量清理失效关注时为 true：确认成功后不额外回源拉 `getUserProfile`，避免放大请求量。 */
+    val skipMetaFetch: Boolean = false,
 )
 
 /**

@@ -227,6 +227,10 @@ interface BookmarkMirrorDao {
     @RawQuery(observedEntities = [BookmarkMirrorEntity::class, BookmarkMirrorTagEntity::class])
     fun rawCount(query: SupportSQLiteQuery): Int
 
+    /** 同一套筛选与排序下的全部 targetId（批量清理用，不反序列化 payload）。 */
+    @RawQuery(observedEntities = [BookmarkMirrorEntity::class, BookmarkMirrorTagEntity::class])
+    fun rawTargetIds(query: SupportSQLiteQuery): List<Long>
+
     /** 标签云 / 作者云。SQL 同样由 [BookmarkMirrorQuery] 拼。 */
     @RawQuery(observedEntities = [BookmarkMirrorEntity::class, BookmarkMirrorTagEntity::class])
     fun rawTagFacets(query: SupportSQLiteQuery): List<BookmarkTagFacet>

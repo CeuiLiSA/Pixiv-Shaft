@@ -9,6 +9,7 @@ import ceui.pixiv.api.model.Illust
 import ceui.pixiv.api.model.UserPreview
 import com.google.gson.Gson
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -52,15 +53,54 @@ class FollowingMirrorMapperTest {
         assertEquals(BookmarkMirrorMapper.WORK_TYPE_USER, row.workType)
         assertEquals(7L, row.bookmarkSeq)
         assertEquals(3, row.generation)
+        assertTrue(row.isVisible)
     }
 
     @Test
-    fun `user without works has unknown last post time`() {
+    fun `user without works has unknown last post time and is marked invalid`() {
         val row = BookmarkMirrorMapper.fromUserPreview(
             shelf, UserPreview(user = User(id = 5L, name = "Quiet")), 0L, 1, 0L,
         ).row
         assertEquals(0L, row.createDateMs)
         assertEquals(0, row.tagCount)
+        assertFalse(row.isVisible)
+    }
+
+    @Test
+    fun `user with only hidden preview works is marked invalid while local follow placeholder stays valid`() {
+        val hiddenOnly = UserPreview(
+            user = User(id = 6L, name = "HiddenOnly"),
+            illusts = listOf(Illust(id = 10L, create_date = "2023-06-14T21:03:11+09:00", visible = false)),
+            novels = listOf(Novel(id = 20L, create_date = "2023-06-14T21:03:11+09:00", visible = false)),
+        )
+        val hiddenRow = BookmarkMirrorMapper.fromUserPreview(shelf, hiddenOnly, 0L, 1, 0L).row
+        assertFalse(hiddenRow.isVisible)
+        assertEquals(0L, hiddenRow.createDateMs)
+        assertEquals(0, hiddenRow.tagCount)
+
+        val localPlaceholder = BookmarkMirrorMapper.fromUserPreview(
+            shelf,
+            UserPreview(user = User(id = 7L, name = "JustFollowed", is_followed = true)),
+            0L, 1, 0L,
+            previewLoaded = false,
+        ).row
+        assertTrue(localPlaceholder.isVisible)
+    }
+
+    @Test
+    fun `hasVisiblePreviewWorks matches mapper semantics and fails safe on broken json`() {
+        assertFalse(BookmarkMirrorMapper.hasVisiblePreviewWorks("""{"illusts":[],"user":{"id":1}}"""))
+        assertFalse(BookmarkMirrorMapper.hasVisiblePreviewWorks("""{"illusts":[],"novels":[],"user":{"id":1}}"""))
+        assertFalse(
+            BookmarkMirrorMapper.hasVisiblePreviewWorks(
+                """{"illusts":[{"id":1,"visible":false}],"novels":[{"id":2,"visible":false}]}""",
+            ),
+        )
+        assertTrue(BookmarkMirrorMapper.hasVisiblePreviewWorks("""{"illusts":[{"id":1,"visible":true}]}"""))
+        assertTrue(BookmarkMirrorMapper.hasVisiblePreviewWorks("""{"illusts":[{"id":1}]}"""))
+        assertTrue(BookmarkMirrorMapper.hasVisiblePreviewWorks("""{"illusts":[],"novels":[{"id":2}]}"""))
+        assertTrue(BookmarkMirrorMapper.hasVisiblePreviewWorks("not-json"))
+        assertTrue(BookmarkMirrorMapper.hasVisiblePreviewWorks("null"))
     }
 
     @Test

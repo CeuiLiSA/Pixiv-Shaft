@@ -15,6 +15,7 @@ import ceui.pixiv.cache.ObjectPool
 import ceui.pixiv.cache.withoutViewerState
 import ceui.pixiv.actionqueue.ActionRequest
 import ceui.pixiv.analytics.Analytics
+import ceui.pixiv.db.mirror.MirrorContentType
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.task.NovelAutoDownload
 import ceui.pixiv.ui.novel.reader.export.ExportFormat
@@ -257,6 +258,77 @@ object PixivActions {
         return todo.size
     }
 
+    /**
+     * 批量清理本地镜像里的失效作品（取消收藏）或失效关注（取消关注），直接复用到现有的
+     * [PixivActionQueue] 持久循环队列，每条显式带上 [gapMs]（默认 5 秒冷却）逐条串行发送，
+     * 避免短时间连发触发 pixiv 频控；返回实际入队条数。
+     */
+    @JvmStatic
+    @JvmOverloads
+    fun cleanupInvalidItems(
+        contentType: MirrorContentType,
+        targetIds: List<Long>,
+        gapMs: Long = BULK_CLEANUP_GAP_MS,
+    ): Int {
+        val ids = targetIds.asSequence().filter { it > 0L }.distinct().toList()
+        if (ids.isEmpty()) return 0
+        val origin = origin(
+            if (contentType == MirrorContentType.USER) {
+                Analytics.FollowMethod.BULK.wire
+            } else {
+                Analytics.BookmarkMethod.BULK.wire
+            },
+        )
+        bulkScope.launch {
+            var failed = 0
+            ids.chunked(BULK_CHUNK).forEach { chunk ->
+                chunk.forEach { id ->
+                    try {
+                        when (contentType) {
+                            MirrorContentType.ILLUST -> applyIllustBookmark(
+                                illustId = id,
+                                bookmark = false,
+                                restrict = Params.TYPE_PUBLIC,
+                                illust = null,
+                                authorId = null,
+                                authorFollowed = null,
+                                autoSnapshot = false,
+                                origin = origin,
+                                gapMs = gapMs,
+                                skipMetaFetch = true,
+                            )
+                            MirrorContentType.NOVEL -> applyNovelBookmarkById(
+                                novelId = id,
+                                bookmark = false,
+                                restrict = Params.TYPE_PUBLIC,
+                                novel = null,
+                                origin = origin,
+                                gapMs = gapMs,
+                                skipMetaFetch = true,
+                            )
+                            MirrorContentType.USER -> enqueueUserFollow(
+                                userId = id,
+                                follow = false,
+                                restrict = Params.TYPE_PUBLIC,
+                                origin = origin,
+                                gapMs = gapMs,
+                                skipMetaFetch = true,
+                            )
+                        }
+                    } catch (ce: CancellationException) {
+                        throw ce
+                    } catch (t: Throwable) {
+                        failed++
+                        Timber.tag(TAG).e(t, "bulk cleanup failed for %s#%d", contentType.tag, id)
+                    }
+                }
+                yield()
+            }
+            if (failed > 0) Timber.tag(TAG).w("%d of %d cleanup items failed to enqueue", failed, ids.size)
+        }
+        return ids.size
+    }
+
     /** @param authorFollowed 调用方手上那份作者数据的关注态，见 [autoFollowAuthor]。 */
     private fun applyIllustBookmark(
         illustId: Long,
@@ -267,6 +339,8 @@ object PixivActions {
         authorFollowed: Boolean?,
         autoSnapshot: Boolean,
         origin: AnalyticsOrigin,
+        gapMs: Long = 0L,
+        skipMetaFetch: Boolean = false,
     ) {
         writeIllustBookmarkLocally(illustId, bookmark, illust)
         if (bookmark) RateAppManager.onUserEngaged()
@@ -276,8 +350,16 @@ object PixivActions {
                 type = PixivActionTypes.ILLUST_BOOKMARK,
                 dedupeKey = "${PixivActionTypes.ILLUST_BOOKMARK}:$illustId",
                 payload = Shaft.sGson.toJson(
-                    BookmarkPayload(illustId, bookmark, restrict, autoSnapshot = autoSnapshot, origin = origin)
+                    BookmarkPayload(
+                        id = illustId,
+                        bookmark = bookmark,
+                        restrict = restrict,
+                        autoSnapshot = autoSnapshot,
+                        origin = origin,
+                        skipMetaFetch = skipMetaFetch,
+                    )
                 ),
+                gapMs = gapMs,
             )
         )
 
@@ -399,14 +481,35 @@ object PixivActions {
 
     /** 收藏一部小说的三件事：写本地、埋 RateApp、入队。批量入口复用它绕开单点的副作用。 */
     private fun applyNovelBookmark(novel: Novel, bookmark: Boolean, restrict: String, origin: AnalyticsOrigin) {
-        writeNovelBookmarkLocally(novel.id, bookmark, novel)
+        applyNovelBookmarkById(novel.id, bookmark, restrict, novel, origin)
+    }
+
+    private fun applyNovelBookmarkById(
+        novelId: Long,
+        bookmark: Boolean,
+        restrict: String,
+        novel: Novel?,
+        origin: AnalyticsOrigin,
+        gapMs: Long = 0L,
+        skipMetaFetch: Boolean = false,
+    ) {
+        writeNovelBookmarkLocally(novelId, bookmark, novel)
         if (bookmark) RateAppManager.onUserEngaged()
 
         actionQueue.enqueue(
             ActionRequest(
                 type = PixivActionTypes.NOVEL_BOOKMARK,
-                dedupeKey = "${PixivActionTypes.NOVEL_BOOKMARK}:${novel.id}",
-                payload = Shaft.sGson.toJson(BookmarkPayload(novel.id, bookmark, restrict, origin = origin)),
+                dedupeKey = "${PixivActionTypes.NOVEL_BOOKMARK}:$novelId",
+                payload = Shaft.sGson.toJson(
+                    BookmarkPayload(
+                        id = novelId,
+                        bookmark = bookmark,
+                        restrict = restrict,
+                        origin = origin,
+                        skipMetaFetch = skipMetaFetch,
+                    )
+                ),
+                gapMs = gapMs,
             )
         )
     }
@@ -482,7 +585,14 @@ object PixivActions {
         enqueueUserFollow(userId, follow, restrict, origin(Analytics.FollowMethod.MANUAL.wire))
     }
 
-    private fun enqueueUserFollow(userId: Long, follow: Boolean, restrict: String, origin: AnalyticsOrigin) {
+    private fun enqueueUserFollow(
+        userId: Long,
+        follow: Boolean,
+        restrict: String,
+        origin: AnalyticsOrigin,
+        gapMs: Long = 0L,
+        skipMetaFetch: Boolean = false,
+    ) {
         // 先落可见性，再落关注态 —— 后者会同步通知 UI 重绘，那时前者必须已经就位。
         FollowVisibility.writeLocal(userId, restrict.takeIf { follow })
         writeUserFollowLocally(userId, follow, restrict)
@@ -493,7 +603,16 @@ object PixivActions {
                 type = PixivActionTypes.USER_FOLLOW,
                 // 合并键只带 userId：同一个人的关注/取关反复横跳只留最后一次。
                 dedupeKey = "${PixivActionTypes.USER_FOLLOW}:$userId",
-                payload = Shaft.sGson.toJson(FollowPayload(userId, follow, restrict, origin = origin)),
+                payload = Shaft.sGson.toJson(
+                    FollowPayload(
+                        userId = userId,
+                        follow = follow,
+                        restrict = restrict,
+                        origin = origin,
+                        skipMetaFetch = skipMetaFetch,
+                    )
+                ),
+                gapMs = gapMs,
             )
         )
     }
@@ -646,6 +765,15 @@ object PixivActions {
      */
     @JvmStatic
     fun estimatedQueueMinutes(count: Int): Int = actionQueue.estimatedMinutes(count)
+
+    /** 按指定单条冷却间隔（默认批量清理 5 秒）估算全部发完所需秒数。 */
+    @JvmStatic
+    @JvmOverloads
+    fun estimatedQueueSeconds(count: Int, gapMs: Long = BULK_CLEANUP_GAP_MS): Int =
+        actionQueue.estimatedSeconds(count, gapMs)
+
+    /** 失效作品 / 失效关注批量清理的单条冷却间隔（5 秒），通过 [ActionRequest.gapMs] 在现有队列生效。 */
+    const val BULK_CLEANUP_GAP_MS = 5_000L
 
     /**
      * 批量写入每让一次主线程处理多少项。按一帧 16ms 的预算倒推的悲观值：单项最贵的一路是

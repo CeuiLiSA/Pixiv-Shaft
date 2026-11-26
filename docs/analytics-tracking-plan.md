@@ -111,7 +111,7 @@ resume 不记。每次 screen_view 同时把 Crashlytics 自定义键 `screen` �
 | `action` | `add` / `remove` |
 | `visibility` | `public` / `private` |
 | `method`（bookmark） | `single` / `with_tags` / `bulk` |
-| `method`（follow） | `manual` / `auto_after_bookmark` |
+| `method`（follow） | `manual` / `auto_after_bookmark` / `bulk`（关注库批量清理失效关注） |
 | `method`（download） | `direct`（单个作品 / 单篇小说）/ `bulk`（批量选择、作者全部作品、收藏夹；小说多选也算）/ `series`（小说系列整部）/ `auto_after_bookmark`（小说收藏后自动下载；插画的自动下载走同一入口，记 `direct`） |
 | `method`（login*） | `oauth` / `signup`（仅 `login_begin`；浏览器回调分不出入口，结果统一记 `oauth`）/ `refresh_token` / `import` |
 | `item_count` | 本次入队数量：插画是页数，小说是篇数，批量是作品数（页数要等消费者展开才知道） |

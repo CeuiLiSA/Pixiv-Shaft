@@ -139,6 +139,8 @@ class Analytics @Inject constructor(
         MANUAL("manual"),
         /** 设置里的「收藏后自动关注作者」。 */
         AUTO_AFTER_BOOKMARK("auto_after_bookmark"),
+        /** 本地关注库里的批量清理取关。 */
+        BULK("bulk"),
     }
 
     enum class DownloadMethod(val wire: String) {

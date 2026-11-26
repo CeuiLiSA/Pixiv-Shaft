@@ -62,6 +62,7 @@ import androidx.room.Index
         Index(value = ["shelfKey", "aiType", "bookmarkSeq"]),
         Index(value = ["shelfKey", "pageCount", "bookmarkSeq"]),
         Index(value = ["shelfKey", "orientation", "bookmarkSeq"]),
+        Index(value = ["shelfKey", "isVisible", "bookmarkSeq"]),
         // 全量重扫收尾时按代号删除失联行
         Index(value = ["shelfKey", "generation"]),
         // 取消收藏时不知道它在哪个书架（公开/悄悄），按作品 id 跨书架删
@@ -115,7 +116,7 @@ data class BookmarkMirrorEntity(
     /** 0=全年龄 1=R-18 2=R-18G。 */
     val xRestrict: Int,
     val sanityLevel: Int,
-    /** 作品是否仍可见（被删/仅限好P友 = false）。 */
+    /** 作品是否仍可见（被删/仅限好P友 = false）；关注书架表示是否存在可见预览作品（无插画与小说预览 = false）。 */
     val isVisible: Boolean,
     val isMuted: Boolean,
     val seriesId: Long,

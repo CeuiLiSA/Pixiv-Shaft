@@ -1,10 +1,25 @@
 package ceui.pixiv.ui.library
 
 import android.content.Intent
+import android.content.res.ColorStateList
 import android.graphics.Color
+import android.graphics.drawable.InsetDrawable
+import android.graphics.drawable.RippleDrawable
 import android.text.Editable
 import android.view.MenuItem
+import androidx.core.graphics.ColorUtils
 import ceui.lisa.utils.Common
+import ceui.pixiv.actionqueue.QueueState
+import ceui.pixiv.actions.PixivActions
+import ceui.pixiv.witstudio.dialog.WitDialog
+import ceui.pixiv.witstudio.dialog.WitDialogAction
+import ceui.pixiv.witstudio.theme.color
+import ceui.pixiv.witstudio.theme.dp
+import ceui.pixiv.witstudio.theme.dpF
+import ceui.pixiv.witstudio.theme.hairlinePx
+import ceui.pixiv.witstudio.theme.pressScale
+import ceui.pixiv.witstudio.theme.shape
+import ceui.pixiv.witstudio.theme.v3Font
 import ceui.pixiv.witstudio.widget.WitLiquidGlassMenu
 import android.text.TextWatcher
 import android.view.View
@@ -32,10 +47,12 @@ import ceui.pixiv.db.mirror.BookmarkSort
 import ceui.pixiv.db.mirror.MirrorContentType
 import ceui.pixiv.db.mirror.MirrorPhase
 import ceui.pixiv.db.mirror.MirrorRestrict
+import ceui.pixiv.db.mirror.ValidityFilter
 import ceui.pixiv.feeds.FeedUiState
 import ceui.pixiv.feeds.FeedViewModel
 import ceui.pixiv.feeds.LoadState
 import ceui.pixiv.services.appServices
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -70,6 +87,7 @@ internal class BookmarkLibraryUi(
     private var reverseChip: TextView? = null
     private var randomChip: TextView? = null
     private var filterChip: TextView? = null
+    private var invalidChip: TextView? = null
     private var clearChip: TextView? = null
     private var syncingChip: TextView? = null
 
@@ -106,6 +124,25 @@ internal class BookmarkLibraryUi(
     /** 最近一次拿到的全部书架状态；切书架时按当前 shelfKey 重新挑一条出来。 */
     private var latestStates: List<BookmarkMirrorStateEntity> = emptyList()
 
+    private enum class CleanupPhase {
+        IDLE,
+        ENQUEUING,
+        RUNNING_HERE,
+        OBSERVING_EXTERNAL,
+    }
+
+    /** 主写操作队列最近一次状态；驱动失效清理横幅的实时队列进度。 */
+    private var latestQueueState: QueueState = QueueState.Idle
+
+    /** 正在从本地库捞待清理的 targetId，防连点弹出多个确认框。 */
+    private var cleanupFetchingIds = false
+
+    /** 本页失效清理横幅的状态机：区分未发起、入队中、本页发起运行中与外部/重进观察。 */
+    private var cleanupPhase: CleanupPhase = CleanupPhase.IDLE
+
+    /** 批量清理二次确认弹窗；视图销毁时一并关闭，避免窗口泄漏或退页后回调撞 requireContext()。 */
+    private var cleanupDialog: WitDialog? = null
+
     private val context get() = fragment.requireContext()
 
     private val profile = LibraryProfile.of(contentType)
@@ -120,6 +157,7 @@ internal class BookmarkLibraryUi(
         setUpShelfSwitch()
         setUpSearch()
         setUpChips()
+        setUpCleanupBanner()
         observeState()
 
         setUpPullToRefresh()
@@ -170,6 +208,8 @@ internal class BookmarkLibraryUi(
 
     fun destroy() {
         destroyed = true
+        cleanupDialog?.dismiss()
+        cleanupDialog = null
         listView.removeOnScrollListener(scrollListener)
         pendingSearch?.let { binding.searchInput.removeCallbacks(it) }
         pendingSearch = null
@@ -177,6 +217,7 @@ internal class BookmarkLibraryUi(
         reverseChip = null
         randomChip = null
         filterChip = null
+        invalidChip = null
         clearChip = null
         syncingChip = null
     }
@@ -295,6 +336,11 @@ internal class BookmarkLibraryUi(
             }
             item(context.getString(R.string.bookmark_library_rebuild), R.drawable.ic_fix_black_24dp) {
                 rebuildMirror()
+            }
+            if (isShelfComplete()) {
+                item(context.getString(profile.cleanupMenu), R.drawable.ic_delete_black_24dp) {
+                    focusInvalidForCleanup()
+                }
             }
             if (contentType == MirrorContentType.ILLUST) {
                 item(context.getString(R.string.artlist_mine_title), R.drawable.ic_collections_black_24dp) {
@@ -423,6 +469,14 @@ internal class BookmarkLibraryUi(
         filterChip = addChip(row, context.getString(R.string.bookmark_chip_filter)) {
             BookmarkFilterSheet.show(fragment)
         }
+        invalidChip = addChip(row, context.getString(profile.invalidChip)) {
+            val next = if (viewModel.filter.value.validity == ValidityFilter.INVALID_ONLY) {
+                ValidityFilter.ANY
+            } else {
+                ValidityFilter.INVALID_ONLY
+            }
+            if (viewModel.updateFilter { it.copy(validity = next) }) applyFilterChange()
+        }
         clearChip = addChip(row, context.getString(R.string.bookmark_chip_clear)) {
             binding.searchInput.setText("")
             if (viewModel.clearConditions()) applyFilterChange()
@@ -457,7 +511,7 @@ internal class BookmarkLibraryUi(
         val complete = isShelfComplete()
         binding.searchInput.isEnabled = complete
         syncingChip?.visibility = if (complete) View.GONE else View.VISIBLE
-        listOfNotNull(sortChip, reverseChip, randomChip, filterChip)
+        listOfNotNull(sortChip, reverseChip, randomChip, filterChip, invalidChip)
             .forEach { it.visibility = if (complete) View.VISIBLE else View.GONE }
         if (!complete) {
             pendingSearch?.let { binding.searchInput.removeCallbacks(it) }
@@ -487,16 +541,227 @@ internal class BookmarkLibraryUi(
             context.getString(R.string.bookmark_chip_filter)
         }
         filterChip?.isActivated = conditions > 0
+        invalidChip?.isActivated = filter.validity == ValidityFilter.INVALID_ONLY
         // 「清空」只在真有东西可清时出现：常驻一个永远灰着的按钮只是噪音
         clearChip?.visibility = if (filter.hasAnyCondition) View.VISIBLE else View.GONE
     }
 
+    /**
+     * 失效条目批量清理横幅：右侧破坏性胶囊按 V3 规范用日夜 `v3_danger` 语义色（不跟随主色），
+     * 可见 36dp + 上下各 6dp 透明沿补足 48dp 触控热区。
+     */
+    private fun setUpCleanupBanner() {
+        val action = binding.cleanupAction
+        val danger = context.color(R.color.v3_danger)
+        val fill = ColorUtils.setAlphaComponent(danger, 0x24)
+        val stroke = ColorUtils.setAlphaComponent(danger, 0x66)
+        val insetY = context.dp(6)
+        action.typeface = context.v3Font(600)
+        action.setTextColor(danger)
+        action.minHeight = context.dp(48)
+        action.background = InsetDrawable(
+            RippleDrawable(
+                ColorStateList.valueOf(ColorUtils.setAlphaComponent(danger, 0x33)),
+                shape(context.dpF(18f), fill, stroke, context.hairlinePx()),
+                shape(context.dpF(18f), Color.WHITE),
+            ),
+            0, insetY, 0, insetY,
+        )
+        val padV = insetY + context.dp(6)
+        action.setPadding(context.dp(14), padV, context.dp(14), padV)
+        action.isClickable = true
+        action.isFocusable = true
+        action.pressScale()
+        action.setOnClickListener { confirmCleanupInvalid() }
+        renderCleanupBanner()
+    }
+
+    private fun isCleanupQueueBusy(): Boolean =
+        cleanupPhase == CleanupPhase.ENQUEUING ||
+            cleanupPhase == CleanupPhase.RUNNING_HERE ||
+            pendingCountOf(latestQueueState) > 0
+
+    /** 顶栏菜单入口：未切到「已失效」时先切过去让用户核对对象；已在「已失效」页则直接弹确认框。 */
+    private fun focusInvalidForCleanup() {
+        if (!isShelfComplete()) return
+        if (viewModel.updateFilter { it.copy(validity = ValidityFilter.INVALID_ONLY) }) {
+            applyFilterChange()
+            return
+        }
+        renderCleanupBanner()
+        if (isCleanupQueueBusy()) return
+        if (viewModel.resultCount.value == 0) {
+            Common.showToast(context.getString(R.string.library_cleanup_empty))
+        } else {
+            confirmCleanupInvalid()
+        }
+    }
+
+    private fun onActionQueueState(state: QueueState) {
+        latestQueueState = state
+        val pending = pendingCountOf(state)
+        val viewingInvalid = viewModel.filter.value.validity == ValidityFilter.INVALID_ONLY
+        if (state !is QueueState.Idle) {
+            when (cleanupPhase) {
+                CleanupPhase.ENQUEUING -> cleanupPhase = CleanupPhase.RUNNING_HERE
+                CleanupPhase.IDLE -> if (viewingInvalid && pending > 0) {
+                    cleanupPhase = CleanupPhase.OBSERVING_EXTERNAL
+                }
+                CleanupPhase.RUNNING_HERE, CleanupPhase.OBSERVING_EXTERNAL -> Unit
+            }
+        } else {
+            when (cleanupPhase) {
+                CleanupPhase.RUNNING_HERE -> {
+                    cleanupPhase = CleanupPhase.IDLE
+                    if (viewingInvalid) applyFilterChange()
+                    Common.showToast(context.getString(R.string.library_cleanup_done_toast))
+                }
+                CleanupPhase.OBSERVING_EXTERNAL -> {
+                    cleanupPhase = CleanupPhase.IDLE
+                    if (viewingInvalid) applyFilterChange()
+                }
+                CleanupPhase.IDLE, CleanupPhase.ENQUEUING -> Unit
+            }
+        }
+        renderCleanupBanner()
+    }
+
+    private fun renderCleanupBanner() {
+        if (destroyed) return
+        val banner = binding.cleanupBanner
+        val pending = pendingCountOf(latestQueueState)
+        val viewingInvalid = viewModel.filter.value.validity == ValidityFilter.INVALID_ONLY
+        val initiatedHere = cleanupPhase == CleanupPhase.ENQUEUING || cleanupPhase == CleanupPhase.RUNNING_HERE
+        val showQueueProgress = initiatedHere || (viewingInvalid && pending > 0)
+        if (showQueueProgress) {
+            banner.visibility = View.VISIBLE
+            binding.cleanupAction.visibility = View.GONE
+            binding.cleanupSpinner.visibility = when (latestQueueState) {
+                is QueueState.CoolingDown, is QueueState.Suspended -> View.GONE
+                else -> View.VISIBLE
+            }
+            binding.cleanupTitle.text = when {
+                pending > 0 -> context.getString(R.string.library_cleanup_queue_running, formatCount(pending))
+                cleanupPhase == CleanupPhase.RUNNING_HERE -> context.getString(R.string.library_cleanup_done_toast)
+                else -> context.getString(R.string.library_cleanup_queue_preparing)
+            }
+            binding.cleanupSubtitle.text = when (latestQueueState) {
+                is QueueState.CoolingDown -> context.getString(R.string.library_cleanup_queue_cooling)
+                is QueueState.Suspended -> context.getString(R.string.library_cleanup_queue_suspended)
+                else -> context.getString(R.string.library_cleanup_queue_hint)
+            }
+            return
+        }
+
+        val count = viewModel.resultCount.value ?: 0
+        if (isShelfComplete() && viewingInvalid && count > 0) {
+            banner.visibility = View.VISIBLE
+            binding.cleanupSpinner.visibility = View.GONE
+            binding.cleanupTitle.text = context.getString(profile.cleanupReadyTitle, formatCount(count))
+            binding.cleanupSubtitle.text = context.getString(R.string.library_cleanup_ready_subtitle)
+            binding.cleanupAction.visibility = View.VISIBLE
+            binding.cleanupAction.text = context.getString(profile.cleanupAction)
+            binding.cleanupAction.isEnabled = !cleanupFetchingIds
+        } else {
+            banner.visibility = View.GONE
+        }
+    }
+
+    private fun confirmCleanupInvalid() {
+        if (destroyed || cleanupFetchingIds || isCleanupQueueBusy() || !isShelfComplete()) return
+        val filter = viewModel.filter.value
+        if (filter.validity != ValidityFilter.INVALID_ONLY) return
+        cleanupFetchingIds = true
+        binding.cleanupAction.isEnabled = false
+        fragment.viewLifecycleOwner.lifecycleScope.launch {
+            val ids = try {
+                BookmarkLibraryRepo.targetIds(filter)
+            } catch (ce: CancellationException) {
+                throw ce
+            } catch (t: Throwable) {
+                Timber.tag(TAG).w(t, "读取待清理失效条目失败")
+                emptyList()
+            } finally {
+                cleanupFetchingIds = false
+                if (!destroyed) binding.cleanupAction.isEnabled = true
+            }
+            if (destroyed || isCleanupQueueBusy() || !isShelfComplete() || viewModel.filter.value != filter) {
+                return@launch
+            }
+            if (ids.isEmpty()) {
+                Common.showToast(context.getString(R.string.library_cleanup_empty))
+                renderCleanupBanner()
+                return@launch
+            }
+            val duration = formatCleanupDuration(PixivActions.estimatedQueueSeconds(ids.size))
+            val dialog = WitDialog.MessageDialogBuilder(context)
+                .setTitle(profile.cleanupConfirmTitle)
+                .setMessage(context.getString(profile.cleanupConfirmMessage, formatCount(ids.size), duration))
+                .addAction(R.string.cancel) { d, _ -> d.dismiss() }
+                .addAction(0, R.string.bulk_bookmark_confirm_go, WitDialogAction.ACTION_PROP_NEGATIVE) { d, _ ->
+                    d.dismiss()
+                    if (destroyed || isCleanupQueueBusy() || !isShelfComplete() || viewModel.filter.value != filter) {
+                        return@addAction
+                    }
+                    val enqueued = PixivActions.cleanupInvalidItems(contentType, ids)
+                    if (enqueued == 0) {
+                        Common.showToast(context.getString(R.string.library_cleanup_empty))
+                        return@addAction
+                    }
+                    cleanupPhase = if (latestQueueState !is QueueState.Idle) {
+                        CleanupPhase.RUNNING_HERE
+                    } else {
+                        CleanupPhase.ENQUEUING
+                    }
+                    renderCleanupBanner()
+                    Common.showToast(context.getString(profile.cleanupEnqueuedToast, enqueued))
+                }
+                .create()
+            dialog.setOnDismissListener {
+                if (cleanupDialog === dialog) cleanupDialog = null
+            }
+            cleanupDialog?.dismiss()
+            cleanupDialog = dialog
+            dialog.show()
+        }
+    }
+
+    private fun formatCleanupDuration(seconds: Int): String = if (seconds < 60) {
+        context.getString(R.string.library_cleanup_duration_seconds, seconds)
+    } else {
+        context.getString(R.string.library_cleanup_duration_minutes, (seconds + 59) / 60)
+    }
+
+    private fun pendingCountOf(state: QueueState): Int = when (state) {
+        is QueueState.Idle -> 0
+        is QueueState.Working -> state.pending
+        is QueueState.CoolingDown -> state.pending
+        is QueueState.Suspended -> state.pending
+    }
+
     private fun observeState() {
         val uid = viewModel.shelf.ownerUid
-        val mirror = context.appServices().bookmarkMirror
+        val services = context.appServices()
+        val mirror = services.bookmarkMirror
+        val actionQueue = services.pixivActionQueue
         fragment.viewLifecycleOwner.lifecycleScope.launch {
             fragment.viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                launch { viewModel.filter.collectLatest { renderChips() } }
+                launch {
+                    viewModel.filter.collectLatest {
+                        renderChips()
+                        renderCleanupBanner()
+                    }
+                }
+                launch { viewModel.resultCount.collectLatest { renderCleanupBanner() } }
+                launch {
+                    try {
+                        actionQueue.queueState.collectLatest { onActionQueueState(it) }
+                    } finally {
+                        if (cleanupPhase == CleanupPhase.ENQUEUING) {
+                            cleanupPhase = CleanupPhase.RUNNING_HERE
+                        }
+                    }
+                }
                 // 行数变化可能发生在读页途中；加载结束后补判一次，避免最后一批永远不上屏。
                 launch {
                     feedViewModel.uiState.collectLatest {
@@ -693,7 +958,10 @@ internal class BookmarkLibraryUi(
         if (reset && refresh) applyFilterChange()
         renderSyncBanner()
         // 同步进度变化不该清掉搜索框里还在防抖的输入，只在控件可用性变化时重画。
-        if (reset || wasComplete != isShelfComplete()) renderChips()
+        if (reset || wasComplete != isShelfComplete()) {
+            renderChips()
+            renderCleanupBanner()
+        }
         if (feedViewModel.uiState.value.showEmptyState) {
             binding.feedRoot.feedStateText.text = emptyStateText()
         }

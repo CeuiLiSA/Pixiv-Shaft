@@ -178,6 +178,70 @@
                     android:orientation="horizontal" />
             </HorizontalScrollView>
 
+            <!--
+              失效条目批量清理条。默认隐藏，仅在「补齐完成 + 选中已失效筛选 + 有命中条目」
+              或现有写操作队列正在后台清理时显示，平时浏览零占位。
+            -->
+            <LinearLayout
+                android:id="@+id/cleanup_banner"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="16dp"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/bg_v3_surface"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingHorizontal="14dp"
+                android:paddingVertical="10dp"
+                android:visibility="gone"
+                tools:visibility="visible">
+
+                <ProgressBar
+                    android:id="@+id/cleanup_spinner"
+                    style="?android:attr/progressBarStyleSmall"
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:layout_marginEnd="10dp"
+                    android:visibility="gone" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/cleanup_title"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/v3_text_1"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        tools:text="已筛出 8 位已失效关注" />
+
+                    <TextView
+                        android:id="@+id/cleanup_subtitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:textColor="@color/v3_text_2"
+                        android:textSize="12sp"
+                        tools:text="每 5 秒冷却逐条处理，避免触发限流" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/cleanup_action"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:ellipsize="end"
+                    android:gravity="center"
+                    android:maxLines="2"
+                    android:maxWidth="148dp"
+                    android:textSize="13sp"
+                    tools:text="批量取消关注" />
+            </LinearLayout>
+
         </com.google.android.material.appbar.AppBarLayout>
 
         <!-- 列表通过 CoordinatorLayout behavior 与 AppBarLayout 联动；显式容器承接 include。 -->

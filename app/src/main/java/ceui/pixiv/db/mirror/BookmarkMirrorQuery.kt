@@ -197,6 +197,17 @@ object BookmarkMirrorQuery {
     }
 
     /**
+     * 按当前筛选与排序读出全部命中的 targetId，用于批量清理：
+     * 不捞 [BookmarkMirrorEntity.payloadJson]，几千行也只需几毫秒，且顺序与屏幕列表完全一致。
+     */
+    fun targetIds(filter: BookmarkFilter): SupportSQLiteQuery {
+        val args = mutableListOf<Any?>()
+        val where = buildWhere(filter, args)
+        val sql = "SELECT targetId FROM $ROWS WHERE $where ORDER BY ${orderClause(filter)}"
+        return SimpleSQLiteQuery(sql, args.toTypedArray())
+    }
+
+    /**
      * 当前筛选结果里的标签频次表。
      *
      * 刻意把已选标签也算进筛选条件（而不是把它们从条件里摘掉）：这样列出来的就是

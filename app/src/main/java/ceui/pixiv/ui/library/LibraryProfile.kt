@@ -32,8 +32,26 @@ internal class LibraryProfile private constructor(
     /** 面板底部主操作「查看 N 件」，%1$s = 当前命中数。 */
     @StringRes val showResults: Int,
     val sorts: List<BookmarkSort>,
-    /** 作品维度的筛选（分级 / AI / 作品状态 / 人气 / 系列 / 作者）。关注书架里一行是一个人，没有这些。 */
+    /** 顶部快捷筛选栏的「只看失效」一键 chip 文案（插画/小说是「已失效作品」，关注是「已失效关注」）。 */
+    @StringRes val invalidChip: Int,
+    /** 顶栏更多菜单的清理入口文案（点后切到「已失效」筛选，由横幅确认后进 5 秒冷却队列）。 */
+    @StringRes val cleanupMenu: Int,
+    /** 清理横幅就绪态标题，%1$s = 筛出的失效条目数。 */
+    @StringRes val cleanupReadyTitle: Int,
+    /** 清理横幅右侧主动作按钮文案（「批量取消收藏 / 批量取消关注」）。 */
+    @StringRes val cleanupAction: Int,
+    /** 批量清理二次确认弹窗标题。 */
+    @StringRes val cleanupConfirmTitle: Int,
+    /** 批量清理二次确认弹窗说明，%1$s = 数量，%2$s = 预计耗时文本。 */
+    @StringRes val cleanupConfirmMessage: Int,
+    /** 批量清理入队后的即时 toast，%1$d = 实际入队条数。 */
+    @StringRes val cleanupEnqueuedToast: Int,
+    /** 作品维度的筛选（分级 / AI / 人气 / 系列 / 作者）。关注书架里一行是一个人，没有这些，只留状态/年份/标签。 */
     val hasWorkFilters: Boolean,
+    /** 筛选面板里「有效性」那一节的标题：作品是「作品状态」，关注是「关注状态」。 */
+    @StringRes val stateSection: Int,
+    /** 筛选面板里「有效性」的补充说明（仅关注库说明按预览作品判定）。 */
+    @StringRes val stateHint: Int?,
     /** 按 `createDateMs` 分年的那一节叫什么：作品是「发布年份」，关注是「最近投稿年份」。 */
     @StringRes val yearSection: Int,
     @StringRes val tagHint: Int,
@@ -149,7 +167,16 @@ internal class LibraryProfile private constructor(
                 BookmarkSort.TITLE_ASC,
                 BookmarkSort.RANDOM,
             ),
+            invalidChip = R.string.bookmark_chip_invalid_works,
+            cleanupMenu = R.string.bookmark_cleanup_invalid_menu,
+            cleanupReadyTitle = R.string.bookmark_cleanup_invalid_ready_title,
+            cleanupAction = R.string.bookmark_cleanup_invalid_action,
+            cleanupConfirmTitle = R.string.bookmark_cleanup_invalid_confirm_title,
+            cleanupConfirmMessage = R.string.bookmark_cleanup_invalid_confirm_message,
+            cleanupEnqueuedToast = R.string.bookmark_cleanup_invalid_enqueued,
             hasWorkFilters = true,
+            stateSection = R.string.bookmark_filter_section_state,
+            stateHint = null,
             yearSection = R.string.bookmark_filter_section_year,
             tagHint = R.string.bookmark_filter_tag_hint,
         )
@@ -173,7 +200,16 @@ internal class LibraryProfile private constructor(
                 BookmarkSort.TITLE_ASC,
                 BookmarkSort.RANDOM,
             ),
+            invalidChip = R.string.bookmark_chip_invalid_works,
+            cleanupMenu = R.string.bookmark_cleanup_invalid_menu,
+            cleanupReadyTitle = R.string.bookmark_cleanup_invalid_ready_title,
+            cleanupAction = R.string.bookmark_cleanup_invalid_action,
+            cleanupConfirmTitle = R.string.bookmark_cleanup_invalid_confirm_title,
+            cleanupConfirmMessage = R.string.bookmark_cleanup_invalid_confirm_message,
+            cleanupEnqueuedToast = R.string.bookmark_cleanup_invalid_enqueued,
             hasWorkFilters = true,
+            stateSection = R.string.bookmark_filter_section_state,
+            stateHint = null,
             yearSection = R.string.bookmark_filter_section_year,
             tagHint = R.string.bookmark_filter_tag_hint,
         )
@@ -200,7 +236,16 @@ internal class LibraryProfile private constructor(
                 BookmarkSort.TITLE_ASC,
                 BookmarkSort.RANDOM,
             ),
+            invalidChip = R.string.following_chip_invalid,
+            cleanupMenu = R.string.following_cleanup_invalid_menu,
+            cleanupReadyTitle = R.string.following_cleanup_invalid_ready_title,
+            cleanupAction = R.string.following_cleanup_invalid_action,
+            cleanupConfirmTitle = R.string.following_cleanup_invalid_confirm_title,
+            cleanupConfirmMessage = R.string.following_cleanup_invalid_confirm_message,
+            cleanupEnqueuedToast = R.string.following_cleanup_invalid_enqueued,
             hasWorkFilters = false,
+            stateSection = R.string.following_filter_section_state,
+            stateHint = R.string.following_filter_state_hint,
             yearSection = R.string.following_filter_section_year,
             tagHint = R.string.following_filter_tag_hint,
         )

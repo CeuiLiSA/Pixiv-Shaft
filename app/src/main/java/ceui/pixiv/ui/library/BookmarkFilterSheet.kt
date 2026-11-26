@@ -48,7 +48,7 @@ import kotlin.math.roundToInt
  * 「只能选一个 / 可以选几个 / 开或关」，不用再靠文字解释。
  *
  * 哪几节出现由书架的 [LibraryProfile] 决定：关注书架里一行是一个人，没有分级、人气、作者
- * 这些作品维度，只留排序、最近投稿年份和（取自最近作品的）标签。
+ * 这些作品维度，只留排序、关注状态、最近投稿年份和（取自最近作品的）标签。
  *
  * ## 交互取舍
  *
@@ -143,8 +143,9 @@ class BookmarkFilterSheet : BottomSheetDialogFragment() {
         }
         binding.applyButton.setOnClickListener { dismissAllowingStateLoss() }
 
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+        val owner = viewLifecycleOwner
+        owner.lifecycleScope.launch {
+            owner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch {
                     viewModel.mirrorState.collectLatest {
                         if (it?.isFirstSyncDone != true) dismissAllowingStateLoss()
@@ -214,6 +215,10 @@ class BookmarkFilterSheet : BottomSheetDialogFragment() {
 
         if (profile.hasWorkFilters) {
             group(getString(R.string.bookmark_filter_group_works)) { section -> buildWorkRows(section, profile) }
+        } else {
+            group(getString(profile.stateSection)) { section ->
+                buildValidityRow(section, profile, showTitle = false)
+            }
         }
 
         val timeGroup = if (profile.hasWorkFilters) {
@@ -392,14 +397,19 @@ class BookmarkFilterSheet : BottomSheetDialogFragment() {
             selected = { it.ai },
         ) { filter, value -> filter.copy(ai = value) }
 
+        buildValidityRow(section, profile, showTitle = true)
+    }
+
+    private fun buildValidityRow(section: LinearLayout, profile: LibraryProfile, showTitle: Boolean) {
         singleChoice(
             section,
-            title = getString(R.string.bookmark_filter_section_state),
+            title = if (showTitle) getString(profile.stateSection) else null,
+            hint = profile.stateHint?.let(::getString),
             options = listOf(
                 ValidityFilter.ANY to getString(R.string.bookmark_filter_any),
                 ValidityFilter.VALID_ONLY to getString(R.string.bookmark_filter_state_valid),
                 // 「只看失效」是这张表白拿的能力：失效收藏平时混在几千件里根本找不出来，
-                // 单独筛出来才谈得上清理。
+                // 单独筛出来才谈得上清理；关注库同样用它快速挑出无预览作品的空号/删稿账号。
                 ValidityFilter.INVALID_ONLY to getString(R.string.bookmark_filter_state_invalid),
             ),
             selected = { it.validity },
@@ -598,6 +608,7 @@ class BookmarkFilterSheet : BottomSheetDialogFragment() {
         title: String?,
         options: List<Pair<T, CharSequence>>,
         selected: (BookmarkFilter) -> T,
+        hint: CharSequence? = null,
         scroll: Boolean = false,
         apply: (BookmarkFilter, T) -> BookmarkFilter,
     ): LibraryFilterViews.ChoiceGroup? {
@@ -612,7 +623,7 @@ class BookmarkFilterSheet : BottomSheetDialogFragment() {
         } else {
             parts.choiceChips(labels, scroll, onSelect)
         }
-        parts.row(section, title, control = group.view)
+        parts.row(section, title, hint = hint, control = group.view)
         refreshers += {
             val current = selected(viewModel.filter.value)
             group.select(options.indexOfFirst { it.first == current })

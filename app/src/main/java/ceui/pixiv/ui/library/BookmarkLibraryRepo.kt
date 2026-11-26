@@ -71,6 +71,10 @@ object BookmarkLibraryRepo {
         dao.rawCount(BookmarkMirrorQuery.count(filter))
     }
 
+    suspend fun targetIds(filter: BookmarkFilter): List<Long> = withContext(Dispatchers.IO) {
+        dao.rawTargetIds(BookmarkMirrorQuery.targetIds(filter))
+    }
+
     suspend fun tagFacets(filter: BookmarkFilter): List<BookmarkTagFacet> = withContext(Dispatchers.IO) {
         val startedAt = System.nanoTime()
         dao.rawTagFacets(BookmarkMirrorQuery.tagFacets(filter, TAG_FACET_LIMIT)).also {

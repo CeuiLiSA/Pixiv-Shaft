@@ -68,6 +68,10 @@ class AppDatabaseMigrationTest {
         V44_INDICES.forEach { (table, index) ->
             assertTrue("缺少索引 $index（表 $table）", hasIndex(db, table, index))
         }
+        assertTrue(
+            "缺少 v46 索引 index_bookmark_mirror_table_shelfKey_isVisible_bookmarkSeq",
+            hasIndex(db, "bookmark_mirror_table", "index_bookmark_mirror_table_shelfKey_isVisible_bookmarkSeq"),
+        )
 
         db.close()
     }
