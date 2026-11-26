@@ -13,15 +13,14 @@
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
-    <!-- Child 1: iOS 26 UIScrollEdgeEffect.Style.soft 轻量紧凑顶部渐进模糊层（仅覆盖状态栏与可见 Toolbar） -->
+    <!-- Child 1: iOS 26 UIScrollEdgeEffect.Style.soft 顶部渐进模糊层 -->
     <ceui.pixiv.witstudio.widget.WitScrollEdgeBlurView
         android:id="@+id/top_scroll_edge"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="top"
-        android:alpha="0"
         android:visibility="gone"
-        app:wit_edgeFeatherHeight="18dp"
+        app:wit_edgeFeatherHeight="20dp"
         app:wit_edgeOpaqueHeaderFallback="true"
         app:wit_edgeScrimColor="@color/v3_bg" />
 
@@ -111,27 +110,12 @@
 
         </androidx.appcompat.widget.Toolbar>
 
-        <!-- 透明占位，锁定 AppBarLayout 总高度（Toolbar + TabBar）以供经典模式 ScrollingViewBehavior 与列表顶留白计算 -->
-        <View
-            android:id="@+id/tab_spacer"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:background="@android:color/transparent" />
-
-    </com.google.android.material.appbar.AppBarLayout>
-
-    <!-- Child 4: 与首页底栏同款的 iOS 26 液态玻璃交互 Tab 胶囊（标准/极致模式复用 WitLiquidGlassTabBar 完整按压缩放/水滴透镜/拖拽/滑动动效；经典模式退回实底 TabLayout） -->
-    <ceui.pixiv.witstudio.widget.WitLiquidGlassView
-        android:id="@+id/tab_glass_platter"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="top">
-
         <com.google.android.material.tabs.TabLayout
             android:id="@+id/tab_layout"
             android:layout_width="match_parent"
-            android:layout_height="42dp"
-            android:background="@android:color/transparent"
+            android:layout_height="wrap_content"
+            android:minHeight="48dp"
+            android:background="?attr/colorPrimary"
             app:tabGravity="fill"
             app:tabIndicatorColor="@android:color/white"
             app:tabIndicatorFullWidth="false"
@@ -139,9 +123,9 @@
             app:tabSelectedTextColor="@android:color/white"
             app:tabTextColor="@color/light_new_primary_color" />
 
-    </ceui.pixiv.witstudio.widget.WitLiquidGlassView>
+    </com.google.android.material.appbar.AppBarLayout>
 
-    <!-- Child 5: 经典模式状态栏底色条（放在 app_bar 之上遮住上滑收起的 Toolbar；液态玻璃态透明） -->
+    <!-- Child 4: 经典模式状态栏底色条（放在 app_bar 之上遮住上滑收起的 Toolbar；液态玻璃态透明） -->
     <ImageView
         android:id="@+id/head"
         android:layout_width="match_parent"

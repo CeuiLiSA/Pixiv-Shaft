@@ -11,22 +11,20 @@ import kotlin.math.roundToInt
  * for [ceui.pixiv.witstudio.widget.WitScrollEdgeBlurView] (pixel-calibrated against iOS 26
  * `UIScrollEdgeEffect.Style.soft`).
  *
- * Uses a single inflection-free convex power curve across `[0, anchorH + featherH]` mapped directly
- * onto exact physical Gaussian radii (`0 -> 1.0 -> 2.6 -> 5.8 -> 11.2 -> 18.0 dp`), keeping the
- * edge blur compact, airy, colorful, and completely seam-free. Interactive floating controls like
- * tabs pair with floating [ceui.pixiv.witstudio.widget.WitLiquidGlassView] capsules rather than
- * turning the scroll edge into a large opaque curtain.
+ * Uses a single inflection-free power curve across the entire `[0, anchorH + featherH]` span
+ * mapped directly onto exact physical Gaussian radii (`0 -> 1.0 -> 2.6 -> 5.8 -> 11.2 -> 18.0 dp`),
+ * guaranteeing zero shelf, zero mid-band cliff, and zero sharp-over-blur ghosting.
  */
 internal object WitScrollEdgeCurve {
 
-    internal const val DEFAULT_FEATHER_DP: Float = 20f
+    internal const val DEFAULT_FEATHER_DP: Float = 24f
     internal const val DEFAULT_MAX_BLUR_DP: Float = 18f
     internal const val MIN_BLUR_DP: Float = 2f
     internal const val MAX_BLUR_DP: Float = 32f
     internal const val STANDARD_BLUR_RATIO: Float = 0.62f
 
     internal const val BLUR_CURVE_EXPONENT: Float = 1.85f
-    internal const val SCRIM_CURVE_EXPONENT: Float = 1.75f
+    internal const val SCRIM_CURVE_EXPONENT: Float = 1.70f
 
     internal const val PYRAMID_LEVELS: Int = 5
     private const val MAX_NODE_EDGE: Int = 2_048
@@ -52,23 +50,18 @@ internal object WitScrollEdgeCurve {
 
     /**
      * Nyquist-safe downscale factors per pyramid level. Every level retains >= 2.16 scaled-px
-     * Gaussian sigma at 3x density, keeping total offscreen pixels compact on 1080p displays.
+     * Gaussian sigma at 3x density, keeping total offscreen pixels around ~500K on 1080p displays.
      */
     internal val PYRAMID_BASE_SCALES: FloatArray = floatArrayOf(0.72f, 0.54f, 0.38f, 0.26f, 0.20f)
 
     internal const val STANDARD_BASE_SCALE: Float = 0.45f
 
-    /**
-     * Light, airy peak veil at the very top edge (`y = 0`) when live blur is active.
-     * Preserves vibrant underlying artwork colors instead of crushing the header into black.
-     */
-    internal const val LIVE_VEIL_MAX_ALPHA_DARK: Float = 0.56f
-    internal const val LIVE_VEIL_ADAPTIVE_BOOST_DARK: Float = 0.16f
-    internal const val LIVE_VEIL_MAX_ALPHA_LIGHT: Float = 0.62f
-    internal const val LIVE_VEIL_ADAPTIVE_BOOST_LIGHT: Float = 0.16f
+    /** Peak soft-veil alpha at the screen edge (y = 0) when live blur is active. */
+    internal const val LIVE_VEIL_MAX_ALPHA_DARK: Float = 0.72f
+    internal const val LIVE_VEIL_MAX_ALPHA_LIGHT: Float = 0.78f
 
     /** Subtle iOS CABackdropLayer saturation boost preventing chalky/muddy washes. */
-    internal const val VIBRANCY_SATURATION_DARK: Float = 1.10f
+    internal const val VIBRANCY_SATURATION_DARK: Float = 1.08f
     internal const val VIBRANCY_SATURATION_LIGHT: Float = 1.12f
 
     internal data class PyramidLevelPlan(
@@ -109,6 +102,9 @@ internal object WitScrollEdgeCurve {
 
     /**
      * Continuous soft-veil intensity in `[0, 1]` at `distFromEdge` from the active screen edge.
+     *
+     * Follows an equally inflection-free continuous curve `u^1.70` across the entire span so the
+     * atmospheric surface tint dissolves invisibly into the sharp content with zero band edge.
      */
     internal fun evaluateScrimNorm(distFromEdge: Float, anchorH: Float, featherH: Float): Float {
         val totalH = (anchorH.coerceAtLeast(0f) + featherH.coerceAtLeast(1f)).coerceAtLeast(1f)
@@ -285,7 +281,7 @@ internal object WitScrollEdgeCurve {
         return positions to alphas
     }
 
-    /** Multi-stop live veil overlay for `STANDARD` mode (matching ULTRA's light airy veil). */
+    /** Multi-stop live veil overlay for `STANDARD` mode (matching ULTRA's scrim curve). */
     internal fun buildStandardVeilStops(
         anchorH: Float,
         featherH: Float,

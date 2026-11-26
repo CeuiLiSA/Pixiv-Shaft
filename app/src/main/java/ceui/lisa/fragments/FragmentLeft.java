@@ -51,8 +51,6 @@ import ceui.pixiv.ui.navigation.TemplateRoute;
 import ceui.pixiv.ui.trending.HotTagsFeedFragment;
 import ceui.pixiv.witstudio.theme.V3Palette;
 import ceui.pixiv.witstudio.widget.WitLiquidGlassQuality;
-import ceui.pixiv.witstudio.widget.WitLiquidGlassTabBar;
-import ceui.pixiv.witstudio.widget.WitScrollEdgeBlurView;
 
 public class FragmentLeft extends BaseLazyFragment<FragmentLeftBinding> {
 
@@ -66,8 +64,6 @@ public class FragmentLeft extends BaseLazyFragment<FragmentLeftBinding> {
     private String lastChromeStyleKey = null;
     private final Rect appBarClipRect = new Rect();
     private ValueAnimator floatingCollapseAnimator = null;
-    @Nullable
-    private WitLiquidGlassTabBar liquidGlassTabBar = null;
     private final Set<RecyclerView> observedRecyclerViews =
             Collections.newSetFromMap(new WeakHashMap<>());
     private FragmentManager.FragmentLifecycleCallbacks childFeedLifecycleCallbacks = null;
@@ -75,24 +71,22 @@ public class FragmentLeft extends BaseLazyFragment<FragmentLeftBinding> {
             new RecyclerView.OnScrollListener() {
                 @Override
                 public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
-                    if (!isSoftEdgeFloatingMode() || recyclerView != getCurrentTabRecyclerView()) {
+                    if (!isFloatingCollapseActive() || recyclerView != getCurrentTabRecyclerView()) {
                         return;
                     }
-                    if (isFloatingCollapseActive()) {
-                        int toolbarH = baseBind.toolbar.getHeight();
-                        if (toolbarH > 0) {
-                            int maxCollapse = computeScrolledFromTop(recyclerView, toolbarH);
-                            if (dy != 0) {
-                                cancelFloatingCollapseAnimator();
-                                float next = floatingCollapsePx - dy;
-                                applyFloatingCollapse(clampFloat(next, -maxCollapse, 0f));
-                            } else if (floatingCollapsePx < -maxCollapse) {
-                                cancelFloatingCollapseAnimator();
-                                applyFloatingCollapse(-maxCollapse);
-                            }
-                        }
+                    int toolbarH = baseBind.toolbar.getHeight();
+                    if (toolbarH <= 0) {
+                        return;
                     }
-                    syncScrollEdgeActivation(recyclerView);
+                    int maxCollapse = computeMaxCollapseForRecyclerView(recyclerView, toolbarH);
+                    if (dy != 0) {
+                        cancelFloatingCollapseAnimator();
+                        float next = floatingCollapsePx - dy;
+                        applyFloatingCollapse(clampFloat(next, -maxCollapse, 0f));
+                    } else if (floatingCollapsePx < -maxCollapse) {
+                        cancelFloatingCollapseAnimator();
+                        applyFloatingCollapse(-maxCollapse);
+                    }
                 }
 
                 @Override
@@ -148,29 +142,10 @@ public class FragmentLeft extends BaseLazyFragment<FragmentLeftBinding> {
             }
         });
         baseBind.wideSearch.setOnClickListener(v -> openSearch());
-        liquidGlassTabBar = WitLiquidGlassTabBar.attach(baseBind.tabGlassPlatter, baseBind.tabLayout);
-        baseBind.appBar.addOnOffsetChangedListener((appBarLayout, verticalOffset) -> {
-            if (!isSoftEdgeFloatingMode() && !railModeShown) {
-                syncTabGlassPosition();
-            }
-        });
         baseBind.appBar.addOnLayoutChangeListener(
                 (v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {
                     if ((bottom - top) != (oldBottom - oldTop)
-                            || (right - left) != (oldRight - oldLeft)
-                            || top != oldTop) {
-                        syncTopEdgeMetrics();
-                    }
-                });
-        baseBind.tabGlassPlatter.addOnLayoutChangeListener(
-                (v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {
-                    int h = bottom - top;
-                    if (h > 0 && h != (oldBottom - oldTop)) {
-                        ViewGroup.LayoutParams sp = baseBind.tabSpacer.getLayoutParams();
-                        if (sp.height != h) {
-                            sp.height = h;
-                            baseBind.tabSpacer.setLayoutParams(sp);
-                        }
+                            || (right - left) != (oldRight - oldLeft)) {
                         syncTopEdgeMetrics();
                     }
                 });
@@ -190,12 +165,7 @@ public class FragmentLeft extends BaseLazyFragment<FragmentLeftBinding> {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         // BaseFragment 复用缓存 rootView 时不会重跑 initView()，必须在与 onDestroyView 成对的
-        // onViewCreated 中挂回子列表滚动监听与液态玻璃 TabBar，避免视图重建/复附着后联动失效。
-        if (liquidGlassTabBar == null && baseBind != null) {
-            liquidGlassTabBar = WitLiquidGlassTabBar.attach(baseBind.tabGlassPlatter, baseBind.tabLayout);
-            lastChromeStyleKey = null;
-            applyTopBarVisualStyle();
-        }
+        // onViewCreated 中挂回子列表滚动监听，避免视图重建/复附着后顶栏联动失效。
         installChildFeedScrollObserver();
     }
 
@@ -212,10 +182,6 @@ public class FragmentLeft extends BaseLazyFragment<FragmentLeftBinding> {
     public void onDestroyView() {
         cancelFloatingCollapseAnimator();
         uninstallChildFeedScrollObserver();
-        if (liquidGlassTabBar != null) {
-            liquidGlassTabBar.detach();
-            liquidGlassTabBar = null;
-        }
         lastChromeStyleKey = null;
         super.onDestroyView();
     }
@@ -234,8 +200,7 @@ public class FragmentLeft extends BaseLazyFragment<FragmentLeftBinding> {
     private void applyRailMode(boolean railShown) {
         railModeShown = railShown;
         baseBind.toolbar.setVisibility(railShown ? View.GONE : View.VISIBLE);
-        baseBind.tabSpacer.setVisibility(railShown ? View.GONE : View.VISIBLE);
-        baseBind.tabGlassPlatter.setVisibility(railShown ? View.GONE : View.VISIBLE);
+        baseBind.tabLayout.setVisibility(railShown ? View.GONE : View.VISIBLE);
         baseBind.wideHeader.setVisibility(railShown ? View.VISIBLE : View.GONE);
         if (railShown) {
             resetFloatingCollapse();
@@ -287,9 +252,6 @@ public class FragmentLeft extends BaseLazyFragment<FragmentLeftBinding> {
                 (CoordinatorLayout.LayoutParams) baseBind.appBar.getLayoutParams();
         CoordinatorLayout.LayoutParams pagerLp =
                 (CoordinatorLayout.LayoutParams) baseBind.viewPager.getLayoutParams();
-        CoordinatorLayout.LayoutParams tabPlatterLp =
-                (CoordinatorLayout.LayoutParams) baseBind.tabGlassPlatter.getLayoutParams();
-        ViewGroup.LayoutParams tabInnerLp = baseBind.tabLayout.getLayoutParams();
         if (softEdge) {
             // 切进悬浮态前把经典 AppBarLayout.Behavior 的内部 topOffset 归零，再换成空 Behavior：
             // 避免 AppBarLayout.Behavior 在 onNestedPreScroll 抢走列表前 50dp 滚动导致顶栏单独上移、列表卡住。
@@ -312,49 +274,17 @@ public class FragmentLeft extends BaseLazyFragment<FragmentLeftBinding> {
             baseBind.tabLayout.setBackgroundColor(Color.TRANSPARENT);
 
             int textPrimary = ContextCompat.getColor(mContext, R.color.v3_text_1);
+            int textSecondary = ContextCompat.getColor(mContext, R.color.v3_text_2);
             int selectedAccent = palette.isDark() && ColorUtils.calculateLuminance(palette.getPrimary()) < 0.35
                     ? palette.getTextAccent()
                     : palette.getPrimary();
 
             baseBind.toolbarTitle.setTextColor(textPrimary);
-            WitScrollEdgeBlurView.applyFloatingTextLegibility(baseBind.toolbarTitle, palette.isDark(), true);
+            baseBind.tabLayout.setTabTextColors(textSecondary, selectedAccent);
+            baseBind.tabLayout.setSelectedTabIndicatorColor(selectedAccent);
             tintToolbarIcons(textPrimary, !useAvatar);
-
-            if (!railModeShown) {
-                int marginH = DensityUtil.dp2px(WitLiquidGlassTabBar.DEFAULT_SCREEN_MARGIN_H_DP);
-                if (tabPlatterLp.leftMargin != marginH || tabPlatterLp.rightMargin != marginH) {
-                    tabPlatterLp.leftMargin = marginH;
-                    tabPlatterLp.rightMargin = marginH;
-                    baseBind.tabGlassPlatter.setLayoutParams(tabPlatterLp);
-                }
-                int innerH = DensityUtil.dp2px(42f);
-                if (tabInnerLp.height != innerH) {
-                    tabInnerLp.height = innerH;
-                    baseBind.tabLayout.setLayoutParams(tabInnerLp);
-                }
-                baseBind.tabLayout.setPaddingRelative(0, 0, 0, 0);
-                WitLiquidGlassTabBar.applyFloatingGlassChrome(
-                        baseBind.tabGlassPlatter, quality, palette.isDark());
-                baseBind.tabGlassPlatter.setPlatterAlpha(1f);
-
-                int unselectedColor = palette.isDark()
-                        ? ColorUtils.setAlphaComponent(Color.WHITE, 204)
-                        : ColorUtils.setAlphaComponent(0xFF1A1A2E, 168);
-                int indicatorFill = WitLiquidGlassTabBar.defaultRestingPillColor(palette.isDark());
-                if (liquidGlassTabBar != null) {
-                    liquidGlassTabBar.applyThemeColors(
-                            selectedAccent, unselectedColor, indicatorFill, palette.isDark());
-                    liquidGlassTabBar.setEnabled(true);
-                    liquidGlassTabBar.syncSelection(false);
-                }
-            } else if (liquidGlassTabBar != null) {
-                liquidGlassTabBar.setEnabled(false);
-            }
         } else {
             resetFloatingCollapse();
-            if (liquidGlassTabBar != null) {
-                liquidGlassTabBar.setEnabled(false);
-            }
             if (!(appBarLp.getBehavior() instanceof AppBarLayout.Behavior)) {
                 appBarLp.setBehavior(new AppBarLayout.Behavior());
                 baseBind.appBar.setLayoutParams(appBarLp);
@@ -363,23 +293,6 @@ public class FragmentLeft extends BaseLazyFragment<FragmentLeftBinding> {
                 pagerLp.setBehavior(new StatusBarAwareScrollingBehavior(statusBarHeightPx));
                 baseBind.viewPager.setLayoutParams(pagerLp);
             }
-            if (tabPlatterLp.leftMargin != 0 || tabPlatterLp.rightMargin != 0) {
-                tabPlatterLp.leftMargin = 0;
-                tabPlatterLp.rightMargin = 0;
-                baseBind.tabGlassPlatter.setLayoutParams(tabPlatterLp);
-            }
-            int classicTabH = DensityUtil.dp2px(48f);
-            if (tabInnerLp.height != classicTabH) {
-                tabInnerLp.height = classicTabH;
-                baseBind.tabLayout.setLayoutParams(tabInnerLp);
-            }
-            baseBind.tabGlassPlatter.setQuality(WitLiquidGlassQuality.NONE);
-            baseBind.tabGlassPlatter.setCornerRadiusDp(0f);
-            baseBind.tabGlassPlatter.setTintColor(Color.TRANSPARENT);
-            baseBind.tabGlassPlatter.setElevation(0f);
-            baseBind.tabGlassPlatter.setPlatterAlpha(0f);
-            baseBind.tabGlassPlatter.setPadding(0, 0, 0, 0);
-
             int primaryColor = Common.resolveThemeAttribute(mContext, androidx.appcompat.R.attr.colorPrimary);
             baseBind.head.setBackgroundColor(primaryColor);
             baseBind.appBar.setBackgroundColor(primaryColor);
@@ -387,11 +300,9 @@ public class FragmentLeft extends BaseLazyFragment<FragmentLeftBinding> {
             baseBind.toolbar.setBackgroundColor(Color.TRANSPARENT);
             baseBind.toolbar.setAlpha(1f);
             baseBind.tabLayout.setBackgroundColor(primaryColor);
-            baseBind.tabLayout.setPaddingRelative(0, 0, 0, 0);
 
             int white = Color.WHITE;
             int unselected = ContextCompat.getColor(mContext, R.color.light_new_primary_color);
-            WitScrollEdgeBlurView.applyFloatingTextLegibility(baseBind.toolbarTitle, palette.isDark(), false);
             baseBind.toolbarTitle.setTextColor(white);
             baseBind.tabLayout.setTabTextColors(unselected, white);
             baseBind.tabLayout.setSelectedTabIndicatorColor(white);
@@ -424,7 +335,6 @@ public class FragmentLeft extends BaseLazyFragment<FragmentLeftBinding> {
         boolean softEdge = isSoftEdgeFloatingMode();
         if (!softEdge) {
             applyTopInsetToFeeds(0);
-            syncTabGlassPosition();
             return;
         }
         int chromeHeight;
@@ -434,66 +344,12 @@ public class FragmentLeft extends BaseLazyFragment<FragmentLeftBinding> {
             baseBind.topScrollEdge.setAnchorHeightPx(chromeHeight);
             baseBind.topScrollEdge.setVisualAnchorHeightPx(-1);
         } else {
-            int toolbarH = baseBind.toolbar.getHeight() > 0
-                    ? baseBind.toolbar.getHeight()
-                    : DensityUtil.dp2px(50f);
-            int tabH = baseBind.tabGlassPlatter.getHeight() > 0
-                    ? baseBind.tabGlassPlatter.getHeight()
-                    : DensityUtil.dp2px(48f);
-            chromeHeight = statusBarHeightPx + toolbarH + tabH + DensityUtil.dp2px(4f);
-            // 顶部软边模糊仅覆盖状态栏 + 可见 Toolbar，TabBar 复用与底栏同款的 WitLiquidGlassTabBar 浮空液态玻璃胶囊。
-            baseBind.topScrollEdge.setAnchorHeightPx(statusBarHeightPx + toolbarH);
+            int appBarH = baseBind.appBar.getHeight();
+            chromeHeight = statusBarHeightPx + (appBarH > 0 ? appBarH : DensityUtil.dp2px(98f));
+            baseBind.topScrollEdge.setAnchorHeightPx(chromeHeight);
             applyFloatingCollapse(isFloatingCollapseActive() ? floatingCollapsePx : 0f);
-            syncTabGlassPosition();
         }
         applyTopInsetToFeeds(chromeHeight);
-        syncScrollEdgeActivation(getCurrentTabRecyclerView());
-    }
-
-    /**
-     * 对齐 iOS 26 UIScrollEdgeEffect：列表静止在顶部（scroll == 0）时顶部软边模糊 alpha = 0，
-     * 首行作品卡片 100% 锐利且零多余 GPU 开销；上滑 24dp 内平滑激活保护状态栏与可见 Toolbar。
-     */
-    private void syncScrollEdgeActivation(@Nullable RecyclerView recyclerView) {
-        if (baseBind == null) {
-            return;
-        }
-        if (!isSoftEdgeFloatingMode()) {
-            baseBind.topScrollEdge.setActivationProgress(0f);
-            return;
-        }
-        int fadeRange = Math.max(1, DensityUtil.dp2px(24f));
-        int scrolledPx = recyclerView != null ? computeScrolledFromTop(recyclerView, fadeRange) : 0;
-        float progress = Math.max(
-                clampFloat(scrolledPx / (float) fadeRange, 0f, 1f),
-                clampFloat(-floatingCollapsePx / (float) fadeRange, 0f, 1f));
-        baseBind.topScrollEdge.setActivationProgress(progress);
-    }
-
-    private void syncTabGlassPosition() {
-        if (baseBind == null || railModeShown) {
-            return;
-        }
-        int toolbarH = baseBind.toolbar.getHeight() > 0
-                ? baseBind.toolbar.getHeight()
-                : DensityUtil.dp2px(50f);
-        float baseY;
-        if (isSoftEdgeFloatingMode()) {
-            baseY = statusBarHeightPx + toolbarH + floatingCollapsePx;
-        } else {
-            int appBarBottom = baseBind.appBar.getBottom();
-            int tabH = baseBind.tabGlassPlatter.getHeight() > 0
-                    ? baseBind.tabGlassPlatter.getHeight()
-                    : DensityUtil.dp2px(48f);
-            baseY = appBarBottom > 0
-                    ? Math.max((float) statusBarHeightPx, (float) (appBarBottom - tabH))
-                    : (float) (statusBarHeightPx + toolbarH);
-        }
-        if (liquidGlassTabBar != null) {
-            liquidGlassTabBar.setBaseTranslationY(baseY);
-        } else {
-            baseBind.tabGlassPlatter.setTranslationY(baseY);
-        }
     }
 
     private void applyFloatingCollapse(float targetOffsetPx) {
@@ -508,11 +364,12 @@ public class FragmentLeft extends BaseLazyFragment<FragmentLeftBinding> {
         floatingCollapsePx = clamped;
 
         baseBind.appBar.setTranslationY(clamped);
-        syncTabGlassPosition();
 
         if (appBarH > 0) {
-            int visibleToolbar = Math.max(0, toolbarH + Math.round(clamped));
-            baseBind.topScrollEdge.setVisualAnchorHeightPx(statusBarHeightPx + visibleToolbar);
+            int visibleAnchor = Math.max(
+                    statusBarHeightPx,
+                    statusBarHeightPx + appBarH + Math.round(clamped));
+            baseBind.topScrollEdge.setVisualAnchorHeightPx(visibleAnchor);
 
             // AppBarLayout 上移收起时精确裁切在状态栏底缘（appBar.top + translationY + (-clamped) == statusBarHeightPx），
             // 避免透明悬浮 Toolbar 向上滑动时与系统状态栏时钟重叠。
@@ -545,12 +402,10 @@ public class FragmentLeft extends BaseLazyFragment<FragmentLeftBinding> {
         baseBind.appBar.setTranslationY(0f);
         baseBind.appBar.setClipBounds(null);
         baseBind.toolbar.setAlpha(1f);
-        if (!railModeShown && isSoftEdgeFloatingMode() && baseBind.toolbar.getHeight() > 0) {
+        if (!railModeShown && isSoftEdgeFloatingMode() && baseBind.appBar.getHeight() > 0) {
             baseBind.topScrollEdge.setVisualAnchorHeightPx(
-                    statusBarHeightPx + baseBind.toolbar.getHeight());
-            syncTabGlassPosition();
+                    statusBarHeightPx + baseBind.appBar.getHeight());
         }
-        syncScrollEdgeActivation(getCurrentTabRecyclerView());
     }
 
     private void snapFloatingCollapseIfNeeded(@NonNull RecyclerView recyclerView) {
@@ -565,7 +420,7 @@ public class FragmentLeft extends BaseLazyFragment<FragmentLeftBinding> {
             return;
         }
         // 仅在列表滚出超过整段 toolbarH 时自动吸附，避免靠顶时把 TabLayout 往上拉出空白缝隙
-        int maxCollapse = computeScrolledFromTop(recyclerView, toolbarH);
+        int maxCollapse = computeMaxCollapseForRecyclerView(recyclerView, toolbarH);
         if (maxCollapse < toolbarH) {
             return;
         }
@@ -574,17 +429,15 @@ public class FragmentLeft extends BaseLazyFragment<FragmentLeftBinding> {
     }
 
     private void syncFloatingCollapseForCurrentTab(boolean animate) {
-        RecyclerView rv = getCurrentTabRecyclerView();
         if (!isFloatingCollapseActive()) {
-            syncScrollEdgeActivation(rv);
             return;
         }
         int toolbarH = baseBind.toolbar.getHeight();
         if (toolbarH <= 0) {
-            syncScrollEdgeActivation(rv);
             return;
         }
-        int maxCollapse = rv != null ? computeScrolledFromTop(rv, toolbarH) : 0;
+        RecyclerView rv = getCurrentTabRecyclerView();
+        int maxCollapse = rv != null ? computeMaxCollapseForRecyclerView(rv, toolbarH) : 0;
         if (floatingCollapsePx < -maxCollapse) {
             float target = -maxCollapse;
             if (animate) {
@@ -594,7 +447,6 @@ public class FragmentLeft extends BaseLazyFragment<FragmentLeftBinding> {
                 applyFloatingCollapse(target);
             }
         }
-        syncScrollEdgeActivation(rv);
     }
 
     private void animateFloatingCollapseTo(float targetPx) {
@@ -606,10 +458,8 @@ public class FragmentLeft extends BaseLazyFragment<FragmentLeftBinding> {
         floatingCollapseAnimator = ValueAnimator.ofFloat(floatingCollapsePx, targetPx);
         floatingCollapseAnimator.setDuration(FLOATING_SNAP_DURATION_MS);
         floatingCollapseAnimator.setInterpolator(new DecelerateInterpolator());
-        floatingCollapseAnimator.addUpdateListener(animator -> {
-            applyFloatingCollapse((Float) animator.getAnimatedValue());
-            syncScrollEdgeActivation(getCurrentTabRecyclerView());
-        });
+        floatingCollapseAnimator.addUpdateListener(
+                animator -> applyFloatingCollapse((Float) animator.getAnimatedValue()));
         floatingCollapseAnimator.start();
     }
 
@@ -671,9 +521,6 @@ public class FragmentLeft extends BaseLazyFragment<FragmentLeftBinding> {
         if (rv != null && observedRecyclerViews.add(rv)) {
             rv.addOnScrollListener(feedScrollListener);
         }
-        if (rv != null && rv == getCurrentTabRecyclerView()) {
-            syncScrollEdgeActivation(rv);
-        }
     }
 
     private void detachFeedScrollListener(@NonNull View fragmentRoot) {
@@ -701,8 +548,8 @@ public class FragmentLeft extends BaseLazyFragment<FragmentLeftBinding> {
         return root != null ? root.findViewById(ceui.pixiv.feeds.R.id.feed_list_view) : null;
     }
 
-    private static int computeScrolledFromTop(@NonNull RecyclerView rv, int maxNeededPx) {
-        if (maxNeededPx <= 0 || !rv.canScrollVertically(-1)) {
+    private static int computeMaxCollapseForRecyclerView(@NonNull RecyclerView rv, int toolbarH) {
+        if (toolbarH <= 0 || !rv.canScrollVertically(-1)) {
             return 0;
         }
         RecyclerView.LayoutManager lm = rv.getLayoutManager();
@@ -711,7 +558,7 @@ public class FragmentLeft extends BaseLazyFragment<FragmentLeftBinding> {
         }
         View child0 = lm.findViewByPosition(0);
         if (child0 == null) {
-            return maxNeededPx;
+            return toolbarH;
         }
         ViewGroup.LayoutParams lp = child0.getLayoutParams();
         int topMargin = lp instanceof ViewGroup.MarginLayoutParams
@@ -721,7 +568,7 @@ public class FragmentLeft extends BaseLazyFragment<FragmentLeftBinding> {
         // 取 lm.getPaddingTop() 而非 rv.getPaddingTop()：JustifiedLayoutManager 会覆写 getPaddingTop()
         // 多让一格顶部间距，以 LayoutManager 口径算滚出距离在四种列表布局下都精确到像素。
         int scrolledFromTop = Math.max(0, lm.getPaddingTop() - firstStart);
-        return Math.min(maxNeededPx, scrolledFromTop);
+        return Math.min(toolbarH, scrolledFromTop);
     }
 
     private static float clampFloat(float value, float min, float max) {
@@ -896,39 +743,12 @@ public class FragmentLeft extends BaseLazyFragment<FragmentLeftBinding> {
             }
         });
         baseBind.viewPager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
-            private boolean pagerUserDragging = false;
-
-            @Override
-            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-                if (pagerUserDragging && liquidGlassTabBar != null) {
-                    liquidGlassTabBar.syncPageScroll(position, positionOffset);
-                }
-            }
-
             @Override
             public void onPageSelected(int position) {
                 baseBind.wideTabs.setCurrentState(position);
-                if (liquidGlassTabBar != null) {
-                    liquidGlassTabBar.syncSelection(true);
-                }
                 syncFloatingCollapseForCurrentTab(true);
             }
-
-            @Override
-            public void onPageScrollStateChanged(int state) {
-                if (state == ViewPager.SCROLL_STATE_DRAGGING) {
-                    pagerUserDragging = true;
-                } else if (state == ViewPager.SCROLL_STATE_IDLE) {
-                    pagerUserDragging = false;
-                    if (liquidGlassTabBar != null) {
-                        liquidGlassTabBar.syncSelection(false);
-                    }
-                }
-            }
         });
-        if (liquidGlassTabBar != null) {
-            liquidGlassTabBar.syncSelection(false);
-        }
     }
 
     public void forceRefresh() {

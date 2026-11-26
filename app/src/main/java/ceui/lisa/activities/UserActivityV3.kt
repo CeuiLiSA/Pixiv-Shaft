@@ -2,7 +2,6 @@ package ceui.lisa.activities
 
 import android.content.DialogInterface
 import android.content.Intent
-import android.graphics.Color
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffColorFilter
 import android.graphics.Rect
@@ -11,7 +10,6 @@ import android.text.TextUtils
 import android.view.View
 import android.view.ViewGroup
 import androidx.coordinatorlayout.widget.CoordinatorLayout
-import androidx.core.graphics.ColorUtils
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.Fragment
@@ -19,7 +17,6 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.adapter.FragmentStateAdapter
-import androidx.viewpager2.widget.ViewPager2
 import ceui.lisa.R
 import ceui.lisa.database.SearchDao
 import ceui.lisa.databinding.ActivityUserV3Binding
@@ -37,8 +34,6 @@ import ceui.pixiv.feeds.FeedFragment
 import ceui.pixiv.utils.playToggleHaptic
 import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.pixiv.witstudio.widget.WitLiquidGlassQuality
-import ceui.pixiv.witstudio.widget.WitLiquidGlassTabBar
-import ceui.pixiv.witstudio.widget.WitScrollEdgeBlurView
 import ceui.pixiv.actions.FollowVisibility
 import ceui.pixiv.actions.PixivActions
 import ceui.pixiv.widgets.FeedBackToTopFab
@@ -140,20 +135,11 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
     private val tabCounts = mutableMapOf<TabKind, Int>()
     private var lastAppBarOffset = 0
     private var pinnedTopChromeHeightPx = 0
-    private var isLiveGlassActive = false
     private var intrudingBehavior: IntrudingScrollingBehavior? = null
-    private var liquidGlassTabBar: WitLiquidGlassTabBar? = null
 
     override fun onResume() {
         super.onResume()
         syncGlassQuality()
-        syncTopChromeMetrics()
-    }
-
-    override fun onDestroy() {
-        liquidGlassTabBar?.detach()
-        liquidGlassTabBar = null
-        super.onDestroy()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -219,9 +205,7 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
         baseBind.toolbarSpacer.updateLayoutParams<ViewGroup.LayoutParams> { height = initialToolbarH }
         baseBind.toolbarLayout.minimumHeight = initialToolbarH
         baseBind.tabSpacer.updateLayoutParams<ViewGroup.LayoutParams> { height = initialTabH }
-        liquidGlassTabBar = WitLiquidGlassTabBar.attach(baseBind.tabGlassPlatter, baseBind.tabLayout)
         syncGlassQuality()
-        WitScrollEdgeBlurView.applyFloatingTextLegibility(baseBind.toolbarTitle, palette.isDark, true)
 
         val behavior = IntrudingScrollingBehavior { effectivePinnedSpacerHeightPx() }
         intrudingBehavior = behavior
@@ -273,7 +257,7 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
                 intrudingBehavior?.syncPosition(baseBind.userCoordinator, baseBind.viewPager)
             }
         }
-        baseBind.tabGlassPlatter.addOnLayoutChangeListener { _, _, top, _, bottom, _, oldTop, _, oldBottom ->
+        baseBind.tabLayout.addOnLayoutChangeListener { v, _, top, _, bottom, _, oldTop, _, oldBottom ->
             val h = bottom - top
             if (h > 0 && h != (oldBottom - oldTop)) {
                 if (baseBind.tabSpacer.layoutParams.height != h) {
@@ -293,64 +277,8 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
 
     private fun syncGlassQuality() {
         val quality = WitLiquidGlassQuality.fromOrdinal(Shaft.sSettings.liquidGlassQuality)
-        isLiveGlassActive = quality.isLiveEnabled
         baseBind.glassHost.quality = quality
         baseBind.topScrollEdge.quality = quality
-        val platterLp = baseBind.tabGlassPlatter.layoutParams as? ViewGroup.MarginLayoutParams
-        val tabLp = baseBind.tabLayout.layoutParams
-        if (quality.isLiveEnabled) {
-            val marginH = DensityUtil.dp2px(12f)
-            if (platterLp != null && (platterLp.marginStart != marginH || platterLp.marginEnd != marginH)) {
-                platterLp.marginStart = marginH
-                platterLp.marginEnd = marginH
-                baseBind.tabGlassPlatter.layoutParams = platterLp
-            }
-            val glassTabH = DensityUtil.dp2px(42f)
-            if (tabLp.height != glassTabH) {
-                tabLp.height = glassTabH
-                baseBind.tabLayout.layoutParams = tabLp
-            }
-            WitLiquidGlassTabBar.applyFloatingGlassChrome(
-                baseBind.tabGlassPlatter, quality, palette.isDark,
-            )
-            baseBind.tabGlassPlatter.platterAlpha = 1f
-            val selectedColor = if (palette.isDark && ColorUtils.calculateLuminance(palette.primary) < 0.35) {
-                palette.textAccent
-            } else {
-                palette.primary
-            }
-            val unselectedColor = if (palette.isDark) {
-                ColorUtils.setAlphaComponent(Color.WHITE, 204)
-            } else {
-                ColorUtils.setAlphaComponent(0xFF1A1A2E.toInt(), 168)
-            }
-            val indicatorFill = WitLiquidGlassTabBar.defaultRestingPillColor(palette.isDark)
-            liquidGlassTabBar?.applyThemeColors(selectedColor, unselectedColor, indicatorFill, palette.isDark)
-            liquidGlassTabBar?.isEnabled = true
-            liquidGlassTabBar?.syncSelection(false)
-        } else {
-            liquidGlassTabBar?.isEnabled = false
-            if (platterLp != null && (platterLp.marginStart != 0 || platterLp.marginEnd != 0)) {
-                platterLp.marginStart = 0
-                platterLp.marginEnd = 0
-                baseBind.tabGlassPlatter.layoutParams = platterLp
-            }
-            val classicTabH = DensityUtil.dp2px(48f)
-            if (tabLp.height != classicTabH) {
-                tabLp.height = classicTabH
-                baseBind.tabLayout.layoutParams = tabLp
-            }
-            baseBind.tabGlassPlatter.quality = WitLiquidGlassQuality.NONE
-            baseBind.tabGlassPlatter.cornerRadiusDp = 0f
-            baseBind.tabGlassPlatter.tintColor = Color.TRANSPARENT
-            baseBind.tabGlassPlatter.elevation = 0f
-            baseBind.tabGlassPlatter.platterAlpha = 0f
-            baseBind.tabGlassPlatter.setPadding(0, 0, 0, 0)
-            val textPrimary = getColor(R.color.v3_text_1)
-            val textSecondary = getColor(R.color.v3_text_2)
-            baseBind.tabLayout.setTabTextColors(textSecondary, textPrimary)
-            baseBind.tabLayout.setSelectedTabIndicatorColor(textPrimary)
-        }
     }
 
     private fun effectiveToolbarHeightPx(): Int {
@@ -360,7 +288,7 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
     }
 
     private fun effectiveTabHeightPx(): Int {
-        val measured = baseBind.tabGlassPlatter.height
+        val measured = baseBind.tabLayout.height
         return if (measured > 0) measured else DensityUtil.dp2px(48f)
     }
 
@@ -378,9 +306,7 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
         val toolbarH = effectiveToolbarHeightPx()
         val tabH = effectiveTabHeightPx()
         val totalPinned = toolbarH + tabH
-        // 液态玻璃开启时顶部软边模糊仅覆盖状态栏与 Toolbar（Tab 行由浮空玻璃胶囊独立承托）；
-        // 无档位时由零 GPU 渐变遮罩同时承托 Toolbar + TabLayout，避免 Tab 文字直接裸浮在未模糊作品上。
-        baseBind.topScrollEdge.anchorHeightPx = if (isLiveGlassActive) toolbarH else totalPinned
+        baseBind.topScrollEdge.anchorHeightPx = totalPinned
         if (pinnedTopChromeHeightPx != totalPinned) {
             pinnedTopChromeHeightPx = totalPinned
             for (fragment in supportFragmentManager.fragments) {
@@ -438,15 +364,26 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
         val tabH = effectiveTabHeightPx()
         val appBarBottom = baseBind.appBar.bottom.takeIf { it > 0 } ?: (toolbarH + tabH)
         val tabTop = (appBarBottom - tabH).coerceAtLeast(toolbarH)
-        liquidGlassTabBar?.setBaseTranslationY(tabTop.toFloat())
-            ?: run { baseBind.tabGlassPlatter.translationY = tabTop.toFloat() }
+        baseBind.tabLayout.translationY = tabTop.toFloat()
 
-        // 液态玻璃开启时仅紧凑覆盖状态栏与 Toolbar；无档位时扩展至 TabLayout 底缘保护可读性。
+        // 顶部软边模糊：静止展开看 banner 时 alpha=0 保持原图锐利；上滑 32dp 内平滑渐显至 1；
+        // TabLayout 临近吸顶最后一段行程中，保护高度从 Toolbar 顺滑延展至 Toolbar + TabLayout。
         val edge = baseBind.topScrollEdge
         val fadeRange = DensityUtil.dp2px(32f).coerceAtLeast(1).toFloat()
         val targetAlpha = (absOffset.toFloat() / fadeRange).coerceIn(0f, 1f)
-        edge.setActivationProgress(targetAlpha)
-        edge.visualAnchorHeightPx = if (isLiveGlassActive) toolbarH else (toolbarH + tabH)
+        val wasZero = edge.alpha <= 0f
+        if (kotlin.math.abs(edge.alpha - targetAlpha) > 0.004f) {
+            edge.alpha = targetAlpha
+            if (wasZero != (targetAlpha <= 0f)) {
+                baseBind.glassHost.invalidate()
+            }
+        }
+        val tabApproach = if (tabH > 0) {
+            ((toolbarH + tabH - tabTop).toFloat() / tabH.toFloat()).coerceIn(0f, 1f)
+        } else {
+            0f
+        }
+        edge.visualAnchorHeightPx = toolbarH + kotlin.math.round(tabH * tabApproach).toInt()
     }
 
     /**
@@ -676,30 +613,6 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
         TabLayoutMediator(baseBind.tabLayout, baseBind.viewPager) { tab, position ->
             tab.text = tabTitle(tabKinds[position])
         }.attach()
-
-        baseBind.viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
-            private var pagerUserDragging = false
-
-            override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {
-                if (pagerUserDragging) {
-                    liquidGlassTabBar?.syncPageScroll(position, positionOffset)
-                }
-            }
-
-            override fun onPageSelected(position: Int) {
-                liquidGlassTabBar?.syncSelection(true)
-            }
-
-            override fun onPageScrollStateChanged(state: Int) {
-                when (state) {
-                    ViewPager2.SCROLL_STATE_DRAGGING -> pagerUserDragging = true
-                    ViewPager2.SCROLL_STATE_IDLE -> {
-                        pagerUserDragging = false
-                        liquidGlassTabBar?.syncSelection(false)
-                    }
-                }
-            }
-        })
     }
 
     private fun tabTitle(kind: TabKind): CharSequence {

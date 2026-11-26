@@ -10,7 +10,6 @@ import android.graphics.Shader
 import android.os.Build
 import android.util.AttributeSet
 import android.view.View
-import android.widget.TextView
 import androidx.annotation.ColorInt
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
@@ -25,7 +24,6 @@ import ceui.pixiv.witstudio.widget.internal.WitScrollEdgeCurve
 import ceui.pixiv.witstudio.widget.internal.WitScrollEdgeRenderer
 import ceui.pixiv.witstudio.widget.internal.WitScrollEdgeStandardRenderer
 import ceui.pixiv.witstudio.widget.internal.WitScrollEdgeUltraRenderer
-import kotlin.math.abs
 import kotlin.math.ceil
 
 /**
@@ -37,9 +35,9 @@ import kotlin.math.ceil
  * smoothly into progressive Gaussian blur and a borderless atmospheric veil.
  *
  * Rendering tiers (automatically synced with [WitLiquidGlassQuality]):
- * - [WitLiquidGlassQuality.ULTRA] (API 33+): 5-level hardware Gaussian pyramid + AGSL per-pixel
- *   continuous variable-radius progressive blur, anchor-protected soft-shoulder falloff, vibrancy
- *   preservation, per-pixel luminance-adaptive veil clamping, and IGN OLED anti-banding dithering.
+ * - [WitLiquidGlassQuality.ULTRA] (API 33+): 4-level hardware Gaussian pyramid + AGSL per-pixel
+ *   continuous variable-radius progressive blur, vibrancy preservation, luminance-adaptive veil,
+ *   and IGN OLED anti-banding dithering.
  * - [WitLiquidGlassQuality.STANDARD] (API 31+): lightweight downscaled HWUI Gaussian blur masked
  *   by a smooth multi-stop vertical alpha curve + soft veil.
  * - [WitLiquidGlassQuality.NONE] / API < 31 / low-RAM / software canvas: zero-GPU smooth eased
@@ -228,22 +226,6 @@ public class WitScrollEdgeBlurView @JvmOverloads public constructor(
     /** Convenience helper for setting [anchorHeightPx] in dp. */
     public fun setAnchorHeightDp(dp: Float) {
         anchorHeightPx = ceil(dp.coerceAtLeast(0f) * density).toInt()
-    }
-
-    /**
-     * Smoothly drives scroll-edge activation (`0f` = at rest at top of scroll with zero haze on
-     * first card and zero backdrop GPU work; `1f` = fully active while content scrolls beneath
-     * floating chrome), waking up the parent [WitLiquidGlassHost] on `0 <-> >0` transitions.
-     */
-    public fun setActivationProgress(progress: Float) {
-        val target = progress.coerceIn(0f, 1f)
-        val wasZero = alpha <= 0f
-        if (abs(alpha - target) > 0.004f || (wasZero != (target <= 0f))) {
-            alpha = target
-            if (wasZero != (target <= 0f)) {
-                (parent as? View)?.invalidate()
-            }
-        }
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -461,27 +443,5 @@ public class WitScrollEdgeBlurView @JvmOverloads public constructor(
         fallbackOpticsDirty = true
         fallbackShader = null
         invalidate()
-    }
-
-    public companion object {
-        private const val DARK_HALO_COLOR: Int = 0x59000000 // Subtle 35% black cushion
-        private const val LIGHT_HALO_COLOR: Int = 0x8CFFFFFF.toInt() // Subtle 55% white cushion
-
-        /**
-         * Applies iOS 26 floating-chrome legibility styling to a [TextView] (e.g. floating toolbar
-         * title) positioned over [WitScrollEdgeBlurView]: a subtle theme-polarized optical halo
-         * that is invisible against matching page ground yet lifts glyphs cleanly off opposite-polarity
-         * scrolling artwork. Pass `active = false` to clear the shadow cleanly.
-         */
-        @JvmStatic
-        public fun applyFloatingTextLegibility(textView: TextView, isDark: Boolean, active: Boolean) {
-            if (!active) {
-                textView.setShadowLayer(0f, 0f, 0f, Color.TRANSPARENT)
-                return
-            }
-            val d = textView.resources.displayMetrics.density
-            val halo = if (isDark) DARK_HALO_COLOR else LIGHT_HALO_COLOR
-            textView.setShadowLayer(3f * d, 0f, 0.5f * d, halo)
-        }
     }
 }

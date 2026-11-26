@@ -390,7 +390,9 @@
 
         </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
-        <!-- Child 1: iOS 26 UIScrollEdgeEffect.Style.soft 轻量紧凑顶部渐进模糊层（仅保护状态栏与 Toolbar，不压暗下方作品） -->
+        <!-- Child 1: iOS 26 UIScrollEdgeEffect.Style.soft 顶部渐进模糊层。
+             展开态静止看 banner 时 alpha=0 保持原图锐利；开始滚动后平滑渐显，
+             并在 TabLayout 吸顶时将保护区从 Toolbar 延伸至 Toolbar + TabLayout 底缘。 -->
         <ceui.pixiv.witstudio.widget.WitScrollEdgeBlurView
             android:id="@+id/top_scroll_edge"
             android:layout_width="match_parent"
@@ -401,33 +403,19 @@
             app:wit_edgeOpaqueHeaderFallback="true"
             app:wit_edgeScrimColor="@color/v3_bg" />
 
-        <!-- Child 2a: 与首页底栏同款的 iOS 26 液态玻璃交互 Tab 胶囊（复用 WitLiquidGlassTabBar 完整按压缩放/水滴透镜/拖拽/滑动动效） -->
-        <ceui.pixiv.witstudio.widget.WitLiquidGlassView
-            android:id="@+id/tab_glass_platter"
+        <!-- Child 2a: 悬浮于模糊层之上的 TabLayout，translationY 与 AppBarLayout 底缘实时同步并吸顶于 Toolbar 下方 -->
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/tab_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="top"
-            android:layout_marginStart="12dp"
-            android:layout_marginEnd="12dp"
-            app:wit_glassMaterial="regular">
-
-            <com.google.android.material.tabs.TabLayout
-                android:id="@+id/tab_layout"
-                android:layout_width="match_parent"
-                android:layout_height="42dp"
-                android:background="@android:color/transparent"
-                android:fadingEdgeLength="16dp"
-                android:requiresFadingEdge="horizontal"
-                app:tabGravity="start"
-                app:tabIndicatorColor="@color/v3_text_1"
-                app:tabIndicatorFullWidth="false"
-                app:tabMode="scrollable"
-                app:tabPaddingEnd="14dp"
-                app:tabPaddingStart="14dp"
-                app:tabSelectedTextColor="@color/v3_text_1"
-                app:tabTextColor="@color/v3_text_2" />
-
-        </ceui.pixiv.witstudio.widget.WitLiquidGlassView>
+            android:background="@android:color/transparent"
+            app:tabGravity="start"
+            app:tabIndicatorColor="@color/v3_text_1"
+            app:tabIndicatorFullWidth="false"
+            app:tabMode="scrollable"
+            app:tabSelectedTextColor="@color/v3_text_1"
+            app:tabTextColor="@color/v3_text_3" />
 
         <!-- Child 2b: 悬浮于模糊层之上的顶栏（返回 / 吸顶画师名 / 更多菜单） -->
         <androidx.appcompat.widget.Toolbar
