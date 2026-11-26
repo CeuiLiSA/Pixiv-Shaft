@@ -15,7 +15,6 @@ import android.webkit.URLUtil;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
@@ -24,7 +23,6 @@ import ceui.pixiv.witstudio.widget.WitTagStyle;
 import ceui.pixiv.widgets.V3TagFlowView;
 import ceui.pixiv.witstudio.dialog.WitDialog;
 import ceui.pixiv.witstudio.dialog.WitDialogAction;
-import ceui.pixiv.witstudio.dialog.WitTipDialog;
 import com.bumptech.glide.Glide;
 
 import java.util.ArrayList;
@@ -47,12 +45,12 @@ import ceui.lisa.databinding.FragmentSearchBinding;
 import ceui.lisa.databinding.RecyPinnedUserBinding;
 import ceui.lisa.helper.IllustNovelFilter;
 import ceui.lisa.http.LegacyApiCalls;
-import ceui.lisa.interfaces.Callback;
 import ceui.lisa.model.ListTrendingtag;
 import ceui.lisa.models.TagsBean;
 import ceui.lisa.utils.ClipBoardUtils;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUtil;
+import ceui.lisa.utils.NumericIdSearchKt;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 import ceui.lisa.utils.SearchTypeUtil;
@@ -218,34 +216,8 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
                     e.printStackTrace();
                 }
             }
-            else if(Common.isNumeric(trimmedKeyword)){
-                WitTipDialog tipDialog = new WitTipDialog.Builder(mContext)
-                        .setTipWord(getString(R.string.string_429))
-                        .create();
-                tipDialog.show();
-                // 绑定发起请求时的视图，避免旧请求在视图重建后继续跳转。
-                Lifecycle requestLifecycle = getViewLifecycleOwner().getLifecycle();
-                //先假定为作品id
-                PixivOperate.getIllustByID(tryParseId(trimmedKeyword), mContext, new Callback<Void>() {
-                    @Override
-                    public void doSomething(Void t) {
-                        PixivOperate.insertSearchHistory(trimmedKeyword, SearchTypeUtil.SEARCH_TYPE_DB_ILLUSTSID);
-                        tipDialog.dismiss();
-                    }
-                }, new Callback<Void>() {
-                    @Override
-                    public void doSomething(Void t) {
-                        tipDialog.dismiss();
-                        if (!isAdded() || requestLifecycle.getCurrentState() == Lifecycle.State.DESTROYED
-                                || mActivity.isFinishing() || mActivity.isDestroyed()) {
-                            return;
-                        }
-                        PixivOperate.insertSearchHistory(trimmedKeyword, SearchTypeUtil.SEARCH_TYPE_DB_USERID);
-                        Intent intent = new Intent(mContext, UActivity.class);
-                        intent.putExtra(Params.USER_ID, (long) Common.safeUserId(trimmedKeyword));
-                        startActivity(intent);
-                    }
-                });
+            else if (Common.isNumeric(trimmedKeyword)) {
+                NumericIdSearchKt.searchNumericId(mActivity, getViewLifecycleOwner(), trimmedKeyword, null);
             }
             else{
                 hintViewModel.hideHints();

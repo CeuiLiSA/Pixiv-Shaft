@@ -19,7 +19,6 @@ import android.widget.TextView;
 import com.google.android.material.appbar.AppBarLayout;
 import ceui.pixiv.witstudio.dialog.WitDialog;
 import ceui.pixiv.witstudio.dialog.WitDialogAction;
-import ceui.pixiv.witstudio.dialog.WitTipDialog;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -39,8 +38,8 @@ import ceui.pixiv.ui.search.SearchPinController;
 import ceui.pixiv.ui.pinned.PinnedSearchTermsKt;
 import ceui.pixiv.ui.search.SearchRiskPolicy;
 import ceui.pixiv.ui.search.SearchUserFeedFragment;
-import ceui.lisa.interfaces.Callback;
 import ceui.lisa.utils.Common;
+import ceui.lisa.utils.NumericIdSearchKt;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 import ceui.lisa.utils.PixivSearchParamUtil;
@@ -378,35 +377,11 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
                         e.printStackTrace();
                     }
                 }
-                else if(Common.isNumeric(trimmedKeyword)){
+                else if (Common.isNumeric(trimmedKeyword)) {
                     trackSearch(searchTypeAt(mPosition), Analytics.QueryKind.NUMERIC_ID,
                             Analytics.SearchTrigger.IN_PAGE, 1);
-                    WitTipDialog tipDialog = new WitTipDialog.Builder(mContext)
-                            .setTipWord(getString(R.string.string_429))
-                            .create();
-                    tipDialog.show();
-                    //先假定为作品id
-                    PixivOperate.getIllustByID(tryParseId(trimmedKeyword), mContext, new Callback<Void>() {
-                        @Override
-                        public void doSomething(Void t) {
-                            PixivOperate.insertSearchHistory(trimmedKeyword, SearchTypeUtil.SEARCH_TYPE_DB_ILLUSTSID);
-                            tipDialog.dismiss();
-                            mActivity.finish();
-                        }
-                    }, new Callback<Void>() {
-                        @Override
-                        public void doSomething(Void t) {
-                            tipDialog.dismiss();
-                            if (isFinishing() || isDestroyed()) {
-                                return;
-                            }
-                            PixivOperate.insertSearchHistory(trimmedKeyword, SearchTypeUtil.SEARCH_TYPE_DB_USERID);
-                            Intent intent = new Intent(mContext, UActivity.class);
-                            intent.putExtra(Params.USER_ID, Common.safeUserId(trimmedKeyword));
-                            startActivity(intent);
-                            mActivity.finish();
-                        }
-                    });
+                    NumericIdSearchKt.searchNumericId(SearchActivity.this, SearchActivity.this,
+                            trimmedKeyword, SearchActivity.this::finish);
                 }
                 else{
                     // Commit the freshly-typed keyword as a chip, clear the input,

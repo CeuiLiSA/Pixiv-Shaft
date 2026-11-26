@@ -265,7 +265,7 @@ public class PixivOperate {
     }
 
     /** 按 ID 打开作品详情页的公共尾段:同步关注态 → 建单作品 PageData → 进 VActivity。 */
-    private static void openIllustDetail(Context context, Illust illust) {
+    static void openIllustDetail(Context context, Illust illust) {
         User user = illust.getUser();
         if (user != null) {
             ((ServicesProvider) Shaft.getContext()).getAppLevelState().updateFollowUserStatus(user.getId(), Boolean.TRUE.equals(user.is_followed()) ? AppLevelState.FollowUserStatus.FOLLOWED : AppLevelState.FollowUserStatus.NOT_FOLLOW);
