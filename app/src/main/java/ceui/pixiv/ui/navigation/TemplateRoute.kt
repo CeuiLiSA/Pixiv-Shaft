@@ -136,6 +136,8 @@ enum class TemplateRoute(@JvmField val key: String) {
     SFW_RANK("全年龄榜"),
     YEAR_RANK("年代榜"),
     TAG_RANK("标签榜"),
+    KEYWORD_RANK("KeywordRank"),
+    KEYWORD_RANK_WORKS("KeywordRankWorks"),
     WALLPAPER_RANK("壁纸榜"),
     SERIES_RANK("系列榜"),
     MONTH_RANK("新作榜"),

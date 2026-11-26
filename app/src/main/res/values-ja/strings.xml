@@ -3754,4 +3754,7 @@
     <string name="chat_image_retry">再試行</string>
     <string name="chat_image_upload_progress">写真をアップロード中、%1$d / %2$d</string>
     <string name="media_selection_too_large">写真は1枚につき30 MB以下にしてください</string>
+    <string name="keyword_rank">人気の検索キーワード</string>
+    <string name="keyword_rank_work_count">%1$s · %2$s 件の作品</string>
+    <string name="keyword_rank_heat">人気度 %1$s</string>
 </resources>

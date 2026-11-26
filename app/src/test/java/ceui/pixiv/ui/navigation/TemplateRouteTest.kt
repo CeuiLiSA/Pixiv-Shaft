@@ -163,6 +163,8 @@ class TemplateRouteTest {
             "SFW_RANK" to "全年龄榜",
             "YEAR_RANK" to "年代榜",
             "TAG_RANK" to "标签榜",
+            "KEYWORD_RANK" to "KeywordRank",
+            "KEYWORD_RANK_WORKS" to "KeywordRankWorks",
             "WALLPAPER_RANK" to "壁纸榜",
             "SERIES_RANK" to "系列榜",
             "MONTH_RANK" to "新作榜",

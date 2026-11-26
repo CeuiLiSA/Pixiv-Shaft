@@ -106,13 +106,7 @@ abstract class UserFeedFragment(
     }
 
     override fun onListReady(listView: RecyclerView) {
-        listView.addItemDecoration(UserCardDecoration(requireContext()))
-        // 分屏 / 自由窗口改宽度时不一定重建，偏移要跟着新宽度重算一次。首次布局（旧宽 0）不算：
-        // 那一遍 getItemOffsets 读到的已经是真实宽度，再 invalidate 只会白跑一整遍列表布局。
-        listView.addOnLayoutChangeListener { v, left, _, right, _, oldLeft, _, oldRight, _ ->
-            val oldWidth = oldRight - oldLeft
-            if (oldWidth != 0 && right - left != oldWidth) (v as RecyclerView).invalidateItemDecorations()
-        }
+        listView.addUserCardDecoration()
     }
 
     override fun onCreateSkeletonView(layoutManager: RecyclerView.LayoutManager): FeedSkeletonView =

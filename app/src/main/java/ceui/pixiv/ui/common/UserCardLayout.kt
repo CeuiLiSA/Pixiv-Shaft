@@ -43,6 +43,14 @@ internal class UserCardDecoration(context: Context) : RecyclerView.ItemDecoratio
     }
 }
 
+internal fun RecyclerView.addUserCardDecoration() {
+    addItemDecoration(UserCardDecoration(context))
+    addOnLayoutChangeListener { _, left, _, right, _, oldLeft, _, oldRight, _ ->
+        val oldWidth = oldRight - oldLeft
+        if (oldWidth != 0 && right - left != oldWidth) invalidateItemDecorations()
+    }
+}
+
 /**
  * 用户卡列表的首屏骨架：照真卡的几何画卡里的内容（不画卡底，同广场 / 小说骨架）——
  * 三张 1:1 预览格（格间 2dp）→ 44dp 圆头像 + 名字条 + 账号条 → 末端 36dp 关注胶囊。

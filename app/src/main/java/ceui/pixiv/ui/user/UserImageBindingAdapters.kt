@@ -7,6 +7,7 @@ import ceui.lisa.utils.GlideUrlChild
 import ceui.loxia.User
 import ceui.pixiv.api.model.Illust
 import com.bumptech.glide.Glide
+import com.bumptech.glide.RequestManager
 import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
@@ -64,16 +65,24 @@ fun ImageView.binding_loadUserIcon(user: User?) {
 }
 
 fun ImageView.binding_loadSquareMedia(illust: Illust?, fadeOnLoad: Boolean = true, durationMs: Int? = null) {
-    val url = illust?.image_urls?.square_medium?.takeIf { it.isNotBlank() }
-    if (url == null) {
+    loadSquareMedia(illust?.image_urls?.square_medium, Glide.with(this), fadeOnLoad, durationMs)
+}
+
+internal fun ImageView.loadSquareMedia(
+    url: String?,
+    glide: RequestManager,
+    fadeOnLoad: Boolean = true,
+    durationMs: Int? = null,
+) {
+    if (url.isNullOrBlank()) {
         // 标签卡固定保留三个预览槽；空槽必须清掉 RecyclerView 复用留下的上一张图，
         // 让 XML 里的主题占位背景真正可见。
-        Glide.with(this).clear(this)
+        glide.clear(this)
         setImageDrawable(null)
         return
     }
     scaleType = ImageView.ScaleType.CENTER_CROP
-    val request = Glide.with(this)
+    val request = glide
         .load(GlideUrlChild(url))
         .placeholder(R.drawable.bg_tag_preview_placeholder)
         .error(R.drawable.bg_tag_preview_placeholder)

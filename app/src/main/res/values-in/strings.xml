@@ -3723,4 +3723,7 @@
     <string name="chat_image_retry">Coba lagi</string>
     <string name="chat_image_upload_progress">Mengunggah foto, %1$d dari %2$d</string>
     <string name="media_selection_too_large">Ukuran setiap foto maksimal 30 MB</string>
+    <string name="keyword_rank">Pencarian Populer</string>
+    <string name="keyword_rank_work_count">%1$s · %2$s karya</string>
+    <string name="keyword_rank_heat">Popularitas %1$s</string>
 </resources>
