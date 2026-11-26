@@ -3793,7 +3793,4 @@
     <string name="chat_image_retry">Tekrar dene</string>
     <string name="chat_image_upload_progress">Fotoğraflar yükleniyor, %1$d / %2$d</string>
     <string name="media_selection_too_large">Her fotoğraf en fazla 30 MB olabilir</string>
-    <string name="keyword_rank">Popüler Aramalar</string>
-    <string name="keyword_rank_work_count">%1$s · %2$s eser</string>
-    <string name="keyword_rank_heat">Popülerlik: %1$s</string>
 </resources>

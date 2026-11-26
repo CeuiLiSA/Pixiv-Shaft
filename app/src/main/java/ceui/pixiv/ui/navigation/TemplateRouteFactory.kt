@@ -97,9 +97,6 @@ import ceui.pixiv.ui.recommend.FragmentRecentRecommend
 import ceui.pixiv.ui.recommend.FragmentSiteRecommend
 import ceui.pixiv.ui.recommend.MonthRankFragment
 import ceui.pixiv.ui.recommend.NovelLengthRankFragment
-import ceui.pixiv.ui.recommend.KeywordRankFeedFragment
-import ceui.pixiv.ui.recommend.KeywordRankFragment
-import ceui.pixiv.ui.recommend.keywordRankWorksFragment
 import ceui.pixiv.ui.recommend.RESTRICT_SFW
 import ceui.pixiv.ui.recommend.SeriesRankFragment
 import ceui.pixiv.ui.recommend.TagRankFragment
@@ -545,12 +542,6 @@ object TemplateRouteFactory {
             TemplateRoute.SFW_RANK -> BookmarkRankFragment.newInstance(null, RESTRICT_SFW)
             TemplateRoute.YEAR_RANK -> YearRankFragment.newInstance()
             TemplateRoute.TAG_RANK -> TagRankFragment.newInstance()
-            TemplateRoute.KEYWORD_RANK -> KeywordRankFragment()
-            TemplateRoute.KEYWORD_RANK_WORKS -> keywordRankWorksFragment(
-                intent.requireString(KeywordRankFeedFragment.ARG_ID),
-                intent.requireString(KeywordRankFeedFragment.ARG_KEYWORD),
-                intent.requireString(KeywordRankFeedFragment.ARG_KIND),
-            )
             TemplateRoute.WALLPAPER_RANK -> WallpaperRankFragment.newInstance()
             // shaft-api-v2 discover/series:漫画 / 小说系列按累计收藏排
             TemplateRoute.SERIES_RANK -> SeriesRankFragment.newInstance()

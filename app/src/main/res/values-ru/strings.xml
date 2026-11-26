@@ -3821,7 +3821,4 @@
     <string name="chat_image_retry">Повторить</string>
     <string name="chat_image_upload_progress">Загрузка фотографий, %1$d из %2$d</string>
     <string name="media_selection_too_large">Размер каждой фотографии должен быть не более 30 МБ</string>
-    <string name="keyword_rank">Популярные запросы</string>
-    <string name="keyword_rank_work_count">%1$s · работ: %2$s</string>
-    <string name="keyword_rank_heat">Популярность: %1$s</string>
 </resources>

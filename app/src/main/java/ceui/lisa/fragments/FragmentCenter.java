@@ -157,7 +157,6 @@ public class FragmentCenter extends BaseLazyFragment<FragmentNewCenterBinding> {
         baseBind.catAiRank.setOnClickListener(v -> openFragment(TemplateRoute.AI_RANK));
         baseBind.catYearRank.setOnClickListener(v -> openFragment(TemplateRoute.YEAR_RANK));
         baseBind.catTagRank.setOnClickListener(v -> openFragment(TemplateRoute.TAG_RANK));
-        baseBind.catKeywordRank.setOnClickListener(v -> openFragment(TemplateRoute.KEYWORD_RANK));
         baseBind.catWallpaperRank.setOnClickListener(v -> openFragment(TemplateRoute.WALLPAPER_RANK));
         baseBind.catSeriesRank.setOnClickListener(v -> openFragment(TemplateRoute.SERIES_RANK));
         baseBind.catMonthRank.setOnClickListener(v -> openFragment(TemplateRoute.MONTH_RANK));
@@ -201,7 +200,6 @@ public class FragmentCenter extends BaseLazyFragment<FragmentNewCenterBinding> {
         styleCatChip(baseBind.catAiRank, palette, R.drawable.baseline_auto_awesome_24);
         styleCatChip(baseBind.catYearRank, palette, R.drawable.ic_date_range_black_24dp);
         styleCatChip(baseBind.catTagRank, palette, R.drawable.ic_loyalty_black_24dp);
-        styleCatChip(baseBind.catKeywordRank, palette, R.drawable.ic_search_black_24dp);
         styleCatChip(baseBind.catWallpaperRank, palette, R.drawable.ic_setcat_photo);
         styleCatChip(baseBind.catSeriesRank, palette, R.drawable.ic_baseline_list_24);
         styleCatChip(baseBind.catMonthRank, palette, R.drawable.ic_fiber_new_black_24dp);

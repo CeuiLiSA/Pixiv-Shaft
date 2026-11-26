@@ -529,6 +529,8 @@ abstract class IllustFeedFragment(
     protected open val detailContinuationCursor: String?
         get() = feedViewModel.currentCursor
 
+    protected open fun createDetailFeedPagination(): IllustDetailFeedPagination? = null
+
     internal fun openDetail(item: IllustFeedItem) {
         val illustItems = currentIllustItems()
         val position = illustItems.indexOfFirst { it.illust.id == item.illust.id }
@@ -542,6 +544,7 @@ abstract class IllustFeedFragment(
                 sessionUuid,
                 detailContinuationCursor,
                 illustItems.map { it.illust },
+                createDetailFeedPagination(),
             )
         } else {
             // 点击项已不在当前列表（刷新竞态等）：单开该作品，绝不错开成第一张。

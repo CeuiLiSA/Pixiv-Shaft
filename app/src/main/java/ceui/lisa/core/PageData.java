@@ -6,24 +6,30 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import ceui.pixiv.api.model.Illust;
+import ceui.pixiv.ui.common.IllustDetailFeedPagination;
 
 public class PageData implements IDWithList<Illust>{
 
     private final String uuid;
     private String nextUrl;
     private final List<Illust> illustList;
+    private final IllustDetailFeedPagination feedPagination;
     private final AtomicBoolean loadingNextPage = new AtomicBoolean(false);
 
     public PageData(List<Illust> illustList) {
-        this.uuid = UUID.randomUUID().toString();
-        this.nextUrl = null;
-        this.illustList = new ArrayList<>(illustList);
+        this(UUID.randomUUID().toString(), null, illustList);
     }
 
     public PageData(String uuid, String nextUrl, List<Illust> illustList) {
+        this(uuid, nextUrl, illustList, null);
+    }
+
+    public PageData(String uuid, String nextUrl, List<Illust> illustList,
+                    IllustDetailFeedPagination feedPagination) {
         this.uuid = uuid;
         this.nextUrl = nextUrl;
         this.illustList = new ArrayList<>(illustList);
+        this.feedPagination = feedPagination;
     }
 
     @Override
@@ -42,6 +48,10 @@ public class PageData implements IDWithList<Illust>{
 
     public void setNextUrl(String nextUrl) {
         this.nextUrl = nextUrl;
+    }
+
+    public IllustDetailFeedPagination getFeedPagination() {
+        return feedPagination;
     }
 
     /**

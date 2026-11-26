@@ -49,6 +49,16 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding>
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
+        if (savedInstanceState != null && getClass() == TemplateActivity.class) {
+            String savedRoute = getIntent().getStringExtra(EXTRA_FRAGMENT);
+            if (!TextUtils.isEmpty(savedRoute) && TemplateRoute.fromKey(savedRoute) == null) {
+                // An upgrade can remove a page while Android still has its fragment state.
+                getIntent().removeExtra(EXTRA_FRAGMENT);
+                super.onCreate(null);
+                finish();
+                return;
+            }
+        }
         super.onCreate(savedInstanceState);
         // BaseActivity.onCreate 把 initData() 整个包在 catch(Exception) 里，createNewFragment
         // 里直接 throw 会被吞成一张白页——debug 要真崩，只能等 super.onCreate 返回后再抛。

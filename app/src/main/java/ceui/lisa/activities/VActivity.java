@@ -25,6 +25,7 @@ import ceui.lisa.databinding.ActivityViewPagerBinding;
 import ceui.lisa.fragments.FragmentIllust;
 import ceui.lisa.fragments.FragmentImageDetail;
 import ceui.pixiv.ui.common.TabletLayout;
+import ceui.pixiv.ui.common.IllustDetailFeedPagination;
 import ceui.pixiv.ui.detail.ArtworkV3Fragment;
 import ceui.lisa.helper.DeduplicateArrayList;
 import ceui.lisa.http.LegacyApiCalls;
@@ -153,6 +154,11 @@ public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
             // 前后页保留 View 和 feed 数据以保证横滑手感，但 lifecycle 限制在 STARTED。
             baseBind.viewPager.setOffscreenPageLimit(1);
 
+            IllustDetailFeedPagination feedPagination = pageData.getFeedPagination();
+            if (feedPagination != null) {
+                feedPagination.bind(this, pageData.getList(), mLazyAdapter::notifyDataSetChanged);
+            }
+
             ViewPager.OnPageChangeListener listener = new ViewPager.OnPageChangeListener() {
                 @Override
                 public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
@@ -181,6 +187,10 @@ public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
                     }
 
                     if (position == (pageData.getList().size() - 1) || position == (pageData.getList().size() - 2)) {
+                        if (feedPagination != null) {
+                            feedPagination.loadMore(false);
+                            return;
+                        }
                         String nextUrl = pageData.getNextUrl();
                         if (!TextUtils.isEmpty(nextUrl)) {
                             if (pageData.tryStartNextPageLoad()) {
@@ -214,7 +224,10 @@ public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
 
                 @Override
                 public void onPageScrollStateChanged(int state) {
-
+                    if (feedPagination != null && state == ViewPager.SCROLL_STATE_DRAGGING
+                            && baseBind.viewPager.getCurrentItem() == pageData.getList().size() - 1) {
+                        feedPagination.loadMore(true);
+                    }
                 }
             };
             baseBind.viewPager.addOnPageChangeListener(listener);

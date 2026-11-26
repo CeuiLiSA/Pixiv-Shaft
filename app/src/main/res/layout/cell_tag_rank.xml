@@ -9,51 +9,25 @@
     android:orientation="vertical"
     android:padding="16dp">
 
-    <LinearLayout
+    <TextView
+        android:id="@+id/tag_name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="top"
-        android:orientation="horizontal">
+        android:ellipsize="end"
+        android:fontFamily="@font/montserrat_semi_bold"
+        android:lineSpacingExtra="2sp"
+        android:maxLines="3"
+        android:textColor="@color/v3_text_1"
+        android:textSize="16sp" />
 
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical">
-
-            <TextView
-                android:id="@+id/keyword"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:ellipsize="end"
-                android:fontFamily="@font/montserrat_semi_bold"
-                android:lineSpacingExtra="2sp"
-                android:maxLines="3"
-                android:textColor="@color/v3_text_1"
-                android:textSize="16sp" />
-
-            <TextView
-                android:id="@+id/work_count"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:fontFamily="@font/montserrat_medium"
-                android:textColor="@color/v3_text_2"
-                android:textSize="13sp" />
-        </LinearLayout>
-
-        <TextView
-            android:id="@+id/heat"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
-            android:fontFamily="@font/montserrat_medium"
-            android:fontFeatureSettings="tnum"
-            android:maxWidth="104dp"
-            android:textAlignment="viewEnd"
-            android:textColor="@color/v3_text_2"
-            android:textSize="13sp" />
-    </LinearLayout>
+    <TextView
+        android:id="@+id/work_count"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:fontFamily="@font/montserrat_medium"
+        android:textColor="@color/v3_text_2"
+        android:textSize="13sp" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/previews"
@@ -104,31 +78,4 @@
             app:layout_constraintStart_toEndOf="@id/preview_two"
             app:layout_constraintTop_toTopOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>
-
-    <LinearLayout
-        android:id="@+id/novel_previews"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:orientation="vertical"
-        android:visibility="gone">
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="@color/v3_border_2"
-            android:importantForAccessibility="no" />
-
-        <include
-            android:id="@+id/novel_one"
-            layout="@layout/item_keyword_rank_novel_preview" />
-
-        <include
-            android:id="@+id/novel_two"
-            layout="@layout/item_keyword_rank_novel_preview" />
-
-        <include
-            android:id="@+id/novel_three"
-            layout="@layout/item_keyword_rank_novel_preview" />
-    </LinearLayout>
 </LinearLayout>

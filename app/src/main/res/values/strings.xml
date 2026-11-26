@@ -4083,7 +4083,4 @@
     <string name="chat_image_retry">重试</string>
     <string name="chat_image_upload_progress">正在上传图片，%1$d / %2$d</string>
     <string name="media_selection_too_large">图片大小必须为 30 MB 以内</string>
-    <string name="keyword_rank">关键词热榜</string>
-    <string name="keyword_rank_work_count">%1$s · %2$s 件作品</string>
-    <string name="keyword_rank_heat">热度 %1$s</string>
 </resources>

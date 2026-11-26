@@ -3779,7 +3779,4 @@
     <string name="chat_image_retry">다시 시도</string>
     <string name="chat_image_upload_progress">사진 업로드 중, %1$d / %2$d</string>
     <string name="media_selection_too_large">사진 한 장의 크기는 30 MB 이하여야 합니다</string>
-    <string name="keyword_rank">인기 검색어 순위</string>
-    <string name="keyword_rank_work_count">%1$s · 작품 %2$s개</string>
-    <string name="keyword_rank_heat">인기도 %1$s</string>
 </resources>

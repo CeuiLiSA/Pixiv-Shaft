@@ -13,13 +13,12 @@ import ceui.pixiv.feeds.FeedPage
 import ceui.pixiv.feeds.FeedSource
 import ceui.pixiv.feeds.FeedUiState
 import ceui.pixiv.feeds.feedViewModels
+import ceui.pixiv.ui.common.IllustDetailFeedPagination
 import ceui.pixiv.ui.common.IllustFeedFragment
 import ceui.pixiv.ui.common.IllustFeedItem
 import ceui.pixiv.ui.common.withMirroredBookmarks
 import ceui.pixiv.ui.common.setUpToolbar
 import ceui.pixiv.ui.common.viewBinding
-import ceui.pixiv.ui.recommend.keywordRankContinuationRenderer
-import ceui.pixiv.ui.recommend.offerKeywordRankContinuation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -45,11 +44,10 @@ class CorpusTagDetailFragment : IllustFeedFragment(R.layout.fragment_toolbar_fee
         FeedSource { cursor ->
             // 服务端的分级上限只为省流量（库里一半以上是 R-18，用户关着的时候没必要下行再
             // 丢掉）。真正说了算的还是下面 IllustFeedItem.of 里那套全局过滤，两边都过一遍。
-            val maxRestrict = if (Shaft.sSettings.isR18FilterTempEnable) ALL_AGES else INCLUDE_R18G
             val page = Client.pixshaft.corpusWorks(
                 limit = PAGE_SIZE,
                 cursor = cursor,
-                r18 = maxRestrict,
+                r18 = corpusMaxRestrict(),
                 tag = tag,
             )
             // IllustFeedItem.of 走全局过滤，而 judgeTag/judgeUserID 各是**每个作品一次**
@@ -66,13 +64,16 @@ class CorpusTagDetailFragment : IllustFeedFragment(R.layout.fragment_toolbar_fee
 
     override val detailContinuationCursor: String? get() = null
 
+    override fun createDetailFeedPagination() =
+        IllustDetailFeedPagination(feedViewModel) { feedViewModel.continueCorpusPaging() }
+
     override fun poolableBeansOf(item: FeedItem): List<Illust> = emptyList()
 
-    override fun onCreateRenderers() = super.onCreateRenderers() + feedViewModel.keywordRankContinuationRenderer()
+    override fun onCreateRenderers() = super.onCreateRenderers() + feedViewModel.corpusPagingContinuationRenderer()
 
     override fun onListCommitted(state: FeedUiState) {
         super.onListCommitted(state)
-        feedViewModel.offerKeywordRankContinuation()
+        feedViewModel.offerCorpusPagingContinuation()
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -84,8 +85,6 @@ class CorpusTagDetailFragment : IllustFeedFragment(R.layout.fragment_toolbar_fee
     companion object {
         /** 服务端同样把 limit 卡在 30，两边一起改才有意义。 */
         private const val PAGE_SIZE = 30
-        private const val ALL_AGES = 0
-        private const val INCLUDE_R18G = 2
 
         fun newInstance(tag: String): CorpusTagDetailFragment {
             return CorpusTagDetailFragment().apply {
@@ -94,3 +93,5 @@ class CorpusTagDetailFragment : IllustFeedFragment(R.layout.fragment_toolbar_fee
         }
     }
 }
+
+internal fun corpusMaxRestrict(): Int = if (Shaft.sSettings.isR18FilterTempEnable) 0 else 2

@@ -3,12 +3,11 @@ package ceui.pixiv.ui.recommend
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
-import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
 import ceui.lisa.R
 import ceui.lisa.activities.TemplateActivity
-import ceui.lisa.databinding.CellKeywordRankBinding
+import ceui.lisa.databinding.CellTagRankBinding
 import ceui.lisa.databinding.FragmentToolbarFeedBinding
 import ceui.pixiv.api.Client
 import ceui.pixiv.feeds.FeedFragment
@@ -24,6 +23,7 @@ import ceui.pixiv.ui.common.setUpToolbar
 import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.ui.navigation.TemplateRoute
 import ceui.pixiv.ui.prime.CorpusTagsFragment
+import ceui.pixiv.ui.prime.corpusMaxRestrict
 import com.bumptech.glide.Glide
 import java.text.NumberFormat
 
@@ -35,7 +35,7 @@ class TagRankFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
 
     override val feedViewModel by feedViewModels<String> {
         FeedSource { cursor ->
-            val page = Client.pixshaft.tagRank(r18 = keywordRankMaxRestrict(), cursor = cursor)
+            val page = Client.pixshaft.tagRank(r18 = corpusMaxRestrict(), cursor = cursor)
             FeedPage(page.tags.map(::TagRankItem), page.next_cursor)
         }
     }
@@ -52,11 +52,10 @@ class TagRankFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
     }
 
     override fun onCreateRenderers(): List<FeedRenderer<out FeedItem, out ViewBinding>> = listOf(
-        feedRenderer<TagRankItem, CellKeywordRankBinding>(
-            inflate = CellKeywordRankBinding::inflate,
+        feedRenderer<TagRankItem, CellTagRankBinding>(
+            inflate = CellTagRankBinding::inflate,
             create = { cell ->
                 cell.binding.setupRankPreviewCard()
-                cell.binding.heat.isVisible = false
                 cell.binding.root.setOnClickListener {
                     val intent = Intent(it.context, TemplateActivity::class.java).apply {
                         putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.CORPUS_TAG_DETAIL.key)
@@ -68,7 +67,7 @@ class TagRankFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
             recycle = { cell -> cell.binding.clearRankImagePreviews() },
         ) { cell ->
             val tag = cell.item.tag
-            cell.binding.keyword.text = tag.name
+            cell.binding.tagName.text = tag.name
             cell.binding.workCount.text = getString(R.string.corpus_tag_work_count, numberFormat.format(tag.count))
             cell.binding.bindRankImagePreviews(tag.preview, previewGlide)
         },

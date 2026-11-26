@@ -1,6 +1,5 @@
 package ceui.pixiv.shaftapi
 
-import ceui.loxia.Novel
 import ceui.loxia.Tag
 import ceui.loxia.User
 import ceui.pixiv.api.model.AccountResponse
@@ -154,22 +153,6 @@ interface PixshaftApi {
     /** 作品库规模，只为在标题下写一句「已收录 N 件」，失败就不显示。 */
     @GET("v1/corpus/stats")
     suspend fun corpusStats(): CorpusStats
-
-    @GET("v1/discover/keyword-rank")
-    suspend fun keywordRank(
-        @Query("kind") kind: String,
-        @Query("r18") maxRestrict: Int,
-        @Query("cursor") cursor: String?,
-    ): KeywordRankPage
-
-    @GET("v1/discover/keyword-rank/{id}/works")
-    suspend fun keywordRankWorks(
-        @Path("id") id: String,
-        @Query("r18") maxRestrict: Int,
-        @Query("offset") offset: Int?,
-        @Query("version") version: String?,
-        @Header("Cache-Control") cacheControl: String?,
-    ): KeywordRankWorks
 
     // ── account backup / Nana7mi ──
     // All account calls are signed with X-Shaft-Sign by the OkHttp interceptor in
@@ -523,30 +506,6 @@ data class CorpusStats(
     val novels: Int = 0,
     val artists: Int = 0,
     val tags: Int = 0,
-)
-
-data class KeywordRankPage(
-    val items: List<KeywordRankEntry>,
-    val next_cursor: String?,
-)
-
-data class KeywordRankEntry(
-    val id: String,
-    val keyword: String,
-    val kind: String,
-    val heat: Long,
-    val workCount: Int,
-    val preview: List<String>? = null,
-    val novelPreview: List<KeywordRankNovelPreview>? = null,
-)
-
-data class KeywordRankNovelPreview(val title: String, val excerpt: String? = null)
-
-data class KeywordRankWorks(
-    val illusts: List<Illust> = emptyList(),
-    val novels: List<Novel> = emptyList(),
-    val next_offset: Int? = null,
-    val page_version: String? = null,
 )
 
 data class PrimeTagIllustPage(
