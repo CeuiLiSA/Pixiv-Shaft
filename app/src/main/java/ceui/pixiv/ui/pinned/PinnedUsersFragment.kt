@@ -1,115 +1,137 @@
 package ceui.pixiv.ui.pinned
 
 import android.content.Intent
+import android.content.res.ColorStateList
+import android.graphics.Color
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import androidx.viewbinding.ViewBinding
 import ceui.lisa.R
-import ceui.lisa.activities.Shaft
 import ceui.lisa.activities.UActivity
 import ceui.lisa.databinding.CellItemPinnedUserBinding
+import ceui.lisa.databinding.FragmentPinnedTabListBinding
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
-import ceui.lisa.view.LinearItemDecoration
 import ceui.loxia.User
-import ceui.pixiv.feeds.FeedFragment
-import ceui.pixiv.feeds.FeedItem
-import ceui.pixiv.feeds.FeedPage
-import ceui.pixiv.feeds.FeedRenderer
-import ceui.pixiv.feeds.FeedSource
-import ceui.pixiv.feeds.feedRenderer
-import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.services.requireEntityWrapper
+import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.utils.clearGlideOnRecycle
-import ceui.pixiv.utils.ppppx
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
+import ceui.pixiv.witstudio.theme.V3Palette
+import ceui.pixiv.witstudio.theme.cardSurface
+import ceui.pixiv.witstudio.theme.ripple
+import ceui.pixiv.witstudio.theme.shape
+import ceui.pixiv.witstudio.theme.v3Font
 import com.bumptech.glide.Glide
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 /**
- * 「我置顶的内容」的「作者」tab（[PinnedTabsFragment] 的右页）。
+ * 「我置顶的内容」的「作者」Tab（[PinnedTabsFragment] 第 2 页）。
  *
- * 数据是 general_table 里 recordType=PINNED_USER 的行，写入口在作者主页「更多」菜单
- * （[ceui.pixiv.db.EntityWrapper.pinUser]）。纯本地查询，无分页无网络。
- *
- * 和隔壁 [PinnedTagsFragment] 一样：toolbar / 标题 / 清空都归宿主 tab 页，本页只出列表；
- * 每次进入 STARTED 主动重查一次 DB —— 用户刚在作者页置顶完退回来就得看到。
+ * 与宿主共享 [PinnedContentViewModel]，自动承接多语言昵称 / 账号 / UID 过滤与实时计数。
  */
-class PinnedUsersFragment : FeedFragment() {
+class PinnedUsersFragment : Fragment(R.layout.fragment_pinned_tab_list) {
 
-    // 裸 fragment_feed 挂在 tab 宿主下，底部没有导航栏吃 inset，得自己补，
-    // 否则最后一张卡片压在手势条底下（同 WatchLaterFeedFragment）。
-    override val applyBottomSafeInset: Boolean = true
+    private val binding by viewBinding(FragmentPinnedTabListBinding::bind)
+    private val viewModel: PinnedContentViewModel by viewModels({ requireParentFragment() })
 
-    // autoLoad = false 的理由同 PinnedTagsFragment：首屏那次也交给下面的 repeatOnLifecycle
-    // refresh 负责，否则 VM init 的那次查询必被随后的 refresh 取消，白跑一趟。
-    override val feedViewModel by feedViewModels<String>(autoLoad = false) {
-        FeedSource { _ ->
-            val items = withContext(Dispatchers.IO) {
-                loadPinnedUsers().map { PinnedUserItemHolder(it) }
-            }
-            FeedPage(items, null)
-        }
-    }
+    private var adapter: PinnedUsersAdapter? = null
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        val listAdapter = PinnedUsersAdapter(
+            onClick = { user ->
+                // 开 UActivity 而不是直接开 V3：新旧作者页的分发在 UActivity 里。
+                startActivity(Intent(requireContext(), UActivity::class.java).apply {
+                    putExtra(Params.USER_ID, user.id)
+                })
+            },
+            onLongClick = ::showItemMenu,
+            onUnpin = ::onClickUnpin,
+        ).also { adapter = it }
+
+        PinnedTabListHelper.setup(
+            binding = binding,
+            adapter = listAdapter,
+            onRefresh = { viewModel.refreshAll(showSpinner = true) },
+            onClearSearch = { viewModel.clearSearchQuery() },
+        )
+
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                feedViewModel.refresh()
+                launch {
+                    viewModel.refreshing.collect { binding.refreshLayout.isRefreshing = it }
+                }
+                launch {
+                    combine(
+                        viewModel.filteredUsers,
+                        viewModel.searchQuery,
+                        viewModel.hasLoaded,
+                    ) { items, query, loaded -> Triple(items, query, loaded) }
+                        .collect { (items, query, loaded) ->
+                            listAdapter.submitList(items)
+                            PinnedTabListHelper.renderEmptyState(
+                                binding = binding,
+                                hasLoaded = loaded,
+                                isEmpty = items.isEmpty(),
+                                query = query,
+                                defaultEmptyRes = R.string.pinned_empty,
+                            )
+                        }
+                }
             }
         }
     }
 
-    override fun onListReady(listView: RecyclerView) {
-        // 卡间距对齐隔壁「标签」tab 与 V3 卡片列表通用的 12dp。
-        listView.addItemDecoration(LinearItemDecoration(12.ppppx))
+    override fun onDestroyView() {
+        binding.recyclerView.adapter = null
+        adapter = null
+        super.onDestroyView()
     }
 
-    override fun onCreateRenderers(): List<FeedRenderer<out FeedItem, out ViewBinding>> {
-        return listOf(pinnedUserRenderer())
-    }
+    private fun showItemMenu(user: User) {
+        val ctx = context ?: return
+        val labels = mutableListOf<String>()
+        val actions = mutableListOf<() -> Unit>()
+        val name = user.name.orEmpty()
+        if (name.isNotBlank()) {
+            labels += ctx.getString(R.string.pinned_user_copy_name)
+            actions += { Common.copy(ctx, name) }
+        }
+        val account = user.account?.trim()?.removePrefix("@").orEmpty()
+        if (account.isNotBlank()) {
+            labels += ctx.getString(R.string.pinned_user_copy_account)
+            actions += { Common.copy(ctx, account) }
+        }
+        labels += ctx.getString(R.string.pinned_user_copy_id)
+        actions += { Common.copy(ctx, user.id.toString()) }
+        labels += ctx.getString(R.string.unpin_user)
+        actions += { onClickUnpin(user) }
 
-    /** 宿主的「清空」要先知道这页空不空 —— 空列表不该走二次确认再报一句「已清空」。 */
-    fun hasItems(): Boolean = feedViewModel.uiState.value.items.isNotEmpty()
-
-    private fun pinnedUserRenderer() = feedRenderer<PinnedUserItemHolder, CellItemPinnedUserBinding>(
-        inflate = CellItemPinnedUserBinding::inflate,
-        create = { cell ->
-            // 监听只挂一次，点的那一刻再经 cell.itemOrNull 取当下条目（feeds 框架约定）。
-            cell.binding.root.setOnClickListener { v ->
-                val user = cell.itemOrNull?.user ?: return@setOnClickListener
-                // 开 UActivity 而不是直接开 V3：新旧作者页的分发在 UActivity 里，
-                // 硬指一个会绕开用户的「使用新版作品页」开关。
-                v.context.startActivity(Intent(v.context, UActivity::class.java).apply {
-                    putExtra(Params.USER_ID, user.id)
-                })
+        WitDialog.MenuDialogBuilder(ctx)
+            .setTitle(name.ifBlank { "ID ${user.id}" })
+            .addItems(labels.toTypedArray()) { dialog, which ->
+                dialog.dismiss()
+                actions[which].invoke()
             }
-            cell.binding.deletePin.setOnClickListener {
-                cell.itemOrNull?.user?.let { onClickUnpin(it) }
-            }
-        },
-        recycle = { it.binding.userAvatar.clearGlideOnRecycle() },
-    ) { cell ->
-        val user = cell.item.user
-        cell.binding.userName.text = user.name
-        cell.binding.userAccount.text = "@${user.account.orEmpty()}"
-        Glide.with(cell.binding.root.context)
-            .load(GlideUtil.getHead(user))
-            .into(cell.binding.userAvatar)
+            .show()
     }
 
     private fun onClickUnpin(user: User) {
         val ctx = context ?: return
-        // EntityWrapper 是 app 单例；提前抓好，弹窗动作异步触发时 fragment 可能已 detach。
         val entityWrapper = requireEntityWrapper()
         val appContext = ctx.applicationContext
         WitDialog.MessageDialogBuilder(ctx)
@@ -117,19 +139,13 @@ class PinnedUsersFragment : FeedFragment() {
             .setMessage(getString(R.string.unpin_user_confirm_message, user.name.orEmpty()))
             .addAction(R.string.string_142) { dialog, _ -> dialog.dismiss() }
             .addAction(0, R.string.unpin_user, WitDialogAction.ACTION_PROP_NEGATIVE) { dialog, _ ->
-                // 用 fragment 自身的 lifecycleScope：WitDialog 挂在 Activity context 上，
-                // 视图已销毁时用户才点确认，碰 viewLifecycleOwner 会直接抛 ISE（同 PinnedTagsFragment）。
-                lifecycleScope.launch {
-                    entityWrapper.deletePinnedUser(appContext, user.id)
-                    feedViewModel.refresh()
-                }
+                viewModel.deletePinnedUser(entityWrapper, appContext, user.id)
                 Common.showToast(R.string.unpin_user_success)
                 dialog.dismiss()
             }
             .show()
     }
 
-    /** 宿主 tab 页的「清空」转到这里 —— 删库和刷新都在有数据源的这一侧。 */
     fun showClearAllDialog() {
         val ctx = context ?: return
         val entityWrapper = requireEntityWrapper()
@@ -139,19 +155,86 @@ class PinnedUsersFragment : FeedFragment() {
             .setMessage(R.string.clear_pinned_users_msg)
             .addAction(R.string.string_142) { dialog, _ -> dialog.dismiss() }
             .addAction(0, R.string.string_141, WitDialogAction.ACTION_PROP_NEGATIVE) { dialog, _ ->
-                lifecycleScope.launch {
-                    entityWrapper.clearPinnedUsers(appContext)
-                    feedViewModel.refresh()
-                }
+                viewModel.clearPinnedUsers(entityWrapper, appContext)
                 Common.showToast(R.string.pinned_users_cleared)
                 dialog.dismiss()
             }
             .show()
     }
-}
 
-/**
- * 顶层函数：[FeedSource] 的 lambda 里不能碰成员方法，否则会隐式捕获 Fragment 实例，
- * 而 source 被 VM 长期持有（零捕获约定见 [ceui.pixiv.feeds.feedViewModels]）。
- */
-private fun loadPinnedUsers(): List<User> = PinnedUsers.loadAll(Shaft.getContext())
+    private class PinnedUsersAdapter(
+        private val onClick: (User) -> Unit,
+        private val onLongClick: (User) -> Unit,
+        private val onUnpin: (User) -> Unit,
+    ) : ListAdapter<PinnedUserItemHolder, PinnedUsersAdapter.Holder>(DIFF) {
+
+        class Holder(val binding: CellItemPinnedUserBinding) : RecyclerView.ViewHolder(binding.root)
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): Holder {
+            val binding = CellItemPinnedUserBinding.inflate(
+                LayoutInflater.from(parent.context),
+                parent,
+                false,
+            )
+            val ctx = binding.root.context
+            val palette = V3Palette.from(ctx)
+            binding.root.background = ctx.cardSurface(22)
+            binding.userAvatar.strokeColor = ColorStateList.valueOf(palette.textAccent)
+            binding.userName.typeface = ctx.v3Font(600)
+            binding.userAccount.typeface = ctx.v3Font(500)
+            binding.userAccount.fontFeatureSettings = "tnum"
+            binding.deletePin.background = ctx.ripple(null, shape(999f, Color.WHITE))
+
+            val holder = Holder(binding)
+            binding.root.setOnClickListener {
+                val pos = holder.bindingAdapterPosition
+                if (pos != RecyclerView.NO_POSITION) onClick(getItem(pos).user)
+            }
+            binding.root.setOnLongClickListener {
+                val pos = holder.bindingAdapterPosition
+                if (pos != RecyclerView.NO_POSITION) onLongClick(getItem(pos).user)
+                true
+            }
+            binding.deletePin.setOnClickListener {
+                val pos = holder.bindingAdapterPosition
+                if (pos != RecyclerView.NO_POSITION) onUnpin(getItem(pos).user)
+            }
+            return holder
+        }
+
+        override fun onBindViewHolder(holder: Holder, position: Int) {
+            val user = getItem(position).user
+            holder.binding.userName.text = user.name
+            val account = user.account?.trim()?.removePrefix("@").orEmpty()
+            holder.binding.userAccount.text = if (account.isNotEmpty()) {
+                "@$account · ID ${user.id}"
+            } else {
+                "ID ${user.id}"
+            }
+            Glide.with(holder.binding.root.context)
+                .load(GlideUtil.getHead(user))
+                .into(holder.binding.userAvatar)
+        }
+
+        override fun onViewRecycled(holder: Holder) {
+            super.onViewRecycled(holder)
+            holder.binding.userAvatar.clearGlideOnRecycle()
+        }
+
+        private companion object {
+            val DIFF = object : DiffUtil.ItemCallback<PinnedUserItemHolder>() {
+                override fun areItemsTheSame(
+                    oldItem: PinnedUserItemHolder,
+                    newItem: PinnedUserItemHolder,
+                ): Boolean = oldItem.user.id == newItem.user.id
+
+                override fun areContentsTheSame(
+                    oldItem: PinnedUserItemHolder,
+                    newItem: PinnedUserItemHolder,
+                ): Boolean = oldItem.user.name == newItem.user.name &&
+                    oldItem.user.account == newItem.user.account &&
+                    oldItem.user.profile_image_urls == newItem.user.profile_image_urls
+            }
+        }
+    }
+}

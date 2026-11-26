@@ -3730,4 +3730,33 @@
     <string name="liquid_glass_quality_none">None</string>
     <string name="liquid_glass_quality_standard">Standard</string>
     <string name="liquid_glass_quality_ultra">Ultra</string>
+
+    <string name="pinned_search_hint_tags">Search pinned tags (ZH / JA / EN)</string>
+    <string name="pinned_search_hint_users">Search pinned authors (name / account / UID)</string>
+    <string name="pinned_search_hint_history">Search history (ZH / JA / EN)</string>
+    <string name="pinned_search_empty">No matches for \"%1$s\"</string>
+    <string name="pinned_search_clear">Clear search</string>
+    <string name="pinned_history_empty">No search history yet</string>
+    <string name="pinned_user_copy_name">Copy name</string>
+    <string name="pinned_user_copy_account">Copy account</string>
+    <string name="pinned_user_copy_id">Copy UID</string>
+    <string name="pinned_export_action">Export list</string>
+    <string name="pinned_export_title">Export list</string>
+    <string name="pinned_export_desc">Choose categories and format to view or copy into search later</string>
+    <string name="pinned_export_section_content">Categories</string>
+    <string name="pinned_export_section_scope">Scope</string>
+    <string name="pinned_export_scope_filtered">Filtered results</string>
+    <string name="pinned_export_scope_all">All items</string>
+    <string name="pinned_export_section_format">Format</string>
+    <string name="pinned_export_format_txt">Plain text (.txt)</string>
+    <string name="pinned_export_format_xml">XML (.xml)</string>
+    <string name="pinned_export_save">Save file</string>
+    <string name="pinned_export_save_count">Save file (%1$d)</string>
+    <string name="pinned_export_copy">Copy all</string>
+    <string name="pinned_export_share">Share file</string>
+    <string name="pinned_export_empty">Nothing to export</string>
+    <string name="pinned_export_one_required">Keep at least one category selected</string>
+    <string name="pinned_export_copied">Copied %1$d items to clipboard</string>
+    <string name="pinned_export_saved">Exported %1$d items to %2$s</string>
+    <string name="pinned_export_save_failed">Export failed: %1$s</string>
 </resources>

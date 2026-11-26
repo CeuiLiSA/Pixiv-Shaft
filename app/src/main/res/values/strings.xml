@@ -4021,4 +4021,33 @@
     <string name="liquid_glass_quality_none">无</string>
     <string name="liquid_glass_quality_standard">标准</string>
     <string name="liquid_glass_quality_ultra">极致</string>
+
+    <string name="pinned_search_hint_tags">搜索置顶标签（支持中 / 日 / 英）</string>
+    <string name="pinned_search_hint_users">搜索置顶作者（昵称 / 账号 / UID）</string>
+    <string name="pinned_search_hint_history">搜索历史记录（支持中 / 日 / 英）</string>
+    <string name="pinned_search_empty">没有找到匹配「%1$s」的内容</string>
+    <string name="pinned_search_clear">清除搜索</string>
+    <string name="pinned_history_empty">还没有搜索历史</string>
+    <string name="pinned_user_copy_name">复制昵称</string>
+    <string name="pinned_user_copy_account">复制账号</string>
+    <string name="pinned_user_copy_id">复制 UID</string>
+    <string name="pinned_export_action">导出列表</string>
+    <string name="pinned_export_title">导出列表</string>
+    <string name="pinned_export_desc">选择要导出的分类与格式，方便查阅或复制到应用内搜索</string>
+    <string name="pinned_export_section_content">导出内容</string>
+    <string name="pinned_export_section_scope">数据范围</string>
+    <string name="pinned_export_scope_filtered">当前搜索结果</string>
+    <string name="pinned_export_scope_all">全部内容</string>
+    <string name="pinned_export_section_format">导出格式</string>
+    <string name="pinned_export_format_txt">纯文本 (.txt)</string>
+    <string name="pinned_export_format_xml">XML (.xml)</string>
+    <string name="pinned_export_save">保存文件</string>
+    <string name="pinned_export_save_count">保存文件（%1$d 项）</string>
+    <string name="pinned_export_copy">复制全部</string>
+    <string name="pinned_export_share">分享文件</string>
+    <string name="pinned_export_empty">暂无可导出的内容</string>
+    <string name="pinned_export_one_required">至少保留一个导出分类</string>
+    <string name="pinned_export_copied">已复制 %1$d 项到剪贴板</string>
+    <string name="pinned_export_saved">已导出 %1$d 项至 %2$s</string>
+    <string name="pinned_export_save_failed">导出失败：%1$s</string>
 </resources>

@@ -3731,4 +3731,33 @@
     <string name="liquid_glass_quality_none">Yok</string>
     <string name="liquid_glass_quality_standard">Standart</string>
     <string name="liquid_glass_quality_ultra">Ultra</string>
+
+    <string name="pinned_search_hint_tags">Sabitlenen etiketlerde ara (ZH / JA / EN)</string>
+    <string name="pinned_search_hint_users">Sabitlenen yazarlarda ara (ad / hesap / UID)</string>
+    <string name="pinned_search_hint_history">Arama geçmişinde ara (ZH / JA / EN)</string>
+    <string name="pinned_search_empty">\"%1$s\" ile eşleşen öğe bulunamadı</string>
+    <string name="pinned_search_clear">Aramayı temizle</string>
+    <string name="pinned_history_empty">Henüz arama geçmişi yok</string>
+    <string name="pinned_user_copy_name">Adı kopyala</string>
+    <string name="pinned_user_copy_account">Hesabı kopyala</string>
+    <string name="pinned_user_copy_id">UID kopyala</string>
+    <string name="pinned_export_action">Listeyi dışa aktar</string>
+    <string name="pinned_export_title">Listeyi dışa aktar</string>
+    <string name="pinned_export_desc">Görüntülemek veya aramaya kopyalamak için kategori ve biçim seçin</string>
+    <string name="pinned_export_section_content">Kategoriler</string>
+    <string name="pinned_export_section_scope">Kapsam</string>
+    <string name="pinned_export_scope_filtered">Filtrelenmiş sonuçlar</string>
+    <string name="pinned_export_scope_all">Tüm öğeler</string>
+    <string name="pinned_export_section_format">Biçim</string>
+    <string name="pinned_export_format_txt">Düz metin (.txt)</string>
+    <string name="pinned_export_format_xml">XML (.xml)</string>
+    <string name="pinned_export_save">Dosyaya kaydet</string>
+    <string name="pinned_export_save_count">Dosyaya kaydet (%1$d)</string>
+    <string name="pinned_export_copy">Tümünü kopyala</string>
+    <string name="pinned_export_share">Dosyayı paylaş</string>
+    <string name="pinned_export_empty">Dışa aktarılacak öğe yok</string>
+    <string name="pinned_export_one_required">En az bir kategori seçili olmalıdır</string>
+    <string name="pinned_export_copied">%1$d öğe panoya kopyalandı</string>
+    <string name="pinned_export_saved">%1$d öğe %2$s konumuna kaydedildi</string>
+    <string name="pinned_export_save_failed">Dışa aktarma başarısız: %1$s</string>
 </resources>

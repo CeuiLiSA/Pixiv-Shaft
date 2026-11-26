@@ -3717,4 +3717,33 @@
     <string name="liquid_glass_quality_none">オフ</string>
     <string name="liquid_glass_quality_standard">標準</string>
     <string name="liquid_glass_quality_ultra">最高</string>
+
+    <string name="pinned_search_hint_tags">ピン留めタグを検索（中・日・英対応）</string>
+    <string name="pinned_search_hint_users">ピン留め作者を検索（名前・アカウント・UID）</string>
+    <string name="pinned_search_hint_history">検索履歴を検索（中・日・英対応）</string>
+    <string name="pinned_search_empty">「%1$s」に一致する項目はありません</string>
+    <string name="pinned_search_clear">検索をクリア</string>
+    <string name="pinned_history_empty">検索履歴はまだありません</string>
+    <string name="pinned_user_copy_name">名前をコピー</string>
+    <string name="pinned_user_copy_account">アカウントをコピー</string>
+    <string name="pinned_user_copy_id">UID をコピー</string>
+    <string name="pinned_export_action">リストをエクスポート</string>
+    <string name="pinned_export_title">リストをエクスポート</string>
+    <string name="pinned_export_desc">出力する項目と形式を選択すると、閲覧やアプリ内検索へのコピーに便利です</string>
+    <string name="pinned_export_section_content">出力項目</string>
+    <string name="pinned_export_section_scope">出力範囲</string>
+    <string name="pinned_export_scope_filtered">現在の検索結果</string>
+    <string name="pinned_export_scope_all">すべて</string>
+    <string name="pinned_export_section_format">出力形式</string>
+    <string name="pinned_export_format_txt">テキスト (.txt)</string>
+    <string name="pinned_export_format_xml">XML (.xml)</string>
+    <string name="pinned_export_save">ファイルに保存</string>
+    <string name="pinned_export_save_count">ファイルに保存（%1$d件）</string>
+    <string name="pinned_export_copy">すべてコピー</string>
+    <string name="pinned_export_share">ファイルを共有</string>
+    <string name="pinned_export_empty">エクスポートできる項目がありません</string>
+    <string name="pinned_export_one_required">少なくとも1つの項目を選択してください</string>
+    <string name="pinned_export_copied">%1$d件をクリップボードにコピーしました</string>
+    <string name="pinned_export_saved">%1$d件を %2$s に保存しました</string>
+    <string name="pinned_export_save_failed">エクスポートに失敗しました：%1$s</string>
 </resources>

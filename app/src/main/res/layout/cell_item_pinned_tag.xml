@@ -1,24 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  「我置顶的内容 → 标签」列表 cell（V3 + MD3-E）。
-  和隔壁「作者」tab 的 cell_item_pinned_user 共用同一套卡片语汇（bg_v3_card 卡底 +
-  bg_drawer_item_pill ripple + 20dp/16dp 内距，卡间距由列表的 LinearItemDecoration(12dp) 给）——
-  两个 tab 是同一页的左右页，卡片不能长得不一样。
-  信息层级：译名/标签名 16sp bold / v3_text_1 → 原名副标题 13sp / v3_text_2 → 预览图。
-  标签组合（pixez#1364）：标题是「原神 + 胡桃」、「+」用 textAccent，最多两行；副标题「N 个标签的组合」。
-  标题 / 副标题的文字与行数由 PinnedTagsFragment 的 renderer 按单标签 / 组合分别设置，不走 data binding。
+  「我置顶的内容 → 标签」列表 cell（V3 设计哲学）：
+  22dp cardSurface（运行时由 V3Palette.cardFill + cardHairline 派生）压在 v3_bg 上，
+  与「作者」「搜索历史」三页共用同一套卡片语汇与 720dp 宽屏限宽装饰。
+  信息层级：译名 / 标签名（或组合「原神 + 胡桃」）16sp SemiBold / v3_text_1 →
+  副标题 13sp / v3_text_2 → 三格 1:1 预览图；末端取消置顶按钮保持 48dp 触控热区。
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/bg_v3_card"
     android:clickable="true"
     android:focusable="true"
-    android:foreground="@drawable/bg_drawer_item_pill"
     android:orientation="vertical"
-    android:paddingHorizontal="20dp"
-    android:paddingVertical="16dp">
+    android:paddingVertical="14dp"
+    android:paddingStart="16dp"
+    android:paddingEnd="16dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -40,8 +37,7 @@
                 android:ellipsize="end"
                 android:maxLines="1"
                 android:textColor="@color/v3_text_1"
-                android:textSize="16sp"
-                android:textStyle="bold" />
+                android:textSize="16sp" />
 
             <TextView
                 android:id="@+id/pinned_tag_subtitle"
@@ -56,17 +52,16 @@
 
         <ImageView
             android:id="@+id/delete_pin"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_marginStart="8dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginEnd="-10dp"
             android:contentDescription="@string/string_443"
-            android:padding="10dp"
-            android:src="@drawable/ic_cancel_black_24dp"
+            android:padding="13dp"
+            android:src="@drawable/ic_close_black_24dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:tint="@color/v3_text_3" />
+            app:tint="@color/v3_text_2" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -78,20 +73,21 @@
 
         <net.csdn.roundview.RoundImageView
             android:id="@+id/illust_1"
-            android:background="@drawable/bg_tag_preview_placeholder"
             android:layout_width="0dp"
             android:layout_height="0dp"
+            android:background="@drawable/bg_tag_preview_placeholder"
             app:layout_constraintDimensionRatio="1:1"
+            app:layout_constraintEnd_toStartOf="@+id/illust_2"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:rRadius="10dp" />
 
         <net.csdn.roundview.RoundImageView
             android:id="@+id/illust_2"
-            android:background="@drawable/bg_tag_preview_placeholder"
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_marginHorizontal="4dp"
+            android:background="@drawable/bg_tag_preview_placeholder"
             app:layout_constraintDimensionRatio="1:1"
             app:layout_constraintEnd_toStartOf="@+id/illust_3"
             app:layout_constraintStart_toEndOf="@+id/illust_1"
@@ -100,9 +96,9 @@
 
         <net.csdn.roundview.RoundImageView
             android:id="@+id/illust_3"
-            android:background="@drawable/bg_tag_preview_placeholder"
             android:layout_width="0dp"
             android:layout_height="0dp"
+            android:background="@drawable/bg_tag_preview_placeholder"
             app:layout_constraintDimensionRatio="1:1"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@+id/illust_2"

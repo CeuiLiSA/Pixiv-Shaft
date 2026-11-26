@@ -3717,4 +3717,33 @@
     <string name="liquid_glass_quality_none">無</string>
     <string name="liquid_glass_quality_standard">標準</string>
     <string name="liquid_glass_quality_ultra">極致</string>
+
+    <string name="pinned_search_hint_tags">搜尋釘選標籤（支援中 / 日 / 英）</string>
+    <string name="pinned_search_hint_users">搜尋釘選作者（暱稱 / 帳號 / UID）</string>
+    <string name="pinned_search_hint_history">搜尋歷史紀錄（支援中 / 日 / 英）</string>
+    <string name="pinned_search_empty">找不到符合「%1$s」的內容</string>
+    <string name="pinned_search_clear">清除搜尋</string>
+    <string name="pinned_history_empty">還沒有搜尋歷史</string>
+    <string name="pinned_user_copy_name">複製暱稱</string>
+    <string name="pinned_user_copy_account">複製帳號</string>
+    <string name="pinned_user_copy_id">複製 UID</string>
+    <string name="pinned_export_action">匯出清單</string>
+    <string name="pinned_export_title">匯出清單</string>
+    <string name="pinned_export_desc">選擇要匯出的分類與格式，方便查閱或複製到應用程式內搜尋</string>
+    <string name="pinned_export_section_content">匯出內容</string>
+    <string name="pinned_export_section_scope">資料範圍</string>
+    <string name="pinned_export_scope_filtered">目前搜尋結果</string>
+    <string name="pinned_export_scope_all">全部內容</string>
+    <string name="pinned_export_section_format">匯出格式</string>
+    <string name="pinned_export_format_txt">純文字 (.txt)</string>
+    <string name="pinned_export_format_xml">XML (.xml)</string>
+    <string name="pinned_export_save">儲存檔案</string>
+    <string name="pinned_export_save_count">儲存檔案（%1$d 項）</string>
+    <string name="pinned_export_copy">複製全部</string>
+    <string name="pinned_export_share">分享檔案</string>
+    <string name="pinned_export_empty">目前沒有可匯出的內容</string>
+    <string name="pinned_export_one_required">至少保留一個匯出分類</string>
+    <string name="pinned_export_copied">已複製 %1$d 項至剪貼簿</string>
+    <string name="pinned_export_saved">已匯出 %1$d 項至 %2$s</string>
+    <string name="pinned_export_save_failed">匯出失敗：%1$s</string>
 </resources>

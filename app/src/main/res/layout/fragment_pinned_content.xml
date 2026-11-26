@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  「我置顶的内容」V3 独立宿主页（issue #1398 / #1399）：
+  品牌色标准 Toolbar + v3_bg 安静底上的 3 Tab（标签 / 作者 / 搜索历史，带实时数量）+
+  V3 胶囊搜索栏（宽屏 720dp 居中）+ ViewPager2。
+  不改通用的 viewpager_with_tablayout.xml，避免影响「稍后再看」与「通知」等姐妹页。
+-->
+<ceui.pixiv.widgets.TopInsetLinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/colorPrimary"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/v3_bg"
+        android:orientation="vertical">
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="?attr/colorPrimary"
+            android:elevation="@dimen/six_dp"
+            android:theme="@style/AppTheme.AppBarOverlay"
+            app:navigationIcon="@drawable/ic_arrow_back_white_shadow"
+            app:popupTheme="@style/AppTheme.PopupOverlay"
+            app:title=" "
+            app:titleTextColor="@android:color/white">
+
+            <TextView
+                android:id="@+id/toolbar_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:ellipsize="end"
+                android:singleLine="true"
+                android:textColor="@color/always_white"
+                android:textSize="18sp"
+                tools:text="我置顶的内容" />
+        </androidx.appcompat.widget.Toolbar>
+
+        <!--
+          tabMode=auto + tabGravity=fill：常规手机上三项均分整宽，窄屏 / 长译文 / 200% 字体缩放时
+          自动切换为可横滑，保证计数与标签不被裁切且选中项始终可见。
+        -->
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/tab_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/v3_bg"
+            android:minHeight="48dp"
+            app:tabGravity="fill"
+            app:tabIndicatorFullWidth="false"
+            app:tabIndicatorHeight="2.5dp"
+            app:tabMode="auto"
+            app:tabRippleColor="@android:color/transparent"
+            app:tabSelectedTextAppearance="@style/V3TabText.Selected"
+            app:tabSelectedTextColor="@color/v3_text_1"
+            app:tabTextAppearance="@style/V3TabText"
+            app:tabTextColor="@color/v3_text_2" />
+
+        <View
+            android:id="@+id/tab_hairline"
+            android:layout_width="match_parent"
+            android:layout_height="1px"
+            android:background="@color/v3_border_1" />
+
+        <!-- 搜索栏容器：手机端左右 16dp，宽屏在代码里按 720dp 列居中对齐列表卡片。 -->
+        <FrameLayout
+            android:id="@+id/search_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingHorizontal="16dp"
+            android:paddingTop="12dp"
+            android:paddingBottom="4dp">
+
+            <LinearLayout
+                android:id="@+id/search_bar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:minHeight="48dp"
+                android:orientation="horizontal"
+                android:paddingStart="14dp"
+                android:paddingEnd="4dp">
+
+                <ImageView
+                    android:id="@+id/search_icon"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:importantForAccessibility="no"
+                    android:src="@drawable/ic_search_black_24dp"
+                    app:tint="@color/v3_text_2" />
+
+                <EditText
+                    android:id="@+id/search_input"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@null"
+                    android:ellipsize="end"
+                    android:hint="@string/pinned_search_hint_tags"
+                    android:imeOptions="actionSearch"
+                    android:inputType="text"
+                    android:maxLines="1"
+                    android:minHeight="48dp"
+                    android:paddingHorizontal="10dp"
+                    android:paddingVertical="12dp"
+                    android:textColor="@color/v3_text_1"
+                    android:textColorHint="@color/v3_text_2"
+                    android:textSize="14sp"
+                    tools:ignore="Autofill" />
+
+                <ImageView
+                    android:id="@+id/search_clear"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:contentDescription="@string/clear"
+                    android:padding="13dp"
+                    android:src="@drawable/ic_close_black_24dp"
+                    android:visibility="gone"
+                    app:tint="@color/v3_text_2"
+                    tools:visibility="visible" />
+            </LinearLayout>
+        </FrameLayout>
+
+        <androidx.viewpager2.widget.ViewPager2
+            android:id="@+id/view_pager"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:background="@color/v3_bg" />
+    </LinearLayout>
+
+</ceui.pixiv.widgets.TopInsetLinearLayout>

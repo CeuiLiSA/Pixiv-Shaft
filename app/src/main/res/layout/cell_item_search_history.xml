@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  「我置顶的内容 → 搜索历史」列表 cell（V3 设计哲学）：
+  22dp cardSurface（运行时由 V3Palette 派生卡底与 12% hairline）+
+  40dp 17/17/17/7 类别图标容器 + 15sp SemiBold 关键词（最多 2 行）+
+  12sp v3_text_2 类型与时间 + 末端 48dp 置顶 / 删除热区。
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:clickable="true"
+    android:focusable="true"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingVertical="12dp"
+    android:paddingStart="16dp"
+    android:paddingEnd="6dp">
+
+    <FrameLayout
+        android:id="@+id/type_icon_tile"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:importantForAccessibility="no">
+
+        <ImageView
+            android:id="@+id/type_icon"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_gravity="center"
+            android:importantForAccessibility="no"
+            tools:src="@drawable/ic_search_black_24dp" />
+    </FrameLayout>
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/history_keyword"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="2"
+            android:textColor="@color/v3_text_1"
+            android:textSize="15sp"
+            tools:text="原神 胡桃 1000users入り" />
+
+        <TextView
+            android:id="@+id/history_meta"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="3dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="@color/v3_text_2"
+            android:textSize="12sp"
+            tools:text="关键词搜索 · 11-24 15:19" />
+    </LinearLayout>
+
+    <ImageView
+        android:id="@+id/pin_action"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:contentDescription="@string/string_442"
+        android:padding="13dp"
+        android:src="@drawable/ic_pin_outline_24"
+        app:tint="@color/v3_text_2" />
+
+    <ImageView
+        android:id="@+id/delete_action"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:contentDescription="@string/action_delete"
+        android:padding="13dp"
+        android:src="@drawable/ic_close_black_24dp"
+        app:tint="@color/v3_text_2" />
+
+</LinearLayout>

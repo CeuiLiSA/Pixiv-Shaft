@@ -7,6 +7,12 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
+        android:id="@+id/action_export"
+        android:icon="@drawable/ic_v3_export_24"
+        android:title="@string/pinned_export_action"
+        app:showAsAction="always" />
+
+    <item
         android:id="@+id/action_more"
         android:icon="@drawable/ic_more_vert_black_24dp"
         android:title="@string/more_actions"

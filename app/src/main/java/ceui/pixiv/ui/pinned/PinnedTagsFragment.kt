@@ -1,161 +1,119 @@
 package ceui.pixiv.ui.pinned
 
-import android.content.Intent
+import android.graphics.Color
 import android.os.Bundle
 import android.text.SpannableStringBuilder
 import android.text.style.ForegroundColorSpan
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import androidx.core.text.inSpans
 import androidx.core.view.isVisible
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import androidx.viewbinding.ViewBinding
 import ceui.lisa.R
-import ceui.lisa.activities.SearchActivity
-import ceui.lisa.activities.Shaft
-import ceui.lisa.database.AppDatabase
 import ceui.lisa.databinding.CellItemPinnedTagBinding
+import ceui.lisa.databinding.FragmentPinnedTabListBinding
 import ceui.lisa.utils.Common
-import ceui.lisa.utils.Params
-import ceui.lisa.view.LinearItemDecoration
-import ceui.pixiv.feeds.FeedFragment
-import ceui.pixiv.feeds.FeedItem
-import ceui.pixiv.feeds.FeedPage
-import ceui.pixiv.feeds.FeedRenderer
-import ceui.pixiv.feeds.FeedSkeletonView
-import ceui.pixiv.feeds.FeedSource
-import ceui.pixiv.feeds.feedRenderer
-import ceui.pixiv.feeds.feedViewModels
-import ceui.pixiv.utils.ppppx
-import ceui.pixiv.utils.clearGlideOnRecycle
-import ceui.pixiv.ui.prime.TagShelfSkeletonView
+import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.ui.user.binding_loadSquareMedia
+import ceui.pixiv.utils.clearGlideOnRecycle
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
 import ceui.pixiv.witstudio.theme.V3Palette
-import kotlinx.coroutines.Dispatchers
+import ceui.pixiv.witstudio.theme.cardSurface
+import ceui.pixiv.witstudio.theme.ripple
+import ceui.pixiv.witstudio.theme.shape
+import ceui.pixiv.witstudio.theme.v3Font
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 /**
- * 「我置顶的内容」的「标签」tab（[PinnedTabsFragment] 的左页）。
+ * 「我置顶的内容」的「标签」Tab（[PinnedTabsFragment] 第 1 页）。
  *
- * 数据来源是 [ceui.lisa.utils.PixivOperate.insertPinnedSearchHistory] 写入的 search_table，
- * 本地 Room 查询，没有分页也没有网络，因此不接本地优先缓存——数据本身就在本地。
- *
- * 用户从详情页长按置顶 / 取消置顶后回到本页要看到最新结果，所以每次页面进入 STARTED
- * 都主动 [ceui.pixiv.feeds.FeedViewModel.refresh] 重新查一次 DB（对齐旧版 onResume 语义）。
- *
- * 本页原本自带 toolbar + 「清空」按钮（独立入口时代）；改成 tab 结构后返回 / 标题 / 清空
- * 统一由宿主 [PinnedTabsFragment] 出，本页只负责列表本体。
+ * 与宿主共享 [PinnedContentViewModel]，自动承接多语言关键词过滤、Tab 实时计数与跨 Tab 同步。
  */
-class PinnedTagsFragment : FeedFragment() {
+class PinnedTagsFragment : Fragment(R.layout.fragment_pinned_tab_list) {
 
-    // 裸 fragment_feed 挂在 tab 宿主下，底部没有导航栏吃 systemBars inset，得自己补，
-    // 否则最后一张卡片压在手势条底下（同 WatchLaterFeedFragment）。
-    override val applyBottomSafeInset: Boolean = true
+    private val binding by viewBinding(FragmentPinnedTabListBinding::bind)
+    private val viewModel: PinnedContentViewModel by viewModels({ requireParentFragment() })
 
-    // autoLoad = false：本页刻意每次可见都重查一遍本地库（下面的 repeatOnLifecycle(STARTED) 里
-    // refresh），首屏那次也由它负责。留着默认的 autoLoad 只会让 VM 的 init refresh 与它撞在一起，
-    // 第一次 DB 查询必被后来的 refresh 取消重来（refresh 永远赢），白跑一趟。
-    override val feedViewModel by feedViewModels<String>(autoLoad = false) {
-        FeedSource { _ ->
-            val items = withContext(Dispatchers.IO) {
-                searchDao().getAllPinned()
-                    .filterNot { it.keyword.isNullOrBlank() }
-                    .map { PinnedTagItemHolder(it) }
-            }
-            FeedPage(items, null)
-        }
-    }
+    private var adapter: PinnedTagsAdapter? = null
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        // STARTED-aware 协程:只在 fragment 可见时才触发 refresh,避免后台 churn。
+
+        val listAdapter = PinnedTagsAdapter(
+            onClick = { item -> openSearchEntity(requireContext(), item.entity, lifecycleScope) },
+            onLongClick = ::showItemMenu,
+            onUnpin = ::onClickDeletePinnedTag,
+        ).also { adapter = it }
+
+        PinnedTabListHelper.setup(
+            binding = binding,
+            adapter = listAdapter,
+            onRefresh = { viewModel.refreshAll(showSpinner = true) },
+            onClearSearch = { viewModel.clearSearchQuery() },
+        )
+
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                feedViewModel.refresh()
-            }
-        }
-    }
-
-    /** 宿主的「清空」要先知道这页空不空 —— 空列表不该走二次确认再报一句「已清空」。 */
-    fun hasItems(): Boolean = feedViewModel.uiState.value.items.isNotEmpty()
-
-    override fun onListReady(listView: RecyclerView) {
-        // 卡间距对齐 V3 卡片列表通用的 12dp（cell 自带 12dp padding，卡与卡之间再留 12dp）。
-        listView.addItemDecoration(LinearItemDecoration(12.ppppx))
-    }
-
-    override fun onCreateRenderers(): List<FeedRenderer<out FeedItem, out ViewBinding>> {
-        return listOf(pinnedTagRenderer())
-    }
-
-    override fun onCreateSkeletonView(layoutManager: RecyclerView.LayoutManager): FeedSkeletonView {
-        return TagShelfSkeletonView(requireContext(), style = TagShelfSkeletonView.Style.PINNED)
-    }
-
-    private fun pinnedTagRenderer() = feedRenderer<PinnedTagItemHolder, CellItemPinnedTagBinding>(
-        inflate = CellItemPinnedTagBinding::inflate,
-        create = { cell ->
-            cell.binding.root.setOnClickListener {
-                // 标准跳法（见 V3TagFlowView.kt:179-184）：开 SearchActivity，
-                // illust tab（index=0），keyword 就是 tag.name。
-                // Tag.name 类型是 String?；FeedSource 已经把空 keyword 的 entity 过滤掉，但编译期
-                // 不知道这事，加一道防御兜底——免得未来 Tag/SearchEntity 字段改 nullability 时这里
-                // 静悄悄传 null keyword 给 SearchActivity。
-                val keyword = cell.item.tag.name?.takeIf { it.isNotBlank() } ?: return@setOnClickListener
-                startActivity(Intent(requireContext(), SearchActivity::class.java).apply {
-                    putExtra(Params.KEY_WORD, keyword)
-                    putExtra(Params.INDEX, 0)
-                })
-            }
-            cell.binding.deletePin.setOnClickListener { onClickDeletePinnedTag(cell.item) }
-        },
-        recycle = { cell ->
-            cell.binding.illust1.clearGlideOnRecycle()
-            cell.binding.illust2.clearGlideOnRecycle()
-            cell.binding.illust3.clearGlideOnRecycle()
-        },
-    ) { cell ->
-        val b = cell.binding
-        val item = cell.item
-        b.illustsPreview.isVisible = item.hasPreview
-        b.illust1.binding_loadSquareMedia(item.illust0)
-        b.illust2.binding_loadSquareMedia(item.illust1)
-        b.illust3.binding_loadSquareMedia(item.illust2)
-        bindTitles(b, item)
-    }
-
-    /**
-     * 标题与副标题。单个标签：译名（没有就原名）+ 原名副标题。标签组合（pixez#1364）：
-     * 「原神 + 胡桃」，连接的「+」用主题强调色把几个词分开读，最多两行；副标题「N 个标签的组合」。
-     */
-    private fun bindTitles(binding: CellItemPinnedTagBinding, item: PinnedTagItemHolder) {
-        val res = binding.root.resources
-        if (item.isCombo) {
-            val accent = V3Palette.from(binding.root.context).textAccent
-            binding.pinnedTagTitle.maxLines = 2
-            binding.pinnedTagTitle.text = SpannableStringBuilder().apply {
-                item.terms.forEachIndexed { index, term ->
-                    if (index > 0) {
-                        append(" ")
-                        inSpans(ForegroundColorSpan(accent)) { append("+") }
-                        append(" ")
-                    }
-                    append(term)
+                launch {
+                    viewModel.refreshing.collect { binding.refreshLayout.isRefreshing = it }
+                }
+                launch {
+                    combine(
+                        viewModel.filteredTags,
+                        viewModel.searchQuery,
+                        viewModel.hasLoaded,
+                    ) { items, query, loaded -> Triple(items, query, loaded) }
+                        .collect { (items, query, loaded) ->
+                            listAdapter.submitList(items)
+                            PinnedTabListHelper.renderEmptyState(
+                                binding = binding,
+                                hasLoaded = loaded,
+                                isEmpty = items.isEmpty(),
+                                query = query,
+                                defaultEmptyRes = R.string.pinned_empty,
+                            )
+                        }
                 }
             }
-            binding.pinnedTagSubtitle.text =
-                res.getQuantityString(R.plurals.pinned_tag_combo_count, item.terms.size, item.terms.size)
-        } else {
-            binding.pinnedTagTitle.maxLines = 1
-            binding.pinnedTagTitle.text = item.tag.translated_name ?: item.tag.name
-            binding.pinnedTagSubtitle.text = item.tag.name
         }
-        binding.pinnedTagSubtitle.isVisible = item.showSubtitle
+    }
+
+    override fun onDestroyView() {
+        binding.recyclerView.adapter = null
+        adapter = null
+        super.onDestroyView()
+    }
+
+    private fun showItemMenu(item: PinnedTagItemHolder) {
+        val ctx = context ?: return
+        val keyword = item.entity.keyword.orEmpty()
+        val translated = item.tag.translated_name?.takeIf { it.isNotBlank() && it != keyword }
+        val labels = mutableListOf(ctx.getString(R.string.v3_tag_menu_copy_original))
+        val actions = mutableListOf<() -> Unit>({ Common.copy(ctx, keyword) })
+        if (!item.isCombo && translated != null) {
+            labels += ctx.getString(R.string.v3_tag_menu_copy_translation)
+            actions += { Common.copy(ctx, translated) }
+        }
+        labels += ctx.getString(R.string.string_443)
+        actions += { onClickDeletePinnedTag(item) }
+
+        WitDialog.MenuDialogBuilder(ctx)
+            .setTitle(item.displayName)
+            .addItems(labels.toTypedArray()) { dialog, which ->
+                dialog.dismiss()
+                actions[which].invoke()
+            }
+            .show()
     }
 
     private fun onClickDeletePinnedTag(item: PinnedTagItemHolder) {
@@ -167,22 +125,13 @@ class PinnedTagsFragment : FeedFragment() {
             .setMessage(getString(R.string.unpin_tag_confirm_message, displayName))
             .addAction(R.string.string_142) { dialog, _ -> dialog.dismiss() }
             .addAction(0, R.string.string_443, WitDialogAction.ACTION_PROP_NEGATIVE) { dialog, _ ->
-                // Fragment 自身的 lifecycleScope,不是 viewLifecycleOwner 的:WitDialog 挂在
-                // Activity context 上,不受 Fragment 视图生命周期约束,视图已销毁(切后台被回收/
-                // 旋转)时用户才点确认,访问 viewLifecycleOwner 会直接抛 ISE 崩溃。
-                lifecycleScope.launch {
-                    withContext(Dispatchers.IO) { searchDao().deleteSearchEntity(entity) }
-                    feedViewModel.refresh()
-                }
-                // Toast 走 Toaster,窗口挂在栈顶 Activity 上而不是 fragment,已 detach 时也安全；
-                // 用 int 资源是为了避免 dialog 回调里 getString() 撞上 fragment 未 attach 抛 ISE。
+                viewModel.deletePinnedTag(entity)
                 Common.showToast(R.string.unpin_tag_success)
                 dialog.dismiss()
             }
             .show()
     }
 
-    /** 宿主 tab 页的「清空」转到这里 —— 删库和刷新都在有数据源的这一侧。 */
     fun showClearAllDialog() {
         val ctx = context ?: return
         WitDialog.MessageDialogBuilder(ctx)
@@ -190,20 +139,102 @@ class PinnedTagsFragment : FeedFragment() {
             .setMessage(R.string.clear_pinned_tags_msg)
             .addAction(R.string.string_142) { dialog, _ -> dialog.dismiss() }
             .addAction(0, R.string.string_141, WitDialogAction.ACTION_PROP_NEGATIVE) { dialog, _ ->
-                lifecycleScope.launch {
-                    withContext(Dispatchers.IO) { searchDao().deleteAllPinned() }
-                    feedViewModel.refresh()
-                }
+                viewModel.clearPinnedTags()
                 Common.showToast(R.string.pinned_tags_cleared)
                 dialog.dismiss()
             }
             .show()
     }
-}
 
-/**
- * 顶层函数（非成员方法）：[PinnedTagsFragment.feedViewModel] 的 [FeedSource] lambda 里要用它，
- * 成员方法会隐式捕获 `this@PinnedTagsFragment`——FeedSource 被 VM 长期持有，会把旋转前的旧
- * Fragment 实例钉在内存里（零捕获约定见 [ceui.pixiv.feeds.feedViewModels] 文档）。
- */
-private fun searchDao() = AppDatabase.getAppDatabase(Shaft.getContext()).searchDao()
+    private class PinnedTagsAdapter(
+        private val onClick: (PinnedTagItemHolder) -> Unit,
+        private val onLongClick: (PinnedTagItemHolder) -> Unit,
+        private val onUnpin: (PinnedTagItemHolder) -> Unit,
+    ) : ListAdapter<PinnedTagItemHolder, PinnedTagsAdapter.Holder>(DIFF) {
+
+        class Holder(val binding: CellItemPinnedTagBinding) : RecyclerView.ViewHolder(binding.root)
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): Holder {
+            val binding = CellItemPinnedTagBinding.inflate(
+                LayoutInflater.from(parent.context),
+                parent,
+                false,
+            )
+            val ctx = binding.root.context
+            binding.root.background = ctx.cardSurface(22)
+            binding.pinnedTagTitle.typeface = ctx.v3Font(600)
+            binding.pinnedTagSubtitle.typeface = ctx.v3Font(400)
+            binding.deletePin.background = ctx.ripple(null, shape(999f, Color.WHITE))
+            val holder = Holder(binding)
+            binding.root.setOnClickListener {
+                val pos = holder.bindingAdapterPosition
+                if (pos != RecyclerView.NO_POSITION) onClick(getItem(pos))
+            }
+            binding.root.setOnLongClickListener {
+                val pos = holder.bindingAdapterPosition
+                if (pos != RecyclerView.NO_POSITION) onLongClick(getItem(pos))
+                true
+            }
+            binding.deletePin.setOnClickListener {
+                val pos = holder.bindingAdapterPosition
+                if (pos != RecyclerView.NO_POSITION) onUnpin(getItem(pos))
+            }
+            return holder
+        }
+
+        override fun onBindViewHolder(holder: Holder, position: Int) {
+            val b = holder.binding
+            val item = getItem(position)
+            b.illustsPreview.isVisible = item.hasPreview
+            b.illust1.binding_loadSquareMedia(item.illust0)
+            b.illust2.binding_loadSquareMedia(item.illust1)
+            b.illust3.binding_loadSquareMedia(item.illust2)
+
+            val res = b.root.resources
+            if (item.isCombo) {
+                val accent = V3Palette.from(b.root.context).textAccent
+                b.pinnedTagTitle.maxLines = 2
+                b.pinnedTagTitle.text = SpannableStringBuilder().apply {
+                    item.terms.forEachIndexed { index, term ->
+                        if (index > 0) {
+                            append(" ")
+                            inSpans(ForegroundColorSpan(accent)) { append("+") }
+                            append(" ")
+                        }
+                        append(term)
+                    }
+                }
+                b.pinnedTagSubtitle.text =
+                    res.getQuantityString(R.plurals.pinned_tag_combo_count, item.terms.size, item.terms.size)
+            } else {
+                b.pinnedTagTitle.maxLines = 1
+                b.pinnedTagTitle.text = item.tag.translated_name ?: item.tag.name
+                b.pinnedTagSubtitle.text = item.tag.name
+            }
+            b.pinnedTagSubtitle.isVisible = item.showSubtitle
+        }
+
+        override fun onViewRecycled(holder: Holder) {
+            super.onViewRecycled(holder)
+            holder.binding.illust1.clearGlideOnRecycle()
+            holder.binding.illust2.clearGlideOnRecycle()
+            holder.binding.illust3.clearGlideOnRecycle()
+        }
+
+        private companion object {
+            val DIFF = object : DiffUtil.ItemCallback<PinnedTagItemHolder>() {
+                override fun areItemsTheSame(
+                    oldItem: PinnedTagItemHolder,
+                    newItem: PinnedTagItemHolder,
+                ): Boolean = oldItem.entity.id == newItem.entity.id
+
+                override fun areContentsTheSame(
+                    oldItem: PinnedTagItemHolder,
+                    newItem: PinnedTagItemHolder,
+                ): Boolean = oldItem.entity.keyword == newItem.entity.keyword &&
+                    oldItem.entity.previewIllustsJson == newItem.entity.previewIllustsJson &&
+                    oldItem.entity.searchType == newItem.entity.searchType
+            }
+        }
+    }
+}

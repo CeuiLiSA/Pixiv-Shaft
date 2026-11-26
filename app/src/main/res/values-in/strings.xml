@@ -3686,4 +3686,33 @@
     <string name="liquid_glass_quality_none">Tidak ada</string>
     <string name="liquid_glass_quality_standard">Standar</string>
     <string name="liquid_glass_quality_ultra">Ultra</string>
+
+    <string name="pinned_search_hint_tags">Cari tag disematkan (ZH / JA / EN)</string>
+    <string name="pinned_search_hint_users">Cari kreator disematkan (nama / akun / UID)</string>
+    <string name="pinned_search_hint_history">Cari riwayat pencarian (ZH / JA / EN)</string>
+    <string name="pinned_search_empty">Tidak ada hasil untuk \"%1$s\"</string>
+    <string name="pinned_search_clear">Hapus pencarian</string>
+    <string name="pinned_history_empty">Belum ada riwayat pencarian</string>
+    <string name="pinned_user_copy_name">Salin nama</string>
+    <string name="pinned_user_copy_account">Salin akun</string>
+    <string name="pinned_user_copy_id">Salin UID</string>
+    <string name="pinned_export_action">Ekspor daftar</string>
+    <string name="pinned_export_title">Ekspor daftar</string>
+    <string name="pinned_export_desc">Pilih kategori dan format agar mudah dilihat atau disalin ke pencarian</string>
+    <string name="pinned_export_section_content">Kategori</string>
+    <string name="pinned_export_section_scope">Cakupan</string>
+    <string name="pinned_export_scope_filtered">Hasil pencarian</string>
+    <string name="pinned_export_scope_all">Semua item</string>
+    <string name="pinned_export_section_format">Format</string>
+    <string name="pinned_export_format_txt">Teks biasa (.txt)</string>
+    <string name="pinned_export_format_xml">XML (.xml)</string>
+    <string name="pinned_export_save">Simpan file</string>
+    <string name="pinned_export_save_count">Simpan file (%1$d)</string>
+    <string name="pinned_export_copy">Salin semua</string>
+    <string name="pinned_export_share">Bagikan file</string>
+    <string name="pinned_export_empty">Tidak ada item untuk diekspor</string>
+    <string name="pinned_export_one_required">Pilih minimal satu kategori</string>
+    <string name="pinned_export_copied">%1$d item disalin ke papan klip</string>
+    <string name="pinned_export_saved">%1$d item diekspor ke %2$s</string>
+    <string name="pinned_export_save_failed">Gagal mengekspor: %1$s</string>
 </resources>

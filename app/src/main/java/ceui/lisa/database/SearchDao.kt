@@ -33,6 +33,10 @@ interface SearchDao {
     @Query("SELECT * FROM search_table WHERE pinned = 0 ORDER BY searchTime DESC LIMIT :limit")
     fun getRecentUnpinned(limit: Int): List<SearchEntity>
 
+    // 全量本地搜索历史（不设 LIMIT，供「我置顶的内容 → 搜索历史」检索、计数与导出；沿用 (pinned, searchTime) 索引）
+    @Query("SELECT * FROM search_table WHERE pinned = 0 ORDER BY searchTime DESC")
+    fun getAllUnpinned(): List<SearchEntity>
+
     @get:Query("SELECT * FROM search_table")
     val allSearchEntities: List<SearchEntity>
 
