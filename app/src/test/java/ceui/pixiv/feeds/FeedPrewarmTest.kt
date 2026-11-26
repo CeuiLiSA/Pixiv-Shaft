@@ -30,11 +30,12 @@ import java.time.Duration
 @Config(sdk = [35], application = Application::class)
 @LooperMode(LooperMode.Mode.PAUSED)
 class FeedPrewarmTest {
-    private lateinit var activity: ActivityController<FragmentActivity>
+    private var activity: ActivityController<FragmentActivity>? = null
 
     @After
     fun tearDown() {
-        if (::activity.isInitialized) activity.pause().stop().destroy()
+        activity?.pause()?.stop()?.destroy()
+        activity = null
     }
 
     @Test
@@ -61,12 +62,68 @@ class FeedPrewarmTest {
         assertEquals(0, pool.getRecycledViewCount(ROW_TYPE))
     }
 
+    @Test
+    fun `自定义预建总量与每帧步长时按上限预建满`() {
+        val fragment = open(PrewarmFeedFragment().apply {
+            prewarmClass = Row::class.java
+            prewarmCount = 21
+            perFrame = 3
+        })
+        val pool = fragment.list.recycledViewPool
+        assertEquals(0, pool.getRecycledViewCount(HEADER_TYPE))
+        assertEquals(21, pool.getRecycledViewCount(ROW_TYPE))
+    }
+
+    @Test
+    fun `预建总量小于等于 0 时不崩且不压低默认复用池上限`() {
+        for (invalidCount in listOf(0, -1)) {
+            val fragment = open(PrewarmFeedFragment().apply {
+                prewarmClass = Row::class.java
+                prewarmCount = invalidCount
+            })
+            val pool = fragment.list.recycledViewPool
+            assertEquals("invalidCount=$invalidCount 不应预建", 0, pool.getRecycledViewCount(ROW_TYPE))
+            val adapter = requireNotNull(fragment.list.adapter as? FeedAdapter)
+            adapter.prewarm(fragment.list, pool, ROW_TYPE, 5)
+            assertEquals("invalidCount=$invalidCount 不应把默认池容量压成 0", 5, pool.getRecycledViewCount(ROW_TYPE))
+        }
+    }
+
+    @Test
+    fun `预建总量小于默认池上限 5 时保留默认池容量`() {
+        val fragment = open(PrewarmFeedFragment().apply {
+            prewarmClass = Row::class.java
+            prewarmCount = 3
+        })
+        val pool = fragment.list.recycledViewPool
+        assertEquals(3, pool.getRecycledViewCount(ROW_TYPE))
+        val adapter = requireNotNull(fragment.list.adapter as? FeedAdapter)
+        adapter.prewarm(fragment.list, pool, ROW_TYPE, 2)
+        assertEquals("不应将默认池上限从 5 压低到 3", 5, pool.getRecycledViewCount(ROW_TYPE))
+    }
+
+    @Test
+    fun `每帧步长小于等于 0 时直接停止而不死循环重排动画帧`() {
+        for (invalidPerFrame in listOf(0, -2)) {
+            val fragment = open(PrewarmFeedFragment().apply {
+                prewarmClass = Row::class.java
+                prewarmCount = 8
+                perFrame = invalidPerFrame
+            })
+            val pool = fragment.list.recycledViewPool
+            assertEquals("invalidPerFrame=$invalidPerFrame 不应预建", 0, pool.getRecycledViewCount(ROW_TYPE))
+            assertEquals("应在入口拦截，不得每帧重复调度", 1, fragment.perFrameReadCount)
+        }
+    }
+
     /** 打开页面并让首屏停在加载态（数据源不回包），跑够预建的分帧。 */
     private fun open(fragment: PrewarmFeedFragment): PrewarmFeedFragment {
-        activity = Robolectric.buildActivity(FragmentActivity::class.java)
-        activity.get().setTheme(R.style.AppTheme)
-        activity.setup()
-        activity.get().supportFragmentManager.beginTransaction()
+        tearDown()
+        val controller = Robolectric.buildActivity(FragmentActivity::class.java)
+        activity = controller
+        controller.get().setTheme(R.style.AppTheme)
+        controller.setup()
+        controller.get().supportFragmentManager.beginTransaction()
             .replace(android.R.id.content, fragment).commitNow()
         repeat(10) { shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(20)) }
         check(fragment.model.uiState.value.showFullscreenLoading) { "首屏应仍在加载态" }
@@ -96,12 +153,23 @@ class FeedPrewarmTest {
 
     class PrewarmFeedFragment : FeedFragment() {
         var prewarmClass: Class<out FeedItem>? = null
+        var prewarmCount: Int? = null
+        var perFrame: Int? = null
+        var perFrameReadCount: Int = 0
+            private set
         override val feedViewModel by feedViewModels { PendingSource() }
         val model get() = feedViewModel
         val list: RecyclerView get() = feedBinding.feedListView
         override val loadMoreEnabled = false
         override val refreshEnabled = false
         override val firstScreenPrewarmItemClass: Class<out FeedItem>? get() = prewarmClass
+        override val firstScreenPrewarmCount: Int
+            get() = prewarmCount ?: super.firstScreenPrewarmCount
+        override val prewarmPerFrame: Int
+            get() {
+                perFrameReadCount++
+                return perFrame ?: super.prewarmPerFrame
+            }
         override fun onCreateLayoutManager() = LinearLayoutManager(requireContext())
         override fun onCreateRenderers() = listOf(
             feedRenderer<Header, TextBinding>(inflate = { _, parent, _ ->

@@ -102,6 +102,15 @@ class HotTagsFeedFragment : FeedFragment() {
         }
     }
 
+    override val firstScreenPrewarmItemClass: Class<out FeedItem>?
+        get() = HotTagGridItem::class.java
+
+    override val firstScreenPrewarmCount: Int
+        get() = PREWARM_COUNT
+
+    override val prewarmPerFrame: Int
+        get() = PREWARM_PER_FRAME
+
     override fun onCreateLayoutManager(): RecyclerView.LayoutManager {
         return gridLayoutManager(SPAN_COUNT)
     }
@@ -130,6 +139,8 @@ class HotTagsFeedFragment : FeedFragment() {
         inflate = RecyTagGridBinding::inflate,
         fullSpan = fullSpan,
         create = { cell ->
+            // 在 ViewHolder 创建时一次性设置高宽比，避免每次 bind 触发 requestLayout 与重复排版
+            cell.binding.illustImage.setHeightRatio(ratio)
             cell.binding.root.setOnClick { openSearch(cell.item.trendingTag) }
             cell.binding.root.setOnLongClickListener { openIllustDetail(cell.item.bean) }
         },
@@ -139,7 +150,6 @@ class HotTagsFeedFragment : FeedFragment() {
         },
     ) { cell ->
         val trendingTag = cell.item.trendingTag
-        cell.binding.illustImage.setHeightRatio(ratio)
         tagGlide
             .load(cell.item.bean?.let(imageOf))
             .placeholder(R.color.light_bg)
@@ -148,6 +158,8 @@ class HotTagsFeedFragment : FeedFragment() {
         val translated = trendingTag.translated_name
         cell.binding.chineseTitle.text =
             if (translated.isNullOrEmpty()) "" else "#$translated"
+        cell.binding.chineseTitle.visibility =
+            if (translated.isNullOrEmpty()) View.GONE else View.VISIBLE
         cell.binding.title.text = "#${trendingTag.tag.orEmpty()}"
     }
 
@@ -176,6 +188,8 @@ class HotTagsFeedFragment : FeedFragment() {
         private const val HEADER_RATIO = 0.66f
         private const val CONTENT_RATIO = 1.0f
         private const val ITEM_VIEW_CACHE_SIZE = 40
+        private const val PREWARM_COUNT = 21
+        private const val PREWARM_PER_FRAME = 3
 
         /** [contentType] 取 [Params.TYPE_ILLUST] / [Params.TYPE_NOVEL]。 */
         @JvmStatic
