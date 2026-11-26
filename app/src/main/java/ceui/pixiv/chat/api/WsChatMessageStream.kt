@@ -160,7 +160,7 @@ internal fun ChatFrame.Msg.toChatMessageEntity(): ChatMessageEntity? {
     }
     return ChatMessageEntity(
         localKey = cmid,
-        serverId = null,
+        serverId = serverId,
         clientMsgId = cmid,
         uid = uid,
         room = room,
@@ -168,6 +168,7 @@ internal fun ChatFrame.Msg.toChatMessageEntity(): ChatMessageEntity? {
         text = text,
         illustId = illustId,
         stickerId = stickerId,
+        hasAttachment = hasAttachment,
         ts = ts,
         state = SendState.Delivered,
         replyToUid = replyTo?.uid,

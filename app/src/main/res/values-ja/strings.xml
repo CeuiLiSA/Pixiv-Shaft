@@ -3746,4 +3746,11 @@
     <string name="pinned_export_copied">%1$d件をクリップボードにコピーしました</string>
     <string name="pinned_export_saved">%1$d件を %2$s に保存しました</string>
     <string name="pinned_export_save_failed">エクスポートに失敗しました：%1$s</string>
+
+    <string name="chat_send_image">写真を送信</string>
+    <string name="chat_image_message">[写真]</string>
+    <string name="chat_image_failed">写真を送信できませんでした</string>
+    <string name="chat_image_retry">再試行</string>
+    <string name="chat_image_upload_progress">写真をアップロード中、%1$d / %2$d</string>
+    <string name="media_selection_too_large">写真は1枚につき30 MB以下にしてください</string>
 </resources>

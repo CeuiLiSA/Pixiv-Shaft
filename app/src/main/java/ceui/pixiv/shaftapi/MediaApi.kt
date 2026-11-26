@@ -2,6 +2,8 @@ package ceui.pixiv.shaftapi
 
 import com.google.gson.annotations.SerializedName
 import retrofit2.http.Body
+import retrofit2.http.GET
+import retrofit2.http.Path
 import retrofit2.http.POST
 import retrofit2.http.Tag
 
@@ -13,6 +15,12 @@ import retrofit2.http.Tag
  * stores only metadata.
  */
 interface MediaApi {
+
+    @GET("v1/media/chat/{authorUid}/{messageRef}")
+    suspend fun chatAttachment(
+        @Path("authorUid") authorUid: Long,
+        @Path("messageRef") messageRef: String,
+    ): ChatMediaResponse
 
     @POST("v1/media/upload/init")
     suspend fun initUpload(
@@ -26,6 +34,18 @@ interface MediaApi {
         @Tag trace: MediaUploadTrace? = null,
     ): MediaObject
 }
+
+data class ChatMediaResponse(val attachments: List<ChatMediaAttachment>)
+
+data class ChatMediaAttachment(
+    val mediaId: String,
+    val width: Int,
+    val height: Int,
+    val contentType: String,
+    val resourceList: List<MediaResource>,
+)
+
+data class MediaResource(val type: String, val url: String, val expiresAt: Long)
 
 data class MediaUploadInitRequest(
     val scene: String,

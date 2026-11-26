@@ -1,5 +1,7 @@
 package ceui.pixiv.chat.vm
 
+import android.content.ContentResolver
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import ceui.pixiv.chat.api.ChatFrame
@@ -14,6 +16,11 @@ import ceui.pixiv.chat.core.ChatMessageStore
 import ceui.pixiv.chat.core.ChatMessageStream
 import ceui.pixiv.chat.data.ChatMessageEntity
 import ceui.pixiv.chat.data.SendState
+import ceui.pixiv.session.SessionManager
+import ceui.pixiv.shaftapi.MediaUploadResume
+import ceui.pixiv.shaftapi.MediaUploader
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -26,6 +33,7 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import timber.log.Timber
 import java.util.UUID
 
@@ -141,6 +149,107 @@ class ChatListViewModel(
      */
     private val _replyTarget = MutableStateFlow<ChatMessageEntity?>(null)
     val replyTarget: StateFlow<ChatMessageEntity?> = _replyTarget.asStateFlow()
+
+    internal sealed interface PhotoState {
+        data object Idle : PhotoState
+        data class Uploading(val completed: Int, val total: Int) : PhotoState
+        data object SelectionTooMany : PhotoState
+        data object SelectionTooLarge : PhotoState
+        data object Failed : PhotoState
+    }
+
+    private class Photo(val uri: Uri) {
+        var resume: MediaUploadResume? = null
+        var mediaId: String? = null
+    }
+
+    private class PhotoAlbum(val photos: List<Photo>, val text: String, val quote: ChatMessageEntity?) {
+        val messageId = UUID.randomUUID().toString()
+    }
+
+    private val _photoState = MutableStateFlow<PhotoState>(PhotoState.Idle)
+    internal val photoState = _photoState.asStateFlow()
+    private var photoAlbum: PhotoAlbum? = null
+    private var photoAcknowledgement: CompletableDeferred<Boolean>? = null
+
+    internal fun selectPhotos(resolver: ContentResolver, uris: List<Uri>, text: String) {
+        if (photoAlbum != null || uris.isEmpty()) return
+        if (uris.size > 9) {
+            _photoState.value = PhotoState.SelectionTooMany
+            return
+        }
+        val album = PhotoAlbum(uris.distinct().map(::Photo), text, _replyTarget.value?.takeIf(::canReplyTo))
+        photoAlbum = album
+        uploadPhotos(resolver, album)
+    }
+
+    internal fun retryPhotos(resolver: ContentResolver) {
+        if (_photoState.value == PhotoState.Failed) photoAlbum?.let { uploadPhotos(resolver, it) }
+    }
+
+    internal fun dismissPhotoState() {
+        if (_photoState.value is PhotoState.Uploading) return
+        photoAlbum = null
+        _photoState.value = PhotoState.Idle
+    }
+
+    internal fun rejectPhotoSend(messageId: String?): Boolean {
+        if (messageId == null || photoAlbum?.messageId != messageId) return false
+        photoAcknowledgement?.complete(false)
+        return true
+    }
+
+    private fun uploadPhotos(resolver: ContentResolver, album: PhotoAlbum) {
+        val photos = album.photos
+        fun updateProgress() {
+            _photoState.value = PhotoState.Uploading(photos.count { it.mediaId != null }, photos.size)
+        }
+        updateProgress()
+        viewModelScope.launch {
+            try {
+                check(SessionManager.loggedInUid == selfUid)
+                for (photo in photos) {
+                    if (photo.mediaId == null && !MediaUploader.fitsSelectionLimit(resolver, photo.uri)) {
+                        photoAlbum = null
+                        _photoState.value = PhotoState.SelectionTooLarge
+                        return@launch
+                    }
+                }
+                for (photo in photos) {
+                    if (photo.mediaId != null) continue
+                    check(SessionManager.loggedInUid == selfUid)
+                    photo.mediaId = MediaUploader.upload(
+                        resolver, photo.uri, resume = photo.resume,
+                        onResume = { photo.resume = it }, onProgress = {},
+                        ownerUid = selfUid,
+                    ).id
+                    updateProgress()
+                }
+                check(SessionManager.loggedInUid == selfUid)
+                val reply = album.quote?.clientMsgId?.let { ChatReplyRef(album.quote.uid, it) }
+                val acknowledgement = CompletableDeferred<Boolean>()
+                photoAcknowledgement = acknowledgement
+                val accepted = sender.sendImages(toUid, album.messageId, album.text, reply, photos.map { checkNotNull(it.mediaId) })
+                if (accepted && withTimeoutOrNull(10_000) { acknowledgement.await() } == true) {
+                    finishPhotoAlbum(album)
+                } else {
+                    _photoState.value = PhotoState.Failed
+                }
+            } catch (error: CancellationException) {
+                throw error
+            } catch (_: Exception) {
+                _photoState.value = PhotoState.Failed
+            } finally {
+                photoAcknowledgement = null
+            }
+        }
+    }
+
+    private fun finishPhotoAlbum(album: PhotoAlbum) {
+        photoAlbum = null
+        album.quote?.let { _replyTarget.compareAndSet(it, null) }
+        _photoState.value = PhotoState.Idle
+    }
 
     init {
         Timber.tag(TAG_PERF).d(
@@ -302,10 +411,10 @@ class ChatListViewModel(
         // latency when the echo arrives.
         inFlightSends[clientMsgId] = System.nanoTime()
 
-        val accepted = if (stickerId != null) sender.sendSticker(toUid, clientMsgId, trimmed, replyRef, stickerId) else sender.send(
-            toUid = toUid, clientMsgId = clientMsgId, text = trimmed,
-            illustId = illustId, replyTo = replyRef,
-        )
+        val accepted = when {
+            stickerId != null -> sender.sendSticker(toUid, clientMsgId, trimmed, replyRef, stickerId)
+            else -> sender.send(toUid, clientMsgId, trimmed, illustId, replyRef)
+        }
         if (!accepted) {
             inFlightSends.remove(clientMsgId)
             store.upsert(listOf(optimistic.copy(state = SendState.Failed)))
@@ -546,6 +655,12 @@ class ChatListViewModel(
                 windowSize.value++
 
                 val cmid = msg.clientMsgId
+                val album = photoAlbum
+                if (msg.uid == selfUid && msg.hasAttachment && album != null && cmid == album.messageId) {
+                    if (photoAcknowledgement?.complete(true) != true && _photoState.value == PhotoState.Failed) {
+                        finishPhotoAlbum(album)
+                    }
+                }
                 val sendStartNs = if (cmid != null) inFlightSends.remove(cmid) else null
                 if (sendStartNs != null) {
                     val roundTripMs = (System.nanoTime() - sendStartNs) / 1_000_000.0
@@ -682,6 +797,7 @@ data class PeerTypingState(
  */
 fun interface WsMsgSender {
     fun sendSticker(toUid: Long?, clientMsgId: String, text: String, replyTo: ChatReplyRef?, stickerId: Long): Boolean = false
+    fun sendImages(toUid: Long?, clientMsgId: String, text: String, replyTo: ChatReplyRef?, mediaIds: List<String>): Boolean = false
 
     fun send(
         toUid: Long?,

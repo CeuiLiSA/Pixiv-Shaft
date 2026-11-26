@@ -64,7 +64,7 @@
     <string name="plaza_object_novel">小説</string>
     <string name="plaza_object_user">ユーザー</string>
     <string name="plaza_media_type_error">対応画像：JPG、PNG、WebP、GIF</string>
-    <string name="plaza_media_size_error">画像は 1 枚 25 MB 以下で、ファイルサイズを読み取れる必要があります</string>
+    <string name="plaza_media_size_error">画像は 1 枚 30 MB 以下で、ファイルサイズを読み取れる必要があります</string>
     <string name="plaza_media_read_error">画像を読み取れません。選択し直してください。</string>
     <string name="plaza_media_bounds_error">画像の幅と高さを取得できません。選択し直してください。</string>
     <string name="plaza_media_method_error">未対応のアップロード方式です</string>

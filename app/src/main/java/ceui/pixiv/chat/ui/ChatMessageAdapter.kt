@@ -208,6 +208,14 @@ class ChatMessageAdapter(
 
         private val bubble: View = itemView.findViewById(R.id.bubble)
         private val tvContent: TextView = itemView.findViewById(R.id.tv_content)
+        private val attachmentView = ChatAttachmentView(itemView.context).also { image ->
+            val container = tvContent.parent as ChatMessageBodyLayout
+            val density = itemView.resources.displayMetrics.density
+            container.addView(image, android.widget.FrameLayout.LayoutParams(
+                (220 * density).toInt(), ViewGroup.LayoutParams.WRAP_CONTENT,
+            ).apply { gravity = if (isSent) android.view.Gravity.END else android.view.Gravity.START })
+            image.setOnLongClickListener { itemView.performLongClick() }
+        }
         private val stickerView = ceui.pixiv.sticker.StickerImageView(itemView.context).also { image ->
             val container = tvContent.parent as ChatMessageBodyLayout
             // Keep the local 128px asset compact on high-density screens.
@@ -255,7 +263,8 @@ class ChatMessageAdapter(
             // tablets stay balanced), render pure-emoji messages jumbo & bubble-
             // less, and linkify URLs.
             tvContent.text = text
-            tvContent.visibility = if (msg.stickerId == null) View.VISIBLE else View.GONE
+            tvContent.visibility = if (msg.stickerId == null && !msg.hasAttachment) View.VISIBLE else View.GONE
+            attachmentView.bind(msg.takeIf { it.hasAttachment })
             stickerView.visibility = if (msg.stickerId != null) View.VISIBLE else View.GONE
             stickerView.bind(msg.stickerId, resourceSize = 128)
             stickerView.setOnLongClickListener { itemView.performLongClick() }
@@ -264,7 +273,7 @@ class ChatMessageAdapter(
             // A quoted message forces the bubble chrome even for pure-emoji text —
             // the quote block needs a surface to sit on.
             val jumbo = msg.stickerId == null && !msg.isReply && isJumboEmoji(text)
-            val bareContent = msg.stickerId != null || jumbo
+            val bareContent = msg.stickerId != null || msg.hasAttachment || jumbo
             tvContent.setTextColor(if (isSent && !bareContent) Color.WHITE
                 else ContextCompat.getColor(ctx, R.color.v3_text_1))
             tvTime.setTextColor(if (isSent && !bareContent) 0xD9FFFFFF.toInt()

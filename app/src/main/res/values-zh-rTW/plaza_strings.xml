@@ -64,7 +64,7 @@
     <string name="plaza_object_novel">小說</string>
     <string name="plaza_object_user">使用者</string>
     <string name="plaza_media_type_error">支援 JPG、PNG、WebP 和 GIF 圖片</string>
-    <string name="plaza_media_size_error">單張圖片最大 25 MB，且必須能讀取檔案大小</string>
+    <string name="plaza_media_size_error">單張圖片最大 30 MB，且必須能讀取檔案大小</string>
     <string name="plaza_media_read_error">無法讀取圖片，請重新選擇</string>
     <string name="plaza_media_bounds_error">無法解析真實圖片寬高，請重新選擇</string>
     <string name="plaza_media_method_error">不支援的上傳方式</string>

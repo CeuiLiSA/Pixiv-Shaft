@@ -64,7 +64,7 @@
     <string name="plaza_object_novel">Novel</string>
     <string name="plaza_object_user">User</string>
     <string name="plaza_media_type_error">Supported images: JPG, PNG, WebP and GIF</string>
-    <string name="plaza_media_size_error">Each image must be at most 25 MB with a readable file size</string>
+    <string name="plaza_media_size_error">Each image must be at most 30 MB with a readable file size</string>
     <string name="plaza_media_read_error">Cannot read the image. Please select it again.</string>
     <string name="plaza_media_bounds_error">Cannot read the image dimensions. Please select it again.</string>
     <string name="plaza_media_method_error">Unsupported upload method</string>

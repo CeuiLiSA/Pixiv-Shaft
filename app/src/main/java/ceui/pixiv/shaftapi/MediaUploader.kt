@@ -5,6 +5,7 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 import android.provider.OpenableColumns
 import ceui.pixiv.api.Client
+import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.translate.awaitOkHttpCall
 import com.google.gson.JsonParser
 import kotlinx.coroutines.Dispatchers
@@ -17,12 +18,27 @@ import retrofit2.HttpException
 
 /** Streams original bytes. Bounds decoding never allocates a pixel bitmap. */
 internal object MediaUploader {
-    private const val MAX_BYTES = 25L * 1024 * 1024
+    private const val MAX_BYTES = 30L * 1024 * 1024
 
     /** A resumed PUT must finish inside the signature; shorter than this and we re-init instead. */
     private const val RESUME_MARGIN_MS = 60_000L
 
     private class Bounds(val width: Int, val height: Int)
+
+    suspend fun fitsSelectionLimit(resolver: ContentResolver, uri: Uri): Boolean =
+        withContext(Dispatchers.IO) { fileSize(resolver, uri) in 1..MAX_BYTES }
+
+    private fun fileSize(resolver: ContentResolver, uri: Uri): Long {
+        val reportedSize = resolver.query(uri, arrayOf(OpenableColumns.SIZE), null, null, null)?.use {
+            if (it.moveToFirst() && !it.isNull(0)) it.getLong(0) else -1L
+        } ?: -1L
+        if (reportedSize > 0) return reportedSize
+        return try {
+            resolver.openAssetFileDescriptor(uri, "r")?.use { it.length } ?: -1L
+        } catch (_: java.io.IOException) {
+            -1L
+        }
+    }
 
     /**
      * Uploads one image. [resume] is the authorisation a previous attempt persisted after init;
@@ -37,6 +53,15 @@ internal object MediaUploader {
         resume: MediaUploadResume?,
         onResume: suspend (MediaUploadResume) -> Unit,
         onProgress: (Int) -> Unit,
+    ): MediaObject = upload(resolver, uri, resume, onResume, onProgress, ownerUid = null)
+
+    suspend fun upload(
+        resolver: ContentResolver,
+        uri: Uri,
+        resume: MediaUploadResume?,
+        onResume: suspend (MediaUploadResume) -> Unit,
+        onProgress: (Int) -> Unit,
+        ownerUid: Long?,
     ): MediaObject =
         withContext(Dispatchers.IO) {
             val trace = MediaUploadTrace("plaza_upload")
@@ -45,21 +70,10 @@ internal object MediaUploader {
                 val type = resolver.getType(uri)
                 if (type !in setOf("image/jpeg", "image/png", "image/webp", "image/gif"))
                     throw MediaUploadException(MediaUploadException.Reason.TYPE)
-                val reportedSize =
-                    resolver.query(uri, arrayOf(OpenableColumns.SIZE), null, null, null)?.use {
-                        if (it.moveToFirst() && !it.isNull(0)) it.getLong(0) else -1L
-                    } ?: -1L
-                val size =
-                    if (reportedSize > 0) reportedSize
-                    else
-                        try {
-                            resolver.openAssetFileDescriptor(uri, "r")?.use { it.length } ?: -1L
-                        } catch (_: java.io.IOException) {
-                            -1L
-                        }
+                val size = fileSize(resolver, uri)
                 trace.event(
                     "result",
-                    "contentType=$type reportedSize=$reportedSize size=$size maxBytes=$MAX_BYTES",
+                    "contentType=$type size=$size maxBytes=$MAX_BYTES",
                 )
                 if (size <= 0) throw MediaUploadException(MediaUploadException.Reason.SIZE_UNKNOWN)
                 if (size > MAX_BYTES) throw MediaUploadException(MediaUploadException.Reason.SIZE)
@@ -82,6 +96,7 @@ internal object MediaUploader {
                 // may finish the same pending object (the API verifies size and type on HEAD).
                 val reusable = resume?.takeIf { it.contentType == type && it.size == size }
                 if (reusable != null) {
+                    requireUploadOwner(ownerUid, reusable.objectKey)
                     trace.stage("resume", "mediaId=${reusable.mediaId}")
                     when (val outcome = resumed(reusable, bounds, trace)) {
                         is Resumed.Done -> {
@@ -89,7 +104,9 @@ internal object MediaUploader {
                             return@withContext outcome.media
                         }
                         Resumed.RepeatPut -> {
+                            requireUploadOwner(ownerUid, reusable.objectKey)
                             put(resolver, uri, reusable, trace, onProgress)
+                            requireUploadOwner(ownerUid, reusable.objectKey)
                             val media = complete(reusable, bounds, trace)
                             onProgress(100)
                             return@withContext media
@@ -101,6 +118,7 @@ internal object MediaUploader {
                 trace.stage("init")
                 val init =
                     Client.mediaAPI.initUpload(MediaUploadInitRequest("plaza", type!!, size), trace)
+                requireUploadOwner(ownerUid, init.objectKey)
                 if (init.method != "PUT")
                     throw MediaUploadException(MediaUploadException.Reason.METHOD)
                 val fresh =
@@ -114,7 +132,9 @@ internal object MediaUploader {
                         size,
                     )
                 onResume(fresh)
+                requireUploadOwner(ownerUid, fresh.objectKey)
                 put(resolver, uri, fresh, trace, onProgress)
+                requireUploadOwner(ownerUid, fresh.objectKey)
                 val media = complete(fresh, bounds, trace)
                 onProgress(100)
                 media
@@ -123,6 +143,14 @@ internal object MediaUploader {
                 throw e
             }
         }
+
+    private fun requireUploadOwner(ownerUid: Long?, objectKey: String) {
+        if (ownerUid != null) {
+            // The authenticated init call can race with an account switch. Check
+            // the owner in the returned ticket before streaming any image bytes.
+            check(SessionManager.loggedInUid == ownerUid && objectKey.startsWith("users/$ownerUid/"))
+        }
+    }
 
     private sealed class Resumed {
         class Done(val media: MediaObject) : Resumed()
@@ -187,7 +215,6 @@ internal object MediaUploader {
             "success",
             "mediaId=${media.id} width=${media.width} height=${media.height} expiresAt=${media.expiresAt}",
         )
-        trace.event("preview_url", "url=${media.url}")
         return media
     }
 

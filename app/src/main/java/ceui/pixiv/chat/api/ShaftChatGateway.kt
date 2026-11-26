@@ -401,12 +401,13 @@ class ShaftChatGateway @Inject constructor(private val app: Application) {
         illustId: Long? = null,
         replyTo: ChatReplyRef? = null,
         stickerId: Long? = null,
+        mediaIds: List<String> = emptyList(),
     ): Boolean {
         if (text.isEmpty()) return false
         val frame = if (toUid == null) {
-            ChatFrameEncoder.msgGlobal(clientMsgId, text, illustId, replyTo, stickerId)
+            ChatFrameEncoder.msgGlobal(clientMsgId, text, illustId, replyTo, stickerId, mediaIds)
         } else {
-            ChatFrameEncoder.msg1v1(toUid, clientMsgId, text, illustId, replyTo, stickerId)
+            ChatFrameEncoder.msg1v1(toUid, clientMsgId, text, illustId, replyTo, stickerId, mediaIds)
         }
         val accepted = manager.send(frame)
         if (accepted) {

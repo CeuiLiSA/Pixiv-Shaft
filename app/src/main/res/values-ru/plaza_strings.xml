@@ -64,7 +64,7 @@
     <string name="plaza_object_novel">Роман</string>
     <string name="plaza_object_user">Пользователь</string>
     <string name="plaza_media_type_error">Поддерживаются JPG, PNG, WebP и GIF</string>
-    <string name="plaza_media_size_error">Каждое изображение — до 25 МБ, размер файла должен быть доступен</string>
+    <string name="plaza_media_size_error">Каждое изображение — до 30 МБ, размер файла должен быть доступен</string>
     <string name="plaza_media_read_error">Не удалось прочитать изображение. Выберите его заново.</string>
     <string name="plaza_media_bounds_error">Не удалось определить размеры изображения. Выберите его заново.</string>
     <string name="plaza_media_method_error">Неподдерживаемый способ загрузки</string>

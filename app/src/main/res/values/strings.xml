@@ -4050,4 +4050,11 @@
     <string name="pinned_export_copied">已复制 %1$d 项到剪贴板</string>
     <string name="pinned_export_saved">已导出 %1$d 项至 %2$s</string>
     <string name="pinned_export_save_failed">导出失败：%1$s</string>
+
+    <string name="chat_send_image">发送图片</string>
+    <string name="chat_image_message">[图片]</string>
+    <string name="chat_image_failed">图片发送失败</string>
+    <string name="chat_image_retry">重试</string>
+    <string name="chat_image_upload_progress">正在上传图片，%1$d / %2$d</string>
+    <string name="media_selection_too_large">图片大小必须为 30 MB 以内</string>
 </resources>

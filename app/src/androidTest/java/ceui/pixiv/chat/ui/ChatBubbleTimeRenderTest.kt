@@ -55,6 +55,7 @@ class ChatBubbleTimeRenderTest {
                         base.copy(text = "مرحبا بالعالم"),
                         base.copy(text = "", stickerId = 123),
                         base.copy(text = "😀"),
+                        base.copy(text = "[图片]", hasAttachment = true),
                     )
                     for ((index, message) in samples.withIndex()) {
                         val holder = ChatMessageAdapter.BubbleHolder(LayoutInflater.from(context), column,
@@ -71,7 +72,14 @@ class ChatBubbleTimeRenderTest {
                         val label = "dark=$dark width=$width scale=$scale sent=$sent sample=$index"
                         assertTrue(label, meta.left >= 0 && meta.right <= body.width && meta.bottom <= body.height)
                         assertTrue(label, body.top + meta.bottom <= bubble.height - bubble.paddingBottom)
-                        if (message.stickerId == null) {
+                        if (message.hasAttachment) {
+                            val attachment = (0 until body.childCount).map(body::getChildAt)
+                                .filterIsInstance<ChatAttachmentView>().single()
+                            assertEquals(label, View.GONE, text.visibility)
+                            assertTrue(label, attachment.bottom <= meta.top)
+                            assertTrue(label, attachment.clipToOutline)
+                            assertFalse(label, attachment.getChildAt(0).clipToOutline)
+                        } else if (message.stickerId == null) {
                             val last = text.layout.lineCount - 1
                             if (meta.top < text.bottom) {
                                 assertTrue(label, text.layout.getParagraphDirection(last) == 1)

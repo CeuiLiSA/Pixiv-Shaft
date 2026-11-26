@@ -14,6 +14,15 @@ internal object MediaHttpTransport {
     val apiClient: OkHttpClient =
         OkHttpClient.Builder()
             .addInterceptor(ClientVersionInterceptor())
+            .addInterceptor { chain ->
+                val request = chain.request()
+                // Completion includes fetching and resizing the original at the media server.
+                if (request.method == "POST" && request.url.encodedPath == "/v1/media/upload/complete") {
+                    chain.withReadTimeout(45, TimeUnit.SECONDS).proceed(request)
+                } else {
+                    chain.proceed(request)
+                }
+            }
             .eventListenerFactory(MediaNetworkTiming.factory).build()
     val storageClient: OkHttpClient =
         OkHttpClient.Builder().eventListenerFactory(MediaNetworkTiming.factory).build()
@@ -23,7 +32,7 @@ internal object MediaHttpTransport {
     /** Hide cold DNS/TCP/TLS setup behind the picker. Never wait for this in upload(). */
     fun prewarm() {
         warm(apiClient, "https://api.pixshaft.com/health", warmingApi)
-        warm(storageClient, "https://media.pixshaft.com/", warmingStorage)
+        warm(storageClient, "https://api.pixshaft.com/", warmingStorage)
     }
 
     internal fun warm(client: OkHttpClient, url: String, running: AtomicBoolean) {
@@ -46,8 +55,7 @@ internal object MediaHttpTransport {
                     }
 
                     override fun onResponse(call: Call, response: Response) {
-                        // A private COS root may answer 403/404; its HTTPS connection is still
-                        // reusable.
+                        // A root HEAD may return 404 while still warming the HTTPS connection.
                         response.use { trace.event("ready", "http=${it.code}") }
                         running.set(false)
                     }

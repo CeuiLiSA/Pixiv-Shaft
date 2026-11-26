@@ -14,6 +14,15 @@ import org.junit.Test
  */
 class ChatFrameReplyToTest {
 
+    @Test
+    fun `committed image echo retains its history ID in Room`() {
+        val raw = """{"kind":"msg","id":123,"room":"global","uid":7,"client_msg_id":"album-demo-123",
+                     "text":"[Photo]","ts":1,"has_attachment":true}"""
+        val row = checkNotNull((ChatFrameDecoder.decode(raw) as ChatFrame.Msg).toChatMessageEntity())
+        assertEquals(123L, row.serverId)
+        assertTrue(row.hasAttachment)
+    }
+
     // ── Inbound (server → client) ────────────────────────────────────────
 
     @Test

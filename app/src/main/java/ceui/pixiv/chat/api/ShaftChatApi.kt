@@ -181,6 +181,7 @@ data class ChatHistoryItem(
     /** Present only when this message quotes another one; see [ChatHistoryReplyTo]. */
     val reply_to: ChatHistoryReplyTo? = null,
     val sticker_id: Long? = null,
+    val has_attachment: Boolean = false,
 )
 
 /**

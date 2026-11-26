@@ -3715,4 +3715,11 @@
     <string name="pinned_export_copied">%1$d item disalin ke papan klip</string>
     <string name="pinned_export_saved">%1$d item diekspor ke %2$s</string>
     <string name="pinned_export_save_failed">Gagal mengekspor: %1$s</string>
+
+    <string name="chat_send_image">Kirim foto</string>
+    <string name="chat_image_message">[Foto]</string>
+    <string name="chat_image_failed">Foto tidak dapat dikirim</string>
+    <string name="chat_image_retry">Coba lagi</string>
+    <string name="chat_image_upload_progress">Mengunggah foto, %1$d dari %2$d</string>
+    <string name="media_selection_too_large">Ukuran setiap foto maksimal 30 MB</string>
 </resources>

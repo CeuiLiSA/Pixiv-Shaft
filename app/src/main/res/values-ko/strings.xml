@@ -3746,4 +3746,11 @@
     <string name="pinned_export_copied">%1$d개 항목을 클립보드에 복사했습니다</string>
     <string name="pinned_export_saved">%1$d개 항목을 %2$s에 저장했습니다</string>
     <string name="pinned_export_save_failed">내보내기 실패: %1$s</string>
+
+    <string name="chat_send_image">사진 보내기</string>
+    <string name="chat_image_message">[사진]</string>
+    <string name="chat_image_failed">사진을 보내지 못했습니다</string>
+    <string name="chat_image_retry">다시 시도</string>
+    <string name="chat_image_upload_progress">사진 업로드 중, %1$d / %2$d</string>
+    <string name="media_selection_too_large">사진 한 장의 크기는 30 MB 이하여야 합니다</string>
 </resources>

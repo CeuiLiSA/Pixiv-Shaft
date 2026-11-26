@@ -3759,4 +3759,11 @@
     <string name="pinned_export_copied">Copied %1$d items to clipboard</string>
     <string name="pinned_export_saved">Exported %1$d items to %2$s</string>
     <string name="pinned_export_save_failed">Export failed: %1$s</string>
+
+    <string name="chat_send_image">Send photos</string>
+    <string name="chat_image_message">[Photo]</string>
+    <string name="chat_image_failed">Couldn’t send the photos</string>
+    <string name="chat_image_retry">Retry</string>
+    <string name="chat_image_upload_progress">Uploading photos, %1$d of %2$d</string>
+    <string name="media_selection_too_large">Each photo must be 30 MB or smaller</string>
 </resources>

@@ -64,7 +64,7 @@
     <string name="plaza_object_novel">Roman</string>
     <string name="plaza_object_user">Kullanıcı</string>
     <string name="plaza_media_type_error">Desteklenen görseller: JPG, PNG, WebP ve GIF</string>
-    <string name="plaza_media_size_error">Her görsel en fazla 25 MB olmalı ve dosya boyutu okunabilmelidir</string>
+    <string name="plaza_media_size_error">Her görsel en fazla 30 MB olmalı ve dosya boyutu okunabilmelidir</string>
     <string name="plaza_media_read_error">Görsel okunamıyor. Yeniden seçin.</string>
     <string name="plaza_media_bounds_error">Görsel boyutları okunamıyor. Yeniden seçin.</string>
     <string name="plaza_media_method_error">Desteklenmeyen yükleme yöntemi</string>

@@ -11,6 +11,8 @@ import android.view.WindowManager
 import android.view.animation.DecelerateInterpolator
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.core.widget.doAfterTextChanged
@@ -100,6 +102,8 @@ class DemoChatListFragment : Fragment(R.layout.chat_fragment_demo_list) {
                     gateway.send(toUid, clientMsgId, text, illustId, replyTo)
                 override fun sendSticker(toUid: Long?, clientMsgId: String, text: String, replyTo: ceui.pixiv.chat.api.ChatReplyRef?, stickerId: Long) =
                     gateway.send(toUid, clientMsgId, text, replyTo = replyTo, stickerId = stickerId)
+                override fun sendImages(toUid: Long?, clientMsgId: String, text: String, replyTo: ceui.pixiv.chat.api.ChatReplyRef?, mediaIds: List<String>) =
+                    gateway.send(toUid, clientMsgId, text, replyTo = replyTo, mediaIds = mediaIds)
             },
             typingSender = gateway::sendTyping,
             typingFrames = gateway.typingFrames,
@@ -107,6 +111,56 @@ class DemoChatListFragment : Fragment(R.layout.chat_fragment_demo_list) {
     }
 
     private val binding by viewBinding(ChatFragmentDemoListBinding::bind)
+    private var photoRetryDialog: WitDialog? = null
+
+    private val choosePhotos = registerForActivityResult(ActivityResultContracts.PickMultipleVisualMedia(9)) { uris ->
+        if (uris.isEmpty()) return@registerForActivityResult
+        viewModel.selectPhotos(requireContext().applicationContext.contentResolver, uris, getString(R.string.chat_image_message))
+    }
+
+    private suspend fun observePhotoUpload() {
+        viewModel.photoState.collect { state ->
+            refreshSendEnabled()
+            if (state != ChatListViewModel.PhotoState.Failed) {
+                photoRetryDialog?.dismiss()
+                photoRetryDialog = null
+            }
+            when (state) {
+                is ChatListViewModel.PhotoState.Uploading -> binding.composer.photoUploadProgress.apply {
+                    max = state.total
+                    progress = state.completed
+                    contentDescription = getString(R.string.chat_image_upload_progress, state.completed, state.total)
+                }
+                ChatListViewModel.PhotoState.SelectionTooMany -> {
+                    Toaster.showShort(getString(R.string.plaza_photo_limit, 9))
+                    viewModel.dismissPhotoState()
+                }
+                ChatListViewModel.PhotoState.SelectionTooLarge -> {
+                    Toaster.showShort(getString(R.string.media_selection_too_large))
+                    viewModel.dismissPhotoState()
+                }
+                ChatListViewModel.PhotoState.Failed -> showPhotoUploadRetry()
+                ChatListViewModel.PhotoState.Idle -> Unit
+            }
+        }
+    }
+
+    private fun showPhotoUploadRetry() {
+        if (photoRetryDialog?.isShowing == true) return
+        val ctx = requireContext()
+        val resolver = ctx.applicationContext.contentResolver
+        photoRetryDialog = WitDialog.MessageDialogBuilder(ctx)
+            .setMessage(getString(R.string.chat_image_failed))
+            .addAction(getString(R.string.chat_image_retry)) { dialog, _ ->
+                dialog.dismiss()
+                viewModel.retryPhotos(resolver)
+            }
+            .addAction(getString(android.R.string.cancel)) { dialog, _ ->
+                dialog.dismiss()
+                viewModel.dismissPhotoState()
+            }
+            .show().apply { setOnCancelListener { viewModel.dismissPhotoState() } }
+    }
 
     private var chatAdapter: ChatMessageAdapter? = null
     private var scrollToBottomOnNextUpdate = false
@@ -269,6 +323,7 @@ class DemoChatListFragment : Fragment(R.layout.chat_fragment_demo_list) {
             launch { observeMessages(chatAdapter, footerAdapter, layoutManager) }
             launch { observeConnection() }
             launch { observeServerErrors() }
+            launch { observePhotoUpload() }
             launch { observeGlobalSendState() }
             launch { observeReplacedByOtherDevice() }
             launch { observeFatalAuth() }
@@ -549,6 +604,10 @@ class DemoChatListFragment : Fragment(R.layout.chat_fragment_demo_list) {
             }
         }
         binding.composer.btnSend.setOnClickListener { sendMessage() }
+        binding.composer.photoAction.isVisible = true
+        binding.composer.btnPhoto.setOnClickListener {
+            choosePhotos.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+        }
         refreshSendEnabled()
     }
 
@@ -557,8 +616,12 @@ class DemoChatListFragment : Fragment(R.layout.chat_fragment_demo_list) {
         // message is never optimistically appended in the first place (vs the
         // reactive removal fallback in observeServerErrors). 1v1 is never gated.
         val closed = isGlobalRoom && globalSendClosed
+        val uploadingImage = viewModel.photoState.value is ChatListViewModel.PhotoState.Uploading
         val hasText = !binding.composer.etInput.text.isNullOrBlank()
         binding.composer.btnSend.isEnabled = hasText && wsConnected && !rateLimitCoolDown && !closed
+        binding.composer.btnPhoto.isEnabled = wsConnected && !rateLimitCoolDown && !closed && !uploadingImage
+        binding.composer.btnPhoto.visibility = if (uploadingImage) View.INVISIBLE else View.VISIBLE
+        binding.composer.photoUploadProgress.isVisible = uploadingImage
         binding.composer.etInput.isEnabled = !closed
         binding.composer.etInput.hint = getString(
             if (closed) R.string.chat_global_closed_hint else R.string.chat_input_hint
@@ -650,13 +713,14 @@ class DemoChatListFragment : Fragment(R.layout.chat_fragment_demo_list) {
      */
     private suspend fun observeServerErrors() {
         gateway.errorFrames.collectLatest { err ->
+            val photoError = viewModel.rejectPhotoSend(err.clientMsgId)
             // global_send_disabled = 管理员关闭了公共聊天室发言:重试无意义,这条
             // 消息从未被接受,直接移除该乐观行(否则会留一条看着像已发的气泡)。
             // 其余错误维持"标记 Failed"语义(用户可重试),cmid==null 时 VM 兜底
             // 锚定到最近一条 Sending 行。
-            if (err.code == "global_send_disabled") {
+            if (!photoError && err.code == "global_send_disabled") {
                 viewModel.removeByClientMsgId(err.clientMsgId)
-            } else {
+            } else if (!photoError) {
                 viewModel.markFailedByClientMsgId(err.clientMsgId)
             }
 
@@ -667,7 +731,7 @@ class DemoChatListFragment : Fragment(R.layout.chat_fragment_demo_list) {
                 delay(1_000)
                 rateLimitCoolDown = false
                 refreshSendEnabled()
-            } else {
+            } else if (!photoError) {
                 Toaster.showShort(friendlyChatErrorMessage(err))
             }
         }
@@ -839,6 +903,8 @@ class DemoChatListFragment : Fragment(R.layout.chat_fragment_demo_list) {
     }
 
     override fun onDestroyView() {
+        photoRetryDialog?.dismiss()
+        photoRetryDialog = null
         view?.findViewById<RecyclerView>(R.id.recycler_view)?.adapter = null
         chatAdapter = null
         inlineStickers?.setActive(false)

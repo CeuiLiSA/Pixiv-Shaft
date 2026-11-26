@@ -28,7 +28,7 @@ class ChatMessageBodyLayout @JvmOverloads constructor(
         val text = findViewById<TextView>(R.id.tv_content)
         val metadata = findViewById<View>(R.id.message_meta)
         val image = (0 until childCount).map(::getChildAt)
-            .firstOrNull { it is StickerImageView && it.visibility != GONE }
+            .firstOrNull { (it is StickerImageView || it is ChatAttachmentView) && it.visibility != GONE }
         val limit = if (MeasureSpec.getMode(widthMeasureSpec) == MeasureSpec.UNSPECIFIED) {
             text.maxWidth
         } else minOf(MeasureSpec.getSize(widthMeasureSpec), text.maxWidth)
@@ -36,8 +36,10 @@ class ChatMessageBodyLayout @JvmOverloads constructor(
         metadata.measure(MeasureSpec.makeMeasureSpec(limit, MeasureSpec.AT_MOST), looseHeight)
         val content: View = image ?: text
         if (image != null) {
-            image.measure(MeasureSpec.makeMeasureSpec(minOf(image.layoutParams.width, limit), MeasureSpec.EXACTLY),
-                MeasureSpec.makeMeasureSpec(image.layoutParams.height, MeasureSpec.EXACTLY))
+            val imageWidth = MeasureSpec.makeMeasureSpec(minOf(image.layoutParams.width, limit), MeasureSpec.EXACTLY)
+            val imageHeight = if (image is ChatAttachmentView) looseHeight else
+                MeasureSpec.makeMeasureSpec(image.layoutParams.height, MeasureSpec.EXACTLY)
+            image.measure(imageWidth, imageHeight)
         } else {
             text.measure(MeasureSpec.makeMeasureSpec(limit, MeasureSpec.AT_MOST), looseHeight)
         }
@@ -45,7 +47,7 @@ class ChatMessageBodyLayout @JvmOverloads constructor(
         val last = (layout?.lineCount ?: 1) - 1
         // Put RTL paragraphs on a separate metadata row; an empty visual right edge can be
         // occupied by bidi runs and isn't a safe place to infer a clock-sized gap.
-        val canShare = image != null || (last >= 0 && layout?.getParagraphDirection(last) == 1)
+        val canShare = image is StickerImageView || (last >= 0 && layout?.getParagraphDirection(last) == 1)
         val desiredWidth = if (canShare && (image != null || last == 0)) {
             minOf(limit, content.measuredWidth + gap + metadata.measuredWidth)
         } else max(content.measuredWidth, metadata.measuredWidth)

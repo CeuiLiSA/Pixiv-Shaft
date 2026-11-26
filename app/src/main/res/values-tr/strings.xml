@@ -3760,4 +3760,11 @@
     <string name="pinned_export_copied">%1$d öğe panoya kopyalandı</string>
     <string name="pinned_export_saved">%1$d öğe %2$s konumuna kaydedildi</string>
     <string name="pinned_export_save_failed">Dışa aktarma başarısız: %1$s</string>
+
+    <string name="chat_send_image">Fotoğraf gönder</string>
+    <string name="chat_image_message">[Fotoğraf]</string>
+    <string name="chat_image_failed">Fotoğraflar gönderilemedi</string>
+    <string name="chat_image_retry">Tekrar dene</string>
+    <string name="chat_image_upload_progress">Fotoğraflar yükleniyor, %1$d / %2$d</string>
+    <string name="media_selection_too_large">Her fotoğraf en fazla 30 MB olabilir</string>
 </resources>

@@ -328,7 +328,15 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
             }
             setupViewerBrowsingTracker(mIllust!!)
         } else if (ceui.pixiv.plaza.ui.PlazaImageViewer.DATA_TYPE == dataType) {
-            setupPlazaViewer()
+            setupUploadedImageViewer(
+                ceui.pixiv.plaza.ui.PlazaImageSource(
+                    intent.getLongExtra(ceui.pixiv.plaza.ui.PlazaImageViewer.EXTRA_POST, 0),
+                    ceui.pixiv.plaza.ui.PlazaImageViewer.images(intent),
+                    intent.getLongExtra(ceui.pixiv.plaza.ui.PlazaImageViewer.EXTRA_VIEWER, 0),
+                ),
+            )
+        } else if (ceui.pixiv.chat.ui.ChatImageViewer.DATA_TYPE == dataType) {
+            setupUploadedImageViewer(ceui.pixiv.chat.ui.ChatImageViewer.source(intent))
         } else if (isSnapshotMode) {
             // 快照大图：复用现有查看器，只读本地快照文件，支持将快照图片保存到相册。
             findViewById<View>(R.id.download_this_one).visibility = View.GONE
@@ -417,19 +425,14 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
      * 缩略图矩形展开,没带则居中放大淡入。
      */
 
-    /** Posts reuse the same pager and gestures with an account-scoped media source. */
-    private fun setupPlazaViewer() {
-        val images = ceui.pixiv.plaza.ui.PlazaImageViewer.images(intent)
-        if (images.isEmpty()) {
+    /** Uploaded images use the same pager and gestures as illustrations. */
+    private fun setupUploadedImageViewer(source: ceui.pixiv.plaza.ui.PlazaImageSource?) {
+        val size = source?.size ?: 0
+        if (size == 0) {
             finish()
             return
         }
-        plazaImageSource =
-            ceui.pixiv.plaza.ui.PlazaImageSource(
-                intent.getLongExtra(ceui.pixiv.plaza.ui.PlazaImageViewer.EXTRA_POST, 0),
-                images,
-                intent.getLongExtra(ceui.pixiv.plaza.ui.PlazaImageViewer.EXTRA_VIEWER, 0),
-            )
+        plazaImageSource = source
         findViewById<View>(R.id.btn_ai_menu).visibility = View.GONE
         findViewById<View>(R.id.fab_bar).visibility = View.GONE
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.bottom_rela)) { view, insets ->
@@ -443,7 +446,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         }
         findViewById<View>(R.id.download_this_one).visibility = View.GONE
         currentPage = findViewById(R.id.current_page)
-        index = intent.getIntExtra("index", 0).coerceIn(images.indices)
+        index = intent.getIntExtra("index", 0).coerceIn(0, size - 1)
         baseBind!!.viewPager.adapter =
             object :
                 FragmentPagerAdapter(
@@ -453,11 +456,11 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                 override fun getItem(position: Int): Fragment =
                     FragmentImageDetail.newInstance(position)
 
-                override fun getCount(): Int = images.size
+                override fun getCount(): Int = size
             }
         baseBind!!.viewPager.currentItem = index
         fun showPosition(position: Int) {
-            currentPage?.text = getString(R.string.plaza_image_position, position + 1, images.size)
+            currentPage?.text = getString(R.string.plaza_image_position, position + 1, size)
         }
         showPosition(index)
         baseBind!!

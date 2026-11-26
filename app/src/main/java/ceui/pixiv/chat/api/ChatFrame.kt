@@ -76,6 +76,8 @@ sealed interface ChatFrame {
         val ts: Long,
         val replyTo: ChatReplyRef? = null,
         val stickerId: Long? = null,
+        val hasAttachment: Boolean = false,
+        val serverId: Long? = null,
     ) : ChatFrame
 
     /**
@@ -190,6 +192,8 @@ object ChatFrameDecoder {
                     text = obj.get("text")?.asStringOrNull(),
                     illustId = obj.get("illust_id")?.asLongOrNull(),
                     stickerId = obj.get("sticker_id")?.asLongOrNull(),
+                    hasAttachment = obj.get("has_attachment")?.asBooleanOrNull() == true,
+                    serverId = obj.get("id")?.asLongOrNull(),
                     ts = ts,
                     replyTo = obj.get("reply_to")?.let(::decodeReplyTo),
                 )
@@ -290,6 +294,7 @@ object ChatFrameEncoder {
         illustId: Long? = null,
         replyTo: ChatReplyRef? = null,
         stickerId: Long? = null,
+        mediaIds: List<String> = emptyList(),
     ): String {
         val esc = escapeJsonString(text)
         val idEsc = escapeJsonString(clientMsgId)
@@ -301,6 +306,7 @@ object ChatFrameEncoder {
             append('"')
             if (illustId != null) append(""","illust_id":""").append(illustId)
             if (stickerId != null) append(",\"sticker_id\":\"").append(stickerId).append('"')
+            appendMediaIds(mediaIds)
             appendReplyTo(replyTo)
             append('}')
         }
@@ -322,6 +328,7 @@ object ChatFrameEncoder {
         illustId: Long? = null,
         replyTo: ChatReplyRef? = null,
         stickerId: Long? = null,
+        mediaIds: List<String> = emptyList(),
     ): String {
         val esc = escapeJsonString(text)
         val idEsc = escapeJsonString(clientMsgId)
@@ -335,8 +342,17 @@ object ChatFrameEncoder {
             append('"')
             if (illustId != null) append(""","illust_id":""").append(illustId)
             if (stickerId != null) append(",\"sticker_id\":\"").append(stickerId).append('"')
+            appendMediaIds(mediaIds)
             appendReplyTo(replyTo)
             append('}')
+        }
+    }
+
+    private fun StringBuilder.appendMediaIds(mediaIds: List<String>) {
+        if (mediaIds.isNotEmpty()) {
+            mediaIds.joinTo(this, separator = ",", prefix = ",\"media_ids\":[", postfix = "]") {
+                "\"${escapeJsonString(it)}\""
+            }
         }
     }
 

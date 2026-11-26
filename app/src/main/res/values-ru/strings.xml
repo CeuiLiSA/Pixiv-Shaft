@@ -3788,4 +3788,11 @@
     <string name="pinned_export_copied">Скопировано записей: %1$d</string>
     <string name="pinned_export_saved">Экспортировано %1$d записей в %2$s</string>
     <string name="pinned_export_save_failed">Ошибка экспорта: %1$s</string>
+
+    <string name="chat_send_image">Отправить фотографии</string>
+    <string name="chat_image_message">[Фото]</string>
+    <string name="chat_image_failed">Не удалось отправить фотографии</string>
+    <string name="chat_image_retry">Повторить</string>
+    <string name="chat_image_upload_progress">Загрузка фотографий, %1$d из %2$d</string>
+    <string name="media_selection_too_large">Размер каждой фотографии должен быть не более 30 МБ</string>
 </resources>

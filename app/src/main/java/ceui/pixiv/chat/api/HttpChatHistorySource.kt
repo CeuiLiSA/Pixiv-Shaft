@@ -82,6 +82,7 @@ class HttpChatHistorySource(
             text = item.text,
             illustId = item.illust_id,
             stickerId = item.sticker_id,
+            hasAttachment = item.has_attachment,
             ts = item.ts,
             state = SendState.Delivered,
             replyToUid = item.reply_to?.uid,

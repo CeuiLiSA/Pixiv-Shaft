@@ -3746,4 +3746,11 @@
     <string name="pinned_export_copied">已複製 %1$d 項至剪貼簿</string>
     <string name="pinned_export_saved">已匯出 %1$d 項至 %2$s</string>
     <string name="pinned_export_save_failed">匯出失敗：%1$s</string>
+
+    <string name="chat_send_image">傳送圖片</string>
+    <string name="chat_image_message">[圖片]</string>
+    <string name="chat_image_failed">圖片傳送失敗</string>
+    <string name="chat_image_retry">重試</string>
+    <string name="chat_image_upload_progress">正在上傳圖片，%1$d / %2$d</string>
+    <string name="media_selection_too_large">每張圖片大小不得超過 30 MB</string>
 </resources>

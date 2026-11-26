@@ -4,8 +4,13 @@ import ceui.pixiv.plaza.PlazaImage
 import com.bumptech.glide.load.model.GlideUrl
 
 /** Media IDs identify immutable uploads. Signatures authorize transport, not image identity. */
-internal class PlazaMediaUrl(image: PlazaImage, viewerUid: Long) : GlideUrl(image.url) {
-    private val mediaKey = "plaza-media-v1:$viewerUid:${image.mediaId}"
+internal class PlazaMediaUrl(image: PlazaImage, viewerUid: Long, preview: Boolean = false) :
+    GlideUrl(if (preview) image.previewUrl else image.url) {
+    private val mediaKey = if (preview && image.previewUrl != image.url) {
+        "plaza-media-v1:$viewerUid:${image.mediaId}:medium"
+    } else {
+        "plaza-media-v1:$viewerUid:${image.mediaId}"
+    }
 
     override fun getCacheKey() = mediaKey
 

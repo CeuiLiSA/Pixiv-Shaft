@@ -1,6 +1,7 @@
 package ceui.pixiv.plaza
 
 import ceui.pixiv.api.model.Illust
+import ceui.pixiv.shaftapi.MediaResource
 import retrofit2.http.*
 
 data class PlazaImage(
@@ -10,7 +11,13 @@ data class PlazaImage(
     val contentType: String,
     val url: String,
     val expiresAt: Long,
-)
+    val resourceList: List<MediaResource>? = null,
+) {
+    val previewResource: MediaResource?
+        get() = resourceList?.firstOrNull { it.type == "medium" && it.url.isNotBlank() }
+    val previewUrl: String
+        get() = previewResource?.url ?: url
+}
 
 /**
  * What a post carries about its linked Pixiv object beyond the id, so readers never fetch it.

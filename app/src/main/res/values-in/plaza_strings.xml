@@ -64,7 +64,7 @@
     <string name="plaza_object_novel">Novel</string>
     <string name="plaza_object_user">Pengguna</string>
     <string name="plaza_media_type_error">Mendukung gambar JPG, PNG, WebP, dan GIF</string>
-    <string name="plaza_media_size_error">Setiap gambar maksimal 25 MB, dan ukuran file harus dapat dibaca</string>
+    <string name="plaza_media_size_error">Setiap gambar maksimal 30 MB, dan ukuran file harus dapat dibaca</string>
     <string name="plaza_media_read_error">Tidak dapat membaca gambar, silakan pilih ulang</string>
     <string name="plaza_media_bounds_error">Tidak dapat membaca ukuran asli gambar, silakan pilih ulang</string>
     <string name="plaza_media_method_error">Metode unggah tidak didukung</string>

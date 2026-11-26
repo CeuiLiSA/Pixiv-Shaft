@@ -28,11 +28,14 @@ import androidx.fragment.app.viewModels
 import ceui.lisa.R
 import ceui.pixiv.chat.base.launchSuspend
 import ceui.pixiv.shaftapi.MediaHttpTransport
+import ceui.pixiv.shaftapi.MediaUploader
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
 import ceui.pixiv.witstudio.theme.*
 import ceui.pixiv.witstudio.theme.V3Palette
 import com.bumptech.glide.Glide
+import com.hjq.toast.Toaster
+import kotlinx.coroutines.CancellationException
 
 /**
  * Create a post on the V3 form recipe: labelled fields in a 22dp card, an image card with
@@ -43,14 +46,28 @@ class PlazaComposeFragment : Fragment(R.layout.fragment_plaza_shell) {
     private val model: PlazaComposeViewModel by viewModels()
     private val picker =
         registerForActivityResult(ActivityResultContracts.PickMultipleVisualMedia(9)) { uris ->
-            uris.take(9).forEach { uri ->
-                runCatching {
-                    requireContext()
-                        .contentResolver
-                        .takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            if (view == null || uris.isEmpty()) return@registerForActivityResult
+            val resolver = requireContext().contentResolver
+            launchSuspend {
+                val accepted = uris.filter { uri ->
+                    try {
+                        MediaUploader.fitsSelectionLimit(resolver, uri)
+                    } catch (error: CancellationException) {
+                        throw error
+                    } catch (_: Exception) {
+                        false
+                    }
                 }
+                if (accepted.size != uris.size) {
+                    Toaster.showShort(getString(R.string.media_selection_too_large))
+                }
+                accepted.take(9).forEach { uri ->
+                    runCatching {
+                        resolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    }
+                }
+                model.attach(accepted)
             }
-            model.attach(uris)
         }
 
     private val backCallback = object : OnBackPressedCallback(false) {

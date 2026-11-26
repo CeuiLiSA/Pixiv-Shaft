@@ -101,6 +101,32 @@
             android:src="@drawable/chat_ic_emoji"
             android:contentDescription="表情" />
 
+        <FrameLayout
+            android:id="@+id/photo_action"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:visibility="gone">
+
+            <ImageButton
+                android:id="@+id/btn_photo"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/chat_send_image"
+                android:scaleType="center"
+                android:src="@drawable/ic_setcat_photo" />
+
+            <com.google.android.material.progressindicator.CircularProgressIndicator
+                android:id="@+id/photo_upload_progress"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:accessibilityLiveRegion="polite"
+                android:visibility="gone"
+                app:indicatorSize="20dp"
+                app:trackThickness="2dp" />
+        </FrameLayout>
+
         <!-- 底色、光标与文字色由 ChatComposerStyle 按主题运行时铺。 -->
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/input_layout"

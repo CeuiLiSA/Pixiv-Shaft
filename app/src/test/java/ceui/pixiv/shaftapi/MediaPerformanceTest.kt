@@ -15,6 +15,25 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 class MediaPerformanceTest {
     @Test
+    fun `only upload completion extends the response timeout`() {
+        MockWebServer().use { server ->
+            val timeouts = mutableListOf<Int>()
+            val client = MediaHttpTransport.apiClient.newBuilder()
+                .readTimeout(8, TimeUnit.SECONDS)
+                .addInterceptor { chain ->
+                    timeouts += chain.readTimeoutMillis()
+                    chain.proceed(chain.request())
+                }.build()
+            for (route in listOf("/v1/media/upload/init", "/v1/media/upload/complete")) {
+                server.enqueue(MockResponse())
+                client.newCall(Request.Builder().url(server.url(route)).post("{}".toRequestBody()).build())
+                    .execute().use { assertEquals(200, it.code) }
+            }
+            assertEquals(listOf(8_000, 45_000), timeouts)
+        }
+    }
+
+    @Test
     fun `fast transfer emits initial and final progress instead of a callback per chunk`() {
         val updates = mutableListOf<Long>()
         val progress = MediaUploadProgress()

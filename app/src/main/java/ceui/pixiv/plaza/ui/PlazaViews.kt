@@ -816,10 +816,10 @@ internal class PostView(
                     key = "media:$viewer:${image.mediaId}",
                     width = image.width,
                     height = image.height,
-                    url = image.url,
+                    url = image.previewUrl,
                     blur = false,
                     model = {
-                        image.url.takeIf { it.isNotBlank() }?.let { PlazaMediaUrl(image, viewer) }
+                        image.previewUrl.takeIf { it.isNotBlank() }?.let { PlazaMediaUrl(image, viewer, preview = true) }
                     },
                 ) { photo ->
                     onImage(post, index, photo)

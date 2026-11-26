@@ -103,6 +103,9 @@ data class ChatMessageEntity(
 
     @ColumnInfo(name = "sticker_id")
     val stickerId: Long? = null,
+
+    @ColumnInfo(name = "has_attachment", defaultValue = "0")
+    val hasAttachment: Boolean = false,
 ) {
     /** True when this message quotes another one (whether or not the original still exists). */
     val isReply: Boolean get() = replyToCmid != null

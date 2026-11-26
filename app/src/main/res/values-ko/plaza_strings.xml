@@ -64,7 +64,7 @@
     <string name="plaza_object_novel">소설</string>
     <string name="plaza_object_user">사용자</string>
     <string name="plaza_media_type_error">지원 이미지: JPG, PNG, WebP, GIF</string>
-    <string name="plaza_media_size_error">각 이미지는 25 MB 이하여야 하며 파일 크기를 읽을 수 있어야 합니다</string>
+    <string name="plaza_media_size_error">각 이미지는 30 MB 이하여야 하며 파일 크기를 읽을 수 있어야 합니다</string>
     <string name="plaza_media_read_error">이미지를 읽을 수 없습니다. 다시 선택해 주세요.</string>
     <string name="plaza_media_bounds_error">이미지 크기를 읽을 수 없습니다. 다시 선택해 주세요.</string>
     <string name="plaza_media_method_error">지원하지 않는 업로드 방식입니다</string>

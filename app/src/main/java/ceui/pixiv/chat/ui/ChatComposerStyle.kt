@@ -78,6 +78,12 @@ internal fun ChatViewComposerBinding.applyChatComposerStyle() {
     // does not leave a muddy half-transparent disc on the bar.
     val disabled = intArrayOf(-android.R.attr.state_enabled)
     val enabled = intArrayOf()
+    btnPhoto.imageTintList = ColorStateList(
+        arrayOf(disabled, enabled),
+        intArrayOf(V3Palette.withAlpha(palette.textAccent, 0.45f), palette.textAccent),
+    )
+    photoUploadProgress.setIndicatorColor(palette.textAccent)
+    photoUploadProgress.trackColor = palette.alpha15
     btnSend.backgroundTintList = ColorStateList(
         arrayOf(disabled, enabled),
         intArrayOf(ColorUtils.compositeColors(palette.alpha15, surface), palette.primary),
