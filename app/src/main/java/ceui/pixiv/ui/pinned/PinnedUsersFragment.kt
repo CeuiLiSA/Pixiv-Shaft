@@ -47,10 +47,12 @@ class PinnedUsersFragment : Fragment(R.layout.fragment_pinned_tab_list) {
     private val binding by viewBinding(FragmentPinnedTabListBinding::bind)
     private val viewModel: PinnedContentViewModel by viewModels({ requireParentFragment() })
 
+    private var recyclerView: RecyclerView? = null
     private var adapter: PinnedUsersAdapter? = null
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        recyclerView = binding.recyclerView
 
         val listAdapter = PinnedUsersAdapter(
             onClick = { user ->
@@ -97,7 +99,8 @@ class PinnedUsersFragment : Fragment(R.layout.fragment_pinned_tab_list) {
     }
 
     override fun onDestroyView() {
-        binding.recyclerView.adapter = null
+        recyclerView?.adapter = null
+        recyclerView = null
         adapter = null
         super.onDestroyView()
     }
@@ -136,7 +139,7 @@ class PinnedUsersFragment : Fragment(R.layout.fragment_pinned_tab_list) {
         val appContext = ctx.applicationContext
         WitDialog.MessageDialogBuilder(ctx)
             .setTitle(R.string.string_143)
-            .setMessage(getString(R.string.unpin_user_confirm_message, user.name.orEmpty()))
+            .setMessage(ctx.getString(R.string.unpin_user_confirm_message, user.name.orEmpty()))
             .addAction(R.string.string_142) { dialog, _ -> dialog.dismiss() }
             .addAction(0, R.string.unpin_user, WitDialogAction.ACTION_PROP_NEGATIVE) { dialog, _ ->
                 viewModel.deletePinnedUser(entityWrapper, appContext, user.id)

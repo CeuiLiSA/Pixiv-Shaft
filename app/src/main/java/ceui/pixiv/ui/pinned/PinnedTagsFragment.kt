@@ -44,10 +44,12 @@ class PinnedTagsFragment : Fragment(R.layout.fragment_pinned_tab_list) {
     private val binding by viewBinding(FragmentPinnedTabListBinding::bind)
     private val viewModel: PinnedContentViewModel by viewModels({ requireParentFragment() })
 
+    private var recyclerView: RecyclerView? = null
     private var adapter: PinnedTagsAdapter? = null
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        recyclerView = binding.recyclerView
 
         val listAdapter = PinnedTagsAdapter(
             onClick = { item -> openSearchEntity(requireContext(), item.entity, lifecycleScope) },
@@ -89,7 +91,8 @@ class PinnedTagsFragment : Fragment(R.layout.fragment_pinned_tab_list) {
     }
 
     override fun onDestroyView() {
-        binding.recyclerView.adapter = null
+        recyclerView?.adapter = null
+        recyclerView = null
         adapter = null
         super.onDestroyView()
     }
@@ -122,7 +125,7 @@ class PinnedTagsFragment : Fragment(R.layout.fragment_pinned_tab_list) {
         val displayName = item.displayName
         WitDialog.MessageDialogBuilder(ctx)
             .setTitle(R.string.string_143)
-            .setMessage(getString(R.string.unpin_tag_confirm_message, displayName))
+            .setMessage(ctx.getString(R.string.unpin_tag_confirm_message, displayName))
             .addAction(R.string.string_142) { dialog, _ -> dialog.dismiss() }
             .addAction(0, R.string.string_443, WitDialogAction.ACTION_PROP_NEGATIVE) { dialog, _ ->
                 viewModel.deletePinnedTag(entity)
@@ -152,7 +155,10 @@ class PinnedTagsFragment : Fragment(R.layout.fragment_pinned_tab_list) {
         private val onUnpin: (PinnedTagItemHolder) -> Unit,
     ) : ListAdapter<PinnedTagItemHolder, PinnedTagsAdapter.Holder>(DIFF) {
 
-        class Holder(val binding: CellItemPinnedTagBinding) : RecyclerView.ViewHolder(binding.root)
+        class Holder(
+            val binding: CellItemPinnedTagBinding,
+            val accentColor: Int,
+        ) : RecyclerView.ViewHolder(binding.root)
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): Holder {
             val binding = CellItemPinnedTagBinding.inflate(
@@ -161,11 +167,12 @@ class PinnedTagsFragment : Fragment(R.layout.fragment_pinned_tab_list) {
                 false,
             )
             val ctx = binding.root.context
+            val accentColor = V3Palette.from(ctx).textAccent
             binding.root.background = ctx.cardSurface(22)
             binding.pinnedTagTitle.typeface = ctx.v3Font(600)
             binding.pinnedTagSubtitle.typeface = ctx.v3Font(400)
             binding.deletePin.background = ctx.ripple(null, shape(999f, Color.WHITE))
-            val holder = Holder(binding)
+            val holder = Holder(binding, accentColor)
             binding.root.setOnClickListener {
                 val pos = holder.bindingAdapterPosition
                 if (pos != RecyclerView.NO_POSITION) onClick(getItem(pos))
@@ -192,7 +199,7 @@ class PinnedTagsFragment : Fragment(R.layout.fragment_pinned_tab_list) {
 
             val res = b.root.resources
             if (item.isCombo) {
-                val accent = V3Palette.from(b.root.context).textAccent
+                val accent = holder.accentColor
                 b.pinnedTagTitle.maxLines = 2
                 b.pinnedTagTitle.text = SpannableStringBuilder().apply {
                     item.terms.forEachIndexed { index, term ->

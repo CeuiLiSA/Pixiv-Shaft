@@ -9,6 +9,7 @@ import ceui.lisa.database.SearchEntity
 import ceui.lisa.utils.PixivOperate
 import ceui.pixiv.db.EntityWrapper
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,6 +21,8 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 
 /**
@@ -27,12 +30,23 @@ import kotlinx.coroutines.withContext
  *
  * 统一掌管：
  * 1. 置顶标签（`search_table.pinned = 1`）、置顶作者（`general_table.PINNED_USER`）、
- *    全量搜索历史（`search_table.pinned = 0`，不设 LIMIT）三份本地数据；
- * 2. 多语言实时搜索关键词（中 / 日 / 英，[PinnedSearchMatcher]）与三页过滤结果；
- * 3. 与列表严格同源的三 Tab 数量统计（总条数 + 搜索命中数），杜绝计数与列表脱节；
- * 4. 跨 Tab 写操作（如在「搜索历史」一键置顶后同步刷新「标签」与「搜索历史」两页及计数）。
+ *    全量搜索历史（`search_table.pinned = 0`，不设 LIMIT）三份本地数据及其预归一检索索引；
+ * 2. 多语言实时搜索关键词（中 / 日 / 英，[PinnedSearchMatcher]）与原子化过滤结果；
+ * 3. 与列表严格同源的三 Tab 数量统计（总条数 + 搜索命中数），原子计算杜绝计数短暂错位；
+ * 4. 串行化的 DB 读/写与跨 Tab 写操作（防并发旧刷新覆写新删改）。
  */
 internal class PinnedContentViewModel : ViewModel() {
+
+    private data class IndexedEntry<T>(
+        val item: T,
+        val searchIndex: List<String>,
+    )
+
+    private data class FilteredTabState<T>(
+        val items: List<T> = emptyList(),
+        val total: Int = 0,
+        val isFiltering: Boolean = false,
+    )
 
     data class TabCount(val matched: Int, val total: Int)
 
@@ -66,6 +80,9 @@ internal class PinnedContentViewModel : ViewModel() {
             categories.sumOf(::countOf)
     }
 
+    private val dbMutex = Mutex()
+    private var refreshJob: Job? = null
+
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
@@ -73,9 +90,9 @@ internal class PinnedContentViewModel : ViewModel() {
         .map { PinnedSearchMatcher.tokenize(it) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    private val _allTags = MutableStateFlow<List<PinnedTagItemHolder>>(emptyList())
-    private val _allUsers = MutableStateFlow<List<PinnedUserItemHolder>>(emptyList())
-    private val _allHistory = MutableStateFlow<List<SearchHistoryItemHolder>>(emptyList())
+    private val _allTags = MutableStateFlow<List<IndexedEntry<PinnedTagItemHolder>>>(emptyList())
+    private val _allUsers = MutableStateFlow<List<IndexedEntry<PinnedUserItemHolder>>>(emptyList())
+    private val _allHistory = MutableStateFlow<List<IndexedEntry<SearchHistoryItemHolder>>>(emptyList())
 
     private val _hasLoaded = MutableStateFlow(false)
     val hasLoaded: StateFlow<Boolean> = _hasLoaded.asStateFlow()
@@ -83,60 +100,54 @@ internal class PinnedContentViewModel : ViewModel() {
     private val _refreshing = MutableStateFlow(false)
     val refreshing: StateFlow<Boolean> = _refreshing.asStateFlow()
 
-    val filteredTags: StateFlow<List<PinnedTagItemHolder>> = combine(_allTags, queryTokens) { list, tokens ->
-        if (tokens.isEmpty()) list
-        else list.filter { item ->
-            PinnedSearchMatcher.matches(
-                tokens,
-                item.entity.keyword,
-                item.tag.name,
-                item.tag.translated_name,
-                item.displayName,
-            )
+    private val tagsState: StateFlow<FilteredTabState<PinnedTagItemHolder>> =
+        combine(_allTags, queryTokens) { entries, tokens ->
+            filterEntries(entries, tokens)
         }
-    }
-        .flowOn(Dispatchers.Default)
+            .flowOn(Dispatchers.Default)
+            .stateIn(viewModelScope, SharingStarted.Eagerly, FilteredTabState())
+
+    private val usersState: StateFlow<FilteredTabState<PinnedUserItemHolder>> =
+        combine(_allUsers, queryTokens) { entries, tokens ->
+            filterEntries(entries, tokens)
+        }
+            .flowOn(Dispatchers.Default)
+            .stateIn(viewModelScope, SharingStarted.Eagerly, FilteredTabState())
+
+    private val historyState: StateFlow<FilteredTabState<SearchHistoryItemHolder>> =
+        combine(_allHistory, queryTokens) { entries, tokens ->
+            filterEntries(entries, tokens)
+        }
+            .flowOn(Dispatchers.Default)
+            .stateIn(viewModelScope, SharingStarted.Eagerly, FilteredTabState())
+
+    val filteredTags: StateFlow<List<PinnedTagItemHolder>> = tagsState
+        .map { it.items }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val filteredUsers: StateFlow<List<PinnedUserItemHolder>> = combine(_allUsers, queryTokens) { list, tokens ->
-        if (tokens.isEmpty()) list
-        else list.filter { item ->
-            PinnedSearchMatcher.matches(
-                tokens,
-                item.user.name,
-                item.user.account,
-                item.user.id.toString(),
-            )
-        }
-    }
-        .flowOn(Dispatchers.Default)
+    val filteredUsers: StateFlow<List<PinnedUserItemHolder>> = usersState
+        .map { it.items }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val filteredHistory: StateFlow<List<SearchHistoryItemHolder>> = combine(_allHistory, queryTokens) { list, tokens ->
-        if (tokens.isEmpty()) list
-        else list.filter { item ->
-            PinnedSearchMatcher.matches(
-                tokens,
-                item.keyword,
-                item.translatedName,
-            )
-        }
-    }
-        .flowOn(Dispatchers.Default)
+    val filteredHistory: StateFlow<List<SearchHistoryItemHolder>> = historyState
+        .map { it.items }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
+    /**
+     * 每页的 `(matched, total)` 均来自同一份原子 [FilteredTabState]，
+     * 绝不会因 `_all*`（主线程）与 `filtered*`（Default 线程）异步脱节而闪出 `matched > total`。
+     */
     val tabCounts: StateFlow<TabCounts> = combine(
-        combine(_allTags, filteredTags) { all, filtered -> TabCount(filtered.size, all.size) },
-        combine(_allUsers, filteredUsers) { all, filtered -> TabCount(filtered.size, all.size) },
-        combine(_allHistory, filteredHistory) { all, filtered -> TabCount(filtered.size, all.size) },
-        queryTokens,
+        tagsState,
+        usersState,
+        historyState,
         _hasLoaded,
-    ) { tags, users, history, tokens, loaded ->
+    ) { tags, users, history, loaded ->
         TabCounts(
-            tags = tags,
-            users = users,
-            history = history,
-            isFiltering = tokens.isNotEmpty(),
+            tags = TabCount(tags.items.size, tags.total),
+            users = TabCount(users.items.size, users.total),
+            history = TabCount(history.items.size, history.total),
+            isFiltering = tags.isFiltering || users.isFiltering || history.isFiltering,
             hasLoaded = loaded,
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, TabCounts())
@@ -161,7 +172,7 @@ internal class PinnedContentViewModel : ViewModel() {
     }
 
     fun exportSnapshot(filteredOnly: Boolean): ExportSnapshot {
-        val tags = (if (filteredOnly) filteredTags.value else _allTags.value).map { item ->
+        val tags = (if (filteredOnly) tagsState.value.items else _allTags.value.map { it.item }).map { item ->
             PinnedTagExportRow(
                 keyword = item.entity.keyword.orEmpty(),
                 translatedName = item.tag.translated_name,
@@ -169,14 +180,14 @@ internal class PinnedContentViewModel : ViewModel() {
                 searchTimeMillis = item.entity.searchTime,
             )
         }
-        val users = (if (filteredOnly) filteredUsers.value else _allUsers.value).map { item ->
+        val users = (if (filteredOnly) usersState.value.items else _allUsers.value.map { it.item }).map { item ->
             PinnedUserExportRow(
                 id = item.user.id,
                 name = item.user.name.orEmpty(),
                 account = item.user.account,
             )
         }
-        val history = (if (filteredOnly) filteredHistory.value else _allHistory.value).map { item ->
+        val history = (if (filteredOnly) historyState.value.items else _allHistory.value.map { it.item }).map { item ->
             SearchHistoryExportRow(
                 keyword = item.keyword,
                 searchType = item.searchType,
@@ -187,21 +198,24 @@ internal class PinnedContentViewModel : ViewModel() {
     }
 
     fun refreshAll(showSpinner: Boolean = false) {
-        viewModelScope.launch {
+        refreshJob?.cancel()
+        refreshJob = viewModelScope.launch {
             if (showSpinner) _refreshing.value = true
             try {
-                val (tags, users, history) = withContext(Dispatchers.IO) {
-                    coroutineScope {
-                        val tagsJob = async { loadPinnedTags() }
-                        val usersJob = async { loadPinnedUsers() }
-                        val historyJob = async { loadAllSearchHistory() }
-                        Triple(tagsJob.await(), usersJob.await(), historyJob.await())
+                dbMutex.withLock {
+                    val (tags, users, history) = withContext(Dispatchers.IO) {
+                        coroutineScope {
+                            val tagsJob = async { loadPinnedTags() }
+                            val usersJob = async { loadPinnedUsers() }
+                            val historyJob = async { loadAllSearchHistory() }
+                            Triple(tagsJob.await(), usersJob.await(), historyJob.await())
+                        }
                     }
+                    _allTags.value = tags
+                    _allUsers.value = users
+                    _allHistory.value = history
+                    _hasLoaded.value = true
                 }
-                _allTags.value = tags
-                _allUsers.value = users
-                _allHistory.value = history
-                _hasLoaded.value = true
             } finally {
                 if (showSpinner) _refreshing.value = false
             }
@@ -209,7 +223,7 @@ internal class PinnedContentViewModel : ViewModel() {
     }
 
     fun deletePinnedTag(entity: SearchEntity) {
-        viewModelScope.launch {
+        runMutation {
             val tags = withContext(Dispatchers.IO) {
                 searchDao().deleteSearchEntity(entity)
                 loadPinnedTags()
@@ -219,7 +233,7 @@ internal class PinnedContentViewModel : ViewModel() {
     }
 
     fun clearPinnedTags() {
-        viewModelScope.launch {
+        runMutation {
             withContext(Dispatchers.IO) {
                 searchDao().deleteAllPinned()
             }
@@ -228,7 +242,7 @@ internal class PinnedContentViewModel : ViewModel() {
     }
 
     fun deletePinnedUser(entityWrapper: EntityWrapper, appContext: Context, userId: Long) {
-        viewModelScope.launch {
+        runMutation {
             entityWrapper.deletePinnedUser(appContext, userId)
             val users = withContext(Dispatchers.IO) { loadPinnedUsers() }
             _allUsers.value = users
@@ -236,7 +250,7 @@ internal class PinnedContentViewModel : ViewModel() {
     }
 
     fun clearPinnedUsers(entityWrapper: EntityWrapper, appContext: Context) {
-        viewModelScope.launch {
+        runMutation {
             entityWrapper.clearPinnedUsers(appContext)
             _allUsers.value = emptyList()
         }
@@ -244,7 +258,7 @@ internal class PinnedContentViewModel : ViewModel() {
 
     fun pinHistoryItem(entity: SearchEntity) {
         val keyword = entity.keyword?.takeIf { it.isNotBlank() } ?: return
-        viewModelScope.launch {
+        runMutation {
             val (tags, history) = withContext(Dispatchers.IO) {
                 PixivOperate.insertPinnedSearchHistory(keyword, entity.searchType, true)
                 loadPinnedTags() to loadAllSearchHistory()
@@ -255,7 +269,7 @@ internal class PinnedContentViewModel : ViewModel() {
     }
 
     fun deleteHistoryItem(entity: SearchEntity) {
-        viewModelScope.launch {
+        runMutation {
             val history = withContext(Dispatchers.IO) {
                 searchDao().deleteSearchEntity(entity)
                 loadAllSearchHistory()
@@ -265,13 +279,85 @@ internal class PinnedContentViewModel : ViewModel() {
     }
 
     fun clearSearchHistory() {
-        viewModelScope.launch {
+        runMutation {
             withContext(Dispatchers.IO) {
                 searchDao().deleteAllUnpinned()
             }
             _allHistory.value = emptyList()
         }
     }
+
+    /** 写操作取消在途旧刷新并通过互斥锁串行落库，保证旧快照不会回写覆盖新删改。 */
+    private fun runMutation(block: suspend () -> Unit) {
+        refreshJob?.cancel()
+        viewModelScope.launch {
+            dbMutex.withLock {
+                block()
+            }
+        }
+    }
+
+    private fun <T> filterEntries(
+        entries: List<IndexedEntry<T>>,
+        tokens: List<String>,
+    ): FilteredTabState<T> {
+        val items = if (tokens.isEmpty()) {
+            entries.map { it.item }
+        } else {
+            entries.mapNotNull { entry ->
+                if (PinnedSearchMatcher.matchesIndex(tokens, entry.searchIndex)) entry.item else null
+            }
+        }
+        return FilteredTabState(
+            items = items,
+            total = entries.size,
+            isFiltering = tokens.isNotEmpty(),
+        )
+    }
+
+    private fun loadPinnedTags(): List<IndexedEntry<PinnedTagItemHolder>> =
+        searchDao().getAllPinned()
+            .filterNot { it.keyword.isNullOrBlank() }
+            .map { entity ->
+                val item = PinnedTagItemHolder(entity)
+                IndexedEntry(
+                    item = item,
+                    searchIndex = PinnedSearchMatcher.buildIndex(
+                        item.entity.keyword,
+                        item.tag.name,
+                        item.tag.translated_name,
+                        item.displayName,
+                    ),
+                )
+            }
+
+    private fun loadPinnedUsers(): List<IndexedEntry<PinnedUserItemHolder>> =
+        PinnedUsers.loadAll(Shaft.getContext())
+            .map { user ->
+                val item = PinnedUserItemHolder(user)
+                IndexedEntry(
+                    item = item,
+                    searchIndex = PinnedSearchMatcher.buildIndex(
+                        item.user.name,
+                        item.user.account,
+                        item.user.id.toString(),
+                    ),
+                )
+            }
+
+    private fun loadAllSearchHistory(): List<IndexedEntry<SearchHistoryItemHolder>> =
+        searchDao().getAllUnpinned()
+            .filterNot { it.keyword.isNullOrBlank() }
+            .map { entity ->
+                val item = SearchHistoryItemHolder(entity)
+                IndexedEntry(
+                    item = item,
+                    searchIndex = PinnedSearchMatcher.buildIndex(
+                        item.keyword,
+                        item.translatedName,
+                    ),
+                )
+            }
 
     companion object {
         const val TAB_TAGS = 0
@@ -282,17 +368,3 @@ internal class PinnedContentViewModel : ViewModel() {
 }
 
 private fun searchDao() = AppDatabase.getAppDatabase(Shaft.getContext()).searchDao()
-
-private fun loadPinnedTags(): List<PinnedTagItemHolder> =
-    searchDao().getAllPinned()
-        .filterNot { it.keyword.isNullOrBlank() }
-        .map { PinnedTagItemHolder(it) }
-
-private fun loadPinnedUsers(): List<PinnedUserItemHolder> =
-    PinnedUsers.loadAll(Shaft.getContext())
-        .map { PinnedUserItemHolder(it) }
-
-private fun loadAllSearchHistory(): List<SearchHistoryItemHolder> =
-    searchDao().getAllUnpinned()
-        .filterNot { it.keyword.isNullOrBlank() }
-        .map { SearchHistoryItemHolder(it) }

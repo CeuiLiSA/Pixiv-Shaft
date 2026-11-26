@@ -61,6 +61,8 @@ class PinnedTabsFragment : Fragment(R.layout.fragment_pinned_content) {
         R.string.string_87,
     )
 
+    private var viewPager: ViewPager2? = null
+    private var tabNumTypeface: Typeface? = null
     private var mediator: TabLayoutMediator? = null
     private var pageCallback: ViewPager2.OnPageChangeCallback? = null
     private var searchDebounceJob: Job? = null
@@ -70,6 +72,7 @@ class PinnedTabsFragment : Fragment(R.layout.fragment_pinned_content) {
         super.onViewCreated(view, savedInstanceState)
         val context = requireContext()
         val palette = V3Palette.from(context)
+        tabNumTypeface = context.v3Font(600)
 
         binding.toolbar.title = " "
         binding.toolbarTitle.text = getString(R.string.pinned_content)
@@ -206,7 +209,7 @@ class PinnedTabsFragment : Fragment(R.layout.fragment_pinned_content) {
     }
 
     private fun setupPager() {
-        val pager = binding.viewPager
+        val pager = binding.viewPager.also { viewPager = it }
         pager.adapter = object : FragmentStateAdapter(this) {
             override fun getItemCount(): Int = PinnedContentViewModel.TAB_COUNT
 
@@ -267,7 +270,7 @@ class PinnedTabsFragment : Fragment(R.layout.fragment_pinned_content) {
         } else {
             tabCount.total.toString()
         }
-        val numTypeface = requireContext().v3Font(600)
+        val numTypeface = tabNumTypeface ?: requireContext().v3Font(600).also { tabNumTypeface = it }
         return SpannableStringBuilder(title).apply {
             append(" ")
             val start = length
@@ -317,11 +320,15 @@ class PinnedTabsFragment : Fragment(R.layout.fragment_pinned_content) {
     override fun onDestroyView() {
         searchDebounceJob?.cancel()
         searchDebounceJob = null
-        pageCallback?.let { binding.viewPager.unregisterOnPageChangeCallback(it) }
+        // FragmentViewBindingDelegate 在 viewLifecycleOwner ON_DESTROY（早于 onDestroyView）即置空，
+        // 这里必须走缓存引用而非 binding，否则退出页面会抛 IllegalStateException。
+        pageCallback?.let { viewPager?.unregisterOnPageChangeCallback(it) }
         pageCallback = null
         mediator?.detach()
         mediator = null
-        binding.viewPager.adapter = null
+        viewPager?.adapter = null
+        viewPager = null
+        tabNumTypeface = null
         super.onDestroyView()
     }
 

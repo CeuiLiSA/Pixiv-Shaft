@@ -49,4 +49,13 @@ class PinnedSearchMatcherTest {
         assertTrue(PinnedSearchMatcher.matches(uidTokens, "藤ちょこ（藤原）", "fuzichoco", "27517"))
         assertFalse(PinnedSearchMatcher.matches(PinnedSearchMatcher.tokenize("99999"), "藤ちょこ", "fuzichoco", "27517"))
     }
+
+    @Test
+    fun `precomputed index matches identically across multilingual fields and handles empty index`() {
+        val index = PinnedSearchMatcher.buildIndex("初音ミク", "Miku", "  ")
+        assertTrue(PinnedSearchMatcher.matchesIndex(PinnedSearchMatcher.tokenize("みく miku"), index))
+        assertFalse(PinnedSearchMatcher.matchesIndex(PinnedSearchMatcher.tokenize("リン"), index))
+        assertFalse(PinnedSearchMatcher.matchesIndex(PinnedSearchMatcher.tokenize("miku"), emptyList()))
+        assertTrue(PinnedSearchMatcher.matchesIndex(emptyList(), emptyList()))
+    }
 }

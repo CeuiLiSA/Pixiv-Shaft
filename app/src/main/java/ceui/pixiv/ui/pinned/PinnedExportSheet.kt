@@ -37,6 +37,7 @@ import timber.log.Timber
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStreamWriter
+import java.lang.ref.WeakReference
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -48,11 +49,15 @@ import java.util.Locale
  */
 internal object PinnedExportSheet {
 
+    private var activeSheetRef: WeakReference<WitBottomSheet>? = null
+
     fun show(
         fragment: Fragment,
         viewModel: PinnedContentViewModel,
         currentTab: Int,
     ) {
+        if (!fragment.isAdded || fragment.view == null) return
+        if (activeSheetRef?.get()?.isShowing == true) return
         val context = fragment.requireContext()
         val allSnapshot = viewModel.exportSnapshot(filteredOnly = false)
         val filteredSnapshot = viewModel.exportSnapshot(filteredOnly = true)
@@ -93,6 +98,7 @@ internal object PinnedExportSheet {
         }
         owner.lifecycle.addObserver(observer)
         sheet.setOnDismissListener {
+            if (activeSheetRef?.get() === sheet) activeSheetRef = null
             owner.lifecycle.removeObserver(observer)
         }
 
@@ -248,34 +254,51 @@ internal object PinnedExportSheet {
             typeLabel = { type -> context.getString(searchTypeLabelRes(type)) },
         )
 
-        fun buildPayloadOrToast(): Pair<String, Int>? {
+        fun prepareSelectionOrToast(): Triple<PinnedContentViewModel.ExportSnapshot, Set<PinnedExportCategory>, Int>? {
             val snap = activeSnapshot()
-            val count = snap.totalOf(selectedCategories)
+            val categories = selectedCategories.toSet()
+            val count = snap.totalOf(categories)
             if (count == 0) {
                 Common.showToast(R.string.pinned_export_empty)
                 return null
             }
-            val text = PinnedExportFormatter.format(
-                format = format,
-                categories = selectedCategories.toSet(),
-                tags = snap.tags,
-                users = snap.users,
-                history = snap.history,
-                labels = buildExportLabels(),
-            )
-            return text to count
+            return Triple(snap, categories, count)
         }
 
         copyButton = context.pillButton(
             text = context.getString(R.string.pinned_export_copy),
             primary = false,
         ) {
-            val (text, count) = buildPayloadOrToast() ?: return@pillButton
-            if (ClipBoardUtils.setPrimaryClip(context, ClipData.newPlainText("pinned-export", text))) {
-                sheet.dismiss()
-                Toaster.showShort(context.getString(R.string.pinned_export_copied, count))
-            } else {
-                Toaster.showShort(R.string.msg_copy_failed)
+            if (busy) return@pillButton
+            val (snap, categories, count) = prepareSelectionOrToast() ?: return@pillButton
+            val activeFormat = format
+            val exportLabels = buildExportLabels()
+            busy = true
+            renderState()
+            sheet.lifecycleScope.launch {
+                try {
+                    val text = withContext(Dispatchers.Default) {
+                        PinnedExportFormatter.format(
+                            format = activeFormat,
+                            categories = categories,
+                            tags = snap.tags,
+                            users = snap.users,
+                            history = snap.history,
+                            labels = exportLabels,
+                        )
+                    }
+                    if (ClipBoardUtils.setPrimaryClip(context, ClipData.newPlainText("pinned-export", text))) {
+                        sheet.dismiss()
+                        Toaster.showShort(context.getString(R.string.pinned_export_copied, count))
+                    } else {
+                        Toaster.showShort(R.string.msg_copy_failed)
+                    }
+                } catch (ce: CancellationException) {
+                    throw ce
+                } finally {
+                    busy = false
+                    if (sheet.isShowing) renderState()
+                }
             }
         }.apply {
             maxLines = 2
@@ -286,13 +309,23 @@ internal object PinnedExportSheet {
             text = context.getString(R.string.pinned_export_share),
             primary = false,
         ) {
-            val (text, _) = buildPayloadOrToast() ?: return@pillButton
+            if (busy) return@pillButton
+            val (snap, categories, _) = prepareSelectionOrToast() ?: return@pillButton
             val activeFormat = format
+            val exportLabels = buildExportLabels()
             busy = true
             renderState()
             sheet.lifecycleScope.launch {
                 try {
                     val uri = withContext(Dispatchers.IO) {
+                        val text = PinnedExportFormatter.format(
+                            format = activeFormat,
+                            categories = categories,
+                            tags = snap.tags,
+                            users = snap.users,
+                            history = snap.history,
+                            labels = exportLabels,
+                        )
                         writeShareTempFile(context.applicationContext, text, activeFormat)
                     }
                     sheet.dismiss()
@@ -309,7 +342,7 @@ internal object PinnedExportSheet {
                     )
                 } finally {
                     busy = false
-                    renderState()
+                    if (sheet.isShowing) renderState()
                 }
             }
         }.apply {
@@ -318,13 +351,23 @@ internal object PinnedExportSheet {
         }
 
         saveButton.setOnClickListener {
-            val (text, count) = buildPayloadOrToast() ?: return@setOnClickListener
+            if (busy) return@setOnClickListener
+            val (snap, categories, count) = prepareSelectionOrToast() ?: return@setOnClickListener
             val activeFormat = format
+            val exportLabels = buildExportLabels()
             busy = true
             renderState()
             sheet.lifecycleScope.launch {
                 try {
                     val saved = withContext(Dispatchers.IO) {
+                        val text = PinnedExportFormatter.format(
+                            format = activeFormat,
+                            categories = categories,
+                            tags = snap.tags,
+                            users = snap.users,
+                            history = snap.history,
+                            labels = exportLabels,
+                        )
                         saveExportFile(text, activeFormat)
                     }
                     sheet.dismiss()
@@ -344,7 +387,7 @@ internal object PinnedExportSheet {
                     )
                 } finally {
                     busy = false
-                    renderState()
+                    if (sheet.isShowing) renderState()
                 }
             }
         }
@@ -366,6 +409,7 @@ internal object PinnedExportSheet {
                 addView(content)
             },
         )
+        activeSheetRef = WeakReference(sheet)
         sheet.show()
     }
 
@@ -415,11 +459,13 @@ internal object PinnedExportSheet {
 
     private fun shareExportFile(fragment: Fragment, uri: Uri, format: PinnedExportFormat) {
         val ctx = fragment.context ?: return
+        if (!fragment.isAdded) return
         val title = ctx.getString(R.string.pinned_export_title)
         val send = Intent(Intent.ACTION_SEND).apply {
             type = format.mimeType
             putExtra(Intent.EXTRA_SUBJECT, title)
             putExtra(Intent.EXTRA_STREAM, uri)
+            clipData = ClipData.newRawUri(title, uri)
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
         runCatching {
@@ -431,7 +477,7 @@ internal object PinnedExportSheet {
     }
 
     private fun tryOpenSavedFile(fragment: Fragment, uri: Uri, mimeType: String) {
-        if (uri.scheme != "content") return
+        if (!fragment.isAdded || uri.scheme != "content") return
         val view = Intent(Intent.ACTION_VIEW).apply {
             setDataAndType(uri, mimeType)
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)

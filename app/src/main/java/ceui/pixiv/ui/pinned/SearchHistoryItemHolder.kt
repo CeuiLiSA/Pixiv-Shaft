@@ -70,23 +70,41 @@ internal fun searchTypeLabelRes(searchType: Int): Int = when (searchType) {
     else -> R.string.string_431
 }
 
-/** 列表副标题时间：今天显示相对/时分，今年显示月日时分，跨年补年份。 */
-internal fun formatSearchHistoryTime(context: Context, timeMillis: Long): String {
-    if (timeMillis <= 0L) return ""
-    val now = Calendar.getInstance()
-    val target = Calendar.getInstance().apply { timeInMillis = timeMillis }
-    val sameYear = now.get(Calendar.YEAR) == target.get(Calendar.YEAR)
-    val sameDay = sameYear && now.get(Calendar.DAY_OF_YEAR) == target.get(Calendar.DAY_OF_YEAR)
-    return when {
-        sameDay -> DateUtils.formatDateTime(context, timeMillis, DateUtils.FORMAT_SHOW_TIME)
-        sameYear -> SimpleDateFormat("MM-dd HH:mm", Locale.getDefault()).format(Date(timeMillis))
-        else -> SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).format(Date(timeMillis))
+/**
+ * 列表主线程复用的搜索时间格式化器：避免 `onBindViewHolder` 每行重复分配 `Calendar` 与 `SimpleDateFormat`。
+ * 今天显示时分，今年显示月日时分，跨年补年份。
+ */
+internal class SearchHistoryTimeFormatter {
+    private val nowCal = Calendar.getInstance()
+    private val targetCal = Calendar.getInstance()
+    private val sameYearFormat = SimpleDateFormat("MM-dd HH:mm", Locale.getDefault())
+    private val fullDateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
+    private val reusableDate = Date()
+
+    fun format(context: Context, timeMillis: Long): String {
+        if (timeMillis <= 0L) return ""
+        nowCal.timeInMillis = System.currentTimeMillis()
+        targetCal.timeInMillis = timeMillis
+        val sameYear = nowCal.get(Calendar.YEAR) == targetCal.get(Calendar.YEAR)
+        val sameDay = sameYear && nowCal.get(Calendar.DAY_OF_YEAR) == targetCal.get(Calendar.DAY_OF_YEAR)
+        return when {
+            sameDay -> DateUtils.formatDateTime(context, timeMillis, DateUtils.FORMAT_SHOW_TIME)
+            sameYear -> {
+                reusableDate.time = timeMillis
+                sameYearFormat.format(reusableDate)
+            }
+
+            else -> {
+                reusableDate.time = timeMillis
+                fullDateFormat.format(reusableDate)
+            }
+        }
     }
 }
 
 /**
  * 与 `FragmentSearch.handleHistoryClick` 保持一致的跳转语义，
- * 并将 `searchTime` 写回移到 IO 线程，不阻塞点击响应。
+ * 并将 `searchTime` 写回移到 IO 线程，不阻塞点击响应；非法 ID 先拦截再提示，不污染时间或跳空页。
  */
 internal fun openSearchEntity(context: Context, entity: SearchEntity, ioScope: CoroutineScope) {
     val keyword = entity.keyword?.trim().orEmpty()
@@ -101,21 +119,34 @@ internal fun openSearchEntity(context: Context, entity: SearchEntity, ioScope: C
         }
 
         SearchTypeUtil.SEARCH_TYPE_DB_ILLUSTSID -> {
+            val id = keyword.toLongOrNull()?.takeIf { it > 0L }
+            if (id == null) {
+                Common.showToast(R.string.string_154)
+                return
+            }
             touchSearchEntityAsync(entity, ioScope)
-            val id = keyword.toLongOrNull() ?: return
             PixivOperate.getIllustByID(id, context)
         }
 
         SearchTypeUtil.SEARCH_TYPE_DB_USERID -> {
+            val userId = Common.safeUserId(keyword)
+            if (userId <= 0L) {
+                Common.showToast(R.string.string_154)
+                return
+            }
             touchSearchEntityAsync(entity, ioScope)
             context.startActivity(Intent(context, UActivity::class.java).apply {
-                putExtra(Params.USER_ID, Common.safeUserId(keyword).toLong())
+                putExtra(Params.USER_ID, userId)
             })
         }
 
         SearchTypeUtil.SEARCH_TYPE_DB_NOVELID -> {
+            val id = keyword.toLongOrNull()?.takeIf { it > 0L }
+            if (id == null) {
+                Common.showToast(R.string.string_154)
+                return
+            }
             touchSearchEntityAsync(entity, ioScope)
-            val id = keyword.toLongOrNull() ?: return
             PixivOperate.getNovelByID(id, context, null)
         }
 

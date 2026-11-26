@@ -32,15 +32,21 @@ internal object PinnedSearchMatcher {
         return normalized.split(WHITESPACE).filter { it.isNotEmpty() }
     }
 
-    fun matches(tokens: List<String>, vararg fields: String?): Boolean {
+    /** 预计算条目的归一化检索字段，供列表过滤热路径复用，避免每次按键重跑 NFKC。 */
+    fun buildIndex(vararg fields: String?): List<String> =
+        fields.mapNotNull { raw -> normalize(raw).takeIf { it.isNotEmpty() } }
+
+    fun matchesIndex(tokens: List<String>, normalizedFields: List<String>): Boolean {
         if (tokens.isEmpty()) return true
-        val normalizedFields = fields.mapNotNull { raw ->
-            normalize(raw).takeIf { it.isNotEmpty() }
-        }
         if (normalizedFields.isEmpty()) return false
         return tokens.all { token ->
             normalizedFields.any { field -> field.contains(token) }
         }
+    }
+
+    fun matches(tokens: List<String>, vararg fields: String?): Boolean {
+        if (tokens.isEmpty()) return true
+        return matchesIndex(tokens, buildIndex(*fields))
     }
 
     private fun foldJapaneseKana(ch: Char): Char = when (ch) {

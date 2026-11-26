@@ -51,6 +51,8 @@ data class PinnedExportLabels(
  */
 internal object PinnedExportFormatter {
 
+    private val WHITESPACE = Regex("\\s+")
+
     fun format(
         format: PinnedExportFormat,
         categories: Set<PinnedExportCategory>,
@@ -141,10 +143,13 @@ internal object PinnedExportFormatter {
         exportedAtMillis: Long,
         timeZone: TimeZone,
     ): String {
+        val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US).apply {
+            this.timeZone = timeZone
+        }
         val sb = StringBuilder()
         sb.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n")
         sb.append("<pixiv_shaft_export exported_at=\"")
-            .append(escapeXml(formatIsoTime(exportedAtMillis, timeZone)))
+            .append(escapeXml(sdf.format(Date(exportedAtMillis))))
             .append("\">\n")
 
         if (PinnedExportCategory.TAGS in categories) {
@@ -159,7 +164,7 @@ internal object PinnedExportFormatter {
                     sb.append(" combo=\"true\"")
                 }
                 if (row.searchTimeMillis > 0L) {
-                    sb.append(" updated_at=\"").append(escapeXml(formatIsoTime(row.searchTimeMillis, timeZone))).append('"')
+                    sb.append(" updated_at=\"").append(escapeXml(sdf.format(Date(row.searchTimeMillis)))).append('"')
                 }
                 sb.append(" />\n")
             }
@@ -186,7 +191,7 @@ internal object PinnedExportFormatter {
                 sb.append("    <entry keyword=\"").append(escapeXml(row.keyword)).append('"')
                 sb.append(" type=\"").append(xmlSearchTypeKey(row.searchType)).append('"')
                 if (row.searchTimeMillis > 0L) {
-                    sb.append(" searched_at=\"").append(escapeXml(formatIsoTime(row.searchTimeMillis, timeZone))).append('"')
+                    sb.append(" searched_at=\"").append(escapeXml(sdf.format(Date(row.searchTimeMillis)))).append('"')
                 }
                 sb.append(" />\n")
             }
@@ -226,11 +231,5 @@ internal object PinnedExportFormatter {
         return sb.toString()
     }
 
-    private fun formatIsoTime(millis: Long, timeZone: TimeZone): String {
-        val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US)
-        sdf.timeZone = timeZone
-        return sdf.format(Date(millis))
-    }
-
-    private fun String.oneLine(): String = trim().replace(Regex("\\s+"), " ")
+    private fun String.oneLine(): String = trim().replace(WHITESPACE, " ")
 }

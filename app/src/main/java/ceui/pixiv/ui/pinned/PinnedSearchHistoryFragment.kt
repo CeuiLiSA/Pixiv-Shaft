@@ -43,10 +43,12 @@ class PinnedSearchHistoryFragment : Fragment(R.layout.fragment_pinned_tab_list) 
     private val binding by viewBinding(FragmentPinnedTabListBinding::bind)
     private val viewModel: PinnedContentViewModel by viewModels({ requireParentFragment() })
 
+    private var recyclerView: RecyclerView? = null
     private var adapter: SearchHistoryAdapter? = null
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        recyclerView = binding.recyclerView
 
         val listAdapter = SearchHistoryAdapter(
             onClick = { item -> openSearchEntity(requireContext(), item.entity, lifecycleScope) },
@@ -89,14 +91,16 @@ class PinnedSearchHistoryFragment : Fragment(R.layout.fragment_pinned_tab_list) 
     }
 
     override fun onDestroyView() {
-        binding.recyclerView.adapter = null
+        recyclerView?.adapter = null
+        recyclerView = null
         adapter = null
         super.onDestroyView()
     }
 
     private fun onClickPin(item: SearchHistoryItemHolder) {
+        val ctx = context ?: return
         viewModel.pinHistoryItem(item.entity)
-        Common.showToast(getString(R.string.search_pinned_snack, item.keyword))
+        Common.showToast(ctx.getString(R.string.search_pinned_snack, item.keyword))
     }
 
     private fun showItemMenu(item: SearchHistoryItemHolder) {
@@ -125,7 +129,7 @@ class PinnedSearchHistoryFragment : Fragment(R.layout.fragment_pinned_tab_list) 
         val ctx = context ?: return
         WitDialog.MessageDialogBuilder(ctx)
             .setTitle(R.string.action_delete)
-            .setMessage(getString(R.string.search_history_delete_confirm, item.keyword))
+            .setMessage(ctx.getString(R.string.search_history_delete_confirm, item.keyword))
             .addAction(R.string.string_142) { dialog, _ -> dialog.dismiss() }
             .addAction(0, R.string.action_delete, WitDialogAction.ACTION_PROP_NEGATIVE) { dialog, _ ->
                 viewModel.deleteHistoryItem(item.entity)
@@ -155,6 +159,8 @@ class PinnedSearchHistoryFragment : Fragment(R.layout.fragment_pinned_tab_list) 
         private val onPin: (SearchHistoryItemHolder) -> Unit,
         private val onDelete: (SearchHistoryItemHolder) -> Unit,
     ) : ListAdapter<SearchHistoryItemHolder, SearchHistoryAdapter.Holder>(DIFF) {
+
+        private val timeFormatter = SearchHistoryTimeFormatter()
 
         class Holder(val binding: CellItemSearchHistoryBinding) : RecyclerView.ViewHolder(binding.root)
 
@@ -211,7 +217,7 @@ class PinnedSearchHistoryFragment : Fragment(R.layout.fragment_pinned_tab_list) 
             holder.binding.typeIcon.setImageResource(searchTypeIconRes(item.searchType))
             holder.binding.historyKeyword.text = item.keyword
             val typeLabel = ctx.getString(searchTypeLabelRes(item.searchType))
-            val timeLabel = formatSearchHistoryTime(ctx, item.searchTime)
+            val timeLabel = timeFormatter.format(ctx, item.searchTime)
             holder.binding.historyMeta.text = if (timeLabel.isNotEmpty()) {
                 "$typeLabel · $timeLabel"
             } else {
