@@ -77,6 +77,7 @@ import ceui.pixiv.ui.novel.reader.render.ReaderTextBlockView
 import ceui.pixiv.ui.novel.reader.render.PageOverlays
 import ceui.pixiv.ui.translate.appTranslateTargetLang
 import ceui.pixiv.ui.translate.AiTranslator
+import ceui.pixiv.ui.translate.Translator
 import ceui.pixiv.ui.translate.promptTranslateFailedIfPossible
 import ceui.pixiv.ui.novel.reader.settings.ReaderSettings
 import ceui.pixiv.ui.novel.reader.model.TranslationRole
@@ -692,20 +693,34 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
         }
         var lastTranslationState: NovelReaderV3ViewModel.TranslationState? = null
         viewModel.translationState.observe(viewLifecycleOwner) { state ->
-            // 只对本次 observe 期间发生的「翻译中 → 结束」提示；重建 view 时回放的旧状态不重复弹。
-            val wasRunning = lastTranslationState is NovelReaderV3ViewModel.TranslationState.Running
+            // 只对本次 observe 期间真实发生的状态切换提示；重建 view 时回放的旧状态不重复弹。
+            val previous = lastTranslationState
             lastTranslationState = state
-            if (!wasRunning) return@observe
+            if (previous == null) return@observe
+            val wasRunning = previous is NovelReaderV3ViewModel.TranslationState.Running
             when (state) {
-                NovelReaderV3ViewModel.TranslationState.Done ->
-                    Toaster.showShort(getString(R.string.msg_reader_translate_done))
-                is NovelReaderV3ViewModel.TranslationState.Failed ->
-                    if (state.translator === AiTranslator || state.error is java.io.IOException) {
-                        promptTranslateFailedIfPossible(state.error, state.translator)
-                    } else {
-                        Toaster.showLong(getString(R.string.msg_reader_translate_failed, state.error.message.orEmpty()))
+                is NovelReaderV3ViewModel.TranslationState.Running -> {
+                    if (!wasRunning) {
+                        Toaster.showShort(
+                            readerTranslationStartedText(requireContext(), state.translator, state.modelName)
+                        )
                     }
-                else -> Unit
+                }
+                NovelReaderV3ViewModel.TranslationState.Done -> {
+                    if (wasRunning) {
+                        Toaster.showShort(getString(R.string.msg_reader_translate_done))
+                    }
+                }
+                is NovelReaderV3ViewModel.TranslationState.Failed -> {
+                    if (wasRunning) {
+                        if (state.translator === AiTranslator || state.error is java.io.IOException) {
+                            promptTranslateFailedIfPossible(state.error, state.translator)
+                        } else {
+                            Toaster.showLong(getString(R.string.msg_reader_translate_failed, state.error.message.orEmpty()))
+                        }
+                    }
+                }
+                NovelReaderV3ViewModel.TranslationState.Off -> Unit
             }
         }
 
@@ -1049,7 +1064,6 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
             Toaster.showShort(getString(R.string.msg_novel_not_ready))
             return
         }
-        Toaster.showShort(getString(R.string.msg_reader_translate_started))
         viewModel.startBodyTranslation()
     }
 
@@ -1788,4 +1802,16 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
             }
         }
     }
+}
+
+/** 根据本次全文翻译实际选中的引擎与模型生成开始提示文案（#1397）。 */
+internal fun readerTranslationStartedText(
+    context: Context,
+    translator: Translator,
+    modelName: String?,
+): String = if (translator === AiTranslator) {
+    val channel = modelName?.trim().orEmpty().ifEmpty { "AI" }
+    context.getString(R.string.msg_reader_translate_started_model, channel)
+} else {
+    context.getString(R.string.msg_reader_translate_started)
 }

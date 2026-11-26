@@ -3548,6 +3548,7 @@
     <string name="reader_translate_mode_translation">Hanya terjemahan</string>
     <string name="reader_translate_mode_bilingual">Teks asli + terjemahan</string>
     <string name="msg_reader_translate_started">Menerjemahkan seluruh teks dengan Google…</string>
+    <string name="msg_reader_translate_started_model">Menerjemahkan seluruh teks dengan %1$s…</string>
     <string name="msg_reader_translate_done">Seluruh teks selesai diterjemahkan</string>
     <string name="msg_reader_translate_failed">Terjemahan terhenti (%1$s). Paragraf yang sudah diterjemahkan tetap disimpan</string>
 

@@ -3592,6 +3592,7 @@
     <string name="reader_translate_mode_translation">Translation only</string>
     <string name="reader_translate_mode_bilingual">Original + translation</string>
     <string name="msg_reader_translate_started">Translating the full text with Google…</string>
+    <string name="msg_reader_translate_started_model">Translating the full text with %1$s…</string>
     <string name="msg_reader_translate_done">Full text translated</string>
     <string name="msg_reader_translate_failed">Translation stopped (%1$s). Translated paragraphs are kept</string>
 

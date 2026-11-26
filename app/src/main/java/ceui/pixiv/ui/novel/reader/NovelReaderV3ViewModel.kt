@@ -153,7 +153,12 @@ class NovelReaderV3ViewModel(
 
     sealed class TranslationState {
         object Off : TranslationState()
-        data class Running(val done: Int, val total: Int) : TranslationState()
+        data class Running(
+            val done: Int,
+            val total: Int,
+            val translator: Translator,
+            val modelName: String? = null,
+        ) : TranslationState()
         object Done : TranslationState()
         data class Failed(val error: Exception, val translator: Translator) : TranslationState()
     }
@@ -312,6 +317,7 @@ class NovelReaderV3ViewModel(
         if (_translationState.value is TranslationState.Running || tokens.isEmpty()) return
         val lang = appTranslateTargetLang()
         val translator = if (AiTranslator.isActive()) AiTranslator else GoogleWebTranslator
+        val modelName = if (translator === AiTranslator) Shaft.sSettings.aiTranslateModel.trim().ifEmpty { null } else null
         val key = NovelTranslationKey.capture(translator, lang)
         if (translationsKey != key) {
             translations = emptyMap()
@@ -328,7 +334,7 @@ class NovelReaderV3ViewModel(
             refreshTranslationDisplay(force = true)
             return
         }
-        _translationState.value = TranslationState.Running(0, pending.size)
+        _translationState.value = TranslationState.Running(0, pending.size, translator, modelName)
         // 已有的部分译文（上次中断 / 关掉又打开）立刻上屏；首批新译文也不受限频。
         if (translations.isNotEmpty()) refreshTranslationDisplay(force = true)
         lastTranslationRefreshAt = 0L
@@ -339,7 +345,7 @@ class NovelReaderV3ViewModel(
                 NovelBodyTranslator.translate(pending, lang, translator) { chunk ->
                     translations = translations + chunk
                     done += chunk.size
-                    _translationState.value = TranslationState.Running(done, pending.size)
+                    _translationState.value = TranslationState.Running(done, pending.size, translator, modelName)
                     refreshTranslationDisplay(force = false)
                 }
                 _translationState.value = TranslationState.Done

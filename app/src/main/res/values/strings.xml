@@ -3879,6 +3879,7 @@
     <string name="reader_translate_mode_translation">仅译文</string>
     <string name="reader_translate_mode_bilingual">原文 + 译文</string>
     <string name="msg_reader_translate_started">正在用谷歌翻译全文…</string>
+    <string name="msg_reader_translate_started_model">正在用 %1$s 翻译全文…</string>
     <string name="msg_reader_translate_done">全文翻译完成</string>
     <string name="msg_reader_translate_failed">全文翻译中断（%1$s），已翻好的段落会保留</string>
 

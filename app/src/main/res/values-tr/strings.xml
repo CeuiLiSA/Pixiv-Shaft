@@ -3593,6 +3593,7 @@
     <string name="reader_translate_mode_translation">Yalnızca çeviri</string>
     <string name="reader_translate_mode_bilingual">Orijinal + çeviri</string>
     <string name="msg_reader_translate_started">Tüm metin Google ile çevriliyor…</string>
+    <string name="msg_reader_translate_started_model">Tüm metin %1$s ile çevriliyor…</string>
     <string name="msg_reader_translate_done">Tüm metin çevrildi</string>
     <string name="msg_reader_translate_failed">Çeviri durdu (%1$s). Çevrilen paragraflar korunur</string>
 
