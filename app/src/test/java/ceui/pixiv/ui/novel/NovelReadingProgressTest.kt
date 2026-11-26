@@ -11,6 +11,7 @@ import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.FrameLayout
+import androidx.appcompat.view.ContextThemeWrapper
 import androidx.core.graphics.ColorUtils
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Lifecycle
@@ -31,6 +32,15 @@ import ceui.pixiv.ui.common.NovelMuteStore
 import ceui.pixiv.ui.home.NovelRankPreviewHeaderItem
 import ceui.pixiv.ui.home.RecmdNovelFeedFragment
 import ceui.pixiv.ui.novel.reader.ReaderProgressStore
+import ceui.pixiv.ui.novel.reader.model.ContentToken
+import ceui.pixiv.ui.novel.reader.model.FlipMode
+import ceui.pixiv.ui.novel.reader.model.ImagePlacement
+import ceui.pixiv.ui.novel.reader.model.ImageScaleMode
+import ceui.pixiv.ui.novel.reader.model.PageGeometry
+import ceui.pixiv.ui.novel.reader.paginate.TypeStyle
+import ceui.pixiv.ui.novel.reader.render.NovelScrollReaderView
+import ceui.pixiv.ui.novel.reader.settings.ReaderSettings
+import ceui.pixiv.ui.novel.reader.settings.ReaderTheme
 import com.blankj.utilcode.util.Utils
 import java.util.Locale
 import org.junit.After
@@ -155,6 +165,128 @@ class NovelReadingProgressTest {
 
         ReaderProgressStore.saveProgress(42L, 1500, 4, 10)
         assertEquals(rev1 + 1, ReaderProgressStore.revision)
+    }
+
+    @Test
+    fun `scrollPercent persists across cold start, bumps revision on same charIndex, and clears in paged mode`() {
+        ReaderProgressStore.loadFromDisk()
+        val novelId = 22276176L
+        ReaderProgressStore.saveProgress(novelId, charIndex = 9800, pageIndex = 0, totalPages = 0, scrollPercent = 98)
+        assertEquals(98, ReaderProgressStore.peekReadingPercent(novelId, 10000))
+        val rev1 = ReaderProgressStore.revision
+
+        // 同一末段内继续滑到底：charIndex 不变、scrollPercent 从 98 变 100，也必须触发 revision 刷新
+        ReaderProgressStore.saveProgress(novelId, charIndex = 9800, pageIndex = 0, totalPages = 0, scrollPercent = 100)
+        assertEquals(rev1 + 1, ReaderProgressStore.revision)
+        assertEquals(100, ReaderProgressStore.peekReadingPercent(novelId, 10000))
+        assertEquals(100, ReaderProgressStore.loadScrollPercent(novelId))
+
+        // 冷启动从磁盘重建缓存后仍保持 100%
+        ReaderProgressStore.resetForTest()
+        assertEquals(100, ReaderProgressStore.loadScrollPercent(novelId))
+        ReaderProgressStore.loadFromDisk()
+        assertEquals(100, ReaderProgressStore.peekReadingPercent(novelId, 10000))
+        assertEquals(100, novelSeriesReadPercent(Novel(id = novelId, text_length = 10000)))
+
+        // 切回翻页模式后应清掉旧的 scroll_pct_
+        ReaderProgressStore.saveProgress(novelId, charIndex = 5000, pageIndex = 4, totalPages = 10)
+        assertEquals(NO_SCROLL_PERCENT, ReaderProgressStore.loadScrollPercent(novelId))
+        assertEquals(50, ReaderProgressStore.peekReadingPercent(novelId, 10000))
+        assertNull(MemoryMMKV.values["scroll_pct_$novelId"])
+
+        // clear 同时清掉 scroll_pct_
+        ReaderProgressStore.saveProgress(novelId, charIndex = 0, pageIndex = 0, totalPages = 0, scrollPercent = 100)
+        ReaderProgressStore.clear(novelId)
+        assertNull(MemoryMMKV.values["scroll_pct_$novelId"])
+        assertNull(ReaderProgressStore.peekReadingPercent(novelId, 10000))
+    }
+
+    @Test
+    @Config(sdk = [28, 35])
+    fun `vertical scroll reader at bottom reports and persists 100 percent even when first visible char lags textLength`() {
+        initApp()
+        ReaderProgressStore.loadFromDisk()
+        val novelId = 22276176L
+        val controller = Robolectric.buildActivity(FragmentActivity::class.java)
+        controller.get().setTheme(R.style.AppTheme)
+        controller.setup()
+        val activity = controller.get()
+        try {
+            val ctx = ContextThemeWrapper(activity, R.style.AppTheme)
+            val snapshot = ReaderSettings.Snapshot(
+                fontSizeSp = 18, lineSpacing = 1.6f, paragraphSpacingLines = 0.6f,
+                horizontalMarginDp = 16, verticalMarginDp = 16, firstLineIndent = 0,
+                letterSpacing = 0f, boldText = false, fontId = "system", fontWeight = 400,
+                themeId = "preset_white", customThemeId = 0, followSystemDarkMode = false,
+                lightThemeMemoryId = "preset_white", backgroundImagePath = null,
+                flipMode = FlipMode.None, imagePlacement = ImagePlacement.Center,
+                imageScaleMode = ImageScaleMode.Fit,
+            )
+            val style = TypeStyle.from(ctx, snapshot, ReaderTheme.WHITE)
+            val tokens = mutableListOf<ContentToken>()
+            var cursor = 0
+            val paragraph = "这是一段用于复现小说滑到底部进度偏差的测试正文内容，包含足够多的文字以撑满多屏高度。"
+            repeat(60) {
+                val start = cursor
+                val end = start + paragraph.length
+                tokens += ContentToken.Paragraph(start, end, paragraph, start)
+                cursor = end + 1
+            }
+            val textLength = cursor
+            val geom = PageGeometry(320, 480, 16f, 16f, 16f, 16f)
+
+            val view = NovelScrollReaderView(ctx)
+            view.onScrollPositionChanged = { charIndex, scrollPercent ->
+                ReaderProgressStore.saveProgress(novelId, charIndex, 0, 0, scrollPercent)
+            }
+            view.bind(tokens, style, geom) { null }
+            activity.setContentView(view)
+            view.measure(
+                View.MeasureSpec.makeMeasureSpec(320, View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(480, View.MeasureSpec.EXACTLY),
+            )
+            view.layout(0, 0, 320, 480)
+            assertTrue("Expected scrollable content", view.canScrollVertically(1))
+
+            // 模拟一直滑到底部，且在未等 IDLE 时退出（触发 flushPendingPosition）
+            repeat(200) {
+                if (!view.canScrollVertically(1)) return@repeat
+                view.scrollBy(0, 200)
+            }
+            assertTrue("Expected scrolled to bottom", !view.canScrollVertically(1))
+            assertTrue("First visible char should still be < textLength", view.currentCharIndex() < textLength)
+            assertEquals(100, view.currentScrollPercent())
+
+            view.flushPendingPosition()
+            assertEquals(100, ReaderProgressStore.peekReadingPercent(novelId, textLength))
+            assertEquals(100, novelSeriesReadPercent(Novel(id = novelId, text_length = textLength)))
+
+            // 重新打开并恢复到上次首段锚点后若未滚动，onPause 的 flush 不得把 100% 覆写回 98%/99%
+            val savedChar = ReaderProgressStore.loadCharIndex(novelId)
+            view.bind(tokens, style, geom) { null }
+            view.jumpToCharIndex(savedChar)
+            view.measure(
+                View.MeasureSpec.makeMeasureSpec(320, View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(480, View.MeasureSpec.EXACTLY),
+            )
+            view.layout(0, 0, 320, 480)
+            view.flushPendingPosition()
+            assertEquals(100, ReaderProgressStore.peekReadingPercent(novelId, textLength))
+
+            // 通过 SeekBar 跳到底部（scrollToFraction(1f)）布局完成后也应立即落盘 100%
+            ReaderProgressStore.clear(novelId)
+            view.scrollToFraction(1f)
+            shadowOf(Looper.getMainLooper()).idle()
+            view.measure(
+                View.MeasureSpec.makeMeasureSpec(320, View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(480, View.MeasureSpec.EXACTLY),
+            )
+            view.layout(0, 0, 320, 480)
+            assertEquals(100, ReaderProgressStore.peekReadingPercent(novelId, textLength))
+        } finally {
+            controller.pause().stop().destroy()
+            shadowOf(Looper.getMainLooper()).idle()
+        }
     }
 
     @Test

@@ -30,17 +30,30 @@ fun novelReadingMinutes(textLength: Int?): Int? {
     return max(1, (textLength.toDouble() / NOVEL_READING_CHARS_PER_MINUTE).roundToInt())
 }
 
+/** 未记录滚动百分比（翻页模式或旧版滚动存档），回退按字数/页数估算。 */
+const val NO_SCROLL_PERCENT = -1
+
 /**
  * 阅读进度（1–100），没读过返回 null（显示「阅读正文」）。
  *
- * 阅读器两种模式存的东西不同（见 NovelReaderV3ViewModel 的保存点）：分页模式存
- * (首字偏移, 页号, 总页数)，按页算；滚动模式只存字符偏移、页号和总页数为 0，按字数算。
- * 一打开就退出（偏移和页号都是 0）算没读过。
+ * 阅读器两种模式存的东西不同（见 NovelReaderV3ViewModel 的保存点）：
+ * - 分页模式存 `(首字偏移, 页号, 总页数)`，按页算；
+ * - 滚动模式存 `(首字偏移, scrollPercent)`（页号和总页数为 0），优先用阅读器实测的
+ *   [scrollPercent]（与正文页底部进度条同口径，滑到底必为 100%）；旧版存档未记
+ *   [scrollPercent]（[NO_SCROLL_PERCENT]）时回退按字数算。
+ * 一打开就退出（偏移、页号、滚动百分比都是 0）算没读过。
  */
-fun novelReadingPercent(charIndex: Int, pageIndex: Int, totalPages: Int, textLength: Int?): Int? {
-    if (charIndex <= 0 && pageIndex <= 0) return null
+fun novelReadingPercent(
+    charIndex: Int,
+    pageIndex: Int,
+    totalPages: Int,
+    textLength: Int?,
+    scrollPercent: Int = NO_SCROLL_PERCENT,
+): Int? {
+    if (charIndex <= 0 && pageIndex <= 0 && scrollPercent <= 0) return null
     val raw = when {
         totalPages > 0 -> ((pageIndex + 1).toLong() * 100 / totalPages).toInt()
+        scrollPercent >= 0 -> scrollPercent
         textLength != null && textLength > 0 -> (charIndex.toLong() * 100 / textLength).toInt()
         else -> return null
     }

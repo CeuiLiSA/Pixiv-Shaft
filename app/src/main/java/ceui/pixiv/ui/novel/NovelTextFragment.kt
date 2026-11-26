@@ -303,6 +303,7 @@ class NovelTextFragment :
             pageIndex = ReaderProgressStore.loadLastPageIndex(novelId),
             totalPages = ReaderProgressStore.loadTotalPages(novelId),
             textLength = ObjectPool.get<Novel>(novelId).value?.text_length,
+            scrollPercent = ReaderProgressStore.loadScrollPercent(novelId),
         )
         if (readingPercent.value != percent) readingPercent.value = percent
     }

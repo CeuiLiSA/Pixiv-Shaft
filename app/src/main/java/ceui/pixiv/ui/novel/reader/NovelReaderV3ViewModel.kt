@@ -46,6 +46,7 @@ import ceui.pixiv.ui.translate.AiTranslator
 import ceui.pixiv.ui.translate.GoogleWebTranslator
 import ceui.pixiv.ui.translate.Translator
 import ceui.pixiv.ui.common.NovelTranslationKey
+import ceui.pixiv.ui.novel.NO_SCROLL_PERCENT
 import android.os.SystemClock
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -419,9 +420,9 @@ class NovelReaderV3ViewModel(
         ReaderProgressStore.saveProgress(novelId, page.charStart, index, pages.size)
     }
 
-    fun onScrollPositionChanged(charIndex: Int) {
+    fun onScrollPositionChanged(charIndex: Int, scrollPercent: Int = NO_SCROLL_PERCENT) {
         desiredCharIndex = charIndex
-        ReaderProgressStore.saveProgress(novelId, charIndex, 0, 0)
+        ReaderProgressStore.saveProgress(novelId, charIndex, 0, 0, scrollPercent)
     }
 
     fun jumpToCharIndex(charIndex: Int) {

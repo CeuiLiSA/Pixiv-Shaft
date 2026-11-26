@@ -62,4 +62,36 @@ class NovelDetailMathTest {
         assertEquals(100, novelReadingPercent(charIndex = 9000, pageIndex = 0, totalPages = 0, textLength = 6940))
         assertNull(novelReadingPercent(charIndex = 100, pageIndex = 0, totalPages = 0, textLength = null))
     }
+
+    @Test
+    fun `滚动模式优先使用实测滚动百分比并在底边返回 100`() {
+        // 滑到底部时视口顶部仍留一屏正文，charIndex < textLength；实测 scrollPercent=100 必须返回 100
+        assertEquals(
+            100,
+            novelReadingPercent(charIndex = 9800, pageIndex = 0, totalPages = 0, textLength = 10000, scrollPercent = 100),
+        )
+        // 单大段小说首项 charIndex 始终为 0，滑到底部时 scrollPercent=100 仍应返回 100
+        assertEquals(
+            100,
+            novelReadingPercent(charIndex = 0, pageIndex = 0, totalPages = 0, textLength = 3000, scrollPercent = 100),
+        )
+        // textLength 未知时也能直接展示实测滚动百分比
+        assertEquals(
+            67,
+            novelReadingPercent(charIndex = 1200, pageIndex = 0, totalPages = 0, textLength = null, scrollPercent = 67),
+        )
+        // 轻微向下滚动（charIndex > 0 但百分比不足 1%）仍夹到 1%；全 0 仍算未读
+        assertEquals(
+            1,
+            novelReadingPercent(charIndex = 120, pageIndex = 0, totalPages = 0, textLength = 50000, scrollPercent = 0),
+        )
+        assertNull(
+            novelReadingPercent(charIndex = 0, pageIndex = 0, totalPages = 0, textLength = 10000, scrollPercent = 0),
+        )
+        // 翻页模式以页数为准
+        assertEquals(
+            40,
+            novelReadingPercent(charIndex = 2800, pageIndex = 11, totalPages = 30, textLength = 6940, scrollPercent = 99),
+        )
+    }
 }

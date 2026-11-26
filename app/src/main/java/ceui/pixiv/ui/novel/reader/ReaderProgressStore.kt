@@ -4,6 +4,7 @@ import androidx.annotation.VisibleForTesting
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import ceui.lisa.core.JavaAsync
+import ceui.pixiv.ui.novel.NO_SCROLL_PERCENT
 import ceui.pixiv.ui.novel.novelReadingPercent
 import com.tencent.mmkv.MMKV
 import kotlinx.coroutines.CancellationException
@@ -34,6 +35,7 @@ object ReaderProgressStore {
         val pageIndex: Int,
         val totalPages: Int,
         val lastReadTime: Long,
+        val scrollPercent: Int = NO_SCROLL_PERCENT,
     )
 
     /**
@@ -124,12 +126,20 @@ object ReaderProgressStore {
             pageIndex = progress.pageIndex,
             totalPages = progress.totalPages,
             textLength = textLength,
+            scrollPercent = progress.scrollPercent,
         )
     }
 
-    fun saveProgress(novelId: Long, charIndex: Int, pageIndex: Int, totalPages: Int) {
+    fun saveProgress(
+        novelId: Long,
+        charIndex: Int,
+        pageIndex: Int,
+        totalPages: Int,
+        scrollPercent: Int = NO_SCROLL_PERCENT,
+    ) {
+        val normalizedScrollPercent = if (scrollPercent >= 0) scrollPercent.coerceIn(0, 100) else NO_SCROLL_PERCENT
         val now = System.currentTimeMillis()
-        val next = Progress(charIndex, pageIndex, totalPages, now)
+        val next = Progress(charIndex, pageIndex, totalPages, now, normalizedScrollPercent)
         val prev = synchronized(loadLock) {
             if (!loaded) touchedBeforeLoad.add(novelId)
             progressByNovel.put(novelId, next)
@@ -139,10 +149,16 @@ object ReaderProgressStore {
         mmkv.encode("page_$novelId", pageIndex)
         mmkv.encode("total_$novelId", totalPages)
         mmkv.encode("time_$novelId", now)
+        if (normalizedScrollPercent >= 0) {
+            mmkv.encode("scroll_pct_$novelId", normalizedScrollPercent)
+        } else {
+            mmkv.removeValueForKey("scroll_pct_$novelId")
+        }
         if (prev == null ||
             prev.charIndex != charIndex ||
             prev.pageIndex != pageIndex ||
-            prev.totalPages != totalPages
+            prev.totalPages != totalPages ||
+            prev.scrollPercent != normalizedScrollPercent
         ) {
             bumpRevision()
         }
@@ -162,6 +178,12 @@ object ReaderProgressStore {
     fun loadTotalPages(novelId: Long): Int {
         progressByNovel[novelId]?.let { return it.totalPages }
         return if (loaded) 0 else store().decodeInt("total_$novelId", 0)
+    }
+
+    /** 纵向滚动模式保存的阅读百分比（0–100）；翻页模式或旧版存档返回 [NO_SCROLL_PERCENT]。 */
+    fun loadScrollPercent(novelId: Long): Int {
+        progressByNovel[novelId]?.let { return it.scrollPercent }
+        return if (loaded) NO_SCROLL_PERCENT else store().decodeInt("scroll_pct_$novelId", NO_SCROLL_PERCENT)
     }
 
     fun loadLastReadTime(novelId: Long): Long {
@@ -190,6 +212,7 @@ object ReaderProgressStore {
         mmkv.removeValueForKey("page_$novelId")
         mmkv.removeValueForKey("total_$novelId")
         mmkv.removeValueForKey("time_$novelId")
+        mmkv.removeValueForKey("scroll_pct_$novelId")
         if (removed != null || !loaded) {
             bumpRevision()
         }
@@ -208,8 +231,9 @@ object ReaderProgressStore {
             val pageIndex = mmkv.decodeInt("page_$id", 0)
             val totalPages = mmkv.decodeInt("total_$id", 0)
             val lastReadTime = mmkv.decodeLong("time_$id", 0L)
-            if (charIndex > 0 || pageIndex > 0 || totalPages > 0 || lastReadTime > 0L) {
-                scanned[id] = Progress(charIndex, pageIndex, totalPages, lastReadTime)
+            val scrollPercent = mmkv.decodeInt("scroll_pct_$id", NO_SCROLL_PERCENT)
+            if (charIndex > 0 || pageIndex > 0 || totalPages > 0 || scrollPercent > 0 || lastReadTime > 0L) {
+                scanned[id] = Progress(charIndex, pageIndex, totalPages, lastReadTime, scrollPercent)
             }
         }
         return scanned
@@ -220,6 +244,7 @@ object ReaderProgressStore {
         key.startsWith("page_") -> key.substring(5).toLongOrNull()
         key.startsWith("total_") -> key.substring(6).toLongOrNull()
         key.startsWith("time_") -> key.substring(5).toLongOrNull()
+        key.startsWith("scroll_pct_") -> key.substring(11).toLongOrNull()
         else -> null
     }?.takeIf { it != 0L }
 

@@ -140,6 +140,7 @@ internal fun novelSeriesReadPercent(novel: Novel): Int? = novelReadingPercent(
     pageIndex = ReaderProgressStore.loadLastPageIndex(novel.id),
     totalPages = ReaderProgressStore.loadTotalPages(novel.id),
     textLength = novel.text_length,
+    scrollPercent = ReaderProgressStore.loadScrollPercent(novel.id),
 )
 
 internal fun novelSeriesUrl(seriesId: Long): String = "https://www.pixiv.net/novel/series/$seriesId"

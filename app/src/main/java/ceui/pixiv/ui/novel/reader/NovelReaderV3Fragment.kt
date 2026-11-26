@@ -769,7 +769,9 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
             sv.pushScrollProgressNow()
         } else {
             scrollReaderView?.let { sv ->
-                viewModel.onScrollPositionChanged(sv.currentCharIndex())
+                if (sv.hasLaidOutContent()) {
+                    viewModel.onScrollPositionChanged(sv.currentCharIndex(), sv.currentScrollPercent())
+                }
                 sv.visibility = View.GONE
             }
             rv.visibility = View.VISIBLE
@@ -803,7 +805,9 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
             sv.setTouchLocked(ReaderSettings.touchLocked)
             sv.onImageTap = { image -> openImageElement(image) }
             sv.onJumpTap = { target -> handleJumpTap(target) }
-            sv.onCharIndexChanged = { charIndex -> viewModel.onScrollPositionChanged(charIndex) }
+            sv.onScrollPositionChanged = { charIndex, scrollPercent ->
+                viewModel.onScrollPositionChanged(charIndex, scrollPercent)
+            }
             sv.onScrollProgressChanged = { progress ->
                 // Drive the bottom-bar SeekBar in vertical mode (issue: 纵向翻页底部
                 // 进度条不联动). Paged mode is driven separately by currentPageIndex.
@@ -1410,7 +1414,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
         viewModel.jumpToCharIndex(charIndex)
         if (scrollReaderView?.visibility == View.VISIBLE) {
             if (animate) scrollReaderView?.scrollToCharIndex(charIndex)
-            else scrollReaderView?.jumpToCharIndex(charIndex)
+            else scrollReaderView?.jumpToCharIndex(charIndex, saveAfterLayout = true)
         } else {
             val pageIdx = viewModel.pagination.value?.pages
                 ?.indexOfPageForAnchor(charIndex) ?: 0
@@ -1692,7 +1696,12 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
 
     override fun onPause() {
         readerView?.cancelPendingTaps()
-        scrollReaderView?.cancelTtsFollow()
+        scrollReaderView?.let { sv ->
+            sv.cancelTtsFollow()
+            if (sv.visibility == View.VISIBLE) {
+                sv.flushPendingPosition()
+            }
+        }
         super.onPause()
     }
 

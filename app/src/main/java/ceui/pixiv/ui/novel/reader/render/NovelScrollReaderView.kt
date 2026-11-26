@@ -69,7 +69,7 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
         get() = touchActive || scrollState != SCROLL_STATE_IDLE
     var onImageTap: ((PageElement.Image) -> Unit)? = null
     var onJumpTap: ((target: Int) -> Unit)? = null
-    var onCharIndexChanged: ((Int) -> Unit)? = null
+    var onScrollPositionChanged: ((charIndex: Int, scrollPercent: Int) -> Unit)? = null
     /** Fraction of total scrollable range consumed, in [0f, 1f]. */
     var onScrollProgressChanged: ((Float) -> Unit)? = null
 
@@ -82,6 +82,10 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
 
     /** 手指落下那一刻 RecyclerView 是否还在滚动，区分“滚动中点击停滚”与“静止时单击呼出菜单”（#1047）。 */
     private var wasScrollingOnTouchDown = false
+    /** 本次会话中发生过实际滚动（dy != 0）且尚未落盘，供退出前 flush。 */
+    private var hasUnsavedScrollChange = false
+    /** 程序化跳转（SeekBar / 目录 / 书签 / 搜索）要求在布局落地后立即回报新进度。 */
+    private var pendingScrollSaveAfterLayout = false
 
     private val lm = LinearLayoutManager(context)
     private var contentAdapter: ContentAdapter? = null
@@ -136,12 +140,13 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
         setItemViewCacheSize(6)
         addOnScrollListener(object : OnScrollListener() {
             override fun onScrolled(rv: RecyclerView, dx: Int, dy: Int) {
+                if (dy != 0) hasUnsavedScrollChange = true
                 reportScrollProgress()
             }
 
             override fun onScrollStateChanged(rv: RecyclerView, newState: Int) {
                 if (newState == RecyclerView.SCROLL_STATE_IDLE) {
-                    onCharIndexChanged?.invoke(currentCharIndex())
+                    dispatchScrollPosition()
                 }
             }
         })
@@ -220,6 +225,9 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
         // 不派发 onScrolled(0,0)——常驻进度就一直空着，直到用户手动滚动/呼出菜单
         //（#1038）。fragment 侧 setText 前有等值去重，逐帧布局不会带来重复刷新。
         reportScrollProgress()
+        if (pendingScrollSaveAfterLayout && hasLaidOutContent()) {
+            dispatchScrollPosition()
+        }
     }
 
     // ---- Public API --------------------------------------------------------
@@ -235,6 +243,8 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
         imageResolver: (ContentToken) -> String?,
     ) {
         cancelTtsFollow()
+        hasUnsavedScrollChange = false
+        pendingScrollSaveAfterLayout = false
         setBackgroundColor(style.backgroundColor)
         // Side padding = text margins (applies to every item); top/bottom
         // padding = end breathing room. clipToPadding=false lets content
@@ -285,24 +295,52 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
             if (first != RecyclerView.NO_POSITION && kotlin.math.abs(pos - first) <= SMOOTH_SCROLL_MAX_ITEMS) {
                 smoothScrollToPosition(pos)
             } else {
+                pendingScrollSaveAfterLayout = true
                 lm.scrollToPositionWithOffset(pos, topInset)
             }
         }
     }
 
-    fun jumpToCharIndex(charIndex: Int) {
+    fun jumpToCharIndex(charIndex: Int, saveAfterLayout: Boolean = false) {
         val pos = positionForCharIndex(charIndex) ?: return
         cancelTtsFollow()
+        if (saveAfterLayout) pendingScrollSaveAfterLayout = true
         // LayoutManager already defers positioning until layout. Posting an
         // extra runnable lets an old restore override a newer speech target.
         lm.scrollToPositionWithOffset(pos, topInset)
     }
+
+    fun hasLaidOutContent(): Boolean =
+        childCount > 0 && lm.findFirstVisibleItemPosition() != RecyclerView.NO_POSITION
 
     fun currentCharIndex(): Int {
         val toks = contentAdapter?.tokens ?: return 0
         val pos = lm.findFirstVisibleItemPosition()
         if (pos == RecyclerView.NO_POSITION) return 0
         return anchorCharOf(toks[pos.coerceIn(0, toks.lastIndex)])
+    }
+
+    /**
+     * 当前纵向滚动进度，范围 `[0f, 1f]`。
+     * 已滑到底（`offset > 0 && !canScrollVertically(1)`）直接归为 1f，兜住
+     * `LinearLayoutManager` 的 `ScrollbarHelper` 取整导致末位差 1px 的情况。
+     */
+    fun currentScrollProgress(): Float {
+        val range = computeVerticalScrollRange() - computeVerticalScrollExtent()
+        if (range <= 0) return 0f
+        val offset = computeVerticalScrollOffset()
+        if (offset > 0 && !canScrollVertically(1)) return 1f
+        return (offset.toFloat() / range).coerceIn(0f, 1f)
+    }
+
+    fun currentScrollPercent(): Int =
+        (currentScrollProgress() * 100).toInt().coerceIn(0, 100)
+
+    /** 退出前把尚未等到 `SCROLL_STATE_IDLE` 或布局完成的滚动变更立即落盘；未滚过则不覆盖存档。 */
+    fun flushPendingPosition() {
+        if ((hasUnsavedScrollChange || pendingScrollSaveAfterLayout) && hasLaidOutContent()) {
+            dispatchScrollPosition()
+        }
     }
 
     fun scrollByPage(forward: Boolean) {
@@ -324,7 +362,10 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
         val count = contentAdapter?.itemCount ?: return
         if (count <= 0) return
         val pos = (fraction.coerceIn(0f, 1f) * (count - 1)).roundToInt()
-        post { lm.scrollToPositionWithOffset(pos, 0) }
+        post {
+            pendingScrollSaveAfterLayout = true
+            lm.scrollToPositionWithOffset(pos, 0)
+        }
     }
 
     /**
@@ -424,9 +465,14 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
         // 销毁的 binding,FragmentViewBindingDelegate.requireView() 直接崩。
         if (!isAttachedToWindow) return
         val cb = onScrollProgressChanged ?: return
-        val range = computeVerticalScrollRange() - computeVerticalScrollExtent()
-        val progress = if (range > 0) computeVerticalScrollOffset().toFloat() / range else 0f
-        cb.invoke(progress.coerceIn(0f, 1f))
+        cb.invoke(currentScrollProgress())
+    }
+
+    private fun dispatchScrollPosition() {
+        if (!hasLaidOutContent()) return
+        hasUnsavedScrollChange = false
+        pendingScrollSaveAfterLayout = false
+        onScrollPositionChanged?.invoke(currentCharIndex(), currentScrollPercent())
     }
 
     // ---- Adapter -----------------------------------------------------------
