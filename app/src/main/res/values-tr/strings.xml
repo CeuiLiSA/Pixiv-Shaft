@@ -2288,7 +2288,6 @@
     <string name="year_rank_title">Yıllara Göre Sıralama</string>
     <string name="year_rank_load_failed">Yıl listesi yüklenemedi</string>
     <string name="tag_rank">Etikete Göre</string>
-    <string name="tag_rank_title">Etiket Sıralaması</string>
     <string name="tag_rank_load_failed">Etiket listesi yüklenemedi</string>
     <string name="tag_rank_pick">Etiket seç</string>
     <string name="year_rank_pick">Yıl seç</string>

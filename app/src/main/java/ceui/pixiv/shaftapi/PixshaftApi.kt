@@ -145,6 +145,12 @@ interface PixshaftApi {
         @Query("min_works") minWorks: Int? = null,
     ): CorpusTagList
 
+    @GET("v1/discover/tag-rank")
+    suspend fun tagRank(
+        @Query("r18") r18: Int,
+        @Query("cursor") cursor: String? = null,
+    ): TagRankPage
+
     /** 作品库规模，只为在标题下写一句「已收录 N 件」，失败就不显示。 */
     @GET("v1/corpus/stats")
     suspend fun corpusStats(): CorpusStats
@@ -492,6 +498,11 @@ data class ReferralActionResponse(
 /** 标签目录一页。服务端只回有预览图的标签，所以不会出现点进去空空如也的货架。 */
 data class CorpusTagList(
     val tags: List<CorpusTag> = emptyList(),
+)
+
+data class TagRankPage(
+    val tags: List<CorpusTag> = emptyList(),
+    val next_cursor: String? = null,
 )
 
 data class CorpusTag(

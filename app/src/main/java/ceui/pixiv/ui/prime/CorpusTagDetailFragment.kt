@@ -11,12 +11,15 @@ import ceui.pixiv.api.model.Illust
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.FeedPage
 import ceui.pixiv.feeds.FeedSource
+import ceui.pixiv.feeds.FeedUiState
 import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.ui.common.IllustFeedFragment
 import ceui.pixiv.ui.common.IllustFeedItem
 import ceui.pixiv.ui.common.withMirroredBookmarks
 import ceui.pixiv.ui.common.setUpToolbar
 import ceui.pixiv.ui.common.viewBinding
+import ceui.pixiv.ui.recommend.keywordRankContinuationRenderer
+import ceui.pixiv.ui.recommend.offerKeywordRankContinuation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -61,7 +64,16 @@ class CorpusTagDetailFragment : IllustFeedFragment(R.layout.fragment_toolbar_fee
         }
     }
 
+    override val detailContinuationCursor: String? get() = null
+
     override fun poolableBeansOf(item: FeedItem): List<Illust> = emptyList()
+
+    override fun onCreateRenderers() = super.onCreateRenderers() + feedViewModel.keywordRankContinuationRenderer()
+
+    override fun onListCommitted(state: FeedUiState) {
+        super.onListCommitted(state)
+        feedViewModel.offerKeywordRankContinuation()
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)

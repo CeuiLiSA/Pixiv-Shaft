@@ -2,7 +2,6 @@ package ceui.pixiv.ui.recommend
 
 import android.content.Intent
 import androidx.core.os.bundleOf
-import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
@@ -28,9 +27,6 @@ import ceui.pixiv.shaftapi.KeywordRankEntry
 import ceui.pixiv.shaftapi.KeywordRankNovelPreview
 import ceui.pixiv.ui.common.addUserCardDecoration
 import ceui.pixiv.ui.navigation.TemplateRoute
-import ceui.pixiv.ui.user.loadSquareMedia
-import ceui.pixiv.utils.clearGlideOnRecycle
-import ceui.pixiv.witstudio.theme.cardSurface
 import com.bumptech.glide.Glide
 import java.text.NumberFormat
 
@@ -73,10 +69,7 @@ class KeywordRankFeedFragment : FeedFragment() {
         feedRenderer<KeywordRankItem, CellKeywordRankBinding>(
             inflate = CellKeywordRankBinding::inflate,
             create = { cell ->
-                cell.binding.root.background = cell.binding.root.context.cardSurface()
-                cell.binding.previewOne.clipToOutline = true
-                cell.binding.previewTwo.clipToOutline = true
-                cell.binding.previewThree.clipToOutline = true
+                cell.binding.setupRankPreviewCard()
                 cell.binding.root.setOnClickListener {
                     val entry = cell.item.entry
                     val context = it.context
@@ -88,13 +81,7 @@ class KeywordRankFeedFragment : FeedFragment() {
                     })
                 }
             },
-            recycle = { cell ->
-                if (cell.binding.previews.isVisible) {
-                    cell.binding.previewOne.clearGlideOnRecycle()
-                    cell.binding.previewTwo.clearGlideOnRecycle()
-                    cell.binding.previewThree.clearGlideOnRecycle()
-                }
-            },
+            recycle = { cell -> cell.binding.clearRankImagePreviews() },
         ) { cell ->
             val entry = cell.item.entry
             val novel = entry.kind == RankType.NOVEL
@@ -105,7 +92,7 @@ class KeywordRankFeedFragment : FeedFragment() {
                 R.string.keyword_rank_work_count, getString(type), numberFormat.format(entry.workCount),
             )
             binding.heat.text = getString(R.string.keyword_rank_heat, numberFormat.format(entry.heat))
-            bindImagePreviews(binding, if (novel) emptyList() else entry.preview.orEmpty())
+            binding.bindRankImagePreviews(if (novel) emptyList() else entry.preview.orEmpty(), previewGlide)
             val excerpts = if (novel) entry.novelPreview.orEmpty() else emptyList()
             binding.novelPreviews.isVisible = excerpts.isNotEmpty()
             binding.novelOne.bindExcerpt(excerpts.getOrNull(0))
@@ -114,16 +101,6 @@ class KeywordRankFeedFragment : FeedFragment() {
         },
         feedViewModel.keywordRankContinuationRenderer(),
     )
-
-    private fun bindImagePreviews(binding: CellKeywordRankBinding, previews: List<String>) {
-        if (previews.isEmpty() && !binding.previews.isVisible) return
-        binding.previews.isVisible = previews.isNotEmpty()
-        listOf(binding.previewOne, binding.previewTwo, binding.previewThree).forEachIndexed { index, image ->
-            val url = previews.getOrNull(index)
-            image.isInvisible = url.isNullOrBlank()
-            image.loadSquareMedia(url, previewGlide)
-        }
-    }
 
     private fun ItemKeywordRankNovelPreviewBinding.bindExcerpt(preview: KeywordRankNovelPreview?) {
         root.isVisible = preview != null

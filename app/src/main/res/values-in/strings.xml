@@ -2312,7 +2312,6 @@
     <string name="year_rank_title">Peringkat bookmark per tahun</string>
     <string name="year_rank_load_failed">Gagal memuat daftar tahun</string>
     <string name="tag_rank">Peringkat tag</string>
-    <string name="tag_rank_title">Zona tag</string>
     <string name="tag_rank_load_failed">Gagal memuat daftar tag</string>
     <string name="tag_rank_pick">Pilih tag</string>
     <string name="year_rank_pick">Pilih tahun</string>

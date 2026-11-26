@@ -2282,7 +2282,6 @@
     <string name="year_rank_title">年代別ブックマークランキング</string>
     <string name="year_rank_load_failed">年リストの読み込みに失敗しました</string>
     <string name="tag_rank">タグ別ランキング</string>
-    <string name="tag_rank_title">タグ別ランキング</string>
     <string name="tag_rank_load_failed">タグリストの読み込みに失敗しました</string>
     <string name="tag_rank_pick">タグを選択</string>
     <string name="year_rank_pick">年を選択</string>

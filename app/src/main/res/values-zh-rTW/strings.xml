@@ -2283,7 +2283,6 @@
     <string name="year_rank_title">年代收藏榜</string>
     <string name="year_rank_load_failed">年份列表載入失敗</string>
     <string name="tag_rank">標籤榜</string>
-    <string name="tag_rank_title">標籤專區</string>
     <string name="tag_rank_load_failed">標籤列表載入失敗</string>
     <string name="tag_rank_pick">選擇標籤</string>
     <string name="year_rank_pick">選擇年份</string>
