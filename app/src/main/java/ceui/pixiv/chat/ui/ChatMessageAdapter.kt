@@ -212,7 +212,7 @@ class ChatMessageAdapter(
             val container = tvContent.parent as ChatMessageBodyLayout
             val density = itemView.resources.displayMetrics.density
             container.addView(image, android.widget.FrameLayout.LayoutParams(
-                (220 * density).toInt(), ViewGroup.LayoutParams.WRAP_CONTENT,
+                (240 * density).toInt(), ViewGroup.LayoutParams.WRAP_CONTENT,
             ).apply { gravity = if (isSent) android.view.Gravity.END else android.view.Gravity.START })
             image.setOnLongClickListener { itemView.performLongClick() }
         }

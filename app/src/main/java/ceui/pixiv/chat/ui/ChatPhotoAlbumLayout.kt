@@ -60,7 +60,11 @@ internal fun layoutChatPhotoAlbum(
         val available = width - gap * (size - 1)
         val sum = row.sum()
         val min = minimumTileSize.coerceAtMost(available / size)
-        val height = (available / sum).roundToInt().coerceIn(min.coerceAtLeast(1), (width * 1.65f).toInt())
+        // Give landscape rows in a mosaic more room without stretching their contents.
+        val rowMinimum = if (size > 1) (available * 0.8f / size).roundToInt() else 0
+        val naturalHeight = available / sum
+        val preferredHeight = if (ratios.size == 2) maxOf(naturalHeight * 1.18f, available * 0.55f) else naturalHeight
+        val height = preferredHeight.roundToInt().coerceIn(maxOf(1, min, rowMinimum), (width * 1.65f).toInt())
         var offset = 0
         var weight = 0f
         for ((column, ratio) in row.withIndex()) {

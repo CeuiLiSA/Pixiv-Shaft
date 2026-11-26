@@ -2,12 +2,18 @@ package ceui.pixiv.chat.ui
 
 import android.content.Context
 import android.content.res.ColorStateList
+import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
+import android.graphics.drawable.LayerDrawable
 import android.graphics.drawable.RippleDrawable
+import android.view.Gravity
 import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.widget.ImageView
+import androidx.appcompat.widget.AppCompatImageView
+import androidx.core.content.ContextCompat
+import androidx.core.graphics.ColorUtils
 import androidx.lifecycle.findViewTreeLifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import ceui.lisa.R
@@ -36,6 +42,10 @@ internal class ChatAttachmentView(context: Context) : ViewGroup(context) {
     private var previewExpiry: Long? = null
     private var retriedExpiry: Long? = null
     private val palette = chatPalette(context)
+    private val placeholderColor = ColorUtils.compositeColors(
+        if (palette.isDark) palette.alpha15 else palette.alpha08,
+        ColorUtils.compositeColors(ContextCompat.getColor(context, R.color.v3_surface_2), palette.cardFill),
+    )
 
     init {
         background = GradientDrawable().apply {
@@ -83,7 +93,7 @@ internal class ChatAttachmentView(context: Context) : ViewGroup(context) {
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         val width = MeasureSpec.getSize(widthMeasureSpec)
         cells = if (childCount == 0) emptyList() else
-            layoutChatPhotoAlbum(width, dp(2), dp(48), aspects.ifEmpty { listOf(1.5f) })
+            layoutChatPhotoAlbum(width, dp(2), dp(48), aspects.ifEmpty { PLACEHOLDER_ASPECTS })
         cells.forEachIndexed { index, cell ->
             getChildAt(index).measure(
                 MeasureSpec.makeMeasureSpec(cell.width, MeasureSpec.EXACTLY),
@@ -177,11 +187,27 @@ internal class ChatAttachmentView(context: Context) : ViewGroup(context) {
         }
     }
 
-    private fun preview(single: Boolean) = ImageView(context).apply {
-        scaleType = if (single) ImageView.ScaleType.FIT_CENTER else ImageView.ScaleType.CENTER_CROP
-        foreground = RippleDrawable(ColorStateList.valueOf(palette.alpha20), null, GradientDrawable().apply {
-            setColor(palette.cardFill)
-        })
+    private fun preview(single: Boolean): ImageView {
+        val icon = checkNotNull(ContextCompat.getDrawable(context, R.drawable.ic_setcat_photo)).mutate().apply {
+            setTint(palette.textAccent)
+            alpha = 140
+        }
+        val placeholder = LayerDrawable(arrayOf(ColorDrawable(placeholderColor), icon)).apply {
+            setLayerSize(1, dp(20), dp(20))
+            setLayerGravity(1, Gravity.CENTER)
+        }
+        return object : AppCompatImageView(context) {
+            override fun setImageDrawable(drawable: Drawable?) {
+                super.setImageDrawable(drawable)
+                background = if (drawable == null) placeholder else null
+            }
+        }.apply {
+            background = placeholder
+            scaleType = if (single) ImageView.ScaleType.FIT_CENTER else ImageView.ScaleType.CENTER_CROP
+            foreground = RippleDrawable(ColorStateList.valueOf(palette.alpha20), null, GradientDrawable().apply {
+                setColor(palette.cardFill)
+            })
+        }
     }
 
     private fun clearImages() {
@@ -190,4 +216,8 @@ internal class ChatAttachmentView(context: Context) : ViewGroup(context) {
     }
 
     private fun dp(value: Int) = (value * resources.displayMetrics.density + 0.5f).toInt()
+
+    private companion object {
+        val PLACEHOLDER_ASPECTS = listOf(1.5f)
+    }
 }

@@ -3,12 +3,17 @@ package ceui.pixiv.chat.ui
 import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Path
+import android.graphics.drawable.ColorDrawable
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.LinearLayout
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.view.ContextThemeWrapper
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.ColorUtils
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import ceui.lisa.R
@@ -17,6 +22,7 @@ import ceui.pixiv.chat.data.SendState
 import ceui.pixiv.sticker.StickerImageView
 import ceui.pixiv.witstudio.theme.V3Palette
 import java.io.File
+import kotlin.math.roundToInt
 import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -24,6 +30,65 @@ import org.junit.runner.RunWith
 /** Real Android text measurement and production holders; sends no messages. */
 @RunWith(AndroidJUnit4::class)
 class ChatBubbleTimeRenderTest {
+    @Test
+    fun photoPlaceholderRendersInBothThemesAndReturnsWhenDrawableClears() {
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        val target = instrumentation.targetContext
+        val colors = mutableListOf<Int>()
+        for (dark in listOf(false, true)) {
+            instrumentation.runOnMainSync {
+                val config = Configuration(target.resources.configuration).apply {
+                    uiMode = if (dark) Configuration.UI_MODE_NIGHT_YES else Configuration.UI_MODE_NIGHT_NO
+                }
+                val context = ContextThemeWrapper(target.createConfigurationContext(config), R.style.AppTheme)
+                val album = ChatAttachmentView(context)
+                album.bind(ChatMessageEntity(localKey = "loading-photo", uid = 1, room = "global",
+                    ts = 1_789_524_660_000, hasAttachment = true))
+                val density = context.resources.displayMetrics.density
+                val width = (240 * density).roundToInt()
+                album.measure(View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY),
+                    View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED))
+                album.layout(0, 0, width, album.measuredHeight)
+                assertEquals((width / 1.5f).roundToInt(), album.height)
+                val cell = album.getChildAt(0) as ImageView
+                val bitmap = Bitmap.createBitmap(album.width, album.height, Bitmap.Config.ARGB_8888)
+                val canvas = Canvas(bitmap)
+                val pageColor = ContextCompat.getColor(context, R.color.v3_bg)
+                val outline = Path().apply {
+                    val radius = (16 * density).roundToInt().toFloat()
+                    addRoundRect(0f, 0f, album.width.toFloat(), album.height.toFloat(), radius, radius, Path.Direction.CW)
+                }
+                fun drawSample(): Int {
+                    bitmap.eraseColor(pageColor)
+                    canvas.save()
+                    canvas.clipPath(outline)
+                    album.measure(View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY),
+                        View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED))
+                    album.layout(0, 0, width, album.measuredHeight)
+                    album.draw(canvas)
+                    canvas.restore()
+                    return bitmap.getPixel(width / 4, album.height / 4)
+                }
+                val loadingColor = drawSample()
+                colors += loadingColor
+                assertNotEquals(pageColor, loadingColor)
+                assertEquals(255, Color.alpha(loadingColor))
+                if (InstrumentationRegistry.getArguments().getString("captureTestAlbum") == "true") {
+                    val mode = if (dark) "dark" else "light"
+                    File(target.getExternalFilesDir(null), "chat-placeholder-$mode.png").outputStream().use {
+                        bitmap.compress(Bitmap.CompressFormat.PNG, 100, it)
+                    }
+                }
+                cell.setImageDrawable(ColorDrawable(Color.MAGENTA))
+                assertEquals(Color.MAGENTA, drawSample())
+                cell.setImageDrawable(null)
+                assertEquals(loadingColor, drawSample())
+                bitmap.recycle()
+            }
+        }
+        assertTrue(ColorUtils.calculateLuminance(colors[0]) > ColorUtils.calculateLuminance(colors[1]))
+    }
+
     @Test
     fun clockFitsInsideBubbleWithoutCoveringTextAcrossThemesWidthsAndFontScales() {
         val instrumentation = InstrumentationRegistry.getInstrumentation()

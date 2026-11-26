@@ -9,8 +9,17 @@ class ChatPhotoAlbumLayoutTest {
     fun twoPortraitsShareOneTallRow() {
         val (first, second) = layoutChatPhotoAlbum(220, 2, 48, listOf(0.55f, 0.65f))
 
-        assertEquals(ChatPhotoCell(0, 0, 100, 182), first)
-        assertEquals(ChatPhotoCell(102, 0, 118, 182), second)
+        assertEquals(ChatPhotoCell(0, 0, 100, 214), first)
+        assertEquals(ChatPhotoCell(102, 0, 118, 214), second)
+    }
+
+    @Test
+    fun twoLandscapePhotosKeepATallerRowThanTheSamePairInALargerAlbum() {
+        val pair = layoutChatPhotoAlbum(240, 2, 48, listOf(1.8f, 1.8f))
+        val grid = layoutChatPhotoAlbum(240, 2, 48, List(4) { 1.8f })
+
+        assertEquals(listOf(ChatPhotoCell(0, 0, 119, 131), ChatPhotoCell(121, 0, 119, 131)), pair)
+        assertEquals(95, grid.first().height)
     }
 
     @Test
@@ -20,9 +29,19 @@ class ChatPhotoAlbumLayoutTest {
         assertEquals(ChatPhotoCell(0, 0, 220, 138), first)
         assertEquals(140, second.y)
         assertEquals(second.y, third.y)
+        assertEquals(87, second.height)
         assertEquals(second.height, third.height)
         assertEquals(second.width + 2, third.x)
         assertEquals(220, third.x + third.width)
+    }
+
+    @Test
+    fun landscapeGridKeepsTallerRowsAndEqualSeams() {
+        val cells = layoutChatPhotoAlbum(240, 2, 48, List(9) { 1280f / 900f })
+
+        assertEquals(listOf(0, 65, 130), cells.map { it.y }.distinct())
+        assertTrue(cells.all { it.height == 63 })
+        assertEquals(193, cells.last().y + cells.last().height)
     }
 
     @Test
