@@ -843,13 +843,18 @@ abstract class FeedFragment(
      */
     private fun prewarmFirstScreen(listView: RecyclerView) {
         val itemClass = firstScreenPrewarmItemClass ?: return
+        val count = firstScreenPrewarmCount
+        val perFrame = prewarmPerFrame
+        if (count <= 0 || perFrame <= 0) return
         val adapter = feedAdapter ?: return
         val viewType = adapter.viewTypeOf(itemClass) ?: return
         val pool = listView.recycledViewPool
         // pool 每个 viewType 默认只留 5 个，而我们是分帧一张张塞的（单次 count 很小）——
-        // 不在入口一次性把上限抬到总量，第 6 个起会被直接丢掉，那几张卡仍会在提交后现建。
-        val count = firstScreenPrewarmCount
-        pool.setMaxRecycledViews(viewType, count)
+        // 不在入口一次性把上限抬到总量，第 6 个起会被直接丢掉，那几张卡仍会在提交后现建；
+        // 预建量不超过默认上限时不覆写，避免把默认池容量压小。
+        if (count > DEFAULT_RECYCLED_POOL_MAX) {
+            pool.setMaxRecycledViews(viewType, count)
+        }
         var remaining = count
         val step = object : Runnable {
             override fun run() {
@@ -857,7 +862,7 @@ abstract class FeedFragment(
                 if (!feedViewModel.uiState.value.showFullscreenLoading) return
                 // rebuildList 换了 adapter：viewType 的含义跟着换了，旧的 viewType 不能再用
                 if (feedAdapter !== adapter) return
-                val n = minOf(prewarmPerFrame, remaining)
+                val n = minOf(perFrame, remaining)
                 adapter.prewarm(listView, pool, viewType, n)
                 remaining -= n
                 if (remaining > 0) listView.postOnAnimation(this)
@@ -869,6 +874,9 @@ abstract class FeedFragment(
     private companion object {
         /** 空态 / 错误态插画的 tint 透明度（0.6f 的 8bit 值）：像插画而不是实心色块。 */
         private const val EMPTY_IMAGE_ALPHA = 153
+
+        /** RecyclerView.RecycledViewPool 单 viewType 默认上限（见 RecycledViewPool.DEFAULT_MAX_SCRAP）。 */
+        private const val DEFAULT_RECYCLED_POOL_MAX = 5
 
         /** 首屏预建几张：够铺满一屏即可（见 [prewarmFirstScreen]）。 */
         private const val FIRST_SCREEN_PREWARM = 8
