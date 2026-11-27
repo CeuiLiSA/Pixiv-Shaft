@@ -1,6 +1,6 @@
 package ceui.pixiv.events
 
-import ceui.lisa.BuildConfig
+import ceui.pixiv.auth.ShaftSourceAuthorization
 import okhttp3.OkHttpClient
 import okhttp3.Protocol
 import okhttp3.RequestBody
@@ -60,7 +60,9 @@ object ShaftEventsClient {
     val api: ShaftEventsApi by lazy { build() }
 
     private fun build(): ShaftEventsApi {
-        val builder = OkHttpClient.Builder()
+        val builder = ShaftSourceAuthorization.attachTo(OkHttpClient.Builder()) { path ->
+            path == "/api/v1/events/batch" || path == "/api/v1/uid-bindings"
+        }
             .connectTimeout(8, TimeUnit.SECONDS)
             .readTimeout(15, TimeUnit.SECONDS)
             .writeTimeout(15, TimeUnit.SECONDS)
@@ -69,7 +71,7 @@ object ShaftEventsClient {
             .protocols(listOf(Protocol.HTTP_1_1))
 
         return Retrofit.Builder()
-            .baseUrl(BuildConfig.SHAFT_EVENTS_BASE_URL)
+            .baseUrl(ShaftSourceAuthorization.baseUrl)
             .addConverterFactory(GsonConverterFactory.create())
             .client(builder.build())
             .build()

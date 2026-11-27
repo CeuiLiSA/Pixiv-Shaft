@@ -101,7 +101,7 @@ class Nana7miSearchTelemetry internal constructor(
      * before this point buffer their events.
      */
     fun start() {
-        if (!enabledForConfiguration(ShaftHmac.isConfigured)) {
+        if (!enabledForConfiguration(ShaftHmac.isConfigured || ceui.lisa.BuildConfig.DEBUG)) {
             Timber.tag(TAG).i("telemetry disabled: native HMAC signer is not configured")
             return
         }
@@ -351,7 +351,8 @@ class Nana7miSearchTelemetry internal constructor(
         contentType: ContentType,
         page: Page,
         httpStatus: Int,
-        signerConfigured: Boolean = ShaftHmac.isConfigured,
+        signerConfigured: Boolean = ShaftHmac.isConfigured ||
+            ceui.pixiv.auth.DebugAppAuthorization.forUid(requesterUid) != null,
     ) {
         if (!enabledForConfiguration(signerConfigured)) return
         try {
@@ -375,7 +376,8 @@ class Nana7miSearchTelemetry internal constructor(
         query: String,
         initialRoute: Route,
         initialReason: String? = null,
-        signerConfigured: Boolean = ShaftHmac.isConfigured,
+        signerConfigured: Boolean = ShaftHmac.isConfigured ||
+            ceui.pixiv.auth.DebugAppAuthorization.forUid(requesterUid) != null,
     ): Flow? {
         if (!enabledForConfiguration(signerConfigured)) return null
         // Own-account requests are single events (reportOwnRequest), never a flow.

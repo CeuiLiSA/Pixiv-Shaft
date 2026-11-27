@@ -1,6 +1,7 @@
 package ceui.pixiv.safe.auth
 
 import okhttp3.Authenticator
+import okhttp3.HttpUrl
 import okhttp3.Request
 import okhttp3.Response
 import okhttp3.Route
@@ -8,10 +9,11 @@ import okhttp3.Route
 /** Handles one server-authoritative 401 refresh and one replay, never more. */
 class TokenAuthenticator(
     private val sessions: SessionProvider,
+    private val needsSession: (HttpUrl) -> Boolean = { AuthRoutes.requiresSession(it.encodedPath) },
 ) : Authenticator {
 
     override fun authenticate(route: Route?, response: Response): Request? {
-        if (!AuthRoutes.requiresSession(response.request.url.encodedPath)) return null
+        if (!needsSession(response.request.url)) return null
         val path = response.request.url.encodedPath
         val responseCount = responseCount(response)
         if (responseCount >= 2) {
@@ -21,16 +23,15 @@ class TokenAuthenticator(
 
         val reason = response.header("X-Pixshaft-Auth-Error")
         val refreshable = response.header("X-Pixshaft-Auth-Refreshable") == "true"
-        AuthLog.warning("401 received path=$path reason=${reason ?: "missing"} refreshable=$refreshable")
-        if (reason == "session_revoked" || reason == "session_expired") {
-            AuthLog.warning("terminal server session state; clearing local credentials reason=$reason")
-            sessions.clearCurrentSession()
-            return null
-        }
-
         val staleToken = response.request.header("Authorization")
             ?.removePrefix("Bearer ")
             ?.takeIf { it.isNotBlank() }
+        AuthLog.warning("401 received path=$path reason=${reason ?: "missing"} refreshable=$refreshable")
+        if (reason == "session_revoked" || reason == "session_expired") {
+            AuthLog.warning("terminal server session state; clearing local credentials reason=$reason")
+            if (staleToken != null) sessions.clearCurrentSessionIfToken(staleToken)
+            return null
+        }
 
         val freshToken = when {
             staleToken == null && reason == "auth_required" -> {

@@ -1,5 +1,6 @@
 package ceui.pixiv.api
 
+import ceui.lisa.BuildConfig
 import ceui.lisa.activities.Shaft
 import ceui.lisa.http.AppApiProxyInterceptor
 import ceui.lisa.http.AppApiTimeouts
@@ -7,6 +8,7 @@ import ceui.lisa.http.CronetInterceptor
 import ceui.lisa.http.IPv4OnlyDns
 import ceui.lisa.http.WebApiTimeouts
 import ceui.pixiv.auth.AuthSessionManager
+import ceui.pixiv.auth.DebugAppAuthorization
 import ceui.pixiv.auth.MediaAuthSessionManager
 import ceui.pixiv.network.FanboxHeaderInterceptor
 import ceui.pixiv.network.HeaderInterceptor
@@ -15,6 +17,7 @@ import ceui.pixiv.network.RequestLogInterceptor
 import ceui.pixiv.network.TokenFetcherInterceptor
 import ceui.pixiv.network.WebHeaderInterceptor
 import ceui.pixiv.safe.auth.BearerInterceptor
+import ceui.pixiv.safe.auth.AuthRoutes
 import ceui.pixiv.safe.auth.SessionProvider
 import ceui.pixiv.safe.auth.TokenAuthenticator
 import ceui.pixiv.services.appServices
@@ -282,12 +285,19 @@ class ClientManager {
                 .writeTimeout(10, TimeUnit.SECONDS)
                 .readTimeout(8, TimeUnit.SECONDS)
                 .retryOnConnectionFailure(true)
+                .followRedirects(!BuildConfig.DEBUG)
                 .protocols(listOf(Protocol.HTTP_2, Protocol.HTTP_1_1))
                 // PixShaft Auth V2 is independent from Pixiv OAuth. The application
                 // interceptor attaches/bootstraps our short access token; OkHttp's
                 // Authenticator performs one single-flight refresh after an
                 // authoritative 401 and returns one replay request.
-                .addInterceptor(BearerInterceptor(sessions))
+                .addInterceptor(BearerInterceptor(sessions) { url ->
+                    AuthRoutes.requiresSession(url.encodedPath) ||
+                        (baseUrl == PIXSHAFT_API_HOST && url.isHttps && url.host == "pixshaft.com" &&
+                            url.port == 443 && DebugAppAuthorization.forUid(
+                                ceui.pixiv.session.SessionManager.loggedInUid
+                            ) != null && url.encodedPath == "/v1/config")
+                })
                 .authenticator(TokenAuthenticator(sessions))
                 .addInterceptor(TranslateUserAgentInterceptor())
                 // X-Shaft-Sign = HMAC-SHA256(被签消息, native SHAFT_EVENTS_HMAC)。签名规则集中在这里，
@@ -307,6 +317,13 @@ class ClientManager {
                 .addInterceptor { chain ->
                     val req = chain.request()
                     val path = req.url.encodedPath
+                    if (baseUrl == PIXSHAFT_API_HOST && req.url.isHttps && req.url.host == "pixshaft.com" &&
+                        req.url.port == 443 && path.startsWith("/v1/account/restore/")) {
+                        val grant = DebugAppAuthorization.active()
+                        if (grant != null) return@addInterceptor chain.proceed(
+                            req.newBuilder().header("X-Shaft-App-Authorization", grant.credential).build()
+                        )
+                    }
                     val message =
                         when {
                             !ShaftHmac.isConfigured -> null

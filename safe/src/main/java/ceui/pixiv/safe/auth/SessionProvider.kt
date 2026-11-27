@@ -5,4 +5,8 @@ interface SessionProvider {
     fun accessTokenOrBootstrap(): String?
     fun refreshAfter401(staleAccessToken: String): String?
     fun clearCurrentSession()
+
+    fun clearCurrentSessionIfToken(token: String) {
+        if (currentAccessToken() == token) clearCurrentSession()
+    }
 }

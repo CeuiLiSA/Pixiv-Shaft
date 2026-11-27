@@ -102,6 +102,8 @@ android {
         // forks build with an empty native key and keep the historical disabled behavior.
         buildConfigField "String", "SHAFT_EVENTS_BASE_URL",
             '"' + (project.findProperty('SHAFT_EVENTS_BASE_URL') ?: 'http://36.138.103.18:30009') + '"'
+        buildConfigField "String", "SHAFT_EVENTS_AUTH_ORIGIN",
+            '"' + (project.findProperty('SHAFT_EVENTS_AUTH_ORIGIN') ?: '') + '"'
         externalNativeBuild {
             cmake {
                 arguments "-DSHAFT_GENERATED_SECRET_DIR=${generatedShaftSecretsDir.get().asFile.absolutePath}"

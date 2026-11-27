@@ -16,12 +16,15 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import androidx.lifecycle.asFlow
 import ceui.pixiv.session.SessionManager
+import ceui.pixiv.auth.DebugAppAuthorization
+import ceui.pixiv.auth.ShaftSourceAuthorization
 import ceui.pixiv.shaftapi.ShaftHmac
 import ceui.pixiv.websocket.WebSocketEvent
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterIsInstance
@@ -29,6 +32,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.merge
+import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -150,7 +154,15 @@ class ShaftChatGateway @Inject constructor(private val app: Application) {
         // manager never activates → no client built → no signing attempt.
         // Public getters still work (subscribers see Idle / never-emitting
         // flows), so banner bridge / chat fragments don't NPE.
-        val ready: Flow<Boolean> = if (!ShaftHmac.isConfigured) {
+        val ready: Flow<Boolean> = if (BuildConfig.DEBUG && !ShaftHmac.isConfigured) {
+            combine(SessionManager.loggedInAccount.asFlow(), DebugAppAuthorization.changes) { account, _ ->
+                val uid = account?.user?.id ?: 0L
+                ShaftSourceAuthorization.grantFor(uid)?.let { uid to it.id }
+            }.distinctUntilChanged().transform { accountGrant ->
+                emit(false)
+                if (accountGrant != null) emit(true)
+            }
+        } else if (!ShaftHmac.isConfigured) {
             Timber.tag(TAG).i("HMAC secret not configured — chat WS disabled for this build (fork mode)")
             flowOf(false)
         } else {

@@ -235,6 +235,9 @@ object SettingsCatalog {
         add(Entry(DATA, "original_cache_quota_rela", R.string.setting_original_cache_quota, keywords = "原图缓存 原图 缓存 上限 占用 空间 自动清理 淘汰 大小 original cache limit size quota"))
 
         // 试验性
+        if (ceui.lisa.BuildConfig.DEBUG) {
+            add(Entry(EXPERIMENTAL, "app_authorization_rela", R.string.app_authorization_title, keywords = "应用授权 授权密钥 调试包 debug beta key authorization"))
+        }
         // 公开聊天室横幅开关在 google(Play) 渠道不出现——认 IS_LITE
         // 而不是 debug 口径，lite 的 debug 包同样没有（与 FragmentSettingsExperimental 一致）。
         // 不进索引 = 搜索不会跳到隐藏行，目录页那条子项预览也自动少掉这几项。

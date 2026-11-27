@@ -7,6 +7,7 @@ import ceui.lisa.BuildConfig
 import ceui.pixiv.shaftapi.AppConfigResponse
 import ceui.pixiv.shaftapi.CloudTranslateEngine
 import ceui.pixiv.api.Client
+import ceui.pixiv.auth.DebugAppAuthorization
 import ceui.pixiv.shaftapi.Nana7miPlan
 import ceui.pixiv.push.InAppPushArrival
 import com.google.gson.Gson
@@ -18,8 +19,11 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import timber.log.Timber
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicLong
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -51,6 +55,7 @@ class RemoteAppConfig @Inject constructor() {
 
     private val initialized = AtomicBoolean(false)
     private val fetching = AtomicBoolean(false)
+    private val authorizationRevision = AtomicLong()
     private val scope = CoroutineScope(
         SupervisorJob() + Dispatchers.IO +
                 CoroutineExceptionHandler { _, error ->
@@ -252,6 +257,17 @@ class RemoteAppConfig @Inject constructor() {
         if (!initialized.compareAndSet(false, true)) return
         // 同步读，让首帧就有确定答案；一次 mmap 读，不值得为它排一次调度。
         loadCached(SessionManager.loggedInUid)
+        if (BuildConfig.DEBUG) {
+            scope.launch {
+                DebugAppAuthorization.changes.map { it?.takeIf { grant -> grant.currentState == "active" }?.id }
+                    .distinctUntilChanged().collect {
+                        authorizationRevision.incrementAndGet()
+                        fetchedForUid = null
+                        failedForUid = null
+                        refreshIfStale()
+                    }
+            }
+        }
         refreshIfStale()
     }
 
@@ -309,27 +325,30 @@ class RemoteAppConfig @Inject constructor() {
             return
         }
         if (!fetching.compareAndSet(false, true)) return
+        val revision = authorizationRevision.get()
         scope.launch {
             try {
                 // 会话中途切了账号：先把新 uid 上次的答案顶上（一次 mmap 读），别让接下来这一
                 // 个网络往返期间继续用着上一个账号的许可。冷启动时 start 已经读过，这里是空转。
                 loadCached(uid)
-                apply(
-                    uid,
-                    Client.pixshaft.appConfig(
-                        uid.takeIf { it > 0L },
-                        BuildConfig.FLAVOR,
-                    ),
-                )
+                val response = Client.pixshaft.appConfig(uid.takeIf { it > 0L }, BuildConfig.FLAVOR)
+                if (revision == authorizationRevision.get() && uid == SessionManager.loggedInUid) apply(uid, response)
             } catch (ce: CancellationException) {
                 throw ce
             } catch (e: Exception) {
                 // 拿不到就继续用上一次的值：这是个 kill switch，网络抖动不该改变行为。
-                failedForUid = uid
-                lastFailureAt = SystemClock.elapsedRealtime()
+                if (revision == authorizationRevision.get()) {
+                    failedForUid = uid
+                    lastFailureAt = SystemClock.elapsedRealtime()
+                }
                 Timber.tag(TAG).w(e, "fetch failed, keeping cached config uid=%d", uid)
             } finally {
                 fetching.set(false)
+                if (revision != authorizationRevision.get()) {
+                    fetchedForUid = null
+                    failedForUid = null
+                    refreshIfStale()
+                }
             }
         }
     }

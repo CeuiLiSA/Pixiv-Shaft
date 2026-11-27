@@ -65,7 +65,7 @@ internal constructor(
             return null
         }
         val session = currentSession() ?: return null
-        if (!session.isValidFor(uid)) {
+        if (!session.isValidFor(uid) || session.authorizationId != DebugAppAuthorization.forUid(uid)?.id) {
             AuthLog.warning(
                 "stored session rejected expectedUid=$uid actualUid=${session.uid} " +
                     "generation=${session.generation}"
@@ -88,6 +88,19 @@ internal constructor(
 
     override fun refreshAfter401(staleAccessToken: String): String? =
         refreshCoordinator.refresh(staleAccessToken)
+
+    override fun clearCurrentSessionIfToken(token: String) {
+        synchronized(loadLock) {
+            if (currentSession()?.accessToken == token) clearCurrentSession()
+        }
+    }
+
+    internal fun accessTokenForSourceSocket(): String? {
+        val token = accessTokenOrBootstrap() ?: return null
+        val session = currentSession() ?: return null
+        if (session.accessToken != token || session.authorizationId == null) return null
+        return if (session.accessExpiresAt <= System.currentTimeMillis() + 15_000L) refreshAfter401(token) else token
+    }
 
     override fun clearCurrentSession() {
         synchronized(loadLock) {
@@ -170,18 +183,19 @@ internal constructor(
             currentAccessToken()?.let {
                 return it
             }
-            if (!ShaftHmac.isConfigured) return null
+            val grant = DebugAppAuthorization.forUid(uid)
+            if (grant == null && !ShaftHmac.isConfigured) return null
             val startedAt = SystemClock.elapsedRealtime()
             if (startedAt < nextBootstrapAtElapsed) return null
             val expectedStateVersion = synchronized(loadLock) { stateVersion }
             AuthLog.debug("session bootstrap started uid=$uid stateVersion=$expectedStateVersion")
             val deviceId = runCatching {
-                tokenStore.deviceId()
+                grant?.deviceId ?: tokenStore.deviceId()
             }
                 .onFailure { AuthLog.warning("failed to load durable auth device identity", it) }
                 .getOrNull()
-            val response = deviceId?.let { createSession(uid, it) }
-            val session = if (deviceId == null) null else response?.toSession(uid, deviceId)
+            val response = deviceId?.let { createSession(uid, it, grant) }
+            val session = if (deviceId == null) null else response?.toSession(uid, deviceId, grant?.id)
             val token = session?.let { persistAndPublish(it, expectedStateVersion)?.accessToken }
             synchronized(loadLock) {
                 nextBootstrapAtElapsed =
@@ -200,14 +214,16 @@ internal constructor(
         }
     }
 
-    private fun createSession(uid: Long, deviceId: String): TokenResponse? {
+    private fun createSession(uid: Long, deviceId: String, grant: DebugAppGrant?): TokenResponse? {
         return try {
             val response =
                 api.createSession(
                         CreateSessionRequest(
                             uid = uid,
                             deviceId = deviceId,
-                        )
+                            grantType = if (grant != null) "debug_app" else "app_hmac",
+                        ),
+                        grant?.authorization,
                     )
                     .execute()
             if (response.isSuccessful) {
@@ -254,7 +270,7 @@ internal constructor(
                     )
                     .execute()
             if (response.isSuccessful) {
-                val fresh = response.body()?.toSession(session.uid, session.deviceId)
+                val fresh = response.body()?.toSession(session.uid, session.deviceId, session.authorizationId)
                 if (
                     fresh == null ||
                         fresh.sessionId != session.sessionId ||
@@ -296,7 +312,8 @@ internal constructor(
 
     private fun persistAndPublish(session: AuthSession, expectedStateVersion: Long): AuthSession? {
         return synchronized(loadLock) {
-            if (stateVersion != expectedStateVersion || SessionManager.loggedInUid != session.uid) {
+            if (stateVersion != expectedStateVersion || SessionManager.loggedInUid != session.uid ||
+                session.authorizationId != DebugAppAuthorization.forUid(session.uid)?.id) {
                 return@synchronized null
             }
             try {

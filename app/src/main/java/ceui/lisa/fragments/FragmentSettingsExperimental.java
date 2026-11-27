@@ -1,6 +1,7 @@
 package ceui.lisa.fragments;
 
 import android.content.Context;
+import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,6 +10,7 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import java.text.DecimalFormat;
 
 import com.google.firebase.analytics.FirebaseAnalytics;
@@ -21,6 +23,7 @@ import ceui.lisa.utils.Local;
 import ceui.pixiv.debug.TimberFileLog;
 import ceui.pixiv.snapshot.AutoSnapshotEngine;
 import ceui.pixiv.snapshot.AutoSnapshotQuota;
+import ceui.pixiv.ui.settings.DebugAppAuthorizationSettings;
 import ceui.pixiv.witstudio.dialog.WitDialog;
 import ceui.pixiv.witstudio.dialog.WitDialogAction;
 import ceui.pixiv.witstudio.dialog.WitDialogView;
@@ -38,6 +41,12 @@ public class FragmentSettingsExperimental extends SettingsPageFragment<FragmentS
     @Override
     protected FragmentSettingsExperimentalBinding bindView(@NonNull View root) {
         return FragmentSettingsExperimentalBinding.bind(root);
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        DebugAppAuthorizationSettings.bind(this, baseBind.appAuthorizationRela, baseBind.appAuthorizationStatus);
     }
 
     @Override
