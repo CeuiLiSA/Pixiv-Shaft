@@ -166,7 +166,14 @@ public abstract class DownloadDao {
                 : countSearchDoneCardsLegacy(novelKey, keyword);
     }
 
-    @Query("SELECT COUNT(DISTINCT " + DONE_KEY_INDEXED + ") FROM illust_download_table")
+    // 稳态路径只扫 (illustId, fileName) 覆盖索引：小说与未知 id 每行一张卡，
+    // 其余插画按 illustId 分组。索引顺序天然完成去重，不再构造全表字符串键和临时 B-tree。
+    @Query("SELECT (SELECT COUNT(*) FROM illust_download_table " +
+            "INDEXED BY index_illust_download_table_illustId_fileName " +
+            "WHERE instr(fileName, :novelKey) > 0 OR illustId <= 0) + " +
+            "(SELECT COUNT(*) FROM (SELECT illustId FROM illust_download_table " +
+            "INDEXED BY index_illust_download_table_illustId_fileName " +
+            "WHERE illustId > 0 AND instr(fileName, :novelKey) = 0 GROUP BY illustId))")
     abstract int countDoneCardsIndexed(String novelKey);
 
     @Query("SELECT COUNT(DISTINCT " + DONE_KEY_INDEXED + ") FROM illust_download_table " +

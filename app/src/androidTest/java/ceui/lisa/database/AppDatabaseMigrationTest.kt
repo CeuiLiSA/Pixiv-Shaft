@@ -72,6 +72,10 @@ class AppDatabaseMigrationTest {
             "缺少 v46 索引 index_bookmark_mirror_table_shelfKey_isVisible_bookmarkSeq",
             hasIndex(db, "bookmark_mirror_table", "index_bookmark_mirror_table_shelfKey_isVisible_bookmarkSeq"),
         )
+        assertTrue(
+            "缺少 v47 索引 index_illust_download_table_illustId_fileName",
+            hasIndex(db, "illust_download_table", "index_illust_download_table_illustId_fileName"),
+        )
 
         db.close()
     }
