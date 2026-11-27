@@ -12,25 +12,20 @@ import kotlin.math.floor
 /**
  * Hardware-accelerated AGSL liquid-glass droplet loupe renderer (API 33+).
  *
- * Calibrated 1:1 against native 1290×2796 iOS 26 UITabBar capture (`orig_3.3.png`, `orig_4.3.png`,
- * `orig_7.5.png`) using unified physically-true convex glass-dome meniscus optics:
- * - **Two-plane recording**: Plane 1 (1.0× live backdrop + **unscaled 1.0×** outer glass bar
- *   platter + fading resting pill) followed by Plane 2 (`1.14×` crisp vector-magnified selected
- *   tab icons/labels).
- * - **Apple-calibrated C¹ convex-dome meniscus refraction (`pow(sin(u * π/2), 0.72) * (1 - smoothstep(peakDp + 1.2, bevelEndDp, depth))`)**:
- *   - Matched to ±0.2px against inverted `orig_4.3.png` pixel measurements (`depth = 0.8..6.8dp`):
- *     starts steep right at the outer droplet arc (`u = clamp((depth + 0.50) / (peakDp + 0.50), 0, 1)`)
- *     so the outer horizontal bar crosses smoothly through the **middle of the corner slope** instead
- *     of pinching at the top-left root, with zero step disconnect and exact C¹ zero-derivative
- *     landing into the flat recessed inner bar (`peakDp ≈ 6.8dp`) while recessing top, bottom, AND
- *     left/right semicircular caps concentrically with zero special cases.
- *   - Smoothly decays to exact `0.0` at `bevelEndDp ≈ 22dp` for a distortion-free interior plateau.
- * - **Subtle corner-focused Cauchy RGB dispersion**: crisp 3-channel physical prism refraction
- *   concentrated at the 4 straight-bar junctions (plus a whisper-subtle rim-hugged glint strictly
- *   at the 4 junctions—zero full-circle rainbow halo, clean flat edges and concentric end caps).
- * - **Crisp neutral top/bottom outer hairline & dark vertical optical silhouette**: razor-thin
- *   specular hairline strictly on top/bottom arcs (`|normal.y| > 0.55`), paired with Apple's
- *   ~1.1dp dark optical edge on vertical caps over dark bars.
+ * Combines Apple iOS 26 UITabBar's signature inward outer-bar meniscus shrink (`╰____╯` / `╭────╮`)
+ * with crystal-clear 5-band Cauchy spectral dispersion and 3D floating droplet lighting:
+ * - **Two-plane recording**: Plane 1 (1.0× razor-sharp live backdrop + **unscaled 1.0×** crystal
+ *   outer glass bar platter + fading resting pill) followed by Plane 2 (`1.14×` crisp
+ *   vector-magnified selected tab icons/labels).
+ * - **C¹ convex-dome meniscus recess (`+normal * amp * pow(sin(u * π/2), 0.72) * (1 - smoothstep(...))`)**:
+ *   subtly shrinks and curves the outer glass bar inward on top, bottom, AND left/right
+ *   semicircular caps (`~4.4%` of bar height) while leaving crystal-clear protruding collars
+ *   above/below the recessed bar and a flat distortion-free interior core.
+ * - **Continuous 5-band Cauchy RGB spectral dispersion**: silky Red -> Yellow -> Green -> Cyan ->
+ *   Blue prism splitting concentrated at the 4 curved bar-entry corner junctions (`╰`, `╯`, `╭`, `╮`)
+ *   and curved meniscus shoulders, with zero distortion or color fringing in the center.
+ * - **Crisp top/bottom specular rim, dark vertical optical silhouette & soft 3D floating shadow**:
+ *   delineates the elevated water droplet cleanly over both light and dark bars.
  */
 @RequiresApi(33)
 internal class WitLiquidGlassLoupeShader {
@@ -236,7 +231,7 @@ internal class WitLiquidGlassLoupeShader {
             uniform float4 optics;      // velStretch (-0.25..1.20), glassProgress (0..1), scaledDensity, isDark
 
             const float3 LUMA = float3(0.2126, 0.7152, 0.0722);
-            const float2 KEY_LIGHT = float2(-0.46000, -0.88792); // normalize(float2(-0.46, -0.888))
+            const float2 KEY_LIGHT = float2(-0.56000, -0.82849); // normalize(float2(-0.56, -0.828))
 
             float3 sampleScene(float2 p, float isDark) {
                 float2 safeP = clamp(p, sceneBounds.xy + 1.0, sceneBounds.zw - 1.0);
@@ -249,67 +244,89 @@ internal class WitLiquidGlassLoupeShader {
                 float2 c = coord - droplet.xy;
                 float2 halfSize = droplet.zw;
                 float dp = max(optics.z, 0.5);
-                if (abs(c.x) > halfSize.x + 2.5 || abs(c.y) > halfSize.y + 2.5) {
+                if (abs(c.x) > halfSize.x + 10.5 * dp || abs(c.y) > halfSize.y + 10.5 * dp) {
                     return half4(0.0);
                 }
 
                 float rad = min(halfSize.x, halfSize.y);
                 float2 q = abs(c) - halfSize + rad;
                 float2 corner = max(q, 0.0);
-                float dist = length(corner) + min(max(q.x, q.y), 0.0) - rad;
+                float cornerLen = length(corner);
+                float dist = cornerLen + min(max(q.x, q.y), 0.0) - rad;
                 float coverage = clamp(0.5 - dist / 1.25, 0.0, 1.0);
-                if (coverage <= 0.0) return half4(0.0);
 
-                float velStretch = max(optics.x, 0.0);
                 float glass = optics.y;
                 float isDark = optics.w;
 
+                // Soft 3D floating ambient drop shadow right outside the elevated crystal droplet.
+                float2 sc = c - float2(0.0, 1.5 * dp);
+                float2 sq = abs(sc) - halfSize + rad;
+                float shadowDist = length(max(sq, 0.0)) + min(max(sq.x, sq.y), 0.0) - rad;
+                float shadowFade = 1.0 - smoothstep(0.0, 8.5 * dp, max(shadowDist, 0.0));
+                float shadowAlpha = exp(-max(shadowDist, 0.0) / (3.0 * dp))
+                    * shadowFade * mix(0.13, 0.24, isDark) * glass;
+
+                if (coverage <= 0.0) {
+                    return shadowAlpha > 0.001 ? half4(0.0, 0.0, 0.0, half(shadowAlpha)) : half4(0.0);
+                }
+
+                float velStretch = max(optics.x, 0.0);
+
                 // Analytic outward unit normal of the stadium capsule.
                 float2 axis = q.x > q.y ? float2(1.0, 0.0) : float2(0.0, 1.0);
-                float2 normal = (length(corner) > 0.001 ? normalize(corner) : axis) * sign(c);
+                float2 normal = (cornerLen > 0.001 ? corner / cornerLen : axis) * sign(c);
                 normal /= max(length(normal), 0.001);
 
-                // Apple-calibrated C1 convex-dome meniscus refraction inverted directly from native
-                // 1290x2796 iOS 26 UITabBar frames (orig_3.3, orig_4.3, orig_7.5; RMS error < 0.2px):
-                // - pow(sin(u * PI/2), 0.72) with u = clamp((depth + 0.50) / (peakDp + 0.50), 0, 1):
-                //   * Steep initial meniscus rise places the outer-bar crossing right through the
-                //     middle of the curved corner slope (never pinching at the root like smoothstep),
-                //     bridged seamlessly with zero step disconnect.
-                //   * Exact zero derivative at depth = peakDp (~6.8dp) lands silky-smooth into the
-                //     flat recessed inner bar (~5.8% of barH) on top, bottom, AND semicircular caps.
-                //   * depth >= bevelEndDp (~22dp) -> bump = 0: flat distortion-free interior.
+                // iOS 26 C1 convex-dome meniscus inward-recess refraction:
+                // - Samples outward (+normal * amp * bump) so the 1.0x outer glass bar visibly
+                //   shrinks & curves inward (╰____╯ / ╭────╮) across top, bottom, AND semicircular
+                //   end caps, exposing crystal-clear protruding top/bottom collars.
+                // - Exact zero derivative at peakDp lands smoothly into the flat recessed inner bar,
+                //   then decays cleanly to 0 at bevelEndDp for a distortion-free central core.
                 float depth = max(-dist / dp, 0.0);
                 float shortSideDp = rad * 2.0 / dp;
                 float barHDp = max(barRect.w - barRect.y, 1.0) / dp;
                 float nx2 = normal.x * normal.x;
-                float peakDp = clamp(shortSideDp * 0.098, 6.2, 7.4);
-                float bevelEndDp = clamp(shortSideDp * 0.32, 20.0, 25.0);
+                float peakDp = clamp(shortSideDp * 0.090, 5.6, 6.8);
+                float bevelEndDp = clamp(shortSideDp * 0.28, 17.5, 22.0);
                 float riseU = clamp((depth + 0.50) / (peakDp + 0.50), 0.0, 1.0);
                 float rise = pow(max(sin(riseU * 1.5707963), 0.0001), 0.72);
                 float bump = rise * (1.0 - smoothstep(peakDp + 1.2, bevelEndDp, depth));
 
-                float ampDp = (barHDp * 0.058 + 0.45 * velStretch) * glass;
+                float ampDp = (barHDp * 0.044 + 0.32 * velStretch) * glass;
                 float2 bend = normal * (ampDp * dp * bump);
                 float2 samplePos = coord + bend;
 
-                // Subtle, crisp 3-channel Cauchy RGB dispersion strictly from refracted scene pixels:
-                // - Exact zero on flat top/bottom edges (nx2 == 0) so protruding collars stay crystal clear.
-                // - Gently feathers the 4 diagonal corner slopes with natural cyan/amber refraction.
-                float shoulderMask = smoothstep(0.16, 0.50, abs(normal.x * normal.y) * 2.2);
-                float cornerSpread = clamp(nx2 / 0.25, 0.0, 1.0);
-                float rimPrism = (1.0 - smoothstep(0.0, 4.5, depth)) * 0.35 * shoulderMask;
+                // Continuous 5-band Cauchy spectral dispersion along the 4 curved bar-entry corner
+                // slopes & semicircular meniscus shoulders (clean & crisp on flat straight center).
+                float shoulderMask = smoothstep(0.14, 0.48, abs(normal.x * normal.y) * 2.2);
+                float cornerSpread = clamp(nx2 / 0.22, 0.0, 1.0);
+                float rimPrism = (1.0 - smoothstep(0.0, 4.6, depth)) * 0.42 * shoulderMask;
                 float dispFactor = max(bump, rimPrism);
-                float spread = (0.25 + 0.04 * velStretch) * cornerSpread * dispFactor * glass;
+                float spread = (0.36 + 0.07 * velStretch) * cornerSpread * dispFactor * glass;
                 float2 prismVec = normal * (ampDp * dp * dispFactor * spread);
-                float3 scene = sampleScene(samplePos, isDark);
-                if (length(prismVec) > 0.20) {
+                float prismLen = length(prismVec);
+                float3 scene;
+                if (prismLen > 0.90 * dp) {
+                    float3 cR = sampleScene(samplePos - prismVec, isDark);
+                    float3 cY = sampleScene(samplePos - prismVec * 0.5, isDark);
+                    float3 cG = sampleScene(samplePos, isDark);
+                    float3 cC = sampleScene(samplePos + prismVec * 0.5, isDark);
+                    float3 cB = sampleScene(samplePos + prismVec, isDark);
+                    scene = float3(
+                        0.5 * (cR.r + cY.r),
+                        0.25 * cY.g + 0.5 * cG.g + 0.25 * cC.g,
+                        0.5 * (cC.b + cB.b)
+                    );
+                } else if (prismLen > 0.20) {
+                    scene = sampleScene(samplePos, isDark);
                     scene.r = sampleScene(samplePos - prismVec, isDark).r;
                     scene.b = sampleScene(samplePos + prismVec, isDark).b;
+                } else {
+                    scene = sampleScene(samplePos, isDark);
                 }
 
-                // Detect whether the refracted sample lands inside the unscaled 1.0x outer bar
-                // so protruding clear collars keep zero milky fog while the recessed bar interior
-                // gets a subtle luminous crystal lift.
+                // Locate the exact refracted outer-bar silhouette (╰____╯ / ╭────╮) inside the droplet.
                 float2 barCenter = 0.5 * (barRect.xy + barRect.zw);
                 float2 barHalf = max(0.5 * (barRect.zw - barRect.xy), float2(1.0));
                 float2 bp = samplePos - barCenter;
@@ -319,25 +336,29 @@ internal class WitLiquidGlassLoupeShader {
                 float insideBar = 1.0 - smoothstep(-0.75 * dp, 0.75 * dp, barDist);
 
                 float luma = dot(scene, LUMA);
-                float sat = 1.0 + 0.11 * glass;
+                float sat = 1.0 + 0.18 * glass;
                 float3 color = mix(float3(luma), scene, sat);
                 if (isDark > 0.5) {
-                    color = color + 0.014 * glass * insideBar;
+                    color = color + 0.018 * glass * insideBar;
                 } else {
-                    color = mix(color, float3(1.0), 0.020 * glass * insideBar) + 0.015 * glass * insideBar;
+                    // Subtle optical edge shading along the recessed bar contour keeps the
+                    // ╰____╯ / ╭────╮ shrink effect crisp even over blank white light-mode pages.
+                    float recessEdge = (1.0 - smoothstep(0.0, 1.35 * dp, abs(barDist)))
+                        * smoothstep(0.68, 0.96, luma) * 0.055 * glass;
+                    color = color * (1.0 - recessEdge)
+                        + mix(0.008, 0.020, insideBar) * glass;
                 }
 
-                // Pixel-authentic iOS 26 outer droplet boundary:
-                // - Crisp thin specular hairline strictly on top & bottom arcs (|normal.y| > 0.55),
-                //   softening and tinting gently into a whisper-subtle emerald/amber bevel strictly
-                //   at the 4 straight-bar corner junctions (zero hot crossing knot, zero full-circle halo);
-                // - Left & right vertical caps drop ALL gray wire and draw Apple's razor-thin
-                //   ~1.1dp dark optical silhouette over dark bar surfaces so the droplet pops in 3D.
-                if (depth < 4.5 && glass > 0.001) {
+                // Outer droplet crystal boundary:
+                // - Crisp luminous top/bottom specular rim with dual-lobe studio highlight + subtle
+                //   emerald/cyan/amber prism bevel at the 4 straight-bar corner junctions;
+                // - Clean 3D dark optical silhouette on vertical caps in dark mode so the elevated
+                //   droplet separates crisply from the recessed bar beneath it.
+                if (depth < 5.2 && glass > 0.001) {
                     float2 barP0 = coord - barCenter;
                     float2 bq0 = abs(barP0) - barHalf + barRad;
                     float barDist0 = length(max(bq0, 0.0)) + min(max(bq0.x, bq0.y), 0.0) - barRad;
-                    float nearBarEdge = 1.0 - smoothstep(0.0, 9.5 * dp, abs(barDist0));
+                    float nearBarEdge = 1.0 - smoothstep(0.0, 10.5 * dp, abs(barDist0));
                     float straightBarSide = 1.0 - smoothstep(
                         barHalf.x - barRad - 4.0 * dp,
                         barHalf.x - barRad + 4.0 * dp,
@@ -345,44 +366,53 @@ internal class WitLiquidGlassLoupeShader {
                     );
                     float cornerJunction = shoulderMask * nearBarEdge * straightBarSide;
 
-                    float rimWidth = mix(0.85, 1.45, cornerJunction);
-                    float rimCenter = mix(0.38, 0.52, cornerJunction);
+                    float rimWidth = mix(0.95, 1.55, cornerJunction);
+                    float rimCenter = mix(0.42, 0.56, cornerJunction);
                     float rimLine = 1.0 - smoothstep(0.0, rimWidth, abs(depth - rimCenter));
+                    float innerSheen = exp(-depth * 0.42) * smoothstep(0.35, 1.8, depth);
                     float vertBias = abs(normal.y);
-                    float topBotArc = smoothstep(0.55, 0.88, vertBias);
+                    float topBotArc = smoothstep(0.46, 0.86, vertBias);
                     float facing = dot(normal, KEY_LIGHT);
-                    float keyLobe = facing > 0.0 ? pow(facing, 3.6) : 0.0;
-                    float bounceLobe = facing < 0.0 ? pow(-facing, 3.6) : 0.0;
-                    float rimProfile = (0.24 + 0.20 * (keyLobe + bounceLobe)) * topBotArc * (1.0 - 0.34 * cornerJunction);
+                    float keyLobe = facing > 0.0 ? pow(facing, 3.0) : 0.0;
+                    float bounceLobe = facing < 0.0 ? pow(-facing, 3.0) : 0.0;
+
+                    float sideRimFloor = mix(0.22, 0.04, isDark);
+                    float arcWeight = mix(sideRimFloor, 1.0, topBotArc);
+                    float rimProfile = (0.30 + 0.34 * (keyLobe + bounceLobe)) * arcWeight * (1.0 - 0.25 * cornerJunction);
 
                     float3 prismTint = mix(
-                        float3(0.98, 0.99, 0.99),
-                        mix(float3(0.80, 1.15, 0.88), float3(0.78, 1.12, 1.14), step(0.0, normal.y)),
-                        cornerJunction * 0.76
+                        float3(0.99, 0.995, 1.0),
+                        mix(float3(0.76, 1.18, 0.88), float3(0.76, 1.14, 1.18), step(0.0, normal.y)),
+                        cornerJunction * 0.82
                     );
 
-                    float rimStrength = mix(0.76, 0.58, isDark) * glass;
-                    float softKnee = 1.0 - clamp(luma, 0.0, 1.0) * mix(0.45, 0.65, cornerJunction);
-                    float3 specular = prismTint * (rimLine * rimProfile * rimStrength * softKnee);
+                    float rimStrength = mix(0.92, 0.72, isDark) * glass;
+                    float softKnee = 1.0 - clamp(luma, 0.0, 1.0) * mix(0.25, 0.55, cornerJunction);
+                    float3 specular = prismTint * ((rimLine * rimProfile + innerSheen * 0.09 * topBotArc) * rimStrength * softKnee);
 
-                    // Whisper-subtle emerald-to-amber corner bevel strictly at the 4 straight-bar
-                    // junction points (depth 0.5..3.0dp) — zero full ring, bridges the slope cleanly.
-                    float gBand = exp(-pow((depth - 1.25) / 1.0, 2.0)) * cornerJunction * isDark
-                        * (1.0 - clamp(luma, 0.0, 1.0) * 0.75) * glass;
-                    float aBand = exp(-pow((depth - 2.35) / 0.9, 2.0)) * cornerJunction * isDark
-                        * (1.0 - clamp(luma, 0.0, 1.0) * 0.85) * glass;
-                    float3 cornerGlint = float3(0.028, 0.058, 0.028) * gBand
-                        + float3(0.042, 0.022, 0.012) * aBand;
+                    // Crisp emerald-cyan-amber corner prism bevel at the 4 straight-bar junctions.
+                    float dg = (depth - 1.30) / 1.05;
+                    float da = (depth - 2.45) / 0.95;
+                    float gBand = exp(-(dg * dg)) * cornerJunction
+                        * (1.0 - clamp(luma, 0.0, 1.0) * 0.70) * glass;
+                    float aBand = exp(-(da * da)) * cornerJunction
+                        * (1.0 - clamp(luma, 0.0, 1.0) * 0.80) * glass;
+                    float3 cornerGlint = mix(0.45, 1.0, isDark) * (
+                        float3(0.036, 0.078, 0.044) * gBand
+                        + float3(0.056, 0.032, 0.016) * aBand
+                    );
 
                     float darkBackdropMask = 1.0 - smoothstep(0.20, 0.55, luma);
-                    float sideDark = (1.0 - topBotArc) * 0.76 * isDark * darkBackdropMask * glass;
-                    float lumaRimDark = smoothstep(0.45, 0.92, luma) * 0.18 * glass;
-                    float themeRimDark = (1.0 - isDark) * 0.08 * glass;
+                    float sideDark = (1.0 - topBotArc) * 0.72 * isDark * darkBackdropMask * glass;
+                    float lumaRimDark = smoothstep(0.55, 0.94, luma) * 0.14 * glass;
+                    float themeRimDark = (1.0 - isDark) * 0.06 * glass;
                     float hairline = (1.0 - smoothstep(0.0, 1.05, depth)) * max(sideDark, max(lumaRimDark, themeRimDark));
                     color = color * (1.0 - hairline) + specular + cornerGlint;
                 }
 
-                return half4(half3(clamp(color, 0.0, 1.0) * coverage), half(coverage));
+                float3 premulRgb = clamp(color, 0.0, 1.0) * coverage;
+                float outAlpha = coverage + shadowAlpha * (1.0 - coverage);
+                return half4(half3(premulRgb), half(outAlpha));
             }
         """
     }

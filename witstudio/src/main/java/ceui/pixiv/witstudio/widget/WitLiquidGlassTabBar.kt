@@ -1115,12 +1115,12 @@ public class WitLiquidGlassTabBar private constructor(
                     isDark = isDarkTheme,
                     sceneBoundsLocal = if (hasSceneBounds) sceneBoundsLocal else null,
                 ) { contentCanvas ->
-                    // Plane 1A (1.0x un-zoomed): sharp live backdrop behind the bar.
+                    // Plane 1A (1.0x un-zoomed): razor-sharp live backdrop behind the bar.
                     glassBar.drawLiveBackdropInLocal(contentCanvas)
-                    // Plane 1B (1.0x unscaled outer glass bar platter):
-                    // Unified dome-meniscus refraction (+normal * amp * u^a * (1 - u)^b) in
-                    // WitLiquidGlassLoupeShader naturally recesses the 1.0x bar inward on top, bottom,
-                    // AND left/right semicircular caps with exact 0.0px corner continuity.
+                    // Plane 1B (1.0x unscaled crystal outer glass bar platter):
+                    // Kept at 100% so WitLiquidGlassLoupeShader's C1 convex-dome meniscus refraction
+                    // (+normal * amp * bump) visibly shrinks & recesses the outer bar inward on top,
+                    // bottom, AND semicircular caps (╰____╯ / ╭────╮) with crystal corner dispersion.
                     glassBar.drawGlassPlatter(contentCanvas)
                     if (restWeight > 0.004f) {
                         drawRestingGlassPill(contentCanvas, cornerRadius, restWeight)
@@ -1167,21 +1167,21 @@ public class WitLiquidGlassTabBar private constructor(
             restingSheenShader = LinearGradient(
                 0f, 0f, 0f, 1f,
                 if (isDarkTheme) {
-                    intArrayOf(0x12FFFFFF, 0x05FFFFFF, 0x00FFFFFF, 0x08FFFFFF)
+                    intArrayOf(0x1EFFFFFF, 0x06FFFFFF, 0x00FFFFFF, 0x10FFFFFF)
                 } else {
-                    intArrayOf(0x0B1A1A2E, 0x031A1A2E, 0x001A1A2E, 0x04FFFFFF)
+                    intArrayOf(0x28FFFFFF, 0x08FFFFFF, 0x00FFFFFF, 0x1AFFFFFF)
                 },
                 floatArrayOf(0f, 0.34f, 0.72f, 1f),
                 Shader.TileMode.CLAMP,
             )
             restingRimShader = LinearGradient(
-                0f, 0f, 0f, 1f,
+                0f, 0f, 0.45f, 1f,
                 if (isDarkTheme) {
-                    intArrayOf(0x12FFFFFF, 0x04FFFFFF, 0x03FFFFFF, 0x0CFFFFFF)
+                    intArrayOf(0x66FFFFFF, 0x18FFFFFF, 0x14FFFFFF, 0x4EFFFFFF)
                 } else {
-                    intArrayOf(0x1A1A1A2E, 0x101A1A2E, 0x101A1A2E, 0x141A1A2E)
+                    intArrayOf(0xD8FFFFFF.toInt(), 0x40FFFFFF, 0x38FFFFFF, 0xC4FFFFFF.toInt())
                 },
-                floatArrayOf(0f, 0.30f, 0.70f, 1f),
+                floatArrayOf(0f, 0.32f, 0.68f, 1f),
                 Shader.TileMode.CLAMP,
             )
         }
@@ -1197,7 +1197,7 @@ public class WitLiquidGlassTabBar private constructor(
         }
         restingRimShader?.let { rim ->
             rim.setLocalMatrix(restingShaderMatrix)
-            val strokeW = max(1f, 0.75f * density)
+            val strokeW = max(1f, 1.05f * density)
             val halfStroke = strokeW * 0.5f
             restingRimPaint.shader = rim
             restingRimPaint.strokeWidth = strokeW

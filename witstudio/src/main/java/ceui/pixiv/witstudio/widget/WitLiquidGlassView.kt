@@ -305,7 +305,11 @@ public class WitLiquidGlassView @JvmOverloads public constructor(
                 } else {
                     outline.setRoundRect(0, 0, width, height, radius)
                 }
-                outline.alpha = if (effectiveQuality == WitLiquidGlassQuality.ULTRA) 0.08f else (if (isDark) 0.16f else 0.28f)
+                outline.alpha = if (effectiveQuality == WitLiquidGlassQuality.ULTRA) {
+                    if (isDark) 0.10f else 0.18f
+                } else {
+                    if (isDark) 0.16f else 0.28f
+                }
             }
         }
 

@@ -667,10 +667,12 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
             baseBind.bottomBarFrame.setTone(WitLiquidGlassView.Tone.THEME);
             baseBind.bottomBarFrame.setCornerRadiusDp(Float.POSITIVE_INFINITY);
             baseBind.bottomBarFrame.setGlassInteractive(!isGlassActive);
+            boolean isStandardLight =
+                    targetQuality == WitLiquidGlassQuality.STANDARD && !palette.isDark();
             baseBind.bottomBarFrame.setTintColor(
-                    isGlassActive && !palette.isDark() ? 0x7CF7F8FC : Color.TRANSPARENT);
+                    isStandardLight ? 0x7CF7F8FC : Color.TRANSPARENT);
             baseBind.bottomBarFrame.setElevation(
-                    isGlassActive && !palette.isDark() ? dp(8) : 0f);
+                    isGlassActive ? dp(palette.isDark() ? 6 : 8) : 0f);
             baseBind.bottomBarFrame.setBackground(null);
             // Match iOS 26 ~62dp floating pill height (56dp nav + 3dp top/bottom breathing room) so
             // tab labels sit comfortably inside the flat distortion-free core of the elevated loupe.
@@ -728,8 +730,10 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
             // 静息选中态液态玻璃内嵌胶囊底托：对齐 iOS 26 深浅双模通透内嵌药丸（深色模式为柔和浅霜透亮层，
             // 浅色模式为清晰冷灰内嵌胶囊），在白底页面与高饱和插画背景上均一眼可辨。
             int indicatorFill = isDark
-                    ? ColorUtils.setAlphaComponent(Color.WHITE, 44)
-                    : ColorUtils.setAlphaComponent(0xFF1A1A2E, 40);
+                    ? ColorUtils.setAlphaComponent(Color.WHITE, 42)
+                    : ColorUtils.setAlphaComponent(
+                            0xFF1A1A2E,
+                            targetQuality == WitLiquidGlassQuality.ULTRA ? 26 : 40);
 
             liquidGlassTabBar.applyThemeColors(
                     selectedColor, unselectedColor, indicatorFill, isDark);
