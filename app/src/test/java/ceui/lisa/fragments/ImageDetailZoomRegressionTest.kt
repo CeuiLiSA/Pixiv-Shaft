@@ -141,6 +141,22 @@ class ImageDetailZoomRegressionTest {
         }
     }
 
+    @Test
+    fun subsamplingResumesWhenViewerPageIsReattached() {
+        attach(Settings.DOUBLE_TAP_ZOOM_MODE_DEFAULT)
+        val fragmentManager = host.get().supportFragmentManager
+        assertFalse(image.subsampling.stoppedState.value)
+
+        fragmentManager.beginTransaction().detach(fragment).commitNow()
+        assertTrue(image.subsampling.stoppedState.value)
+
+        fragmentManager.beginTransaction().attach(fragment).commitNow()
+        idle()
+
+        assertSame(image, fragment.requireView().findViewById(R.id.image))
+        assertFalse(image.subsampling.stoppedState.value)
+    }
+
     private fun multiEvent(start: Long, delay: Long, action: Int, firstX: Float, secondX: Float) {
         val properties = Array(2) { index -> MotionEvent.PointerProperties().apply {
             id = index
