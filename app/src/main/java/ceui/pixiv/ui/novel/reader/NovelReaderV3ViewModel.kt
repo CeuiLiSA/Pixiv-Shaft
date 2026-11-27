@@ -52,6 +52,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.android.asCoroutineDispatcher
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -158,6 +159,7 @@ class NovelReaderV3ViewModel(
             val total: Int,
             val translator: Translator,
             val modelName: String? = null,
+            val runId: Int = 0,
         ) : TranslationState()
         object Done : TranslationState()
         data class Failed(val error: Exception, val translator: Translator) : TranslationState()
@@ -174,10 +176,22 @@ class NovelReaderV3ViewModel(
     private var translations: Map<Int, String> = emptyMap()
     private var translationsKey: NovelTranslationKey? = null
     private var translationJob: Job? = null
+    private var translationRunId = 0
     private var lastTranslationRefreshAt = 0L
 
-    /** 本篇已经有（部分）译文：切到「仅原文」后菜单仍要给出「译文显示方式」好切回来。 */
-    val hasBodyTranslation: Boolean get() = translations.isNotEmpty()
+    /** 本篇已经有与当前目标语言/引擎匹配的（部分）译文：切到「仅原文」后菜单仍给出「译文显示方式」好切回来。 */
+    val hasBodyTranslation: Boolean
+        get() = translations.isNotEmpty() && translationsKey == activeBodyTranslationKey()
+
+    /** 当前正在显示译文，但目标语言或翻译引擎配置已变更，需要重新翻译。 */
+    val isBodyTranslationStale: Boolean
+        get() = isTranslationShown && translationsKey != null && translationsKey != activeBodyTranslationKey()
+
+    private fun activeBodyTranslationKey(): NovelTranslationKey {
+        val lang = appTranslateTargetLang()
+        val translator = if (AiTranslator.isActive()) AiTranslator else GoogleWebTranslator
+        return NovelTranslationKey.capture(translator, lang)
+    }
 
     /** 中断（[TranslationState.Failed]）时已到手的译文照常显示，不随失败一起消失。 */
     private val isTranslationShown: Boolean
@@ -290,6 +304,7 @@ class NovelReaderV3ViewModel(
     /** 收起译文回到纯原文，并停掉进行中的请求；已翻好的部分留着，再开时秒出。 */
     fun hideBodyTranslation() {
         if (_translationState.value is TranslationState.Off) return
+        ++translationRunId
         translationJob?.cancel()
         _translationState.value = TranslationState.Off
         refreshTranslationDisplay(force = true)
@@ -297,7 +312,7 @@ class NovelReaderV3ViewModel(
 
     /**
      * 「译文显示方式」：null = 仅原文（收起译文）；否则记住双语 / 仅译文并上屏——
-     * 还没翻过就顺带开始翻。
+     * 还没翻过、或目标语言/引擎配置已变更时顺带重新开始翻译。
      */
     fun setTranslationDisplay(role: TranslationRole?) {
         if (role == null || role == TranslationRole.None) {
@@ -305,7 +320,7 @@ class NovelReaderV3ViewModel(
             return
         }
         ReaderSettings.translationRole = role
-        if (_translationState.value is TranslationState.Off) {
+        if (_translationState.value is TranslationState.Off || translationsKey != activeBodyTranslationKey()) {
             startBodyTranslation()
         } else {
             refreshTranslationDisplay(force = true)
@@ -314,12 +329,15 @@ class NovelReaderV3ViewModel(
 
     /** 开始全文翻译；上次中断的话只补没翻到的段落。 */
     fun startBodyTranslation() {
-        if (_translationState.value is TranslationState.Running || tokens.isEmpty()) return
+        if (tokens.isEmpty()) return
         val lang = appTranslateTargetLang()
         val translator = if (AiTranslator.isActive()) AiTranslator else GoogleWebTranslator
         val modelName = if (translator === AiTranslator) Shaft.sSettings.aiTranslateModel.trim().ifEmpty { null } else null
         val key = NovelTranslationKey.capture(translator, lang)
+        if (_translationState.value is TranslationState.Running && translationsKey == key) return
+        val hadTranslations = translations.isNotEmpty()
         if (translationsKey != key) {
+            translationJob?.cancel()
             translations = emptyMap()
             translationsKey = key
         }
@@ -334,28 +352,36 @@ class NovelReaderV3ViewModel(
             refreshTranslationDisplay(force = true)
             return
         }
-        _translationState.value = TranslationState.Running(0, pending.size, translator, modelName)
-        // 已有的部分译文（上次中断 / 关掉又打开）立刻上屏；首批新译文也不受限频。
-        if (translations.isNotEmpty()) refreshTranslationDisplay(force = true)
+        val runId = ++translationRunId
+        _translationState.value = TranslationState.Running(0, pending.size, translator, modelName, runId)
+        // 已有部分译文（上次中断 / 关掉又打开）立刻上屏；切目标语言/引擎清空旧译文时也要立刻重刷，
+        // 避免首批新译文回来前屏幕上残留旧语言译文。随后清零限频时钟，让首批新译文也不受限频。
+        if (hadTranslations) refreshTranslationDisplay(force = true)
         lastTranslationRefreshAt = 0L
         translationJob?.cancel()
         translationJob = viewModelScope.launch {
             var done = 0
             try {
                 NovelBodyTranslator.translate(pending, lang, translator) { chunk ->
+                    if (translationRunId != runId) return@translate
                     translations = translations + chunk
                     done += chunk.size
-                    _translationState.value = TranslationState.Running(done, pending.size, translator, modelName)
+                    _translationState.value = TranslationState.Running(done, pending.size, translator, modelName, runId)
                     refreshTranslationDisplay(force = false)
                 }
+                if (translationRunId != runId) return@launch
                 _translationState.value = TranslationState.Done
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
+                coroutineContext.ensureActive()
+                if (translationRunId != runId) return@launch
                 Timber.tag("NovelReaderV3").w(e, "body translation stopped at %d/%d", done, pending.size)
                 _translationState.value = TranslationState.Failed(e, translator)
             }
-            refreshTranslationDisplay(force = true)
+            if (translationRunId == runId) {
+                refreshTranslationDisplay(force = true)
+            }
         }
     }
 

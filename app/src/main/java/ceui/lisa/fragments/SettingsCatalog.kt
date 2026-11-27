@@ -215,6 +215,7 @@ object SettingsCatalog {
         add(Entry(AI, "rife_model_rela", R.string.string_rife_model, keywords = "补帧 插帧 rife 动图 帧率 ugoira interpolation"))
         add(Entry(AI, "bubble_detector_model_rela", R.string.string_bubble_detector_model, keywords = "气泡 文本框 检测 漫画翻译 detector"))
         add(Entry(AI, "ocr_model_rela", R.string.string_ocr_model, keywords = "ocr 识别 文字 日文 漫画翻译"))
+        add(Entry(AI, "translate_target_language_rela", R.string.translate_target_language_title, R.string.translate_target_language_desc, keywords = "翻译 目标语言 翻译语言 谷歌翻译 语言 google translate target language follow app language 跟随应用语言 中文 英文 日文 韩文 俄文 土耳其文 印尼文 korean english chinese japanese"))
         add(Entry(AI, "cloud_translate_rela", R.string.cloud_translate_title, R.string.cloud_translate_desc, keywords = "翻译 云翻译 云端 服务器 额度 评论翻译 漫画翻译 translate cloud"))
         add(Entry(AI, "ai_translate_rela", R.string.ai_translate_settings_title, R.string.ai_translate_settings_entry_desc, keywords = "翻译 自定义 接口 openai gpt deepseek sakura ollama llm api 评论翻译 漫画翻译 translate"))
 

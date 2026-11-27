@@ -3414,6 +3414,11 @@
     <string name="bookmark_filter_tag_show_all">모두 보기 (%1$d)</string>
     <string name="bookmark_filter_tag_show_less">접기</string>
 
+    <!-- 번역 대상 언어 -->
+    <string name="translate_target_language_title">번역 대상 언어</string>
+    <string name="translate_target_language_desc">소설·만화·제목·소개·댓글 번역의 대상 언어입니다. 기본값은 앱 언어를 따릅니다.</string>
+    <string name="translate_target_language_follow_app">앱 언어 따르기</string>
+
     <!-- PixShaft 클라우드 번역 -->
     <string name="cloud_translate_title">PixShaft 클라우드 번역</string>
     <string name="cloud_translate_desc">댓글·제목·태그·만화 번역을 PixShaft 서버의 클라우드 번역으로 처리합니다. 프록시 불필요, 사용량 한도 있음. 끄면 내장 Google 번역을 사용합니다. 사용자 지정 AI 번역이 켜져 있으면 그쪽이 우선합니다.</string>

@@ -3414,6 +3414,11 @@
     <string name="bookmark_filter_tag_show_all">すべて表示（%1$d）</string>
     <string name="bookmark_filter_tag_show_less">閉じる</string>
 
+    <!-- 翻訳先言語 -->
+    <string name="translate_target_language_title">翻訳先言語</string>
+    <string name="translate_target_language_desc">小説・マンガ・タイトル・キャプション・コメント翻訳の翻訳先言語（デフォルトはアプリ言語に従う）</string>
+    <string name="translate_target_language_follow_app">アプリ言語に従う</string>
+
     <!-- PixShaft クラウド翻訳 -->
     <string name="cloud_translate_title">PixShaft クラウド翻訳</string>
     <string name="cloud_translate_desc">コメント・タイトル・タグ・マンガの翻訳を PixShaft サーバーのクラウド翻訳で行います。プロキシ不要、使用量に上限あり。オフにすると内蔵の Google 翻訳を使用。カスタム AI 翻訳が有効な場合はそちらを優先します。</string>

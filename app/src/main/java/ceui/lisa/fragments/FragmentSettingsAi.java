@@ -103,6 +103,22 @@ public class FragmentSettingsAi extends SettingsPageFragment<FragmentSettingsAiB
                     ceui.pixiv.ui.translate.MangaOcrModel.MANGA_OCR_BASE);
         }
 
+        // 翻译目标语言（#1401）— 默认跟随应用语言；显式指定后全应用翻译入口（谷歌/云翻译/AI）共用
+        baseBind.translateTargetLanguageRela.setOnClickListener(v -> {
+            androidx.fragment.app.FragmentActivity activity = getActivity();
+            if (activity == null) return;
+            ceui.pixiv.ui.translate.TranslateTargetLangKt.showTranslateTargetLanguagePicker(
+                    activity,
+                    picked -> {
+                        if (isAdded() && baseBind != null && mContext != null) {
+                            baseBind.translateTargetLanguage.setText(
+                                    ceui.pixiv.ui.translate.TranslateTargetLangKt
+                                            .translateTargetLanguageDisplayName(mContext, picked));
+                        }
+                        return kotlin.Unit.INSTANCE;
+                    });
+        });
+
         // PixShaft 云翻译 — 服务端代理的 AI 翻译，按字符计额度；默认开，关掉退回内置 Google 翻译
         {
             baseBind.cloudTranslateSwitch.setChecked(Shaft.sSettings.isCloudTranslateEnabled());
@@ -149,6 +165,9 @@ public class FragmentSettingsAi extends SettingsPageFragment<FragmentSettingsAiB
         baseBind.ocrModelStatus.setText(ocrReady
                 ? ocr.getDisplayName()
                 : getString(R.string.string_model_not_ready, ocr.getSizeLabel()));
+
+        baseBind.translateTargetLanguage.setText(
+                ceui.pixiv.ui.translate.TranslateTargetLangKt.translateTargetLanguageDisplayName(mContext));
 
         // 已配置并启用 → 显示模型名；否则显示「未设置」
         baseBind.aiTranslateStatus.setText(ceui.pixiv.ui.translate.AiTranslator.INSTANCE.isActive()

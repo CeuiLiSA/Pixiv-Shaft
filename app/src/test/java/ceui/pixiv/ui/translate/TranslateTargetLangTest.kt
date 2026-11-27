@@ -2,6 +2,7 @@ package ceui.pixiv.ui.translate
 
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Test
 import java.util.Locale
 
@@ -70,5 +71,37 @@ class TranslateTargetLangTest {
     @Test
     fun `语言码缺失时兜底英语`() {
         assertEquals("en", translateTargetLangOf(Locale.ROOT))
+    }
+
+    @Test
+    fun `显式设置的翻译目标语言优先于应用语言`() {
+        assertEquals("ko", resolveTranslateTargetLang("ko", Locale.forLanguageTag("zh-CN")))
+        assertEquals("en", resolveTranslateTargetLang("en", Locale.forLanguageTag("zh-CN")))
+        assertEquals("zh-TW", resolveTranslateTargetLang("zh-TW", Locale.forLanguageTag("ja")))
+        assertEquals("id", resolveTranslateTargetLang("in", Locale.forLanguageTag("zh-CN")))
+        assertEquals("zh-TW", resolveTranslateTargetLang("zh_Hant_HK", Locale.forLanguageTag("en")))
+        assertEquals("ko", resolveTranslateTargetLang("  ko-KR  ", Locale.forLanguageTag("zh-CN")))
+    }
+
+    @Test
+    fun `空配置或非法配置回落跟随应用语言`() {
+        assertNull(normalizeConfiguredTranslateTargetLang(null))
+        assertNull(normalizeConfiguredTranslateTargetLang(""))
+        assertNull(normalizeConfiguredTranslateTargetLang("   "))
+        assertNull(normalizeConfiguredTranslateTargetLang("???"))
+        assertNull(normalizeConfiguredTranslateTargetLang("123"))
+        assertNull(normalizeConfiguredTranslateTargetLang("fr"))
+        assertEquals("zh-CN", resolveTranslateTargetLang("", Locale.forLanguageTag("zh-CN")))
+        assertEquals("ko", resolveTranslateTargetLang(null, Locale.forLanguageTag("ko")))
+        assertEquals("zh-CN", resolveTranslateTargetLang("???", Locale.forLanguageTag("zh-CN")))
+        assertEquals("ko", resolveTranslateTargetLang("fr", Locale.forLanguageTag("ko")))
+    }
+
+    @Test
+    fun `土耳其 locale 下显式配置归一不跑偏`() {
+        Locale.setDefault(Locale.forLanguageTag("tr"))
+        assertEquals("id", normalizeConfiguredTranslateTargetLang("IN"))
+        assertEquals("tr", normalizeConfiguredTranslateTargetLang("TR-TR"))
+        assertEquals("ko", resolveTranslateTargetLang("KO", Locale.forLanguageTag("zh-CN")))
     }
 }

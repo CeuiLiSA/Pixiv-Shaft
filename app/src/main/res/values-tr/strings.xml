@@ -3423,6 +3423,11 @@
     <string name="bookmark_filter_tag_show_all">Tümünü göster (%1$d)</string>
     <string name="bookmark_filter_tag_show_less">Daha az göster</string>
 
+    <!-- Çeviri hedef dili -->
+    <string name="translate_target_language_title">Çeviri hedef dili</string>
+    <string name="translate_target_language_desc">Roman, manga, başlık, açıklama ve yorum çevirilerinin hedef dili. Varsayılan olarak uygulama dilini izler.</string>
+    <string name="translate_target_language_follow_app">Uygulama dilini izle</string>
+
     <!-- PixShaft bulut çevirisi -->
     <string name="cloud_translate_title">PixShaft Bulut Çevirisi</string>
     <string name="cloud_translate_desc">Yorumlar, başlıklar, etiketler ve mangalar PixShaft sunucusunda çevrilir; proxy gerekmez, kullanım kotası vardır. Kapalıyken yerleşik Google Çeviri kullanılır. Etkin bir özel yapay zekâ çevirisi önceliklidir.</string>

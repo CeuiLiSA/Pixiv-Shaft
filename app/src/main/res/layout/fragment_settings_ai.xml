@@ -150,6 +150,32 @@
             </RelativeLayout>
 
             <RelativeLayout
+                android:id="@+id/translate_target_language_rela"
+                style="@style/M3SetRow"
+                android:background="@drawable/wit_row_mid">
+
+                <LinearLayout
+                    style="@style/M3SetTexts"
+                    android:layout_alignParentStart="true"
+                    android:layout_marginEnd="12dp"
+                    android:layout_toStartOf="@id/translate_target_language">
+
+                    <TextView
+                        style="@style/M3SetTitle"
+                        android:text="@string/translate_target_language_title" />
+
+                    <TextView
+                        style="@style/M3SetDesc"
+                        android:text="@string/translate_target_language_desc" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/translate_target_language"
+                    style="@style/M3SetValue" />
+
+            </RelativeLayout>
+
+            <RelativeLayout
                 android:id="@+id/cloud_translate_rela"
                 style="@style/M3SetRow"
                 android:background="@drawable/wit_row_mid">

@@ -3441,6 +3441,11 @@
     <string name="bookmark_filter_tag_show_all">Показать все (%1$d)</string>
     <string name="bookmark_filter_tag_show_less">Свернуть</string>
 
+    <!-- Язык перевода -->
+    <string name="translate_target_language_title">Язык перевода</string>
+    <string name="translate_target_language_desc">Язык перевода романов, манги, заголовков, описаний и комментариев. По умолчанию совпадает с языком приложения.</string>
+    <string name="translate_target_language_follow_app">Как в приложении</string>
+
     <!-- Облачный перевод PixShaft -->
     <string name="cloud_translate_title">Облачный перевод PixShaft</string>
     <string name="cloud_translate_desc">Комментарии, названия, теги и манга переводятся на сервере PixShaft — без прокси, с лимитом использования. Выключено = встроенный Google Переводчик. Включённый пользовательский ИИ-перевод имеет приоритет.</string>

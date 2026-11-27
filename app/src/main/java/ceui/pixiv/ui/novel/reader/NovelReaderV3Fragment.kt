@@ -697,10 +697,11 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
             val previous = lastTranslationState
             lastTranslationState = state
             if (previous == null) return@observe
-            val wasRunning = previous is NovelReaderV3ViewModel.TranslationState.Running
+            val previousRunning = previous as? NovelReaderV3ViewModel.TranslationState.Running
+            val wasRunning = previousRunning != null
             when (state) {
                 is NovelReaderV3ViewModel.TranslationState.Running -> {
-                    if (!wasRunning) {
+                    if (previousRunning == null || previousRunning.runId != state.runId) {
                         Toaster.showShort(
                             readerTranslationStartedText(requireContext(), state.translator, state.modelName)
                         )
@@ -1029,7 +1030,9 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
             item(getString(R.string.reader_translate_body), icon) { startBodyTranslation() }
             return
         }
-        if (state is NovelReaderV3ViewModel.TranslationState.Failed) {
+        if (viewModel.isBodyTranslationStale) {
+            item(getString(R.string.reader_translate_body), icon) { startBodyTranslation() }
+        } else if (state is NovelReaderV3ViewModel.TranslationState.Failed) {
             item(getString(R.string.reader_translate_resume), icon) { startBodyTranslation() }
         }
         val label = if (state is NovelReaderV3ViewModel.TranslationState.Running) {

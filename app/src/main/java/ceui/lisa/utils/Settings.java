@@ -577,6 +577,12 @@ public class Settings {
     private int aiTranslateReadTimeoutSeconds = 120;
 
     /**
+     * 翻译目标语言 BCP-47 码（如 "ko"、"en"、"zh-CN"）；空串 = 跟随应用语言（默认）。
+     * 全应用翻译入口共用（谷歌网页翻译、PixShaft 云翻译、自定义 AI 翻译、小说正文/标题翻译等）。
+     */
+    private String translateTargetLanguage = "";
+
+    /**
      * PixShaft 云翻译（服务端代理的 AI 翻译，按字符计额度）。默认开：这是给没有代理、也没有自己
      * API key 的大多数用户准备的。自定义 AI 翻译启用时优先自定义；两者都关走内置 Google 翻译。
      */
@@ -1720,6 +1726,14 @@ public class Settings {
 
     public void setAria2RemoteDir(String aria2RemoteDir) {
         this.aria2RemoteDir = aria2RemoteDir;
+    }
+
+    public String getTranslateTargetLanguage() {
+        return translateTargetLanguage == null ? "" : translateTargetLanguage;
+    }
+
+    public void setTranslateTargetLanguage(String translateTargetLanguage) {
+        this.translateTargetLanguage = translateTargetLanguage == null ? "" : translateTargetLanguage;
     }
 
     public boolean isCloudTranslateEnabled() {

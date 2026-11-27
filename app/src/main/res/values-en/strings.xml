@@ -3423,6 +3423,11 @@
     <string name="bookmark_filter_tag_show_all">Show all %1$d</string>
     <string name="bookmark_filter_tag_show_less">Show less</string>
 
+    <!-- Translation target language -->
+    <string name="translate_target_language_title">Translation target language</string>
+    <string name="translate_target_language_desc">Target language for novel, manga, title, caption, and comment translations. Follows app language by default.</string>
+    <string name="translate_target_language_follow_app">Follow app language</string>
+
     <!-- PixShaft cloud translation -->
     <string name="cloud_translate_title">PixShaft Cloud Translation</string>
     <string name="cloud_translate_desc">Translate comments, titles, tags and manga through PixShaft\'s cloud translation server — no proxy needed, with a usage allowance. Off = the built-in Google translation. A custom AI translation, when enabled, takes priority.</string>

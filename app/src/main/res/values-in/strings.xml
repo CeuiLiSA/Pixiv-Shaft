@@ -3396,6 +3396,9 @@
     <string name="bookmark_filter_year">%1$d</string>
     <string name="bookmark_filter_tag_show_all">Tampilkan semua %1$d</string>
     <string name="bookmark_filter_tag_show_less">Ciutkan</string>
+    <string name="translate_target_language_title">Bahasa target terjemahan</string>
+    <string name="translate_target_language_desc">Bahasa target untuk terjemahan novel, manga, judul, deskripsi, dan komentar. Secara default mengikuti bahasa aplikasi.</string>
+    <string name="translate_target_language_follow_app">Ikuti bahasa aplikasi</string>
     <string name="cloud_translate_title">Terjemahan cloud PixShaft</string>
     <string name="cloud_translate_desc">Terjemahan komentar, judul, tag, dan manga memakai terjemahan cloud dari server PixShaft, tanpa proxy, dengan kuota penggunaan; jika dimatikan memakai Google Translate bawaan. Jika terjemahan AI khusus aktif, terjemahan khusus diutamakan.</string>
     <string name="cloud_translate_usage_section">Kuota terjemahan cloud</string>

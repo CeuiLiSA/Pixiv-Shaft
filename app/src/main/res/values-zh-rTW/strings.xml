@@ -3414,6 +3414,11 @@
     <string name="bookmark_filter_tag_show_all">顯示全部 %1$d 個</string>
     <string name="bookmark_filter_tag_show_less">收起</string>
 
+    <!-- 翻譯目標語言 -->
+    <string name="translate_target_language_title">翻譯目標語言</string>
+    <string name="translate_target_language_desc">小說、漫畫、標題、簡介與留言翻譯的目標語言，預設跟隨應用程式語言</string>
+    <string name="translate_target_language_follow_app">跟隨應用程式語言</string>
+
     <!-- PixShaft 雲翻譯 -->
     <string name="cloud_translate_title">PixShaft 雲翻譯</string>
     <string name="cloud_translate_desc">留言、標題、標籤與漫畫翻譯改走 PixShaft 伺服器的雲端翻譯，無需代理，有用量額度；關閉則使用內建 Google 翻譯。已啟用自訂 AI 翻譯時優先自訂。</string>

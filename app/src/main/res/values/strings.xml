@@ -3700,6 +3700,11 @@
     <string name="bookmark_filter_tag_show_all">显示全部 %1$d 个</string>
     <string name="bookmark_filter_tag_show_less">收起</string>
 
+    <!-- 翻译目标语言（#1401） -->
+    <string name="translate_target_language_title">翻译目标语言</string>
+    <string name="translate_target_language_desc">小说、漫画、标题、简介与评论翻译的目标语言，默认跟随应用语言</string>
+    <string name="translate_target_language_follow_app">跟随应用语言</string>
+
     <!-- PixShaft 云翻译（服务端代理的 AI 翻译，pixshaft-api src/translate.js） -->
     <string name="cloud_translate_title">PixShaft 云翻译</string>
     <string name="cloud_translate_desc">评论、标题、标签与漫画翻译走 PixShaft 服务器的云翻译，无需代理，有用量额度；关闭则使用内置 Google 翻译。已启用自定义 AI 翻译时优先自定义。</string>
