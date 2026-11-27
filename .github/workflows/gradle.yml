@@ -139,22 +139,56 @@ jobs:
           fi
           echo "SHAFT_EVENTS_HMAC fingerprint OK"
 
+      # Robolectric 在单测运行时下载 SDK，默认使用独立的 Maven 本地仓库。
+      - name: Restore Robolectric SDK cache
+        id: robolectric_cache
+        uses: actions/cache/restore@v5
+        with:
+          path: &robolectric_sdk_path ~/.m2/repository/org/robolectric/android-all-instrumented
+          key: ${{ runner.os }}-${{ runner.arch }}-robolectric-sdk-v1-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            ${{ runner.os }}-${{ runner.arch }}-robolectric-sdk-v1-
+
       # 单测跑在打包之前，红了就不出产物。只跑 debug 变体：release 变体的
       # 测试代码相同，多跑一遍只是白费 R8 前的编译时间。
       - name: Run unit tests
-        run: >-
-          ./gradlew
-          :app:testGithubDebugUnitTest
-          :actionqueue:testDebugUnitTest
-          :feeds:testDebugUnitTest
-          :websocket:testDebugUnitTest
-          :banner:testDebugUnitTest
-          :panel:testDebugUnitTest
-          :models:testDebugUnitTest
-          :progressmanager:testDebugUnitTest
-          :safe:testDebugUnitTest
-          :witstudio:testDebugUnitTest
-          --continue
+        id: unit_tests
+        shell: bash
+        run: |
+          sdk_dir="$HOME/.m2/repository/org/robolectric/android-all-instrumented"
+          mkdir -p "$sdk_dir"
+          sdk_list() {
+            find "$sdk_dir" -type f -name '*.jar' -size +0c -printf '%P\n' | LC_ALL=C sort
+          }
+          sdks_before=$(sdk_list)
+
+          test_exit=0
+          ./gradlew \
+            :app:testGithubDebugUnitTest \
+            :actionqueue:testDebugUnitTest \
+            :feeds:testDebugUnitTest \
+            :websocket:testDebugUnitTest \
+            :banner:testDebugUnitTest \
+            :panel:testDebugUnitTest \
+            :models:testDebugUnitTest \
+            :progressmanager:testDebugUnitTest \
+            :safe:testDebugUnitTest \
+            :witstudio:testDebugUnitTest \
+            --continue || test_exit=$?
+
+          if [ "$(sdk_list)" != "$sdks_before" ]; then
+            echo 'robolectric_cache_changed=true' >> "$GITHUB_OUTPUT"
+          fi
+          exit "$test_exit"
+
+      # GitHub 缓存不可覆盖，新增 SDK 时保存新条目，后续运行用前缀复用。
+      # Robolectric 校验后才写入本地仓库，单测失败时也可以保留已下载的 SDK。
+      - name: Save Robolectric SDK cache
+        if: ${{ !cancelled() && steps.unit_tests.outputs.robolectric_cache_changed == 'true' && steps.robolectric_cache.outputs.cache-hit != 'true' }}
+        uses: actions/cache/save@v5
+        with:
+          path: *robolectric_sdk_path
+          key: ${{ steps.robolectric_cache.outputs.cache-primary-key }}
 
       # Room 会在编译时自动写出当前 schema；如果忘记提交，迁移测试会消费刚生成的
       # 文件并照样通过，最终却丢失可供未来迁移使用的版本历史。
