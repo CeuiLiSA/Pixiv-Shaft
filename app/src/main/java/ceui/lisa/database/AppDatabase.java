@@ -69,7 +69,7 @@ import timber.log.Timber;
 )
 public abstract class AppDatabase extends RoomDatabase {
 
-    public static final int VERSION = 46;
+    public static final int VERSION = 47;
     public static final String DATABASE_NAME = "roomDemo-database";
 
     /** 迁移/开库相关日志的 tag。升级出问题时 `adb logcat -s AppDatabase` 一把抓。 */
@@ -674,6 +674,15 @@ public abstract class AppDatabase extends RoomDatabase {
         }
     };
 
+    /** 为已完成作品计数补 (illustId, fileName) 覆盖索引，让全量计数只读较小的索引页。 */
+    static final Migration MIGRATION_46_47 = new Migration(46, 47) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            database.execSQL("CREATE INDEX IF NOT EXISTS index_illust_download_table_illustId_fileName " +
+                    "ON illust_download_table(illustId, fileName)");
+        }
+    };
+
     private static final Migration[] ALL_MIGRATIONS = {
             MIGRATION_23_24,
             MIGRATION_24_25,
@@ -698,6 +707,7 @@ public abstract class AppDatabase extends RoomDatabase {
             MIGRATION_43_44,
             MIGRATION_44_45,
             MIGRATION_45_46,
+            MIGRATION_46_47,
     };
 
     /**
