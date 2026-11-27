@@ -161,7 +161,9 @@ public class BackupUtils {
      * 于是导出侧不需要任何排除名单。
      */
     public static void writeBackupToFile(Context context, boolean backupViewHistory, File target) throws IOException {
-        writeBackup(context, backupViewHistory, true, new FileOutputStream(target));
+        try (OutputStream out = new FileOutputStream(target)) {
+            writeBackup(context, backupViewHistory, true, out);
+        }
     }
 
     /**

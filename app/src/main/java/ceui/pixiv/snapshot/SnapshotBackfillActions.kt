@@ -2,6 +2,7 @@ package ceui.pixiv.snapshot
 
 import android.content.Context
 import ceui.lisa.activities.Shaft
+import ceui.lisa.http.fromJson
 import ceui.pixiv.actionqueue.ActionHandler
 import ceui.pixiv.actionqueue.ActionOutcome
 import ceui.pixiv.actionqueue.ActionRequest
@@ -113,7 +114,7 @@ internal class BackfillScanHandler(
             if (next == null) {
                 Client.appApi.getUserBookmarkedIllusts(payload.owner, payload.restrict)
             } else {
-                Shaft.sGson.fromJson(Client.appApi.generalGet(next).string(), IllustResponse::class.java)
+                Client.appApi.generalGet(next).fromJson(Shaft.sGson, IllustResponse::class.java)
             }
         } catch (ce: CancellationException) {
             throw ce

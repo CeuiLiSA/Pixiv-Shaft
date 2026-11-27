@@ -1,7 +1,6 @@
 package ceui.lisa.download;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.text.DecimalFormat;
 
 public class FileSizeUtil {
@@ -34,7 +33,7 @@ public class FileSizeUtil {
             if (file.isDirectory()) {
                 blockSize = getFileSizes(file);
             } else {
-                blockSize = getFileSize(file);
+                blockSize = file.length();
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -48,7 +47,7 @@ public class FileSizeUtil {
             if (file.isDirectory()) {
                 blockSize = getFileSizes(file);
             } else {
-                blockSize = getFileSize(file);
+                blockSize = file.length();
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -69,7 +68,7 @@ public class FileSizeUtil {
             if (file.isDirectory()) {
                 blockSize = getFileSizes(file);
             } else {
-                blockSize = getFileSize(file);
+                blockSize = file.length();
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -78,22 +77,7 @@ public class FileSizeUtil {
     }
 
     /**
-     * 获取指定文件大小
-     */
-    private static long getFileSize(File file) throws Exception {
-        long size = 0;
-        if (file.exists()) {
-            FileInputStream fis = null;
-            fis = new FileInputStream(file);
-            size = fis.available();
-        } else {
-            file.createNewFile();
-        }
-        return size;
-    }
-
-    /**
-     * 获取指定文件夹
+     * 获取指定文件夹中所有文件大小
      */
     private static long getFileSizes(File f) throws Exception {
         long size = 0;
@@ -103,7 +87,7 @@ public class FileSizeUtil {
             if (file.isDirectory()) {
                 size = size + getFileSizes(file);
             } else {
-                size = size + getFileSize(file);
+                size = size + file.length();
             }
         }
         return size;

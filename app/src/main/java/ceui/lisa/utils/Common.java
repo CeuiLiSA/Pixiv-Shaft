@@ -564,9 +564,9 @@ public class Common {
             File cachePath = new File(Utils.getApp().getExternalCacheDir(), "images");
             cachePath.mkdirs();
             File file = new File(cachePath, fileName);
-            FileOutputStream fileOutputStream = new FileOutputStream(file);
-            bitmap.compress(Bitmap.CompressFormat.PNG, 100, fileOutputStream);
-            fileOutputStream.close();
+            try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {
+                bitmap.compress(Bitmap.CompressFormat.PNG, 100, fileOutputStream);
+            }
             return FileProvider.getUriForFile(Utils.getApp(), Utils.getApp().getPackageName() + ".provider", file);
         } catch (FileNotFoundException e) {
             e.printStackTrace();

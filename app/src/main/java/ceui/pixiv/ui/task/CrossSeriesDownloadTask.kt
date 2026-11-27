@@ -351,8 +351,7 @@ class CrossSeriesDownloadTask(context: Context) {
 
     /** 同 [MergeDownloadNovelSeriesTask.fetchChapterWebNovel]:整体留 WebNovel 让 EPUB 拿到 illusts/images。 */
     private suspend fun fetchChapterWebNovel(novel: Novel): WebNovel {
-        val html = Client.appApi.getNovelText(novel.id).string()
-        return WebNovelParser.parsePixivObject(html)?.novel
+        return WebNovelParser.parsePixivObject(Client.appApi.getNovelText(novel.id))?.novel
             ?: throw RuntimeException("invalid web novel: ${novel.id}")
     }
 

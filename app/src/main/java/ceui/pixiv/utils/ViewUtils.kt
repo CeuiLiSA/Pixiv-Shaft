@@ -29,6 +29,7 @@ import ceui.lisa.R
 import com.google.android.material.appbar.AppBarLayout
 import java.io.File
 import java.io.FileOutputStream
+import java.io.OutputStream
 import kotlin.math.min
 import kotlin.math.roundToInt
 
@@ -272,6 +273,17 @@ fun View.toBitmap(config: Bitmap.Config = Bitmap.Config.ARGB_8888): Bitmap? {
     }
 }
 
+internal fun OutputStream.compressBitmapAndClose(
+    bitmap: Bitmap,
+    format: Bitmap.CompressFormat,
+    quality: Int,
+) {
+    use { out ->
+        bitmap.compress(format, quality, out)
+        out.flush()
+    }
+}
+
 // returns file path
 @WorkerThread
 fun Bitmap.saveAsJpgToTempFile(prefix: String, quality: Int, subdir: File?): File {
@@ -281,11 +293,7 @@ fun Bitmap.saveAsJpgToTempFile(prefix: String, quality: Int, subdir: File?): Fil
 
 @WorkerThread
 fun Bitmap.saveAsJpgToFile(file: File, quality: Int): File {
-    val outputStream = FileOutputStream(file)
-    compress(Bitmap.CompressFormat.JPEG, quality, outputStream)
-    outputStream.flush()
-    outputStream.close()
-
+    FileOutputStream(file).compressBitmapAndClose(this, Bitmap.CompressFormat.JPEG, quality)
     return file
 }
 
@@ -297,25 +305,18 @@ fun Bitmap.saveAsPngToTempFile(prefix: String, quality: Int, subdir: File?): Fil
 
 @WorkerThread
 fun Bitmap.saveAsPngToFile(file: File, quality: Int): File {
-    val outputStream = FileOutputStream(file)
-    compress(Bitmap.CompressFormat.PNG, quality, outputStream)
-    outputStream.flush()
-    outputStream.close()
-
+    FileOutputStream(file).compressBitmapAndClose(this, Bitmap.CompressFormat.PNG, quality)
     return file
 }
 
 @WorkerThread
 fun Bitmap.saveAsWebpToFile(file: File, quality: Int): File {
-    val outputStream = FileOutputStream(file)
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-        compress(Bitmap.CompressFormat.WEBP_LOSSLESS, quality, outputStream)
+    val format = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+        Bitmap.CompressFormat.WEBP_LOSSLESS
     } else {
-        compress(Bitmap.CompressFormat.WEBP, quality, outputStream)
+        Bitmap.CompressFormat.WEBP
     }
-    outputStream.flush()
-    outputStream.close()
-
+    FileOutputStream(file).compressBitmapAndClose(this, format, quality)
     return file
 }
 

@@ -1,5 +1,7 @@
 package ceui.pixiv.ui.common
 
+import ceui.lisa.utils.StreamIo
+
 import java.io.File
 import java.io.IOException
 import java.util.zip.ZipInputStream
@@ -65,7 +67,7 @@ internal object ModelArchiveInstaller {
         recoverReady(dir, requiredFiles)
         if (backup.exists()) throw IOException("cannot resolve model backup")
         archive.inputStream().use { input ->
-            if (!input.readNBytesCompat(4).contentEquals(byteArrayOf(0x50, 0x4b, 0x03, 0x04))) return false
+            if (!StreamIo.readNBytes(input, 4).contentEquals(byteArrayOf(0x50, 0x4b, 0x03, 0x04))) return false
         }
         try {
             if (!staging.mkdirs()) throw IOException("cannot create model staging directory")
@@ -124,15 +126,4 @@ internal object ModelArchiveInstaller {
         cleanTempArtifacts(cacheDir, dir, assetDir)
     }
 
-    // InputStream.readNBytes 是较新平台 API；minSdk 24 用普通 read 循环。
-    private fun java.io.InputStream.readNBytesCompat(count: Int): ByteArray {
-        val bytes = ByteArray(count)
-        var offset = 0
-        while (offset < count) {
-            val read = read(bytes, offset, count - offset)
-            if (read < 0) return bytes.copyOf(offset)
-            offset += read
-        }
-        return bytes
-    }
 }

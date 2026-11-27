@@ -33,6 +33,7 @@ import ceui.lisa.utils.Common
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.ShareIllust
 import ceui.loxia.Novel
+import ceui.lisa.http.fromJson
 import ceui.pixiv.api.Client
 import ceui.pixiv.api.model.NovelSeriesDetail
 import ceui.pixiv.api.model.NovelSeriesResp
@@ -153,10 +154,9 @@ class NovelSeriesFeedSource(private val seriesId: Long) : FeedSource<String> {
         val resp: NovelSeriesResp = if (cursor == null) {
             Client.appApi.getNovelSeries(seriesId)
         } else {
-            // .string() 阻塞读 body + gson 解析都是重活，必须切 IO（FeedSource main-safe 约定）
+            // 阻塞读 body + gson 解析都是重活，必须切 IO（FeedSource main-safe 约定）
             withContext(Dispatchers.IO) {
-                val body = Client.appApi.generalGet(cursor).string()
-                Shaft.sGson.fromJson(body, NovelSeriesResp::class.java)
+                Client.appApi.generalGet(cursor).fromJson(Shaft.sGson, NovelSeriesResp::class.java)
             }
         }
         val items = mutableListOf<FeedItem>()

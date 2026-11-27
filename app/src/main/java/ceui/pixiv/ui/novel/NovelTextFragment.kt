@@ -273,8 +273,9 @@ class NovelTextFragment :
         viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
             runCatching {
                 if (NovelTextCache.get(novelId) != null) return@runCatching
-                val html = Client.appApi.getNovelText(novelId).string()
-                val web = ceui.lisa.fragments.WebNovelParser.parsePixivObject(html)?.novel
+                val web = ceui.lisa.fragments.WebNovelParser.parsePixivObject(
+                    Client.appApi.getNovelText(novelId),
+                )?.novel
                     ?: return@runCatching
                 val tokens = ContentParser.tokenize(web)
                 NovelTextCache.put(novelId, NovelTextCache.Entry(web, tokens))
@@ -443,8 +444,9 @@ class NovelTextFragment :
                     ?: Client.appApi.getNovel(novelId).novel?.also { ObjectPool.update(it) }
                 val cached = NovelTextCache.get(novelId)
                 val web = cached?.webNovel ?: withContext(Dispatchers.IO) {
-                    val html = Client.appApi.getNovelText(novelId).string()
-                    ceui.lisa.fragments.WebNovelParser.parsePixivObject(html)?.novel
+                    ceui.lisa.fragments.WebNovelParser.parsePixivObject(
+                        Client.appApi.getNovelText(novelId),
+                    )?.novel
                 } ?: error("invalid web novel")
                 val tokens = cached?.tokens ?: withContext(Dispatchers.IO) {
                     ContentParser.tokenize(web)

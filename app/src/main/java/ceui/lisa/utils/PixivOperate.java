@@ -21,6 +21,7 @@ import ceui.pixiv.witstudio.dialog.WitTipDialog;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -607,6 +608,9 @@ public class PixivOperate {
                 gifEncodingWorkSet.put(illustsBean.getId(), currentTimeMillis);
                 Common.showLog("encodeGif 开始生成gif图");
                 final File[] listfile = parentFile.listFiles();
+                if (listfile == null) {
+                    throw new IOException("cannot list gif frames in " + parentFile);
+                }
 
                 List<File> allFiles = Arrays.asList(listfile);
                 Collections.sort(allFiles, new Comparator<File>() {
@@ -625,60 +629,61 @@ public class PixivOperate {
                 Common.showLog("gifFile " + gifFile.getPath());
 
                 AnimatedGifEncoder animatedGifEncoder = new AnimatedGifEncoder();
-                FileOutputStream outStream = new FileOutputStream(gifFile.getPath());
-                animatedGifEncoder.start(outStream);
-                animatedGifEncoder.setRepeat(0); // 无限循环
+                // finish() does not close this stream (closeStream is false after start(OutputStream)).
+                try (FileOutputStream outStream = new FileOutputStream(gifFile.getPath())) {
+                    animatedGifEncoder.start(outStream);
+                    animatedGifEncoder.setRepeat(0); // 无限循环
 
-                int frameCount = allFiles.size();
+                    int frameCount = allFiles.size();
 
-                GifResponse gifResponse = UgoiraMetadataCache.get(illustsBean.getId());
-                int delayMs = 60;
-                if (gifResponse != null) {
-                    List<FramesBean> framesBeans = gifResponse.getUgoira_metadata().getFrames();
-                    if (frameCount == framesBeans.size()) {
-                        Common.showLog("使用返回的delay 00");
+                    GifResponse gifResponse = UgoiraMetadataCache.get(illustsBean.getId());
+                    int delayMs = 60;
+                    if (gifResponse != null) {
+                        List<FramesBean> framesBeans = gifResponse.getUgoira_metadata().getFrames();
+                        if (frameCount == framesBeans.size()) {
+                            Common.showLog("使用返回的delay 00");
 
-                        Handler mainHandler = new Handler(Looper.getMainLooper());
-                        for (int i = 0; i < frameCount; i++) {
-                            Bitmap bitmap = BitmapFactory.decodeFile(allFiles.get(i).getPath());
-                            Common.showLog("编码中 00 " + frameCount + " " + (i + 1));
-                            animatedGifEncoder.setDelay(framesBeans.get(i).getDelay());
-                            animatedGifEncoder.addFrame(bitmap);
-                            if (bitmap != null) bitmap.recycle();
+                            Handler mainHandler = new Handler(Looper.getMainLooper());
+                            for (int i = 0; i < frameCount; i++) {
+                                Bitmap bitmap = BitmapFactory.decodeFile(allFiles.get(i).getPath());
+                                Common.showLog("编码中 00 " + frameCount + " " + (i + 1));
+                                animatedGifEncoder.setDelay(framesBeans.get(i).getDelay());
+                                animatedGifEncoder.addFrame(bitmap);
+                                if (bitmap != null) bitmap.recycle();
 
-                            Back back = sBack.get(illustsBean.getId());
-                            if (back != null) {
-                                float proc = i / (float) (frameCount - 1);
-                                mainHandler.post(() -> back.invoke(proc));
+                                Back back = sBack.get(illustsBean.getId());
+                                if (back != null) {
+                                    float proc = i / (float) (frameCount - 1);
+                                    mainHandler.post(() -> back.invoke(proc));
+                                }
+                            }
+                            sBack.remove(illustsBean.getId());
+                        } else {
+                            delayMs = gifResponse.getDelay();
+                            Common.showLog("使用返回的delay 11");
+                            for (int i = 0; i < frameCount; i++) {
+                                Bitmap bitmap = BitmapFactory.decodeFile(allFiles.get(i).getPath());
+                                Common.showLog("编码中 00 " + frameCount);
+                                animatedGifEncoder.setDelay(delayMs);
+                                animatedGifEncoder.addFrame(bitmap);
+                                if (bitmap != null) bitmap.recycle();
                             }
                         }
-                        sBack.remove(illustsBean.getId());
                     } else {
-                        delayMs = gifResponse.getDelay();
-                        Common.showLog("使用返回的delay 11");
+                        Common.showLog("使用返回的delay 22");
                         for (int i = 0; i < frameCount; i++) {
-                            Bitmap bitmap = BitmapFactory.decodeFile(allFiles.get(i).getPath());
                             Common.showLog("编码中 00 " + frameCount);
+                            Bitmap bitmap = BitmapFactory.decodeFile(allFiles.get(i).getPath());
                             animatedGifEncoder.setDelay(delayMs);
                             animatedGifEncoder.addFrame(bitmap);
                             if (bitmap != null) bitmap.recycle();
                         }
                     }
-                } else {
-                    Common.showLog("使用返回的delay 22");
-                    for (int i = 0; i < frameCount; i++) {
-                        Common.showLog("编码中 00 " + frameCount);
-                        Bitmap bitmap = BitmapFactory.decodeFile(allFiles.get(i).getPath());
-                        animatedGifEncoder.setDelay(delayMs);
-                        animatedGifEncoder.addFrame(bitmap);
-                        if (bitmap != null) bitmap.recycle();
-                    }
+
+                    Common.showLog("allFiles size " + frameCount);
+
+                    animatedGifEncoder.finish();
                 }
-
-                Common.showLog("allFiles size " + frameCount);
-
-                animatedGifEncoder.finish();
-                outStream.close();
 
                 if (autoSave) {
                     // 这条老链路只产 GIF,所以 asVideo 恒为 false —— 名字/mime 必须跟着
