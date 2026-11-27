@@ -271,4 +271,65 @@ class WitLiquidGlassQualityTest {
         assertTrue("Light panel tint alpha should be >= 128, got $lightAlpha", lightAlpha >= 128)
         assertTrue("Light panel tint RGB should stay near-white", lightRed >= 240 && lightGreen >= 240 && lightBlue >= 240)
     }
+
+    @Test
+    fun singleRowMenuUsesCompactFullCapsuleMetricsAndConcentricHighlight() {
+        val singleAction = listOf<WitLiquidGlassMenu.Entry>(
+            WitLiquidGlassMenu.Entry.Action(label = "Report", destructive = true) {},
+        )
+        val singleWithDivider = listOf(
+            WitLiquidGlassMenu.Entry.Action(label = "Report", destructive = true) {},
+            WitLiquidGlassMenu.Entry.Divider,
+        )
+        val singleToggle = listOf<WitLiquidGlassMenu.Entry>(
+            WitLiquidGlassMenu.Entry.Toggle(label = "Pin", isChecked = { false }, onToggle = {}),
+        )
+        val multiAction = listOf<WitLiquidGlassMenu.Entry>(
+            WitLiquidGlassMenu.Entry.Action(label = "Action 1") {},
+            WitLiquidGlassMenu.Entry.Action(label = "Action 2") {},
+        )
+
+        val single = WitLiquidGlassMenu.resolveLayoutMetrics(singleAction)
+        assertTrue(single.isSingleRow)
+        assertEquals(single, WitLiquidGlassMenu.resolveLayoutMetrics(singleWithDivider))
+        assertEquals(single, WitLiquidGlassMenu.resolveLayoutMetrics(singleToggle))
+
+        // Compact single-row capsule: 4dp + 48dp + 4dp = 56dp height (keeps >= 48dp touch target),
+        // flush with anchor top (0dp rise), sleek 4:1 capsule width (224dp), and generous leading inset.
+        assertEquals(4, single.containerPadVDp)
+        assertEquals(48, single.rowMinHeightDp)
+        assertEquals(56, single.containerPadVDp * 2 + single.rowMinHeightDp)
+        assertEquals(56, single.minMenuHeightDp)
+        assertEquals(0, single.topRiseOverAnchorDp)
+        assertEquals(224, single.minWidthDp)
+        assertEquals(4, single.rowHorizontalMarginDp)
+        assertEquals(22, single.rowPadHDp)
+        assertEquals(10, single.rowPadVDp)
+
+        // Concentric capsule highlight: 28dp outer capsule radius - 4dp uniform inset = 24dp inner radius (= 48dp / 2).
+        val density = 3f
+        val singleOuterRadiusPx = 28f * density
+        val singleHighlightRadiusPx = WitLiquidGlassMenu.computeHighlightRadiusPx(
+            singleOuterRadiusPx,
+            single.rowHorizontalMarginDp * density,
+        )
+        assertEquals(24f * density, singleHighlightRadiusPx, 0.001f)
+        assertEquals(0f, WitLiquidGlassMenu.computeHighlightRadiusPx(2f, 8f), 0.001f)
+
+        // Multi-row metrics stay completely unchanged.
+        val multi = WitLiquidGlassMenu.resolveLayoutMetrics(multiAction)
+        assertFalse(multi.isSingleRow)
+        assertEquals(212, multi.minWidthDp)
+        assertEquals(2, multi.topRiseOverAnchorDp)
+        assertEquals(10, multi.containerPadVDp)
+        assertEquals(8, multi.rowHorizontalMarginDp)
+        assertEquals(14, multi.rowPadHDp)
+        assertEquals(12, multi.rowPadVDp)
+        assertEquals(50, multi.rowMinHeightDp)
+        assertEquals(
+            24f * density,
+            WitLiquidGlassMenu.computeHighlightRadiusPx(32f * density, multi.rowHorizontalMarginDp * density),
+            0.001f,
+        )
+    }
 }

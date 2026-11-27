@@ -241,6 +241,7 @@ public class WitLiquidGlassMenu private constructor(
     }
 
     private val context: Context = host.context
+    private val layoutMetrics: MenuLayoutMetrics = resolveLayoutMetrics(entries)
     private val palette: V3Palette = config.palette
         ?: V3Palette.from(findActivity(anchor.context) ?: findActivity(host.context) ?: host.context)
     private val toggles = mutableListOf<Pair<SwitchCompat, Entry.Toggle>>()
@@ -532,14 +533,26 @@ public class WitLiquidGlassMenu private constructor(
 
         val rowsContainer = LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
-            val padV = context.dp(CONTAINER_PAD_V_DP)
+            val padV = context.dp(layoutMetrics.containerPadVDp)
             setPadding(0, padV, 0, padV)
         }
         rowsListView = rowsContainer
+        val rowMarginH = context.dp(layoutMetrics.rowHorizontalMarginDp)
+        val initialRowHighlightRadiusPx = computeHighlightRadiusPx(
+            context.dpF(config.cornerRadiusDp),
+            rowMarginH.toFloat(),
+        )
         entries.forEach { entry ->
             when (entry) {
                 is Entry.Action -> {
-                    val row = buildActionRow(entry, contentColor, dangerColor, isDark)
+                    val row = buildActionRow(
+                        entry = entry,
+                        contentColor = contentColor,
+                        dangerColor = dangerColor,
+                        isDark = isDark,
+                        metrics = layoutMetrics,
+                        focusRadiusPx = initialRowHighlightRadiusPx,
+                    )
                     if (firstFocusableRow == null) firstFocusableRow = row
                     interactiveRows += RowBinding(row, entry)
                     rowsContainer.addView(
@@ -548,14 +561,19 @@ public class WitLiquidGlassMenu private constructor(
                             ViewGroup.LayoutParams.MATCH_PARENT,
                             ViewGroup.LayoutParams.WRAP_CONTENT,
                         ).apply {
-                            val hMargin = context.dp(ROW_HORIZONTAL_MARGIN_DP)
-                            marginStart = hMargin
-                            marginEnd = hMargin
+                            marginStart = rowMarginH
+                            marginEnd = rowMarginH
                         },
                     )
                 }
                 is Entry.Toggle -> {
-                    val (row, toggle) = buildToggleRow(entry, contentColor, isDark)
+                    val (row, toggle) = buildToggleRow(
+                        entry = entry,
+                        contentColor = contentColor,
+                        isDark = isDark,
+                        metrics = layoutMetrics,
+                        focusRadiusPx = initialRowHighlightRadiusPx,
+                    )
                     if (firstFocusableRow == null) firstFocusableRow = row
                     interactiveRows += RowBinding(row, entry, toggle)
                     rowsContainer.addView(
@@ -564,14 +582,19 @@ public class WitLiquidGlassMenu private constructor(
                             ViewGroup.LayoutParams.MATCH_PARENT,
                             ViewGroup.LayoutParams.WRAP_CONTENT,
                         ).apply {
-                            val hMargin = context.dp(ROW_HORIZONTAL_MARGIN_DP)
-                            marginStart = hMargin
-                            marginEnd = hMargin
+                            marginStart = rowMarginH
+                            marginEnd = rowMarginH
                         },
                     )
                 }
                 is Entry.Submenu -> {
-                    val row = buildSubmenuRow(entry, contentColor, isDark)
+                    val row = buildSubmenuRow(
+                        entry = entry,
+                        contentColor = contentColor,
+                        isDark = isDark,
+                        metrics = layoutMetrics,
+                        focusRadiusPx = initialRowHighlightRadiusPx,
+                    )
                     if (firstFocusableRow == null) firstFocusableRow = row
                     interactiveRows += RowBinding(row, entry)
                     rowsContainer.addView(
@@ -580,9 +603,8 @@ public class WitLiquidGlassMenu private constructor(
                             ViewGroup.LayoutParams.MATCH_PARENT,
                             ViewGroup.LayoutParams.WRAP_CONTENT,
                         ).apply {
-                            val hMargin = context.dp(ROW_HORIZONTAL_MARGIN_DP)
-                            marginStart = hMargin
-                            marginEnd = hMargin
+                            marginStart = rowMarginH
+                            marginEnd = rowMarginH
                         },
                     )
                 }
@@ -607,8 +629,8 @@ public class WitLiquidGlassMenu private constructor(
         }
 
         // 3) Measure natural width & height cleanly (handles 200% font scale and long translations).
-        val maxMenuW = minOf(context.dp(MAX_MENU_WIDTH_DP), availableW)
-        val minMenuW = minOf(context.dp(MIN_MENU_WIDTH_DP), maxMenuW)
+        val maxMenuW = minOf(context.dp(layoutMetrics.maxWidthDp), availableW)
+        val minMenuW = minOf(context.dp(layoutMetrics.minWidthDp), maxMenuW)
         rowsContainer.measure(
             View.MeasureSpec.makeMeasureSpec(maxMenuW, View.MeasureSpec.AT_MOST),
             View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
@@ -621,7 +643,9 @@ public class WitLiquidGlassMenu private constructor(
         val maxMenuH = minOf((availableH * MAX_HEIGHT_FRACTION).toInt(), context.dp(MAX_MENU_HEIGHT_DP))
             .coerceAtMost(availableH)
             .coerceAtLeast(context.dp(96))
-        menuHeight = rowsContainer.measuredHeight.coerceAtMost(maxMenuH).coerceAtLeast(context.dp(56))
+        menuHeight = rowsContainer.measuredHeight
+            .coerceAtMost(maxMenuH)
+            .coerceAtLeast(context.dp(layoutMetrics.minMenuHeightDp))
 
         // 4) Position relative to anchor (pinned to anchor edge; automatically flips if near bottom).
         val anchorLoc = IntArray(2)
@@ -647,7 +671,7 @@ public class WitLiquidGlassMenu private constructor(
             (effectiveSafeRight - menuWidth).coerceAtLeast(effectiveSafeLeft),
         )
 
-        val topRise = context.dp(TOP_RISE_OVER_ANCHOR_DP)
+        val topRise = context.dp(layoutMetrics.topRiseOverAnchorDp)
         val canExpandDown = anchorT - topRise + menuHeight <= safeBottom
         val canExpandUp = anchorB + topRise - menuHeight >= effectiveSafeTop
         expandingDown = canExpandDown || !canExpandUp
@@ -669,12 +693,17 @@ public class WitLiquidGlassMenu private constructor(
         endRadiusPx = minOf(context.dpF(config.cornerRadiusDp), minOf(menuWidth, menuHeight) * 0.5f)
 
         // 5) Wrap rows in ScrollView with zero-relayout concentric highlight pill + iOS drag physics.
-        val highlightRadiusPx = context.dpF((config.cornerRadiusDp - ROW_HORIZONTAL_MARGIN_DP).coerceAtLeast(14f))
+        val highlightRadiusPx = computeHighlightRadiusPx(endRadiusPx, rowMarginH.toFloat())
+        if (highlightRadiusPx != initialRowHighlightRadiusPx) {
+            interactiveRows.forEach { binding ->
+                binding.view.background = buildRowRipple(isDark, highlightRadiusPx)
+            }
+        }
         val pill = HighlightPillView(
             context = context,
             fillColor = if (isDark) DARK_HIGHLIGHT_FILL else LIGHT_HIGHLIGHT_FILL,
             cornerRadiusPx = highlightRadiusPx,
-            horizontalInsetPx = context.dpF(ROW_HORIZONTAL_MARGIN_DP.toFloat()),
+            horizontalInsetPx = rowMarginH.toFloat(),
         ).apply {
             alpha = 0f
             importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
@@ -817,15 +846,22 @@ public class WitLiquidGlassMenu private constructor(
         @ColorInt contentColor: Int,
         @ColorInt dangerColor: Int,
         isDark: Boolean,
+        metrics: MenuLayoutMetrics,
+        focusRadiusPx: Float,
     ): LinearLayout {
         val fgColor = if (entry.destructive) dangerColor else contentColor
         val iconColor = if (entry.destructive) dangerColor else ColorUtils.setAlphaComponent(contentColor, 232)
         val row = LinearLayout(context).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
-            minimumHeight = context.dp(ROW_MIN_HEIGHT_DP)
-            setPadding(context.dp(ROW_PAD_H_DP), context.dp(ROW_PAD_V_DP), context.dp(ROW_PAD_H_DP), context.dp(ROW_PAD_V_DP))
-            background = buildRowRipple(isDark)
+            minimumHeight = context.dp(metrics.rowMinHeightDp)
+            setPadding(
+                context.dp(metrics.rowPadHDp),
+                context.dp(metrics.rowPadVDp),
+                context.dp(metrics.rowPadHDp),
+                context.dp(metrics.rowPadVDp),
+            )
+            background = buildRowRipple(isDark, focusRadiusPx)
             isClickable = true
             isFocusable = true
             setOnClickListener {
@@ -879,6 +915,8 @@ public class WitLiquidGlassMenu private constructor(
         entry: Entry.Toggle,
         @ColorInt contentColor: Int,
         isDark: Boolean,
+        metrics: MenuLayoutMetrics,
+        focusRadiusPx: Float,
     ): Pair<LinearLayout, SwitchCompat> {
         val iconColor = ColorUtils.setAlphaComponent(contentColor, 232)
         val toggle = SwitchCompat(context).apply {
@@ -914,9 +952,14 @@ public class WitLiquidGlassMenu private constructor(
         val row = LinearLayout(context).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
-            minimumHeight = context.dp(ROW_MIN_HEIGHT_DP)
-            setPadding(context.dp(ROW_PAD_H_DP), context.dp(ROW_PAD_V_DP), context.dp(ROW_PAD_H_DP), context.dp(ROW_PAD_V_DP))
-            background = buildRowRipple(isDark)
+            minimumHeight = context.dp(metrics.rowMinHeightDp)
+            setPadding(
+                context.dp(metrics.rowPadHDp),
+                context.dp(metrics.rowPadVDp),
+                context.dp(metrics.rowPadHDp),
+                context.dp(metrics.rowPadVDp),
+            )
+            background = buildRowRipple(isDark, focusRadiusPx)
             isClickable = true
             isFocusable = false
             importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
@@ -965,13 +1008,20 @@ public class WitLiquidGlassMenu private constructor(
         entry: Entry.Submenu,
         @ColorInt contentColor: Int,
         isDark: Boolean,
+        metrics: MenuLayoutMetrics,
+        focusRadiusPx: Float,
     ): LinearLayout {
         val row = LinearLayout(context).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
-            minimumHeight = context.dp(ROW_MIN_HEIGHT_DP)
-            setPadding(context.dp(ROW_PAD_H_DP), context.dp(ROW_PAD_V_DP), context.dp(ROW_PAD_H_DP), context.dp(ROW_PAD_V_DP))
-            background = buildRowRipple(isDark)
+            minimumHeight = context.dp(metrics.rowMinHeightDp)
+            setPadding(
+                context.dp(metrics.rowPadHDp),
+                context.dp(metrics.rowPadVDp),
+                context.dp(metrics.rowPadHDp),
+                context.dp(metrics.rowPadVDp),
+            )
+            background = buildRowRipple(isDark, focusRadiusPx)
             isClickable = true
             isFocusable = true
             setOnClickListener {
@@ -1070,6 +1120,10 @@ public class WitLiquidGlassMenu private constructor(
 
         val contentColor = parentGlass.contentColor
         val dangerColor = if (isDark) DARK_DANGER_COLOR else LIGHT_DANGER_COLOR
+        val subRowFocusRadiusPx = computeHighlightRadiusPx(
+            context.dpF(config.cornerRadiusDp),
+            context.dpF(ROW_HORIZONTAL_MARGIN_DP.toFloat()),
+        )
 
         // Header / Collapse bar: 文字稳定左对齐，右侧向下折叠箭头指示展开态
         val headerRow = LinearLayout(context).apply {
@@ -1077,7 +1131,7 @@ public class WitLiquidGlassMenu private constructor(
             gravity = Gravity.CENTER_VERTICAL
             minimumHeight = context.dp(ROW_MIN_HEIGHT_DP)
             setPadding(context.dp(ROW_PAD_H_DP), context.dp(ROW_PAD_V_DP), context.dp(ROW_PAD_H_DP), context.dp(ROW_PAD_V_DP))
-            background = buildRowRipple(isDark)
+            background = buildRowRipple(isDark, subRowFocusRadiusPx)
             isClickable = true
             isFocusable = true
             setOnClickListener {
@@ -1153,7 +1207,14 @@ public class WitLiquidGlassMenu private constructor(
         entry.entries.forEach { subEntry ->
             when (subEntry) {
                 is Entry.Action -> {
-                    val row = buildActionRow(subEntry, contentColor, dangerColor, isDark)
+                    val row = buildActionRow(
+                        entry = subEntry,
+                        contentColor = contentColor,
+                        dangerColor = dangerColor,
+                        isDark = isDark,
+                        metrics = MULTI_ROW_LAYOUT_METRICS,
+                        focusRadiusPx = subRowFocusRadiusPx,
+                    )
                     subRowsContainer.addView(
                         row,
                         LinearLayout.LayoutParams(
@@ -1167,7 +1228,13 @@ public class WitLiquidGlassMenu private constructor(
                     )
                 }
                 is Entry.Toggle -> {
-                    val (row, toggle) = buildToggleRow(subEntry, contentColor, isDark)
+                    val (row, toggle) = buildToggleRow(
+                        entry = subEntry,
+                        contentColor = contentColor,
+                        isDark = isDark,
+                        metrics = MULTI_ROW_LAYOUT_METRICS,
+                        focusRadiusPx = subRowFocusRadiusPx,
+                    )
                     activeSubmenuToggles += toggle to subEntry
                     subRowsContainer.addView(
                         row,
@@ -1182,7 +1249,13 @@ public class WitLiquidGlassMenu private constructor(
                     )
                 }
                 is Entry.Submenu -> {
-                    val row = buildSubmenuRow(subEntry, contentColor, isDark)
+                    val row = buildSubmenuRow(
+                        entry = subEntry,
+                        contentColor = contentColor,
+                        isDark = isDark,
+                        metrics = MULTI_ROW_LAYOUT_METRICS,
+                        focusRadiusPx = subRowFocusRadiusPx,
+                    )
                     subRowsContainer.addView(
                         row,
                         LinearLayout.LayoutParams(
@@ -1460,11 +1533,10 @@ public class WitLiquidGlassMenu private constructor(
         }
     }
 
-    private fun buildRowRipple(isDark: Boolean): StateListDrawable {
+    private fun buildRowRipple(isDark: Boolean, cornerRadiusPx: Float): StateListDrawable {
         val focusColor = if (isDark) DARK_HIGHLIGHT_FILL else LIGHT_HIGHLIGHT_FILL
-        val radiusPx = context.dpF((config.cornerRadiusDp - ROW_HORIZONTAL_MARGIN_DP).coerceAtLeast(14f))
         return StateListDrawable().apply {
-            addState(intArrayOf(android.R.attr.state_focused), shape(radiusPx, focusColor))
+            addState(intArrayOf(android.R.attr.state_focused), shape(cornerRadiusPx, focusColor))
         }
     }
 
@@ -2183,9 +2255,16 @@ public class WitLiquidGlassMenu private constructor(
             y >= -corridorPadY && y <= menuHeight + corridorPadY
         val found = if (inCorridor) {
             val contentY = y + scroller.scrollY
-            interactiveRows.firstOrNull { binding ->
+            val hit = interactiveRows.firstOrNull { binding ->
                 val row = binding.view
                 contentY >= row.top && contentY <= row.bottom
+            }
+            if (hit != null) {
+                hit
+            } else if (layoutMetrics.isSingleRow && interactiveRows.size == 1 && y >= 0f && y <= menuHeight) {
+                interactiveRows[0]
+            } else {
+                null
             }
         } else {
             null
@@ -2206,7 +2285,7 @@ public class WitLiquidGlassMenu private constructor(
     private fun moveHighlightPillTo(row: View, instantPosition: Boolean) {
         val pill = highlightPill ?: return
         val targetTop = row.top.toFloat()
-        val targetHeight = row.height.coerceAtLeast(context.dp(ROW_MIN_HEIGHT_DP)).toFloat()
+        val targetHeight = row.height.coerceAtLeast(context.dp(layoutMetrics.rowMinHeightDp)).toFloat()
         pill.animate().cancel()
         highlightBoundsAnimator?.cancel()
 
@@ -2797,6 +2876,7 @@ public class WitLiquidGlassMenu private constructor(
         private const val DEFAULT_CORNER_RADIUS_DP = 32f
         private const val MIN_MENU_WIDTH_DP = 212
         private const val MAX_MENU_WIDTH_DP = 272
+        private const val MIN_MENU_HEIGHT_DP = 56
         private const val MAX_MENU_HEIGHT_DP = 480
         private const val MAX_HEIGHT_FRACTION = 0.72f
         private const val EDGE_MARGIN_DP = 12
@@ -2808,11 +2888,67 @@ public class WitLiquidGlassMenu private constructor(
         private const val ROW_PAD_H_DP = 14
         private const val ROW_PAD_V_DP = 12
         private const val ROW_MIN_HEIGHT_DP = 50
+        private const val SINGLE_ROW_MIN_WIDTH_DP = 224
+        private const val SINGLE_ROW_TOP_RISE_OVER_ANCHOR_DP = 0
+        private const val SINGLE_ROW_CONTAINER_PAD_V_DP = 4
+        private const val SINGLE_ROW_HORIZONTAL_MARGIN_DP = 4
+        private const val SINGLE_ROW_PAD_H_DP = 22
+        private const val SINGLE_ROW_PAD_V_DP = 10
+        private const val SINGLE_ROW_MIN_HEIGHT_DP = 48
         private const val ICON_SIZE_DP = 22
         private const val ICON_GAP_DP = 14
         private const val DIVIDER_INSET_DP = 18
         private const val SCRIM_ELEVATION_DP = 16f
         private const val MENU_ELEVATION_DP = 18f
+
+        internal data class MenuLayoutMetrics(
+            val isSingleRow: Boolean,
+            val minWidthDp: Int,
+            val maxWidthDp: Int,
+            val minMenuHeightDp: Int,
+            val topRiseOverAnchorDp: Int,
+            val containerPadVDp: Int,
+            val rowHorizontalMarginDp: Int,
+            val rowPadHDp: Int,
+            val rowPadVDp: Int,
+            val rowMinHeightDp: Int,
+        )
+
+        private val MULTI_ROW_LAYOUT_METRICS = MenuLayoutMetrics(
+            isSingleRow = false,
+            minWidthDp = MIN_MENU_WIDTH_DP,
+            maxWidthDp = MAX_MENU_WIDTH_DP,
+            minMenuHeightDp = MIN_MENU_HEIGHT_DP,
+            topRiseOverAnchorDp = TOP_RISE_OVER_ANCHOR_DP,
+            containerPadVDp = CONTAINER_PAD_V_DP,
+            rowHorizontalMarginDp = ROW_HORIZONTAL_MARGIN_DP,
+            rowPadHDp = ROW_PAD_H_DP,
+            rowPadVDp = ROW_PAD_V_DP,
+            rowMinHeightDp = ROW_MIN_HEIGHT_DP,
+        )
+
+        private val SINGLE_ROW_LAYOUT_METRICS = MenuLayoutMetrics(
+            isSingleRow = true,
+            minWidthDp = SINGLE_ROW_MIN_WIDTH_DP,
+            maxWidthDp = MAX_MENU_WIDTH_DP,
+            minMenuHeightDp = MIN_MENU_HEIGHT_DP,
+            topRiseOverAnchorDp = SINGLE_ROW_TOP_RISE_OVER_ANCHOR_DP,
+            containerPadVDp = SINGLE_ROW_CONTAINER_PAD_V_DP,
+            rowHorizontalMarginDp = SINGLE_ROW_HORIZONTAL_MARGIN_DP,
+            rowPadHDp = SINGLE_ROW_PAD_H_DP,
+            rowPadVDp = SINGLE_ROW_PAD_V_DP,
+            rowMinHeightDp = SINGLE_ROW_MIN_HEIGHT_DP,
+        )
+
+        internal fun resolveLayoutMetrics(entries: List<Entry>): MenuLayoutMetrics =
+            if (entries.count { it !is Entry.Divider } == 1) {
+                SINGLE_ROW_LAYOUT_METRICS
+            } else {
+                MULTI_ROW_LAYOUT_METRICS
+            }
+
+        internal fun computeHighlightRadiusPx(endRadiusPx: Float, horizontalInsetPx: Float): Float =
+            (endRadiusPx - horizontalInsetPx).coerceAtLeast(0f)
 
         internal const val OPEN_DURATION_MS = 520L
         internal const val CLOSE_DURATION_MS = 500L

@@ -165,15 +165,17 @@ class WitLiquidGlassBudgetTest {
         assertEquals(0f, fEnd.contentRefract, 0.001f)
         assertEquals(0f, fEnd.orbBlendPx, 0.001f)
 
-        // Verify patchMargin safety across tall (480dp) and tiny (72dp) menus in all 4 directions.
-        for (testH in listOf(72f * d, 238f * d, 480f * d)) {
+        // Verify patchMargin safety across tall (480dp), multi-row (238dp), and single-row capsule (56dp) menus in all 4 directions.
+        for (testH in listOf(56f * d, 72f * d, 238f * d, 480f * d)) {
             for (onRight in listOf(true, false)) {
                 for (down in listOf(true, false)) {
+                    val topRise = if (testH <= 56f * d) 0f else 2f * d
                     val aL = if (onRight) w - aw else 0f
-                    val aT = if (down) 2f * d else testH - ah - 2f * d
+                    val aT = if (down) topRise else testH - ah - topRise
+                    val resolvedEndR = minOf(endR, minOf(w, testH) * 0.5f)
                     for (step in 0..50) {
                         val p = step / 50f
-                        val of = WitLiquidGlassMenu.evaluateOpenMorph(p, w, testH, aL, aT, aw, ah, endR, d, onRight, down, margin)
+                        val of = WitLiquidGlassMenu.evaluateOpenMorph(p, w, testH, aL, aT, aw, ah, resolvedEndR, d, onRight, down, margin)
                         assertTrue(of.bodyLeft >= -margin - 0.5f)
                         assertTrue(of.bodyRight <= w + margin + 0.5f)
                         assertTrue(of.bodyTop >= -margin - 0.5f)
@@ -276,14 +278,15 @@ class WitLiquidGlassBudgetTest {
             val ah = 44f * d
             val endR = 32f * d
             val margin = 26f * d
-            for (h in listOf(112f * d, 168f * d, 237.67f * d, 420f * d)) {
+            for (h in listOf(56f * d, 112f * d, 168f * d, 237.67f * d, 420f * d)) {
                 val al = w - aw
-                val at = 2f * d
+                val at = if (h <= 56f * d) 0f else 2f * d
+                val resolvedEndR = minOf(endR, minOf(w, h) * 0.5f)
                 for (step in 0..200) {
                     val p = step / 200f
                     for (frame in listOf(
-                        WitLiquidGlassMenu.evaluateOpenMorph(p, w, h, al, at, aw, ah, endR, d, true, true, margin),
-                        WitLiquidGlassMenu.evaluateCloseMorph(p, w, h, al, at, aw, ah, endR, d, true, true, margin),
+                        WitLiquidGlassMenu.evaluateOpenMorph(p, w, h, al, at, aw, ah, resolvedEndR, d, true, true, margin),
+                        WitLiquidGlassMenu.evaluateCloseMorph(p, w, h, al, at, aw, ah, resolvedEndR, d, true, true, margin),
                     )) {
                         if (frame.orbRadius <= 0.5f || frame.orbBlendPx <= 0.01f) continue
                         val bw = (frame.bodyRight - frame.bodyLeft).coerceAtLeast(0f)
