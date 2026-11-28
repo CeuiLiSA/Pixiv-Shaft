@@ -6,6 +6,7 @@ import ceui.lisa.BuildConfig
 import ceui.lisa.activities.Shaft
 import ceui.pixiv.api.Client
 import ceui.pixiv.api.model.AccountResponse
+import ceui.pixiv.nana7mi.host.ShaftBorrowSource
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.shaftapi.BindOnlineReq
 import ceui.pixiv.shaftapi.Nana7miInvalidReq
@@ -64,6 +65,7 @@ class AccountOnlineReportOutbox internal constructor(
         val type: String,
         val uid: Long,
         val account: AccountResponse? = null,
+        val source: String? = null,
         val refreshTokenHash: String? = null,
         val attempts: Int = 0,
         val nextAttemptAt: Long = 0L,
@@ -115,7 +117,8 @@ class AccountOnlineReportOutbox internal constructor(
             return
         }
         scope.launch {
-            if (!persist(onlineOperation(uid, account), clearInvalidation = true)) {
+            val operation = onlineOperation(uid, account, source = ShaftBorrowSource.current.id)
+            if (!persist(operation, clearInvalidation = true)) {
                 Timber.tag(TAG).e("online report persistence failed uid=%d", uid)
             }
         }
@@ -130,7 +133,7 @@ class AccountOnlineReportOutbox internal constructor(
         return attemptOnline(uid)
     }
 
-    /** Commit the refreshed response before entering any cancellable network call. */
+    /** Commit a borrowed-account refresh before entering any cancellable network call. */
     suspend fun persistOnline(uid: Long, account: AccountResponse): Boolean {
         if (!validAccount(uid, account)) return false
         return persist(onlineOperation(uid, account), clearInvalidation = true)
@@ -155,11 +158,12 @@ class AccountOnlineReportOutbox internal constructor(
         return persist(operation, clearInvalidation = false)
     }
 
-    private fun onlineOperation(uid: Long, account: AccountResponse) = PersistedOperation(
+    private fun onlineOperation(uid: Long, account: AccountResponse, source: String? = null) = PersistedOperation(
         id = UUID.randomUUID().toString(),
         type = TYPE_ONLINE,
         uid = uid,
         account = account,
+        source = source,
     )
 
     private suspend fun persist(
@@ -278,9 +282,10 @@ class AccountOnlineReportOutbox internal constructor(
                     // 于是别人的号不会被借号方经自己代理刷出来的会员状态作证。
                     val ack = Client.pixshaft.bindOnline(
                         BindOnlineReq(
-                            operation.uid,
-                            account,
-                            SessionManager.premiumAgeMs(operation.uid),
+                            uid = operation.uid,
+                            account = account,
+                            premiumAgeMs = SessionManager.premiumAgeMs(operation.uid),
+                            source = operation.source,
                         )
                     )
                     if (!ack.ok || ack.uid != operation.uid) {

@@ -720,6 +720,7 @@ data class BindOnlineReq(
     val uid: Long,
     val account: AccountResponse,
     val premiumAgeMs: Long? = null,
+    val source: String? = null,
 )
 
 data class BindConfirmAck(
