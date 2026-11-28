@@ -507,6 +507,8 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        // 翻远再翻回会复用 ZoomImageView，但分块解码需要跟随新建的视图生命周期。
+        gestureImage.subsampling.setLifecycle(viewLifecycleOwner.lifecycle)
         // 换底图（large 占位 → 原图 / 译图）会改变 contentSize，增量模式记的绝对倍率随之失真，
         // 见 [lastZoomContentSize]。默认/三级都走库自带双击，没有这类记忆，不必挂这个观察。
         if (Shaft.sSettings.getDoubleTapZoomMode() == Settings.DOUBLE_TAP_ZOOM_MODE_INCREMENTAL) {
