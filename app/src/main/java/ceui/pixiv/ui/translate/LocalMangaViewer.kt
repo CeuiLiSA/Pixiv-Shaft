@@ -6,10 +6,11 @@ import android.content.Intent
 import android.net.Uri
 import android.provider.OpenableColumns
 import androidx.activity.result.PickVisualMediaRequest
-import androidx.activity.result.contract.ActivityResultContract
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.MainThread
 import ceui.lisa.R
 import ceui.lisa.activities.ImageDetailActivity
+import ceui.lisa.utils.Common
 import ceui.loxia.ImageUrls
 import ceui.pixiv.api.model.Illust
 import ceui.pixiv.api.model.MetaPage
@@ -19,19 +20,28 @@ import ceui.pixiv.download.DownloadsRegistry
 import ceui.pixiv.download.config.DownloadConfig
 import ceui.pixiv.download.config.DownloadItems
 import ceui.pixiv.download.model.Bucket
+import ceui.pixiv.ui.detail.DownloadFab
 import java.io.File
 import java.io.FileInputStream
-import java.util.concurrent.ConcurrentHashMap
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 
 /**
  * 本地图片/漫画 OCR 翻译入口与会话辅助（#1406）。
  *
  * 将用户通过系统多图选择器挑出的 1..N 张本地图片包装成负数 ID 的合成 [Illust]，直接复用
  * [ImageDetailActivity] + [ceui.lisa.activities.ImageTranslationViewModel] +
- * [MangaBatchTranslateCenter] 整套单页/整部/圈选 OCR 翻译管线；译图保存走 [DownloadsRegistry]
- * 的 [Bucket.Illust] 通道，落到用户当前图片下载目录/相册并带 `_translated` 后缀。
+ * [MangaBatchTranslateCenter] 整套单页/整部/圈选 OCR 翻译管线；译图保存跑在进程级协程中
+ * 走 [DownloadsRegistry] 的 [Bucket.Illust] 通道，退出看图页照常写完，落到用户当前图片下载目录/相册并带 `_translated` 后缀。
  */
 object LocalMangaViewer {
 
@@ -39,15 +49,26 @@ object LocalMangaViewer {
     const val ILLUST_TYPE = "local_manga"
     const val TRANSLATED_FILENAME_SUFFIX = "_translated"
 
-    private val savedTranslatedPaths = ConcurrentHashMap.newKeySet<String>()
+    sealed interface SaveState {
+        data object Saving : SaveState
+        data object Done : SaveState
+    }
+
+    private val saveScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+
+    private val _saveStates = MutableStateFlow<Map<String, SaveState>>(emptyMap())
+    val saveStates: StateFlow<Map<String, SaveState>> = _saveStates.asStateFlow()
 
     @JvmStatic
-    fun createPickerContract(): ActivityResultContract<PickVisualMediaRequest, List<Uri>> =
-        ActivityResultContracts.PickMultipleVisualMedia()
+    fun createPickerIntent(context: Context): Intent =
+        ActivityResultContracts.PickMultipleVisualMedia().createIntent(
+            context,
+            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly),
+        )
 
     @JvmStatic
-    fun createPickerRequest(): PickVisualMediaRequest =
-        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+    fun parsePickerResult(resultCode: Int, data: Intent?): List<Uri> =
+        ActivityResultContracts.PickMultipleVisualMedia().parseResult(resultCode, data)
 
     @JvmStatic
     fun open(context: Context, uris: List<Uri>) {
@@ -62,10 +83,16 @@ object LocalMangaViewer {
     fun isLocalManga(illust: Illust?): Boolean =
         illust != null && illust.id < 0L && illust.type == ILLUST_TYPE
 
-    fun isTranslationSaved(file: File): Boolean = file.path in savedTranslatedPaths
+    fun saveFabState(file: File): DownloadFab = when (_saveStates.value[file.path]) {
+        SaveState.Saving -> DownloadFab.Downloading(0)
+        SaveState.Done -> DownloadFab.Done
+        null -> DownloadFab.Idle
+    }
+
+    fun isTranslationSaved(file: File): Boolean = _saveStates.value[file.path] == SaveState.Done
 
     internal fun clearSavedStateForTest() {
-        savedTranslatedPaths.clear()
+        _saveStates.value = emptyMap()
     }
 
     /**
@@ -127,28 +154,92 @@ object LocalMangaViewer {
     }
 
     /**
-     * 将本地图片的译图 PNG 保存到用户当前图片下载目录/相册（遵循 [Bucket.Illust] 存储位置与冲突策略）。
-     * 文件名保留原图主名并追加 `_translated.png`。
+     * 进程级保存入口：点击保存后即刻退出看图页也能完整写完并弹出结果提示，不会因页面销毁触发
+     * `onAbort()` 删掉半截译图（与 [ceui.pixiv.snapshot.SnapshotImageSaver] / [ceui.pixiv.download.ImagePageSaver] 同语义）。
      */
-    suspend fun saveTranslatedPage(
+    @MainThread
+    fun startSaveTranslatedPage(
         context: Context,
         translatedFile: File,
         sourceUriString: String?,
         pageIndex: Int,
+        pageCount: Int,
+    ): Boolean = startSaveTranslatedPage(
+        context = context,
+        translatedFile = translatedFile,
+        sourceUriString = sourceUriString,
+        pageIndex = pageIndex,
+        pageCount = pageCount,
+        downloads = DownloadsRegistry.downloads,
+        config = DownloadsRegistry.store.loadOrFallback(),
+        scope = saveScope,
+        onToast = { Common.showToast(it) },
+    )
+
+    @MainThread
+    internal fun startSaveTranslatedPage(
+        context: Context,
+        translatedFile: File,
+        sourceUriString: String?,
+        pageIndex: Int,
+        pageCount: Int,
+        downloads: Downloads,
+        config: DownloadConfig,
+        scope: CoroutineScope = saveScope,
+        onToast: (String) -> Unit = { Common.showToast(it) },
+    ): Boolean {
+        val pathKey = translatedFile.path
+        if (_saveStates.value[pathKey] == SaveState.Saving) return false
+        val app = context.applicationContext
+        _saveStates.update { it + (pathKey to SaveState.Saving) }
+        scope.launch {
+            var succeeded = false
+            try {
+                saveTranslatedPage(
+                    context = app,
+                    translatedFile = translatedFile,
+                    sourceUriString = sourceUriString,
+                    pageIndex = pageIndex,
+                    pageCount = pageCount,
+                    downloads = downloads,
+                    config = config,
+                )
+                succeeded = true
+                onToast(app.getString(R.string.string_181))
+            } catch (ce: CancellationException) {
+                throw ce
+            } catch (e: Exception) {
+                Timber.w(e, "[LocalManga] save translated page failed page=%d", pageIndex)
+                val detail = e.message?.takeIf { it.isNotBlank() } ?: e.javaClass.simpleName
+                onToast(app.getString(R.string.save_image_failed, detail))
+            } finally {
+                _saveStates.update { current ->
+                    if (succeeded) current + (pathKey to SaveState.Done) else current - pathKey
+                }
+            }
+        }
+        return true
+    }
+
+    /**
+     * 将本地图片的译图 PNG 保存到用户当前图片下载目录/相册（遵循 [Bucket.Illust] 存储位置与冲突策略）。
+     * 单页保留原图主名加 `_translated.png`，多页追加 `_p<N>_translated.png` 避免同名源文件撞名覆盖/误跳过。
+     */
+    internal suspend fun saveTranslatedPage(
+        context: Context,
+        translatedFile: File,
+        sourceUriString: String?,
+        pageIndex: Int,
+        pageCount: Int = 1,
         downloads: Downloads = DownloadsRegistry.downloads,
         config: DownloadConfig = DownloadsRegistry.store.loadOrFallback(),
     ) {
         val app = context.applicationContext
         withContext(Dispatchers.IO) {
             val sourceName = queryDisplayName(app, sourceUriString)
-            val displayName = buildTranslatedDisplayName(sourceName, pageIndex)
+            val displayName = buildTranslatedDisplayName(sourceName, pageIndex, pageCount)
             val destination = DownloadItems.illustGalleryDestination(displayName, config)
-            val handle = downloads.openRaw(Bucket.Illust, destination, "image/png")
-            if (handle == null) {
-                // OverwritePolicy.Skip 且目标已存在：按已保存处理（与 ImagePageSaver / SnapshotImageSaver 一致）
-                savedTranslatedPaths.add(translatedFile.path)
-                return@withContext
-            }
+            val handle = downloads.openRaw(Bucket.Illust, destination, "image/png") ?: return@withContext
             var committed = false
             try {
                 handle.stream.use { out ->
@@ -158,7 +249,6 @@ object LocalMangaViewer {
                 }
                 handle.onFinish()
                 committed = true
-                savedTranslatedPaths.add(translatedFile.path)
             } finally {
                 if (!committed) {
                     runCatching { handle.stream.close() }
@@ -168,7 +258,11 @@ object LocalMangaViewer {
         }
     }
 
-    internal fun buildTranslatedDisplayName(sourceDisplayName: String?, pageIndex: Int): String {
+    internal fun buildTranslatedDisplayName(
+        sourceDisplayName: String?,
+        pageIndex: Int,
+        pageCount: Int = 1,
+    ): String {
         val raw = sourceDisplayName
             ?.substringAfterLast('/')
             ?.substringAfterLast('\\')
@@ -176,18 +270,19 @@ object LocalMangaViewer {
             ?.trim()
             .orEmpty()
         val dot = raw.lastIndexOf('.')
-        val stem = when {
+        val parsedStem = when {
             raw.isEmpty() -> ""
             dot > 0 -> raw.substring(0, dot).trim()
             dot == 0 -> raw.substring(1).trim()
             else -> raw
-        }.ifEmpty { "local_manga_p${pageIndex + 1}" }
-        val finalStem = if (stem.endsWith(TRANSLATED_FILENAME_SUFFIX)) {
-            stem
-        } else {
-            "$stem$TRANSLATED_FILENAME_SUFFIX"
         }
-        return "$finalStem.png"
+        val stem = if (parsedStem.isEmpty()) {
+            "local_manga_p${pageIndex + 1}"
+        } else {
+            val root = parsedStem.removeSuffix(TRANSLATED_FILENAME_SUFFIX).ifEmpty { "local_manga" }
+            if (pageCount > 1) "${root}_p${pageIndex + 1}" else root
+        }
+        return "$stem$TRANSLATED_FILENAME_SUFFIX.png"
     }
 
     private fun queryDisplayName(context: Context, sourceUriString: String?): String? {

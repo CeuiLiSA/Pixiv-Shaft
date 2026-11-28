@@ -169,8 +169,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
     /** 「二级详情」的下载 + 收藏胶囊(与一级 V3 详情页共用),仅该模式下装配。 */
     private var fabBar: V3FabBarController? = null
 
-    /** 本地漫画模式下正在写盘的译图路径集合(防连点重复保存)与胶囊显隐动画句柄。 */
-    private val localSavingPaths = mutableSetOf<String>()
+    /** 本地漫画模式下底部保存胶囊的显隐动画句柄。 */
     private var localFabFadeAnim: SpringAnimation? = null
 
     /** 当前展开中的右上角液态玻璃菜单，用于沉浸态切换 / 退出收场与拦截下拉退出。 */
@@ -803,10 +802,15 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         fabBind.fabDownloadContainer.contentDescription = getString(R.string.action_save_to_album)
         fabBind.fabDownloadContainer.setOnClick { saveLocalTranslatedPage() }
         translationViewModel.displayedTranslatedPaths.observe(this) { syncLocalMangaFabBar() }
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                LocalMangaViewer.saveStates.collect { syncLocalMangaFabBar() }
+            }
+        }
     }
 
     private fun syncLocalMangaFabBar(animate: Boolean = false) {
-        if (!isLocalMangaMode) return
+        if (!isLocalMangaMode || isFinishing || isDestroyed) return
         val fabBarView = findViewById<View>(R.id.fab_bar) ?: return
         val page = baseBind?.viewPager?.currentItem ?: return
         val translated = translatedFileOf(page)
@@ -821,12 +825,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                 fabBarView.alpha = 1f
                 fabBarView.visibility = View.VISIBLE
             }
-            val state = when {
-                file.path in localSavingPaths -> DownloadFab.Downloading(0)
-                LocalMangaViewer.isTranslationSaved(file) -> DownloadFab.Done
-                else -> DownloadFab.Idle
-            }
-            fabBar?.renderDownload(state)
+            fabBar?.renderDownload(LocalMangaViewer.saveFabState(file))
         } else {
             if (animate && fabBarView.visibility == View.VISIBLE) {
                 localFabFadeAnim = fabBarView.animateFadeOutQuickly()
@@ -841,34 +840,18 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         val illust = mIllust ?: return
         val page = baseBind?.viewPager?.currentItem ?: return
         val translated = translatedFileOf(page) ?: return
-        val pathKey = translated.path
-        if (pathKey in localSavingPaths) return
         val sourceUrl =
             IllustDownload.getUrl(illust, page, Params.IMAGE_RESOLUTION_ORIGINAL)
                 ?: IllustDownload.getUrl(illust, page, Params.IMAGE_RESOLUTION_LARGE)
+        val appContext = applicationContext
         IllustDownload.check(this) {
-            if (!localSavingPaths.add(pathKey)) return@check
-            syncLocalMangaFabBar()
-            lifecycleScope.launch {
-                try {
-                    LocalMangaViewer.saveTranslatedPage(
-                        context = applicationContext,
-                        translatedFile = translated,
-                        sourceUriString = sourceUrl,
-                        pageIndex = page,
-                    )
-                    Common.showToast(R.string.string_181)
-                } catch (ce: CancellationException) {
-                    throw ce
-                } catch (e: Exception) {
-                    Timber.w(e, "[LocalManga] save translated page failed page=%d", page)
-                    val detail = e.message?.takeIf { it.isNotBlank() } ?: e.javaClass.simpleName
-                    Common.showToast(getString(R.string.save_image_failed, detail))
-                } finally {
-                    localSavingPaths.remove(pathKey)
-                    syncLocalMangaFabBar()
-                }
-            }
+            LocalMangaViewer.startSaveTranslatedPage(
+                context = appContext,
+                translatedFile = translated,
+                sourceUriString = sourceUrl,
+                pageIndex = page,
+                pageCount = illust.page_count,
+            )
         }
     }
 

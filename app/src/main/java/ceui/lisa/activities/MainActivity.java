@@ -29,7 +29,6 @@ import android.widget.TextView;
 
 import androidx.activity.BackEventCompat;
 import androidx.activity.OnBackPressedCallback;
-import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.PickVisualMediaRequest;
 import androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia;
 import androidx.annotation.NonNull;
@@ -97,14 +96,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
         implements ColdStartSplashHost, HomeShellHost, AnalyticsScreen {
 
     public static final String[] ALL_SELECT_WAY = new String[] {"图库选图", "文件管理器选图"};
-    private final ActivityResultLauncher<PickVisualMediaRequest> pickLocalMangaLauncher =
-            registerForActivityResult(
-                    LocalMangaViewer.createPickerContract(),
-                    uris -> {
-                        if (uris != null && !uris.isEmpty()) {
-                            LocalMangaViewer.open(this, uris);
-                        }
-                    });
+    private static final int REQUEST_CODE_LOCAL_MANGA = 10087;
     private long mExitTime;
     private static final long EXIT_WINDOW_MS = 2000;
     private OnBackPressedCallback mainBackCallback;
@@ -1471,7 +1463,10 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
 
     private void selectLocalMangaImages() {
         try {
-            pickLocalMangaLauncher.launch(LocalMangaViewer.createPickerRequest());
+            // MainActivity.onSaveInstanceState 会 outState.clear()，会抹掉 ActivityResultRegistry
+            // 持久化的随机 requestCode 映射；沿用固定常量 requestCode 避免后台重建后丢弃选图结果。
+            startActivityForResult(
+                    LocalMangaViewer.createPickerIntent(this), REQUEST_CODE_LOCAL_MANGA);
         } catch (ActivityNotFoundException | SecurityException e) {
             Common.showToast(R.string.string_262);
         }
@@ -1600,6 +1595,11 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
             Uri imageUri = new PickVisualMedia().parseResult(resultCode, data);
             if (imageUri != null) {
                 ReverseImage.searchFrom(this, imageUri, ReverseImage.DEFAULT_ENGINE, null);
+            }
+        } else if (requestCode == REQUEST_CODE_LOCAL_MANGA && resultCode == RESULT_OK) {
+            java.util.List<Uri> uris = LocalMangaViewer.parsePickerResult(resultCode, data);
+            if (!uris.isEmpty()) {
+                LocalMangaViewer.open(this, uris);
             }
         }
     }
