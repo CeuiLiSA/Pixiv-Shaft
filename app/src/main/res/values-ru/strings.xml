@@ -742,6 +742,7 @@
     <string name="string_ai_upscale_done">Улучшение завершено</string>
     <string name="string_ai_upscale_failed">Не удалось улучшить изображение</string>
     <string name="string_ai_upscale_standalone">ИИ-улучшение</string>
+    <string name="local_manga_translate_entry">Перевод локальной манги</string>
     <string name="string_ai_upscale_hero_title">ИИ-суперразрешение</string>
     <string name="string_ai_upscale_hero_subtitle">Улучшение качества в 2 раза</string>
     <string name="string_ai_upscale_pick_image">Выбрать изображение</string>

@@ -52,6 +52,8 @@ public final class DrawerIconCatalog {
             return R.drawable.ic_baseline_settings_24;
         } else if (actionId == R.id.nav_ai_upscale) {
             return R.drawable.baseline_auto_awesome_24;
+        } else if (actionId == R.id.nav_local_manga_translate) {
+            return R.drawable.ic_baseline_translate_24;
         } else if (actionId == R.id.nav_reverse) {
             return R.drawable.ic_collections_black_24dp;
         } else if (actionId == R.id.nav_share) {

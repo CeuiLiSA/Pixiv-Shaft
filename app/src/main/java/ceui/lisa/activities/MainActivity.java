@@ -29,6 +29,7 @@ import android.widget.TextView;
 
 import androidx.activity.BackEventCompat;
 import androidx.activity.OnBackPressedCallback;
+import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.PickVisualMediaRequest;
 import androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia;
 import androidx.annotation.NonNull;
@@ -77,6 +78,7 @@ import ceui.pixiv.ui.navigation.BottomBarAutoHide;
 import ceui.pixiv.ui.navigation.DrawerIconCatalog;
 import ceui.pixiv.ui.navigation.HomeShellHost;
 import ceui.pixiv.ui.navigation.TemplateRoute;
+import ceui.pixiv.ui.translate.LocalMangaViewer;
 import ceui.pixiv.witstudio.dialog.WitDialog;
 import ceui.pixiv.witstudio.dialog.WitDialogAction;
 import android.content.res.ColorStateList;
@@ -95,6 +97,14 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
         implements ColdStartSplashHost, HomeShellHost, AnalyticsScreen {
 
     public static final String[] ALL_SELECT_WAY = new String[] {"图库选图", "文件管理器选图"};
+    private final ActivityResultLauncher<PickVisualMediaRequest> pickLocalMangaLauncher =
+            registerForActivityResult(
+                    LocalMangaViewer.createPickerContract(),
+                    uris -> {
+                        if (uris != null && !uris.isEmpty()) {
+                            LocalMangaViewer.open(this, uris);
+                        }
+                    });
     private long mExitTime;
     private static final long EXIT_WINDOW_MS = 2000;
     private OnBackPressedCallback mainBackCallback;
@@ -1226,6 +1236,8 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                 new DrawerEntry[] {
                     new DrawerEntry(R.id.nav_manage, R.string.app_settings),
                     new DrawerEntry(R.id.nav_ai_upscale, R.string.string_ai_upscale_standalone),
+                    new DrawerEntry(
+                            R.id.nav_local_manga_translate, R.string.local_manga_translate_entry),
                     new DrawerEntry(R.id.nav_reverse, R.string.search_image_origin),
                     new DrawerEntry(R.id.nav_share, R.string.about_app),
                 });
@@ -1354,6 +1366,8 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
         } else if (id == R.id.nav_ai_upscale) {
             intent = new Intent(mContext, TemplateActivity.class);
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.AI_UPSCALE.key);
+        } else if (id == R.id.nav_local_manga_translate) {
+            selectLocalMangaImages();
         } else if (id == R.id.nav_reverse) {
             selectPhoto();
         } else if (id == R.id.nav_new_work) {
@@ -1453,6 +1467,14 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
     protected void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.clear();
+    }
+
+    private void selectLocalMangaImages() {
+        try {
+            pickLocalMangaLauncher.launch(LocalMangaViewer.createPickerRequest());
+        } catch (ActivityNotFoundException | SecurityException e) {
+            Common.showToast(R.string.string_262);
+        }
     }
 
     private void selectPhoto() {

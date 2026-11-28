@@ -240,6 +240,7 @@ class MeFragment : Fragment(R.layout.fragment_me) {
             title = R.string.the_others,
             entries = listOf(
                 Entry(R.string.string_ai_upscale_standalone, R.id.nav_ai_upscale),
+                Entry(R.string.local_manga_translate_entry, R.id.nav_local_manga_translate),
                 Entry(R.string.search_image_origin, R.id.nav_reverse),
                 Entry(R.string.latest_work, R.id.nav_new_work),
                 Entry(R.string.referral_entry, R.id.nav_referral_plan),

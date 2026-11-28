@@ -699,10 +699,22 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
             return
         }
 
-        // content:// URI（来自下载完成页的 SAF 路径）直接用 Sketch 加载，
+        // content:// / file:// URI（下载完成页的 SAF 路径、本地漫画 OCR 翻译选图）直接用 Sketch 加载，
         // 不走 TaskPool/Glide，因为 Glide 没有 SAF URI 的访问权限。
-        if (imageUrl.startsWith("content://")) {
-            baseBind.image.loadImage(Uri.parse(imageUrl))
+        if (imageUrl.startsWith("content://") || imageUrl.startsWith("file://")) {
+            originalShown = true
+            baseBind.progressCircular.visibility = View.GONE
+            if (shownTranslatedPath == null) {
+                baseBind.image.loadImage(Uri.parse(imageUrl)) {
+                    addListener(
+                        onError = { _, _ ->
+                            if (shownTranslatedPath == null && isGestureTargetAlive) {
+                                baseBind.emptyFrame.visibility = View.VISIBLE
+                            }
+                        }
+                    )
+                }
+            }
             return
         }
 

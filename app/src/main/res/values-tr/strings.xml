@@ -742,6 +742,7 @@
     <string name="string_ai_upscale_done">İyileştirme bitti</string>
     <string name="string_ai_upscale_failed">İyileştirme başarısız</string>
     <string name="string_ai_upscale_standalone">AI Kalite Artırma</string>
+    <string name="local_manga_translate_entry">Yerel Manga Çevirisi</string>
     <string name="string_ai_upscale_hero_title">AI Süper Çözünürlük</string>
     <string name="string_ai_upscale_hero_subtitle">2x Kalite Artırma</string>
     <string name="string_ai_upscale_pick_image">Resim Seç</string>

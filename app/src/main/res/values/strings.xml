@@ -772,6 +772,7 @@
     <string name="string_ai_upscale_done">画质增强完成</string>
     <string name="string_ai_upscale_failed">画质增强失败</string>
     <string name="string_ai_upscale_standalone">画质提升</string>
+    <string name="local_manga_translate_entry">本地漫画翻译</string>
     <string name="string_ai_upscale_hero_title">超分辨率</string>
     <string name="string_ai_upscale_hero_subtitle">2x 画质提升</string>
     <string name="string_ai_upscale_pick_image">选择图片</string>

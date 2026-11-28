@@ -13,9 +13,11 @@ import android.widget.TextView
 import androidx.activity.BackEventCompat
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
+import androidx.core.content.IntentCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.dynamicanimation.animation.SpringAnimation
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentPagerAdapter
 import androidx.lifecycle.Lifecycle
@@ -58,6 +60,7 @@ import ceui.pixiv.ui.navigation.TemplateRoute
 import ceui.pixiv.ui.share.saveArtworkPoster
 import ceui.pixiv.ui.translate.ComicTextDetectorModel
 import ceui.pixiv.ui.translate.ComicTextDetectorModelManager
+import ceui.pixiv.ui.translate.LocalMangaViewer
 import ceui.pixiv.ui.translate.MangaOcrModel
 import ceui.pixiv.ui.translate.MangaOcrModelManager
 import ceui.pixiv.ui.translate.MangaTranslatePrepSheet
@@ -109,6 +112,9 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
 
     val isSnapshotMode: Boolean
         get() = "快照大图" == intent.getStringExtra("dataType")
+
+    val isLocalMangaMode: Boolean
+        get() = LocalMangaViewer.DATA_TYPE == intent.getStringExtra("dataType")
 
     /** 快照动图的离线帧源：大图页的播放器与逐帧入口都从这里取，不经引擎联网。 */
     var snapshotUgoira: OfflineUgoira? = null
@@ -163,6 +169,10 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
     /** 「二级详情」的下载 + 收藏胶囊(与一级 V3 详情页共用),仅该模式下装配。 */
     private var fabBar: V3FabBarController? = null
 
+    /** 本地漫画模式下正在写盘的译图路径集合(防连点重复保存)与胶囊显隐动画句柄。 */
+    private val localSavingPaths = mutableSetOf<String>()
+    private var localFabFadeAnim: SpringAnimation? = null
+
     /** 当前展开中的右上角液态玻璃菜单，用于沉浸态切换 / 退出收场与拦截下拉退出。 */
     private var activeGlassMenu: WitLiquidGlassMenu? = null
 
@@ -209,6 +219,9 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         if ("二级详情" == dataType || isSnapshotMode) {
             infoItems.add(fabBarView)
             infoItems.add(btnAi)
+        } else if (isLocalMangaMode) {
+            // 本地漫画模式只在当前页显示译图时露出保存胶囊，不放进 infoItems 避免退出沉浸时误显示。
+            infoItems.add(btnAi)
         }
         windowInsetsController.systemBarsBehavior =
             WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
@@ -234,6 +247,9 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
             } else {
                 windowInsetsController.show(WindowInsetsCompat.Type.systemBars())
                 infoItems.forEach { it.animateFadeInQuickly() }
+            }
+            if (isLocalMangaMode) {
+                syncLocalMangaFabBar(animate = !hideChromeInstantly)
             }
             hideChromeInstantly = false
         }
@@ -343,6 +359,12 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
             currentPage = findViewById(R.id.current_page)
             index = intent.getIntExtra("index", 0)
             setupSnapshotViewer()
+        } else if (isLocalMangaMode) {
+            // 本地漫画 OCR 翻译：复用现有看图器与 OCR 管线，仅保存当前页译图到用户图片目录/相册。
+            findViewById<View>(R.id.download_this_one).visibility = View.GONE
+            currentPage = findViewById(R.id.current_page)
+            index = intent.getIntExtra("index", 0)
+            setupLocalMangaViewer(infoItems, btnAi)
         } else if (ceui.pixiv.ui.common.ImageUrlViewer.DATA_TYPE_URL_SINGLE == dataType) {
             findViewById<View>(R.id.btn_ai_menu).visibility = View.GONE
             findViewById<View>(R.id.fab_bar_row).visibility = View.GONE
@@ -704,6 +726,174 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         btnAiMenu.setOnClickListener { anchor ->
             showAiGlassMenu(anchor, snapshotMode = true)
         }
+    }
+
+    /** 本地导入漫画/图片 OCR 翻译模式（#1406）：复用单页/整部/圈选翻译与译图保存。 */
+    private fun setupLocalMangaViewer(infoItems: MutableList<View>, btnAi: View) {
+        val bean = IntentCompat.getSerializableExtra(intent, "illust", Illust::class.java)
+        if (bean == null || bean.page_count <= 0) {
+            infoItems.remove(btnAi)
+            btnAi.visibility = View.GONE
+            findViewById<View>(R.id.fab_bar).visibility = View.GONE
+            findViewById<View>(R.id.fab_bar_row).visibility = View.GONE
+            finish()
+            return
+        }
+        mIllust = bean
+        translationViewModel.bindIllust(bean.id)
+        val pageCount = bean.page_count
+        val initialPage = index.coerceIn(0, pageCount - 1)
+        index = initialPage
+        btnAi.visibility =
+            if (viewModel.isFullscreenMode.value == true) View.INVISIBLE else View.VISIBLE
+        btnAi.setOnClickListener { anchor -> showLocalMangaAiMenu(anchor) }
+        baseBind!!.viewPager.adapter =
+            object : FragmentPagerAdapter(supportFragmentManager) {
+                override fun getItem(i: Int): Fragment = FragmentImageDetail.newInstance(i)
+
+                override fun getCount(): Int = pageCount
+            }
+        baseBind!!.viewPager.currentItem = initialPage
+        currentPage?.apply {
+            if (pageCount <= 1) {
+                visibility = View.INVISIBLE
+            } else {
+                visibility = View.VISIBLE
+                text =
+                    String.format(
+                        Locale.getDefault(),
+                        "第 %d/%d P",
+                        initialPage + 1,
+                        pageCount,
+                    )
+            }
+        }
+        baseBind!!
+            .viewPager
+            .addOnPageChangeListener(
+                object : ViewPager.SimpleOnPageChangeListener() {
+                    override fun onPageSelected(position: Int) {
+                        if (pageCount > 1) {
+                            currentPage?.text =
+                                String.format(Locale.getDefault(), "第 %d/%d P", position + 1, pageCount)
+                        }
+                        syncLocalMangaFabBar()
+                    }
+                }
+            )
+        setupLocalMangaFabBar()
+        setupShowTranslatedToggle()
+        syncLocalMangaFabBar()
+    }
+
+    /** 本地漫画模式底部保存胶囊：隐藏收藏段，仅在当前页显示译图时露出保存按钮。 */
+    private fun setupLocalMangaFabBar() {
+        val fabBind = ViewV3FabBarBinding.bind(findViewById(R.id.fab_bar))
+        val fabBar = V3FabBarController(fabBind, saveCurrentImage = true)
+        this.fabBar = fabBar
+        fabBar.applyGlassStyle(
+            material = WitLiquidGlassView.Material.REGULAR,
+            tone = WitLiquidGlassView.Tone.DARK,
+        )
+        applyFabBarLayout(fabBar)
+        attachFabBarInsets(fabBar)
+        fabBind.fabDivider.visibility = View.GONE
+        fabBind.fabBookmark.visibility = View.GONE
+        fabBind.fabDownloadContainer.visibility = View.VISIBLE
+        fabBind.fabDownloadContainer.contentDescription = getString(R.string.action_save_to_album)
+        fabBind.fabDownloadContainer.setOnClick { saveLocalTranslatedPage() }
+        translationViewModel.displayedTranslatedPaths.observe(this) { syncLocalMangaFabBar() }
+    }
+
+    private fun syncLocalMangaFabBar(animate: Boolean = false) {
+        if (!isLocalMangaMode) return
+        val fabBarView = findViewById<View>(R.id.fab_bar) ?: return
+        val page = baseBind?.viewPager?.currentItem ?: return
+        val translated = translatedFileOf(page)
+        val shouldShow = translated != null && viewModel.isFullscreenMode.value != true
+        localFabFadeAnim?.cancel()
+        localFabFadeAnim = null
+        if (shouldShow) {
+            val file = translated!!
+            if (animate && fabBarView.visibility != View.VISIBLE) {
+                localFabFadeAnim = fabBarView.animateFadeInQuickly()
+            } else {
+                fabBarView.alpha = 1f
+                fabBarView.visibility = View.VISIBLE
+            }
+            val state = when {
+                file.path in localSavingPaths -> DownloadFab.Downloading(0)
+                LocalMangaViewer.isTranslationSaved(file) -> DownloadFab.Done
+                else -> DownloadFab.Idle
+            }
+            fabBar?.renderDownload(state)
+        } else {
+            if (animate && fabBarView.visibility == View.VISIBLE) {
+                localFabFadeAnim = fabBarView.animateFadeOutQuickly()
+            } else {
+                fabBarView.alpha = 0f
+                fabBarView.visibility = View.GONE
+            }
+        }
+    }
+
+    private fun saveLocalTranslatedPage() {
+        val illust = mIllust ?: return
+        val page = baseBind?.viewPager?.currentItem ?: return
+        val translated = translatedFileOf(page) ?: return
+        val pathKey = translated.path
+        if (pathKey in localSavingPaths) return
+        val sourceUrl =
+            IllustDownload.getUrl(illust, page, Params.IMAGE_RESOLUTION_ORIGINAL)
+                ?: IllustDownload.getUrl(illust, page, Params.IMAGE_RESOLUTION_LARGE)
+        IllustDownload.check(this) {
+            if (!localSavingPaths.add(pathKey)) return@check
+            syncLocalMangaFabBar()
+            lifecycleScope.launch {
+                try {
+                    LocalMangaViewer.saveTranslatedPage(
+                        context = applicationContext,
+                        translatedFile = translated,
+                        sourceUriString = sourceUrl,
+                        pageIndex = page,
+                    )
+                    Common.showToast(R.string.string_181)
+                } catch (ce: CancellationException) {
+                    throw ce
+                } catch (e: Exception) {
+                    Timber.w(e, "[LocalManga] save translated page failed page=%d", page)
+                    val detail = e.message?.takeIf { it.isNotBlank() } ?: e.javaClass.simpleName
+                    Common.showToast(getString(R.string.save_image_failed, detail))
+                } finally {
+                    localSavingPaths.remove(pathKey)
+                    syncLocalMangaFabBar()
+                }
+            }
+        }
+    }
+
+    /** 本地漫画模式的右上角玻璃菜单：仅提供单页/整部/圈选 OCR 翻译，不混入 Pixiv 在线动作。 */
+    private fun showLocalMangaAiMenu(anchor: View) {
+        val illust = mIllust ?: return
+        val glassStage = baseBind?.glassStage ?: return
+        var created: WitLiquidGlassMenu? = null
+        created = WitLiquidGlassMenu.show(glassStage, anchor) {
+            onDismiss = {
+                if (activeGlassMenu === created) activeGlassMenu = null
+            }
+            item(getString(R.string.string_ai_manga_translate_inline), R.drawable.ic_baseline_translate_24) {
+                performAiMangaTranslateInline(illust, baseBind!!.viewPager.currentItem)
+            }
+            if (illust.page_count > 1) {
+                item(getString(R.string.string_ai_manga_translate_batch), R.drawable.ic_baseline_menu_book_24) {
+                    performAiMangaTranslateBatch(illust)
+                }
+            }
+            item(getString(R.string.string_ai_manga_translate_manual), R.drawable.ic_select_all_24) {
+                performAiMangaTranslateManual(illust, baseBind!!.viewPager.currentItem)
+            }
+        }
+        if (created != null) activeGlassMenu = created
     }
 
     /** 右上角圆形液态玻璃按钮展开的 iOS 风格液态玻璃菜单（「二级详情」与快照大图共用）。 */
@@ -1175,6 +1365,8 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
     }
 
     override fun onDestroy() {
+        localFabFadeAnim?.cancel()
+        localFabFadeAnim = null
         // 用户返回退出页面时立刻停掉翻译流水线并弹「翻译已取消」:
         // 不 cancel 的话 Google/AI 的阻塞 HTTP 会继续跑到超时,晚到的异常
         // 会被当成「翻译失败」误报给已经离开的用户。

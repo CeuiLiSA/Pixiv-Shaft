@@ -737,6 +737,7 @@
     <string name="string_ai_upscale_done">Peningkatan kualitas selesai</string>
     <string name="string_ai_upscale_failed">Peningkatan kualitas gagal</string>
     <string name="string_ai_upscale_standalone">Tingkatkan kualitas</string>
+    <string name="local_manga_translate_entry">Terjemahan Manga Lokal</string>
     <string name="string_ai_upscale_hero_title">Super resolusi</string>
     <string name="string_ai_upscale_hero_subtitle">Kualitas 2x lebih baik</string>
     <string name="string_ai_upscale_pick_image">Pilih gambar</string>

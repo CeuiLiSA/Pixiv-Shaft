@@ -742,6 +742,7 @@
     <string name="string_ai_upscale_done">화질 향상 완료</string>
     <string name="string_ai_upscale_failed">화질 향상 실패</string>
     <string name="string_ai_upscale_standalone">AI 화질 향상</string>
+    <string name="local_manga_translate_entry">로컬 만화 번역</string>
     <string name="string_ai_upscale_hero_title">AI 초해상도</string>
     <string name="string_ai_upscale_hero_subtitle">2배 화질 향상</string>
     <string name="string_ai_upscale_pick_image">이미지 선택</string>

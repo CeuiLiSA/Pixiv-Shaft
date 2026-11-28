@@ -742,6 +742,7 @@
     <string name="string_ai_upscale_done">Enhancement complete</string>
     <string name="string_ai_upscale_failed">Enhancement failed</string>
     <string name="string_ai_upscale_standalone">AI Enhance</string>
+    <string name="local_manga_translate_entry">Local Manga Translate</string>
     <string name="string_ai_upscale_hero_title">AI Super Resolution</string>
     <string name="string_ai_upscale_hero_subtitle">2x quality enhancement</string>
     <string name="string_ai_upscale_pick_image">Choose Image</string>

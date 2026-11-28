@@ -743,6 +743,7 @@
     <string name="string_ai_upscale_done">畫質增強完成</string>
     <string name="string_ai_upscale_failed">畫質增強失敗</string>
     <string name="string_ai_upscale_standalone">畫質提升</string>
+    <string name="local_manga_translate_entry">本機漫畫翻譯</string>
     <string name="string_ai_upscale_hero_title">超解析度</string>
     <string name="string_ai_upscale_hero_subtitle">2倍畫質提升</string>
     <string name="string_ai_upscale_pick_image">選擇圖片</string>

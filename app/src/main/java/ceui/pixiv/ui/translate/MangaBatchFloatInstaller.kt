@@ -137,14 +137,18 @@ class MangaBatchFloatInstaller : Application.ActivityLifecycleCallbacks {
         private fun openViewer(from: Activity, center: MangaBatchTranslateCenter) {
             val illust = center.currentIllust ?: return
             if (from is ImageDetailActivity && from.mIllust?.id == illust.id) return
-            val page = center.status.value?.pageDone ?: 0
-            from.startActivity(
+            val page = (center.status.value?.pageDone ?: 0)
+                .coerceIn(0, (illust.page_count - 1).coerceAtLeast(0))
+            val intent = if (LocalMangaViewer.isLocalManga(illust)) {
+                LocalMangaViewer.createIntent(from, illust, page)
+            } else {
                 Intent(from, ImageDetailActivity::class.java).apply {
                     putExtra("illust", illust)
                     putExtra("dataType", "二级详情")
-                    putExtra("index", page.coerceIn(0, (illust.page_count - 1).coerceAtLeast(0)))
-                },
-            )
+                    putExtra("index", page)
+                }
+            }
+            from.startActivity(intent)
         }
     }
 }

@@ -30,6 +30,7 @@
     <item type="id" name="nav_pinned_tags"/>
     <item type="id" name="nav_notifications"/>
     <item type="id" name="nav_ai_upscale"/>
+    <item type="id" name="nav_local_manga_translate"/>
     <item type="id" name="nav_local_novel"/>
     <item type="id" name="nav_network_test"/>
     <item type="id" name="nav_liquid_glass_debug"/>
