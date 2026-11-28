@@ -57,14 +57,7 @@ internal constructor(
     fun load(): AuthSession? {
         val envelope = store.decodeString(KEY_SESSION)?.takeIf { it.isNotBlank() } ?: return null
         return runCatching {
-            val parts = envelope.split(':', limit = 3)
-            require(parts.size == 3 && parts[0] == ENVELOPE_VERSION)
-            val iv = Base64.decode(parts[1], Base64.NO_WRAP or Base64.URL_SAFE)
-            val ciphertext = Base64.decode(parts[2], Base64.NO_WRAP or Base64.URL_SAFE)
-            val cipher = Cipher.getInstance(TRANSFORMATION)
-            cipher.init(Cipher.DECRYPT_MODE, getOrCreateKey(), GCMParameterSpec(128, iv))
-            val json = cipher.doFinal(ciphertext).toString(Charsets.UTF_8)
-            gson.fromJson(json, AuthSession::class.java)
+            gson.fromJson(decrypt(envelope), AuthSession::class.java)
         }
             .getOrElse {
                 AuthLog.warning(
@@ -83,11 +76,11 @@ internal constructor(
     @Throws(IOException::class)
     fun save(session: AuthSession) {
         val encoded = runCatching {
-            encrypt(session, getOrCreateKey())
+            encrypt(gson.toJson(session), getOrCreateKey())
         }
             .getOrElse {
                 deleteKey()
-                encrypt(session, getOrCreateKey())
+                encrypt(gson.toJson(session), getOrCreateKey())
             }
         if (!store.encodeString(KEY_SESSION, encoded)) {
             throw IOException("failed to persist auth session")
@@ -158,10 +151,36 @@ internal constructor(
         AuthLog.debug("durable refresh attempt cleared")
     }
 
-    private fun encrypt(session: AuthSession, key: SecretKey): String {
+    @Synchronized
+    fun loadApplicationAuthorization(): String? =
+        store.decodeString(KEY_APPLICATION_AUTHORIZATION)?.let { decrypt(it) }
+
+    @Synchronized
+    @Throws(IOException::class)
+    fun saveApplicationAuthorization(value: String?) {
+        if (value == null) {
+            store.removeValue(KEY_APPLICATION_AUTHORIZATION)
+        } else if (!store.encodeString(KEY_APPLICATION_AUTHORIZATION, encrypt(value, getOrCreateKey()))) {
+            throw IOException("failed to persist application authorization")
+        }
+        store.sync()
+    }
+
+    private fun decrypt(envelope: String): String {
+        val parts = envelope.split(':', limit = 3)
+        require(parts.size == 3 && parts[0] == ENVELOPE_VERSION)
+        val flags = Base64.NO_WRAP or Base64.URL_SAFE
+        val iv = Base64.decode(parts[1], flags)
+        val ciphertext = Base64.decode(parts[2], flags)
+        val cipher = Cipher.getInstance(TRANSFORMATION)
+        cipher.init(Cipher.DECRYPT_MODE, getOrCreateKey(), GCMParameterSpec(128, iv))
+        return cipher.doFinal(ciphertext).toString(Charsets.UTF_8)
+    }
+
+    private fun encrypt(value: String, key: SecretKey): String {
         val cipher = Cipher.getInstance(TRANSFORMATION)
         cipher.init(Cipher.ENCRYPT_MODE, key)
-        val ciphertext = cipher.doFinal(gson.toJson(session).toByteArray(Charsets.UTF_8))
+        val ciphertext = cipher.doFinal(value.toByteArray(Charsets.UTF_8))
         val flags = Base64.NO_WRAP or Base64.URL_SAFE
         return listOf(
                 ENVELOPE_VERSION,
@@ -209,6 +228,7 @@ internal constructor(
     private companion object {
         const val STORE_ID: String = "pixshaft-auth-v2"
         const val KEY_SESSION: String = "session_ciphertext"
+        const val KEY_APPLICATION_AUTHORIZATION: String = "application_authorization_ciphertext"
         const val KEY_DEVICE_ID: String = "device_id"
         const val KEY_REFRESH_ATTEMPT: String = "refresh_attempt"
         const val LEGACY_KEY_ATTEMPT_OWNER: String = "refresh_attempt_owner"

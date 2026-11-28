@@ -11,6 +11,7 @@ data class AuthSession(
     @SerializedName("refreshToken") val refreshToken: String,
     @SerializedName("refreshExpiresAt") val refreshExpiresAt: Long,
     @SerializedName("generation") val generation: Long,
+    @SerializedName("authorizationId") val authorizationId: String? = null,
 ) {
     fun isValidFor(expectedUid: Long): Boolean =
         uid > 0L && uid == expectedUid &&

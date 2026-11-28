@@ -2,6 +2,7 @@ package ceui.pixiv.ui.translate
 
 import ceui.lisa.activities.Shaft
 import ceui.pixiv.api.Client
+import ceui.pixiv.auth.DebugAppAuthorization
 import ceui.pixiv.services.appServices
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.shaftapi.PixshaftApi
@@ -50,7 +51,7 @@ object CloudTranslator : Translator {
      */
     fun isActive(): Boolean {
         if (Shaft.sSettings?.isCloudTranslateEnabled == false) return false
-        if (!ShaftHmac.isConfigured) return false
+        if (!ShaftHmac.isConfigured && DebugAppAuthorization.forUid(SessionManager.loggedInUid) == null) return false
         if (SessionManager.loggedInUid <= 0L) return false
         val context = Shaft.getContext() ?: return false
         return context.appServices().remoteAppConfig.cloudTranslateEnabled

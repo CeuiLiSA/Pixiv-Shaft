@@ -6,6 +6,8 @@ import ceui.lisa.activities.Shaft
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.shaftapi.ShaftHmac
 import ceui.pixiv.api.Client
+import ceui.pixiv.auth.DebugAppAuthorization
+import ceui.pixiv.auth.ShaftSourceAuthorization
 import ceui.pixiv.cache.ObjectPool
 import ceui.loxia.User
 import com.google.gson.Gson
@@ -111,7 +113,11 @@ class EventReporter @Inject constructor() {
 
     /** Read-only access for the "操作记录" page (or anything else that needs to query
      *  the server about THIS client's own events). Empty string before init() finishes. */
-    fun currentClientId(): String = clientId
+    fun currentClientId(): String = clientIdFor(SessionManager.loggedInUid)
+
+    private fun clientIdFor(uid: Long): String = ShaftSourceAuthorization.grantFor(uid)?.let {
+        sha256Hex("pixshaft-debug:$uid:${it.deviceId}")
+    } ?: clientId
 
     private data class EventEntry(
         val type: String,
@@ -122,6 +128,7 @@ class EventReporter @Inject constructor() {
          *  doesn't pay the Gson cost again. null = no payload (server falls
          *  back to whatever it already has in illust_meta / user_meta). */
         val payloadJson: String? = null,
+        val authorizationOwner: String? = null,
         var attempts: Int = 0,
     )
 
@@ -167,6 +174,13 @@ class EventReporter @Inject constructor() {
                     }
                 }
             }
+            if (BuildConfig.DEBUG) {
+                scope.launch {
+                    DebugAppAuthorization.changes.map { it?.id }.distinctUntilChanged().collect {
+                        if (it != null) submitUidBinding(SessionManager.loggedInUid)
+                    }
+                }
+            }
 
             // ── uid ↔ client_id binding observer ───────────────────────────
             // SessionManager.loggedInAccount 一变 → uid > 0 时静默 POST
@@ -208,7 +222,9 @@ class EventReporter @Inject constructor() {
             Timber.tag(TAG).v("drop %s/%s/%d (not initialized)", type, targetType, targetId)
             return
         }
-        if (!hmacEnabled) {
+        val uid = SessionManager.loggedInUid
+        val grant = ShaftSourceAuthorization.grantFor(uid)
+        if (!hmacEnabled && grant == null) {
             Timber.tag(TAG).v("drop %s/%s/%d (build has no HMAC secret)", type, targetType, targetId)
             return
         }
@@ -218,7 +234,7 @@ class EventReporter @Inject constructor() {
         }
         scope.launch {
             val payloadJson = serializePayload(payload, targetType, targetId)
-            enqueue(EventEntry(type, targetType, targetId, payloadJson))
+            enqueue(EventEntry(type, targetType, targetId, payloadJson, grant?.let { "$uid:${it.id}" }))
         }
     }
 
@@ -239,7 +255,9 @@ class EventReporter @Inject constructor() {
             Timber.tag(TAG).v("drop %s/%s/%d (not initialized)", type, Target.USER, userId)
             return
         }
-        if (!hmacEnabled) {
+        val uid = SessionManager.loggedInUid
+        val grant = ShaftSourceAuthorization.grantFor(uid)
+        if (!hmacEnabled && grant == null) {
             Timber.tag(TAG).v("drop %s/%s/%d (build has no HMAC secret)", type, Target.USER, userId)
             return
         }
@@ -260,7 +278,7 @@ class EventReporter @Inject constructor() {
             val payload = cached
                 ?: runCatching { Client.appApi.getUserProfile(userId).user }.getOrNull()
             val payloadJson = serializePayload(payload, Target.USER, userId)
-            enqueue(EventEntry(type, Target.USER, userId, payloadJson))
+            enqueue(EventEntry(type, Target.USER, userId, payloadJson, grant?.let { "$uid:${it.id}" }))
         }
     }
 
@@ -393,7 +411,7 @@ class EventReporter @Inject constructor() {
             Timber.tag(TAG).d("uid_binding skip: reporter not initialized (uid=%d)", uid)
             return
         }
-        if (!hmacEnabled) {
+        if (!hmacEnabled && ShaftSourceAuthorization.grantFor(uid) == null) {
             Timber.tag(TAG).d("uid_binding skip: hmac disabled (fork build) (uid=%d)", uid)
             return
         }
@@ -401,7 +419,7 @@ class EventReporter @Inject constructor() {
             Timber.tag(TAG).d("uid_binding skip: non-positive uid (uid=%d)", uid)
             return
         }
-        val cid = clientId
+        val cid = clientIdFor(uid)
         if (cid.isEmpty()) {
             Timber.tag(TAG).w("uid_binding skip: clientId empty (init failed?) (uid=%d)", uid)
             return
@@ -477,8 +495,13 @@ class EventReporter @Inject constructor() {
     }
 
     private suspend fun sendBatch(events: List<EventEntry>) {
+        val uid = SessionManager.loggedInUid
+        val grant = ShaftSourceAuthorization.grantFor(uid)
+        val owner = grant?.let { "$uid:${it.id}" }
+        val currentEvents = events.filter { it.authorizationOwner == owner }
+        if (currentEvents.isEmpty() || (!hmacEnabled && grant == null)) return
         val gson = Shaft.sGson ?: Gson()
-        val eventList = events.map { e ->
+        val eventList = currentEvents.map { e ->
             val obj = mutableMapOf<String, Any>(
                 "type" to e.type,
                 "target_type" to e.targetType,
@@ -500,7 +523,7 @@ class EventReporter @Inject constructor() {
             BuildConfig.VERSION_NAME
         }
         val payload = mapOf(
-            "client_id" to clientId,
+            "client_id" to (grant?.let { sha256Hex("pixshaft-debug:$uid:${it.deviceId}") } ?: clientId),
             "platform" to "android",
             "channel" to BuildConfig.UPDATE_CHANNEL,
             "app_version" to versionTag,
@@ -508,7 +531,7 @@ class EventReporter @Inject constructor() {
         )
         val json = gson.toJson(payload)
         val sig = ShaftHmac.signHex(json)
-        val withPayload = events.count { it.payloadJson != null }
+        val withPayload = currentEvents.count { it.payloadJson != null }
         Timber.tag(TAG).d(
             "POST batch=%d (with-payload=%d) bytes=%d sig=%s..%s",
             events.size, withPayload, json.length, sig.take(8), sig.takeLast(4),

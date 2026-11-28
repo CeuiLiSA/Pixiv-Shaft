@@ -1,5 +1,6 @@
 package ceui.pixiv.auth
 
+import ceui.lisa.BuildConfig
 import ceui.pixiv.api.ClientManager
 import ceui.pixiv.safe.auth.AuthSession
 import ceui.pixiv.shaftapi.ShaftHmac
@@ -13,13 +14,18 @@ import retrofit2.Call
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Body
+import retrofit2.http.DELETE
+import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.POST
 
 internal interface AuthApi {
 
     @POST("v1/auth/session")
-    fun createSession(@Body body: CreateSessionRequest): Call<TokenResponse>
+    fun createSession(
+        @Body body: CreateSessionRequest,
+        @Header("Authorization") activation: String? = null,
+    ): Call<TokenResponse>
 
     @POST("v1/auth/token")
     fun refreshSession(
@@ -28,7 +34,34 @@ internal interface AuthApi {
     ): Call<TokenResponse>
 
     @POST("v1/auth/logout") fun logout(@Body body: LogoutRequest): Call<Unit>
+
+    @POST("v1/auth/debug/activate")
+    suspend fun activateDebug(
+        @Header("Idempotency-Key") attemptId: String,
+        @Body body: DebugActivationRequest,
+    ): retrofit2.Response<DebugActivationResponse>
+
+    @GET("v1/auth/debug/status")
+    suspend fun debugStatus(@Header("Authorization") activation: String): retrofit2.Response<DebugActivationResponse>
+
+    @DELETE("v1/auth/debug/activation")
+    suspend fun revokeDebug(
+        @Header("Authorization") activation: String,
+    ): retrofit2.Response<Unit>
 }
+
+internal class DebugActivationRequest(
+    @SerializedName("key") val key: String,
+    @SerializedName("device_id") val deviceId: String,
+)
+
+internal class DebugActivationResponse(
+    @SerializedName("activation") val activation: String?,
+    @SerializedName("uid") val boundUid: Long?,
+    @SerializedName("expires_at") val expiresAt: Long,
+    @SerializedName("server_time") val serverTime: Long,
+    @SerializedName("state") val state: String?,
+)
 
 internal data class CreateSessionRequest(
     @SerializedName("grant_type") val grantType: String = "app_hmac",
@@ -61,11 +94,15 @@ internal data class TokenResponse(
 internal fun TokenResponse.toSession(
     expectedUid: Long,
     expectedDeviceId: String,
+    authorizationId: String? = null,
 ): AuthSession? {
     if (tokenType != "Bearer" || uid != expectedUid || uid <= 0L) return null
     if (sessionId.isBlank() || expectedDeviceId.isBlank()) return null
     if (!accessToken.startsWith("ps_at_") || !refreshToken.startsWith("ps_rt_")) return null
-    if (accessExpiresAt <= 0L || refreshExpiresAt <= accessExpiresAt || generation <= 0L)
+    val debug = authorizationId != null
+    if (debug != accessToken.startsWith("ps_at_dbg_") || debug != refreshToken.startsWith("ps_rt_dbg_")) return null
+    if (accessExpiresAt <= 0L || refreshExpiresAt < accessExpiresAt ||
+        (!debug && refreshExpiresAt == accessExpiresAt) || generation <= 0L)
         return null
     return AuthSession(
         uid = uid,
@@ -76,6 +113,7 @@ internal fun TokenResponse.toSession(
         refreshToken = refreshToken,
         refreshExpiresAt = refreshExpiresAt,
         generation = generation,
+        authorizationId = authorizationId,
     )
 }
 
@@ -98,6 +136,7 @@ internal object AuthNetwork {
                 .retryOnConnectionFailure(true)
                 .protocols(listOf(Protocol.HTTP_2, Protocol.HTTP_1_1))
                 .authenticator(Authenticator.NONE)
+                .followRedirects(!BuildConfig.DEBUG)
                 // Bootstrap is authenticated with the existing native app secret.
                 // Pixiv OAuth credentials never enter this first-party client.
                 .addInterceptor { chain ->
@@ -106,6 +145,7 @@ internal object AuthNetwork {
                     if (
                         !request.url.encodedPath.endsWith("/v1/auth/session") ||
                             body == null ||
+                            request.header("Authorization") != null ||
                             !ShaftHmac.isConfigured
                     ) {
                         chain.proceed(request)

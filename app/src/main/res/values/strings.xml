@@ -1,4 +1,4 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">Shaft</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
@@ -3167,6 +3167,23 @@
     <string name="image_host_custom_hint">https://你的反代域名</string>
     <string name="image_host_custom_empty">反代地址不能为空</string>
     <string name="image_host_restart_hint">重启 App 后生效</string>
+    <!-- 调试包授权提供中英文，其他语言使用默认文案。 -->
+    <string name="app_authorization_title" tools:ignore="MissingTranslation">PixShaft API 调试包授权</string>
+    <string name="app_authorization_key" tools:ignore="MissingTranslation">粘贴应用授权密钥</string>
+    <string name="app_authorization_apply" tools:ignore="MissingTranslation">应用密钥</string>
+    <string name="app_authorization_replace" tools:ignore="MissingTranslation">更换密钥</string>
+    <string name="app_authorization_clear" tools:ignore="MissingTranslation">清除授权</string>
+    <string name="app_authorization_none" tools:ignore="MissingTranslation">未授权</string>
+    <string name="app_authorization_active" tools:ignore="MissingTranslation">有效</string>
+    <string name="app_authorization_expired" tools:ignore="MissingTranslation">已过期</string>
+    <string name="app_authorization_revoked" tools:ignore="MissingTranslation">已撤销</string>
+    <string name="app_authorization_unconfirmed" tools:ignore="MissingTranslation">暂无法确认状态</string>
+    <string name="app_authorization_status_deadline" tools:ignore="MissingTranslation">%1$s · 到期 %2$s</string>
+    <string name="app_authorization_status_checked" tools:ignore="MissingTranslation">%1$s · 上次确认 %2$s</string>
+    <string name="app_authorization_wrong_account" tools:ignore="MissingTranslation">此密钥对应另一个账号</string>
+    <string name="app_authorization_invalid_key" tools:ignore="MissingTranslation">密钥无效或已使用</string>
+    <string name="app_authorization_request_failed" tools:ignore="MissingTranslation">无法更新应用授权，请稍后重试</string>
+
     <!-- App API 代理（PxveAPI 风格）：独立输入选项，地址非空即启用，与直连共存 -->
     <string name="app_api_proxy_title">使用 PxveAPI 代理</string>
     <string name="app_api_proxy_summary">代理大部分的 app-api 与 oauth 登录，空时不代理</string>

@@ -2882,6 +2882,23 @@
     <string name="image_host_custom_hint">https://your.proxy</string>
     <string name="image_host_custom_empty">Proxy URL cannot be empty</string>
     <string name="image_host_restart_hint">Restart the app to apply</string>
+    <!-- Debug build authorization -->
+    <string name="app_authorization_title">PixShaft API Debug Build Authorization</string>
+    <string name="app_authorization_key">Paste your app authorization key</string>
+    <string name="app_authorization_apply">Apply key</string>
+    <string name="app_authorization_replace">Replace key</string>
+    <string name="app_authorization_clear">Clear authorization</string>
+    <string name="app_authorization_none">Unauthorized</string>
+    <string name="app_authorization_active">Active</string>
+    <string name="app_authorization_expired">Expired</string>
+    <string name="app_authorization_revoked">Revoked</string>
+    <string name="app_authorization_unconfirmed">Status unavailable</string>
+    <string name="app_authorization_status_deadline">%1$s · Expires %2$s</string>
+    <string name="app_authorization_status_checked">%1$s · Last checked %2$s</string>
+    <string name="app_authorization_wrong_account">This key belongs to another account</string>
+    <string name="app_authorization_invalid_key">The key is invalid or has already been used</string>
+    <string name="app_authorization_request_failed">Unable to update app authorization. Try again later.</string>
+
     <!-- App API 代理（PxveAPI 风格） -->
     <string name="app_api_proxy_title">Use PxveAPI proxy</string>
     <string name="app_api_proxy_summary">Proxies most app-api and OAuth login requests; empty means no proxy</string>

@@ -91,6 +91,19 @@ class TokenAuthenticatorTest {
     }
 
     @Test
+    fun `late revocation of the replaced session keeps the new session`() {
+        val provider = FakeProvider(current = "new")
+        val response = unauthorized(
+            request("https://pixshaft.com/v1/account/translate", "old"),
+            "session_revoked",
+            false,
+        )
+
+        assertNull(TokenAuthenticator(provider).authenticate(null, response))
+        assertEquals(0, provider.clearCalls)
+    }
+
+    @Test
     fun `missing session can bootstrap after auth-required 401`() {
         val provider = FakeProvider(current = null, bootstrap = "first")
         val response =

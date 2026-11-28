@@ -1,6 +1,6 @@
 package ceui.lisa.network
 
-import ceui.lisa.BuildConfig
+import ceui.pixiv.auth.ShaftSourceAuthorization
 import java.util.concurrent.TimeUnit
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
@@ -13,10 +13,7 @@ object ShaftApiV2Client {
     // the SHAFT_EVENTS_BASE_URL gradle property so custom builds pointing at a
     // private server work without two separate overrides.
     @JvmField
-    val BASE_URL: String = run {
-        val raw = BuildConfig.SHAFT_EVENTS_BASE_URL
-        if (raw.endsWith('/')) raw else "$raw/"
-    }
+    val BASE_URL: String = ShaftSourceAuthorization.baseUrl
 
     private val httpClient: OkHttpClient =
         OkHttpClient.Builder()

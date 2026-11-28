@@ -2,12 +2,15 @@ package ceui.pixiv.chat.api
 
 import android.content.Context
 import ceui.lisa.BuildConfig
+import ceui.pixiv.auth.AuthSessionManager
+import ceui.pixiv.auth.ShaftSourceAuthorization
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.websocket.ExponentialBackoffWithJitter
 import ceui.pixiv.websocket.AppNetworkMonitor
 import ceui.pixiv.websocket.NetworkMonitor
 import ceui.pixiv.websocket.RobustWebSocketClient
 import ceui.pixiv.websocket.WebSocketClient
+import ceui.pixiv.websocket.WebSocketAuthProvider
 import ceui.pixiv.websocket.WebSocketConfig
 import okhttp3.OkHttpClient
 import java.util.concurrent.TimeUnit
@@ -37,7 +40,25 @@ object ShaftChatWsClient {
      * lifecycle invariant the gateway exists to enforce.
      */
     fun create(context: Context): WebSocketClient {
-        val authProvider = ShaftHmacAuthProvider(
+        val uid = SessionManager.loggedInUid
+        val debug = ShaftSourceAuthorization.grantFor(uid) != null
+        val base = if (debug) ShaftSourceAuthorization.baseUrl else BuildConfig.SHAFT_EVENTS_BASE_URL
+        val placeholderUrl = ShaftHmacAuthProvider.deriveWsBase(base) + "/api/v1/chat/ws"
+        val authProvider = if (debug) object : WebSocketAuthProvider {
+            override fun headers(): Map<String, String> {
+                check(SessionManager.loggedInUid == uid && ShaftSourceAuthorization.grantFor(uid) != null)
+                val token = AuthSessionManager.accessTokenForSourceSocket()
+                    ?: throw IllegalStateException("Shaft session unavailable")
+                return mapOf("Authorization" to "Bearer $token")
+            }
+
+            override fun dynamicUrl(): String = "$placeholderUrl?uid=$uid&v=${BuildConfig.VERSION_CODE}"
+
+            override fun onAuthFailure(failedHeaders: Map<String, String>): Boolean {
+                val stale = failedHeaders["Authorization"]?.removePrefix("Bearer ") ?: return false
+                return AuthSessionManager.refreshAfter401(stale) != null
+            }
+        } else ShaftHmacAuthProvider(
             baseHttpUrl = BuildConfig.SHAFT_EVENTS_BASE_URL,
             // Pixiv login uid identifies the WS — handshake sig is over
             // `${uid}|${ts}`. Server `UID_DECIMAL_RE` requires uid > 0; if
@@ -51,16 +72,13 @@ object ShaftChatWsClient {
             appVersionCode = BuildConfig.VERSION_CODE,
         )
 
-        val placeholderUrl = ShaftHmacAuthProvider.deriveWsBase(
-            BuildConfig.SHAFT_EVENTS_BASE_URL
-        ) + "/api/v1/chat/ws"
-
         val okHttpBuilder = OkHttpClient.Builder()
             .connectTimeout(10, TimeUnit.SECONDS)
             // readTimeout is enforced inside RobustWebSocketClient (set to 0
             // there). writeTimeout is fine to set on the base client.
             .writeTimeout(10, TimeUnit.SECONDS)
             .retryOnConnectionFailure(true)
+            .followRedirects(!debug)
         val okHttp = okHttpBuilder.build()
 
         val config = WebSocketConfig(
@@ -76,7 +94,7 @@ object ShaftChatWsClient {
             // 401 from this server is fatal (bad_sig / bad_ts / ts_skew / bad_client_id
             // all unfixable by retry with same credentials). ShaftHmacAuthProvider.onAuthFailure
             // already returns false; this just keeps the budget tight for safety.
-            maxAuthRefreshAttempts = 0,
+            maxAuthRefreshAttempts = if (debug) 1 else 0,
             // Dump every WS frame body to logcat on tag "WS" (debug only).
             // Combined with WsChatMessageStream's INFO-level frame summaries
             // this gives full visibility into what crosses the wire.

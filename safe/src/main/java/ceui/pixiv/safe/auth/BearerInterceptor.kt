@@ -1,9 +1,10 @@
 package ceui.pixiv.safe.auth
 
 import okhttp3.Interceptor
+import okhttp3.HttpUrl
 import okhttp3.Response
 
-internal object AuthRoutes {
+object AuthRoutes {
     fun requiresSession(path: String): Boolean =
         path.contains("/v1/account/") ||
             path.startsWith("/v1/media/") ||
@@ -17,11 +18,14 @@ internal object AuthRoutes {
 }
 
 /** Adds the current token; all 401 recovery belongs to [TokenAuthenticator]. */
-class BearerInterceptor(private val sessions: SessionProvider) : Interceptor {
+class BearerInterceptor(
+    private val sessions: SessionProvider,
+    private val needsSession: (HttpUrl) -> Boolean = { AuthRoutes.requiresSession(it.encodedPath) },
+) : Interceptor {
 
     override fun intercept(chain: Interceptor.Chain): Response {
         val request = chain.request()
-        if (!AuthRoutes.requiresSession(request.url.encodedPath)) {
+        if (!needsSession(request.url)) {
             return chain.proceed(request)
         }
         val path = request.url.encodedPath
