@@ -60,17 +60,27 @@ class AccountOnlineReportOutbox internal constructor(
 
     // Field names are part of the on-disk JSON schema and must survive release minification.
     @Keep
-    private data class PersistedOperation(
+    internal data class PersistedOperation(
         val id: String,
         val type: String,
         val uid: Long,
         val account: AccountResponse? = null,
-        val source: String? = null,
+        val ownerReport: Boolean = false,
         val refreshTokenHash: String? = null,
         val attempts: Int = 0,
         val nextAttemptAt: Long = 0L,
         val appVersionCode: Int = BuildConfig.VERSION_CODE,
-    )
+    ) {
+        // A queued owner report can be sent after a change of build channel.
+        fun onlineRequest(premiumAgeMs: Long?): BindOnlineReq? = account?.let {
+            BindOnlineReq(
+                uid = uid,
+                account = it,
+                premiumAgeMs = premiumAgeMs,
+                source = if (ownerReport) ShaftBorrowSource.current.id else null,
+            )
+        }
+    }
 
     private enum class AttemptResult { DELIVERED, DEFERRED, MISSING }
 
@@ -117,7 +127,7 @@ class AccountOnlineReportOutbox internal constructor(
             return
         }
         scope.launch {
-            val operation = onlineOperation(uid, account, source = ShaftBorrowSource.current.id)
+            val operation = onlineOperation(uid, account, ownerReport = true)
             if (!persist(operation, clearInvalidation = true)) {
                 Timber.tag(TAG).e("online report persistence failed uid=%d", uid)
             }
@@ -158,12 +168,12 @@ class AccountOnlineReportOutbox internal constructor(
         return persist(operation, clearInvalidation = false)
     }
 
-    private fun onlineOperation(uid: Long, account: AccountResponse, source: String? = null) = PersistedOperation(
+    private fun onlineOperation(uid: Long, account: AccountResponse, ownerReport: Boolean = false) = PersistedOperation(
         id = UUID.randomUUID().toString(),
         type = TYPE_ONLINE,
         uid = uid,
         account = account,
-        source = source,
+        ownerReport = ownerReport,
     )
 
     private suspend fun persist(
@@ -274,20 +284,13 @@ class AccountOnlineReportOutbox internal constructor(
         try {
             when (operation.type) {
                 TYPE_ONLINE -> {
-                    val account = operation.account
-                        ?: throw PermanentReportException("missing AccountResponse")
                     // 会员年龄在**发送这一刻**取：这个队列可以离线堆着，攒了半小时才发出去时
                     // 「多久以前看到的」也确实是半小时。按 uid 查而不是「拿当前登录账号的」——
                     // 借来的号也走这个队列，[SessionManager.premiumAgeMs] 对它返回 null，
                     // 于是别人的号不会被借号方经自己代理刷出来的会员状态作证。
-                    val ack = Client.pixshaft.bindOnline(
-                        BindOnlineReq(
-                            uid = operation.uid,
-                            account = account,
-                            premiumAgeMs = SessionManager.premiumAgeMs(operation.uid),
-                            source = operation.source,
-                        )
-                    )
+                    val request = operation.onlineRequest(SessionManager.premiumAgeMs(operation.uid))
+                        ?: throw PermanentReportException("missing AccountResponse")
+                    val ack = Client.pixshaft.bindOnline(request)
                     if (!ack.ok || ack.uid != operation.uid) {
                         throw PermanentReportException("online report rejected")
                     }

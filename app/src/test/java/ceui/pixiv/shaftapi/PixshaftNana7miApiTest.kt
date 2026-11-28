@@ -1,6 +1,12 @@
 package ceui.pixiv.shaftapi
 
+import ceui.lisa.BuildConfig
+import ceui.loxia.User
+import ceui.pixiv.actions.AccountOnlineReportOutbox.PersistedOperation
+import ceui.pixiv.api.model.AccountResponse
+import ceui.pixiv.nana7mi.host.ShaftBorrowSource
 import com.google.gson.Gson
+import com.google.gson.JsonObject
 import kotlinx.coroutines.runBlocking
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
@@ -33,6 +39,42 @@ class PixshaftNana7miApiTest {
     @After
     fun tearDown() {
         server.shutdown()
+    }
+
+    @Test
+    fun `online outbox sends the current build source only for owner reports`() = runBlocking {
+        val account = AccountResponse(
+            access_token = "access-102",
+            refresh_token = "refresh-102",
+            user = User(id = 102L),
+        )
+        val buildSource = ShaftBorrowSource.current.id
+        assertEquals("shaft-${BuildConfig.UPDATE_CHANNEL}-${BuildConfig.BUILD_TYPE}", buildSource)
+        val gson = Gson()
+        val borrowed = PersistedOperation(id = "test-id", type = "online", uid = 102L, account = account)
+        val owner = borrowed.copy(ownerReport = true)
+        val legacy = gson.toJsonTree(borrowed).asJsonObject.apply { remove("ownerReport") }.toString()
+        val cases = listOf(
+            gson.toJson(owner) to buildSource,
+            gson.toJson(borrowed) to null,
+            legacy to null,
+        )
+
+        for ((stored, source) in cases) {
+            val operation = gson.fromJson(stored, PersistedOperation::class.java)
+            server.enqueue(MockResponse().setBody("""{"ok":true,"uid":102}"""))
+            val ack = api.bindOnline(requireNotNull(operation.onlineRequest(premiumAgeMs = null)))
+            assertEquals(BindOnlineAck(ok = true, uid = 102L), ack)
+
+            val request = server.takeRequest()
+            assertEquals("/v1/account/online", request.path)
+            assertEquals("POST", request.method)
+            val body = gson.fromJson(request.body.readUtf8(), JsonObject::class.java)
+            assertEquals(102L, body.get("uid").asLong)
+            assertEquals(102L, body.getAsJsonObject("account").getAsJsonObject("user").get("id").asLong)
+            assertEquals(source != null, body.has("source"))
+            assertEquals(source, body.get("source")?.asString)
+        }
     }
 
     @Test
